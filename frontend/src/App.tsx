@@ -5,6 +5,8 @@ import './App.css'
 import Home from "./home";
 import { Routes, Route } from "react-router-dom";
 import SudokuGame from './games/sudoku';
+import HangmanGame from './games/hangman';
+
 
 
 function App() {
@@ -14,6 +16,7 @@ function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/sudoku" element={<SudokuGame />} />
+      <Route path="/hangman" element={<HangmanGame />} />
     </Routes>
     // <>
     //   <div>

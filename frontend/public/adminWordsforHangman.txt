@@ -1,0 +1,9 @@
+# Admin can add words here and it will be prioritized by the puzzle.
+# Remove everything to generate a random puzzle.
+
+# Easy words (4-6 letters)
+TESTER
+
+
+# Hard words (8-10 letters)
+JAVASCRIPT
