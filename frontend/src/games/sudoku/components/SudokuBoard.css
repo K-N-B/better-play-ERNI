@@ -1,0 +1,22 @@
+.sudoku-board {
+  display: inline-block;
+  border: 2px solid #2c3e50;
+  background-color: #2c3e50;
+  padding: 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.sudoku-row {
+  display: flex;
+  height: 50px;
+}
+
+.sudoku-row:nth-child(3),
+.sudoku-row:nth-child(6) {
+  border-bottom: 3px solid #2c3e50;
+}
+
+.sudoku-cell:nth-child(3),
+.sudoku-cell:nth-child(6) {
+  border-right: 3px solid #2c3e50;
+}

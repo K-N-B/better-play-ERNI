@@ -3,14 +3,18 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 import Home from "./home";
+import { Routes, Route } from "react-router-dom";
+import SudokuGame from './games/sudoku';
+
 
 function App() {
   // const [count, setCount] = useState(0)
 
   return (
-    <div>
-      <Home />
-    </div>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/sudoku" element={<SudokuGame />} />
+    </Routes>
     // <>
     //   <div>
     //     <a href="https://vite.dev" target="_blank">

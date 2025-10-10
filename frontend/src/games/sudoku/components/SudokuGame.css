@@ -1,0 +1,327 @@
+.sudoku-game {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 30px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.game-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.game-header h1 {
+  color: #2c3e50;
+  margin: 0 0 10px 0;
+  font-size: 2.5em;
+}
+
+.game-stats {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin: 10px 0;
+  flex-wrap: wrap;
+}
+
+.timer {
+  font-size: 1.5em;
+  color: #3498db;
+  font-weight: bold;
+}
+
+.points {
+  font-size: 1.5em;
+  color: #2ecc71;
+  font-weight: bold;
+}
+
+.player-info {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 20px;
+  border-left: 4px solid #3498db;
+}
+
+.player-info h3 {
+  margin: 0 0 10px 0;
+  color: #2c3e50;
+}
+
+.accumulated-points {
+  font-size: 1.3em;
+  color: #2ecc71;
+  font-weight: bold;
+  margin: 0;
+}
+
+.player-info-inline {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin: 10px 0;
+  flex-wrap: wrap;
+  font-size: 1.1em;
+  color: #2c3e50;
+}
+
+.player-info-inline .total-points {
+  color: #2ecc71;
+}
+
+.game-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.difficulty-selection {
+  text-align: center;
+  margin: 40px 0;
+}
+
+.difficulty-selection h2 {
+  color: #2c3e50;
+  margin-bottom: 30px;
+  font-size: 2em;
+}
+
+.difficulty-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.btn-difficulty {
+  padding: 20px 50px;
+  border: none;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  min-width: 150px;
+}
+
+.btn-difficulty:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.btn-difficulty.completed {
+  background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+  opacity: 0.7;
+  position: relative;
+}
+
+.completed-badge {
+  display: block;
+  font-size: 0.8em;
+  margin-top: 5px;
+}
+
+.difficulty-info {
+  font-size: 1.1em;
+  color: #2c3e50;
+}
+
+.difficulty-info strong {
+  color: #3498db;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+}
+
+.btn-primary {
+  background-color: #3498db;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-secondary {
+  background-color: #95a5a6;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #7f8c8d;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-hint {
+  background-color: #f39c12;
+  color: white;
+}
+
+.btn-hint:hover:not(:disabled) {
+  background-color: #e67e22;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-solve {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.btn-solve:hover:not(:disabled) {
+  background-color: #c0392b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.win-message {
+  background-color: #2ecc71;
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1.3em;
+  font-weight: bold;
+  margin-bottom: 20px;
+  animation: slideDown 0.5s ease;
+}
+
+.points-earned {
+  font-size: 0.9em;
+  margin-top: 10px;
+  color: #fff;
+}
+
+.points-forfeited {
+  font-size: 0.9em;
+  margin-top: 10px;
+  color: #ffebee;
+  font-style: italic;
+}
+
+.solved-message {
+  background-color: #95a5a6;
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1.3em;
+  font-weight: bold;
+  margin-bottom: 20px;
+  animation: slideDown 0.5s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sudoku-board {
+  margin: 20px auto;
+  display: block;
+}
+
+.game-instructions {
+  margin-top: 30px;
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 4px solid #3498db;
+}
+
+.game-instructions h3 {
+  color: #2c3e50;
+  margin-top: 0;
+}
+
+.game-instructions ul {
+  line-height: 1.8;
+  color: #555;
+}
+
+.game-instructions li {
+  margin-bottom: 8px;
+}
+
+.loading {
+  text-align: center;
+  font-size: 1.5em;
+  color: #3498db;
+  padding: 50px;
+}
+
+.error-message {
+  background-color: #e74c3c;
+  color: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1.2em;
+  margin-bottom: 20px;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+@media (max-width: 600px) {
+  .sudoku-cell {
+    width: 35px;
+    height: 35px;
+    font-size: 16px;
+  }
+
+  .game-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .button-group {
+    justify-content: center;
+  }
+
+  .game-header h1 {
+    font-size: 2em;
+  }
+}

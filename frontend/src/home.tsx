@@ -4,11 +4,12 @@ import { useState } from 'react'
 import { Dialog, DialogPanel } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import logo from "./assets/logo.png";
+import { Link } from 'react-router-dom';
 
 const navigation = [
-  { name: 'Home', href: '#' },
+  { name: 'Home', href: '/' },
   { name: 'Leaderboards', href: '#' },
-  { name: 'Sudoku', href: '#' },
+  { name: 'Sudoku', href: '/sudoku' },
   { name: 'Wordle', href: '#' },
   { name: 'Hangman', href: '#' },
   { name: 'Crossword', href: '#' },
