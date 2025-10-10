@@ -3,12 +3,16 @@
 import { useState } from 'react'
 import { Dialog, DialogPanel } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
+import logo from "./assets/logo.png";
 
 const navigation = [
-  { name: 'Product', href: '#' },
-  { name: 'Features', href: '#' },
-  { name: 'Marketplace', href: '#' },
-  { name: 'Company', href: '#' },
+  { name: 'Home', href: '#' },
+  { name: 'Leaderboards', href: '#' },
+  { name: 'Sudoku', href: '#' },
+  { name: 'Wordle', href: '#' },
+  { name: 'Hangman', href: '#' },
+  { name: 'Crossword', href: '#' },
+  { name: 'Connections', href: '#' },
 ]
 
 export default function Example() {
@@ -21,11 +25,7 @@ export default function Example() {
           <div className="flex lg:flex-1">
             <a href="#" className="-m-1.5 p-1.5">
               <span className="sr-only">Your Company</span>
-              <img
-                alt=""
-                src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
-                className="h-8 w-auto"
-              />
+              <img src={logo} alt="ERNI Puzzle Logo" style={{ width: '47px', height: '50px' }}/>
             </a>
           </div>
           <div className="flex lg:hidden">
