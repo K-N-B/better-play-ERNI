@@ -1,0 +1,333 @@
+.sudoku-game {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 32px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 18px;
+  border: 1px solid var(--erni-blue-light);
+  box-shadow: 0 24px 48px rgba(8, 37, 90, 0.16);
+  color: var(--erni-gray);
+}
+
+.game-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.game-header h1 {
+  color: var(--erni-blue);
+  margin: 0 0 10px 0;
+  font-size: 2.5em;
+}
+
+.game-stats {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin: 10px 0;
+  flex-wrap: wrap;
+}
+
+.timer {
+  font-size: 1.5em;
+  color: var(--erni-blue-light);
+  font-weight: bold;
+}
+
+.points {
+  font-size: 1.5em;
+  color: var(--erni-blue);
+  font-weight: bold;
+}
+
+.player-info {
+  background-color: var(--erni-blue-soft);
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 20px;
+  border-left: 4px solid var(--erni-blue);
+}
+
+.player-info h3 {
+  margin: 0 0 10px 0;
+  color: var(--erni-blue);
+}
+
+.accumulated-points {
+  font-size: 1.3em;
+  color: var(--erni-blue-light);
+  font-weight: bold;
+  margin: 0;
+}
+
+.player-info-inline {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin: 10px 0;
+  flex-wrap: wrap;
+  font-size: 1.1em;
+  color: var(--erni-gray);
+}
+
+.player-info-inline .total-points {
+  color: var(--erni-blue-light);
+}
+
+.game-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.difficulty-selection {
+  text-align: center;
+  margin: 40px 0;
+}
+
+.difficulty-selection h2 {
+  color: var(--erni-blue);
+  margin-bottom: 30px;
+  font-size: 2em;
+}
+
+.difficulty-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.btn-difficulty {
+  padding: 20px 50px;
+  border: none;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, var(--erni-blue) 0%, var(--erni-blue-light) 100%);
+  color: #fff;
+  min-width: 150px;
+  letter-spacing: 0.05em;
+}
+
+.btn-difficulty:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(13, 60, 138, 0.25);
+}
+
+.btn-difficulty.completed {
+  background: linear-gradient(135deg, var(--erni-gray-light) 0%, var(--erni-gray) 100%);
+  opacity: 0.7;
+  position: relative;
+}
+
+.completed-badge {
+  display: block;
+  font-size: 0.8em;
+  margin-top: 5px;
+}
+
+.difficulty-info {
+  font-size: 1.1em;
+  color: var(--erni-gray);
+}
+
+.difficulty-info strong {
+  color: var(--erni-blue);
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.btn-primary {
+  background-color: var(--erni-blue);
+  color: #fff;
+  box-shadow: 0 6px 12px rgba(13, 60, 138, 0.2);
+}
+
+.btn-primary:hover {
+  background-color: var(--erni-blue-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 20px rgba(8, 37, 90, 0.24);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  border: 1px solid var(--erni-blue);
+  color: var(--erni-blue);
+}
+
+.btn-secondary:hover {
+  background-color: rgba(13, 60, 138, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(13, 60, 138, 0.15);
+}
+
+.btn-hint {
+  background-color: var(--erni-blue-light);
+  color: #fff;
+}
+
+.btn-hint:hover:not(:disabled) {
+  background-color: var(--erni-blue);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 20px rgba(8, 37, 90, 0.24);
+}
+
+.btn-solve {
+  background-color: var(--erni-gray);
+  color: #fff;
+}
+
+.btn-solve:hover:not(:disabled) {
+  background-color: #555a5c;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(85, 90, 92, 0.22);
+}
+
+.win-message {
+  background-color: var(--erni-blue);
+  color: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1.3em;
+  font-weight: bold;
+  margin-bottom: 20px;
+  animation: slideDown 0.5s ease;
+}
+
+.points-earned {
+  font-size: 0.9em;
+  margin-top: 10px;
+  color: var(--erni-blue-soft);
+}
+
+.points-forfeited {
+  font-size: 0.9em;
+  margin-top: 10px;
+  color: #f0f3fb;
+  font-style: italic;
+}
+
+.solved-message {
+  background-color: var(--erni-gray);
+  color: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1.3em;
+  font-weight: bold;
+  margin-bottom: 20px;
+  animation: slideDown 0.5s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sudoku-board {
+  margin: 20px auto;
+  display: block;
+}
+
+.game-instructions {
+  margin-top: 30px;
+  background-color: var(--erni-blue-soft);
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 4px solid var(--erni-blue);
+}
+
+.game-instructions h3 {
+  color: var(--erni-blue);
+  margin-top: 0;
+}
+
+.game-instructions ul {
+  line-height: 1.8;
+  color: var(--erni-gray);
+}
+
+.game-instructions li {
+  margin-bottom: 8px;
+}
+
+.loading {
+  text-align: center;
+  font-size: 1.5em;
+  color: var(--erni-blue);
+  padding: 50px;
+}
+
+.error-message {
+  background-color: #e74c3c;
+  color: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1.2em;
+  margin-bottom: 20px;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+@media (max-width: 600px) {
+  .sudoku-cell {
+    width: 35px;
+    height: 35px;
+    font-size: 16px;
+  }
+
+  .game-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .button-group {
+    justify-content: center;
+  }
+
+  .game-header h1 {
+    font-size: 2em;
+  }
+}

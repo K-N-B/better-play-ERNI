@@ -1,0 +1,23 @@
+:root {
+  --erni-blue: #0d3c8a;
+  --erni-blue-dark: #08255a;
+  --erni-blue-light: #1f4fab;
+  --erni-blue-soft: #f4f6fb;
+  --erni-gray: #6d6e71;
+  --erni-gray-light: #eef1f5;
+  --erni-accent: #d9e2f6;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
