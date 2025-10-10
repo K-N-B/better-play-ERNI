@@ -1,0 +1,377 @@
+import React, { useState, useEffect } from 'react';
+import './Hangman.css';
+
+const WORDS = [
+  'JAVASCRIPT',
+  'REACT',
+  'PROGRAMMING',
+  'DEVELOPER',
+  'COMPUTER',
+  'ALGORITHM',
+  'FUNCTION',
+  'VARIABLE',
+  'COMPONENT',
+  'DATABASE',
+  'INTERFACE',
+  'KEYBOARD',
+  'PYTHON',
+  'HANGMAN',
+  'CHALLENGE'
+];
+
+const MAX_WRONG = 6;
+
+const Hangman = () => {
+  const [difficulty, setDifficulty] = useState(null); // null, 'easy', 'hard'
+  const [word, setWord] = useState('');
+  const [guessedLetters, setGuessedLetters] = useState([]);
+  const [wrongGuesses, setWrongGuesses] = useState(0);
+  const [gameStatus, setGameStatus] = useState('playing'); // playing, won, lost, solved
+  const [isLoading, setIsLoading] = useState(false);
+  const [score, setScore] = useState(0);
+  const [player] = useState({ name: 'John Doe' });
+  const [totalPoints, setTotalPoints] = useState(0);
+  const [hintUsed, setHintUsed] = useState(false);
+
+  useEffect(() => {
+    if (word && guessedLetters.length > 0) {
+      checkGameStatus();
+    }
+  }, [guessedLetters, wrongGuesses]);
+
+  const fetchAdminWords = async () => {
+    try {
+      const response = await fetch('/adminWordsforHangman.txt');
+      if (!response.ok) {
+        console.log('Admin words file not found or not accessible');
+        return [];
+      }
+      const text = await response.text();
+      // Split by newlines and filter out empty lines and comments
+      const words = text.split('\n')
+        .map(word => word.trim())
+        .filter(word => word.length > 0 && !word.startsWith('#'))
+        .map(word => word.toUpperCase());
+      console.log('Admin words loaded:', words);
+      return words;
+    } catch (error) {
+      console.log('No admin words file found or error reading it:', error);
+      return [];
+    }
+  };
+
+  const fetchRandomWord = async (selectedDifficulty) => {
+    setIsLoading(true);
+    try {
+      // Priority 1: Try to get admin words
+      const adminWords = await fetchAdminWords();
+
+      if (adminWords.length > 0) {
+        // Filter admin words by difficulty
+        const filteredAdminWords = selectedDifficulty === 'easy'
+          ? adminWords.filter(w => w.length >= 4 && w.length <= 6)
+          : adminWords.filter(w => w.length >= 8 && w.length <= 10);
+
+        console.log(`Filtered admin words for ${selectedDifficulty}:`, filteredAdminWords);
+
+        if (filteredAdminWords.length > 0) {
+          const randomWord = filteredAdminWords[Math.floor(Math.random() * filteredAdminWords.length)];
+          console.log('Using admin word:', randomWord);
+          setWord(randomWord);
+          setIsLoading(false);
+          return;
+        } else {
+          console.log(`No admin words match ${selectedDifficulty} difficulty criteria`);
+        }
+      }
+
+      // Priority 2: Try to fetch from API
+      const response = await fetch('https://random-word-api.herokuapp.com/word?number=100');
+      const words = await response.json();
+
+      // Filter by difficulty
+      let filteredWords;
+      if (selectedDifficulty === 'easy') {
+        filteredWords = words.filter(w => w.length >= 4 && w.length <= 6);
+      } else {
+        filteredWords = words.filter(w => w.length >= 8 && w.length <= 10);
+      }
+
+      // If no words match criteria, use fallback
+      if (filteredWords.length === 0) {
+        filteredWords = selectedDifficulty === 'easy'
+          ? WORDS.filter(w => w.length >= 4 && w.length <= 6)
+          : WORDS.filter(w => w.length >= 8 && w.length <= 10);
+      }
+
+      const randomWord = filteredWords[Math.floor(Math.random() * filteredWords.length)];
+      setWord(randomWord.toUpperCase());
+    } catch (error) {
+      console.error('Error fetching word:', error);
+      // Priority 3: Fallback to local words
+      const fallbackWords = selectedDifficulty === 'easy'
+        ? WORDS.filter(w => w.length >= 4 && w.length <= 6)
+        : WORDS.filter(w => w.length >= 8 && w.length <= 10);
+      const randomWord = fallbackWords[Math.floor(Math.random() * fallbackWords.length)];
+      setWord(randomWord);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const startGame = async (selectedDifficulty) => {
+    setDifficulty(selectedDifficulty);
+    setGuessedLetters([]);
+    setWrongGuesses(0);
+    setGameStatus('playing');
+    setHintUsed(false);
+    // Set initial score based on difficulty
+    setScore(selectedDifficulty === 'easy' ? 100 : 200);
+    await fetchRandomWord(selectedDifficulty);
+  };
+
+  const resetGame = () => {
+    setDifficulty(null);
+    setWord('');
+    setGuessedLetters([]);
+    setWrongGuesses(0);
+    setGameStatus('playing');
+    setScore(0);
+  };
+
+  const checkGameStatus = () => {
+    // Don't check status if game was already solved via button
+    if (gameStatus === 'solved') {
+      return;
+    }
+
+    // Check if won
+    const wordLetters = word.split('');
+    const hasWon = wordLetters.every(letter => guessedLetters.includes(letter));
+
+    if (hasWon) {
+      setGameStatus('won');
+      // Add current score to total points when player wins
+      setTotalPoints(prevTotal => prevTotal + score);
+      return;
+    }
+
+    // Check if lost
+    if (wrongGuesses >= MAX_WRONG) {
+      setGameStatus('lost');
+      // No points added to total when player loses
+    }
+  };
+
+  const handleGuess = (letter) => {
+    if (gameStatus !== 'playing' || guessedLetters.includes(letter)) {
+      return;
+    }
+
+    const newGuessedLetters = [...guessedLetters, letter];
+    setGuessedLetters(newGuessedLetters);
+
+    if (!word.includes(letter)) {
+      setWrongGuesses(wrongGuesses + 1);
+      // Deduct points based on difficulty
+      const pointsToDeduct = difficulty === 'easy' ? 10 : 20;
+      setScore(Math.max(0, score - pointsToDeduct));
+    }
+  };
+
+  const solvePuzzle = () => {
+    setGameStatus('solved');
+    // Reveal all letters
+    setGuessedLetters(word.split(''));
+    // No points awarded when solving
+  };
+
+  const useHint = () => {
+    if (hintUsed || gameStatus !== 'playing') {
+      return;
+    }
+
+    // Get unguessed letters from the word
+    const unguessedLetters = word.split('').filter(letter => !guessedLetters.includes(letter));
+
+    if (unguessedLetters.length > 0) {
+      // Pick a random unguessed letter
+      const randomLetter = unguessedLetters[Math.floor(Math.random() * unguessedLetters.length)];
+      setGuessedLetters([...guessedLetters, randomLetter]);
+
+      // Deduct points based on difficulty
+      const pointsToDeduct = difficulty === 'easy' ? 20 : 40;
+      setScore(Math.max(0, score - pointsToDeduct));
+
+      setHintUsed(true);
+    }
+  };
+
+  const renderWord = () => {
+    return word.split('').map((letter, idx) => (
+      <span key={idx} className="letter-box">
+        {guessedLetters.includes(letter) ? letter : '_'}
+      </span>
+    ));
+  };
+
+  const renderKeyboard = () => {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+    return (
+      <div className="keyboard">
+        {alphabet.map(letter => (
+          <button
+            key={letter}
+            onClick={() => handleGuess(letter)}
+            disabled={guessedLetters.includes(letter) || gameStatus !== 'playing'}
+            className={`key ${guessedLetters.includes(letter) ?
+              (word.includes(letter) ? 'correct' : 'wrong') : ''}`}
+          >
+            {letter}
+          </button>
+        ))}
+      </div>
+    );
+  };
+
+  const renderHangman = () => {
+    const parts = [
+      <circle key="head" cx="140" cy="70" r="20" className="body-part" />,
+      <line key="body" x1="140" y1="90" x2="140" y2="150" className="body-part" />,
+      <line key="leftarm" x1="140" y1="110" x2="110" y2="130" className="body-part" />,
+      <line key="rightarm" x1="140" y1="110" x2="170" y2="130" className="body-part" />,
+      <line key="leftleg" x1="140" y1="150" x2="120" y2="180" className="body-part" />,
+      <line key="rightleg" x1="140" y1="150" x2="160" y2="180" className="body-part" />
+    ];
+
+    return (
+      <svg className="hangman-svg" width="200" height="250">
+        {/* Gallows */}
+        <line x1="10" y1="230" x2="150" y2="230" className="gallows" />
+        <line x1="50" y1="230" x2="50" y2="20" className="gallows" />
+        <line x1="50" y1="20" x2="140" y2="20" className="gallows" />
+        <line x1="140" y1="20" x2="140" y2="50" className="gallows" />
+
+        {/* Body parts based on wrong guesses */}
+        {parts.slice(0, wrongGuesses)}
+      </svg>
+    );
+  };
+
+  // Difficulty selection screen
+  if (difficulty === null) {
+    return (
+      <div className="hangman-container">
+        <h1>Hangman Game</h1>
+        <div className="player-info">
+          <span className="player-name">Player: {player.name}</span>
+          <span className="total-points">Total Points: {totalPoints}</span>
+        </div>
+        <div className="difficulty-selection">
+          <h2>Select Difficulty</h2>
+          <div className="difficulty-buttons">
+            <button
+              className="difficulty-button easy"
+              onClick={() => startGame('easy')}
+            >
+              Easy
+              <span className="difficulty-description">4-6 letter words</span>
+            </button>
+            <button
+              className="difficulty-button hard"
+              onClick={() => startGame('hard')}
+            >
+              Hard
+              <span className="difficulty-description">8-10 letter words</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading screen
+  if (isLoading) {
+    return (
+      <div className="hangman-container">
+        <h1>Hangman Game</h1>
+        <div className="loading">Loading word...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="hangman-container">
+      <h1>Hangman Game</h1>
+      <div className="player-info">
+        <span className="player-name">Player: {player.name}</span>
+        <span className="total-points">Total Points: {totalPoints}</span>
+      </div>
+      <div className="game-header">
+        <div className="difficulty-badge">
+          Difficulty: {difficulty.toUpperCase()}
+        </div>
+        <div className="score-display">
+          Score: {score} points
+        </div>
+      </div>
+
+      {gameStatus === 'playing' && (
+        <div className="game-actions">
+          <button
+            className="hint-button"
+            onClick={useHint}
+            disabled={hintUsed}
+          >
+            {hintUsed ? 'Hint Used' : `Use Hint (-${difficulty === 'easy' ? 20 : 40} pts)`}
+          </button>
+          <button className="solve-button" onClick={solvePuzzle}>
+            Solve Puzzle
+          </button>
+        </div>
+      )}
+
+      <div className="game-info">
+        <p>Wrong Guesses: {wrongGuesses} / {MAX_WRONG}</p>
+      </div>
+
+      {renderHangman()}
+
+      <div className="word-display">
+        {renderWord()}
+      </div>
+
+      {gameStatus === 'won' && (
+        <div className="game-message won">
+          <h2>🎉 You Won!</h2>
+          <p>The word was: {word}</p>
+          <p className="final-score">Final Score: {score} points</p>
+          <p className="daily-message">Come back tomorrow for a new puzzle!</p>
+        </div>
+      )}
+
+      {gameStatus === 'lost' && (
+        <div className="game-message lost">
+          <h2>😢 Game Over!</h2>
+          <p>The word was: {word}</p>
+          <p className="final-score">No points awarded</p>
+          <p className="daily-message">Try again tomorrow!</p>
+        </div>
+      )}
+
+      {gameStatus === 'solved' && (
+        <div className="game-message solved">
+          <h2>Better luck next time!</h2>
+          <p>The word was: {word}</p>
+          <p className="final-score">No points awarded</p>
+          <p className="daily-message">Try again tomorrow!</p>
+        </div>
+      )}
+
+      {renderKeyboard()}
+    </div>
+  );
+};
+
+export default Hangman;
