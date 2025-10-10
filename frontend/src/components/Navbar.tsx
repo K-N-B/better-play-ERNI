@@ -1,9 +1,8 @@
 // src/components/Navbar.tsx
-import { useState } from "react";
+
 import logo from "../assets/logo.png"; // adjust if your logo path differs
 
 export default function Navbar() {
-    const [isOpen, setIsOpen] = useState(false);
 
     return (
         <header className="fixed top-0 left-0 w-full bg-slate-50 shadow-md z-50">
