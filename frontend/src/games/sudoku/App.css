@@ -1,8 +1,14 @@
 .App {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(
+    120deg,
+    var(--erni-blue-soft) 0%,
+    var(--erni-blue-soft) 45%,
+    var(--erni-blue) 45%,
+    var(--erni-blue-dark) 100%
+  );
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
+  padding: 32px 16px;
 }

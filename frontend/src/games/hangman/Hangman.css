@@ -1,15 +1,21 @@
 .hangman-container {
   text-align: center;
-  padding: 20px;
-  font-family: Arial, sans-serif;
-  max-width: 800px;
+  padding: 32px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 840px;
   margin: 0 auto;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 18px;
+  border: 1px solid var(--erni-blue-light);
+  box-shadow: 0 24px 48px rgba(8, 37, 90, 0.16);
+  color: var(--erni-gray);
 }
 
 h1 {
-  color: #333;
+  color: var(--erni-blue);
   margin-bottom: 20px;
   font-size: 2.5rem;
+  letter-spacing: 0.04em;
 }
 
 /* Player Info */
@@ -20,22 +26,26 @@ h1 {
   gap: 30px;
   margin-bottom: 20px;
   flex-wrap: wrap;
+  background-color: var(--erni-blue-soft);
+  border-left: 4px solid var(--erni-blue);
+  padding: 16px 24px;
+  border-radius: 10px;
 }
 
 .player-name {
   font-size: 1.2rem;
-  color: #2c3e50;
+  color: var(--erni-blue);
   font-weight: bold;
 }
 
 .total-points {
   font-size: 1.2rem;
-  color: #e74c3c;
+  color: var(--erni-blue);
   font-weight: bold;
   padding: 8px 16px;
-  background-color: #fef5e7;
+  background-color: var(--erni-accent);
   border-radius: 20px;
-  border: 2px solid #e74c3c;
+  border: 2px solid var(--erni-blue);
 }
 
 .game-info {
@@ -44,7 +54,7 @@ h1 {
 
 .game-info p {
   font-size: 1.2rem;
-  color: #555;
+  color: var(--erni-gray);
   font-weight: bold;
 }
 
@@ -55,13 +65,13 @@ h1 {
 }
 
 .gallows {
-  stroke: #8b4513;
+  stroke: var(--erni-blue-dark);
   stroke-width: 3;
   fill: none;
 }
 
 .body-part {
-  stroke: #000;
+  stroke: var(--erni-blue);
   stroke-width: 3;
   fill: none;
   stroke-linecap: round;
@@ -80,7 +90,7 @@ h1 {
   width: 40px;
   margin: 0 5px;
   font-weight: bold;
-  color: #2c3e50;
+  color: var(--erni-blue-dark);
 }
 
 /* Keyboard */
@@ -98,17 +108,17 @@ h1 {
   height: 50px;
   font-size: 1.2rem;
   font-weight: bold;
-  border: 2px solid #3498db;
-  background-color: #3498db;
-  color: white;
+  border: 2px solid var(--erni-blue);
+  background-color: var(--erni-blue);
+  color: #fff;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .key:hover:not(:disabled) {
-  background-color: #2980b9;
-  border-color: #2980b9;
+  background-color: var(--erni-blue-dark);
+  border-color: var(--erni-blue-dark);
   transform: scale(1.05);
 }
 
@@ -118,13 +128,13 @@ h1 {
 }
 
 .key.correct {
-  background-color: #27ae60;
-  border-color: #27ae60;
+  background-color: var(--erni-blue-light);
+  border-color: var(--erni-blue-light);
 }
 
 .key.wrong {
-  background-color: #e74c3c;
-  border-color: #e74c3c;
+  background-color: var(--erni-gray);
+  border-color: var(--erni-gray);
 }
 
 /* Game Messages */
@@ -158,21 +168,21 @@ h1 {
 }
 
 .game-message.won {
-  background-color: #d4edda;
-  color: #155724;
-  border: 2px solid #c3e6cb;
+  background-color: var(--erni-blue);
+  color: #fff;
+  border: 2px solid var(--erni-blue-dark);
 }
 
 .game-message.lost {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 2px solid #f5c6cb;
+  background-color: var(--erni-gray-light);
+  color: var(--erni-gray);
+  border: 2px solid var(--erni-gray);
 }
 
 .game-message.solved {
-  background-color: #fff3cd;
-  color: #856404;
-  border: 2px solid #ffeaa7;
+  background-color: var(--erni-accent);
+  color: var(--erni-blue-dark);
+  border: 2px solid var(--erni-blue-light);
 }
 
 /* Game Actions */
@@ -191,21 +201,22 @@ h1 {
   padding: 12px 25px;
   font-size: 1.1rem;
   font-weight: bold;
-  background-color: #9b59b6;
-  color: white;
+  background-color: var(--erni-blue-light);
+  color: #fff;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
+  box-shadow: 0 8px 16px rgba(13, 60, 138, 0.2);
 }
 
 .hint-button:hover:not(:disabled) {
-  background-color: #8e44ad;
+  background-color: var(--erni-blue);
   transform: scale(1.05);
 }
 
 .hint-button:disabled {
-  background-color: #bdc3c7;
+  background-color: var(--erni-gray-light);
   cursor: not-allowed;
   opacity: 0.6;
 }
@@ -215,16 +226,18 @@ h1 {
   padding: 12px 35px;
   font-size: 1.1rem;
   font-weight: bold;
-  background-color: #f39c12;
-  color: white;
-  border: none;
+  background-color: transparent;
+  color: var(--erni-blue);
+  border: 2px solid var(--erni-blue);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
+  box-shadow: 0 8px 16px rgba(13, 60, 138, 0.12);
 }
 
 .solve-button:hover {
-  background-color: #e67e22;
+  background-color: rgba(13, 60, 138, 0.08);
+  color: var(--erni-blue-dark);
   transform: scale(1.05);
 }
 
@@ -235,7 +248,7 @@ h1 {
 }
 
 .difficulty-selection h2 {
-  color: #2c3e50;
+  color: var(--erni-blue);
   margin-bottom: 30px;
   font-size: 2rem;
 }
@@ -270,11 +283,11 @@ h1 {
 }
 
 .difficulty-button.easy {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--erni-blue-light) 0%, var(--erni-blue) 100%);
 }
 
 .difficulty-button.hard {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, var(--erni-blue) 0%, var(--erni-blue-dark) 100%);
 }
 
 .difficulty-description {
@@ -298,8 +311,8 @@ h1 {
 .difficulty-badge {
   display: inline-block;
   padding: 8px 20px;
-  background-color: #3498db;
-  color: white;
+  background-color: var(--erni-blue);
+  color: #fff;
   border-radius: 20px;
   font-weight: bold;
   font-size: 1rem;
@@ -308,8 +321,8 @@ h1 {
 .score-display {
   display: inline-block;
   padding: 8px 20px;
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--erni-blue-light) 0%, var(--erni-blue) 100%);
+  color: #fff;
   border-radius: 20px;
   font-weight: bold;
   font-size: 1rem;
@@ -317,7 +330,7 @@ h1 {
 
 .loading {
   font-size: 1.5rem;
-  color: #3498db;
+  color: var(--erni-blue);
   margin: 50px 0;
   animation: pulse 1.5s ease-in-out infinite;
 }
