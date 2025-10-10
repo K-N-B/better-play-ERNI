@@ -1,11 +1,13 @@
 .sudoku-game {
   max-width: 800px;
   margin: 0 auto;
-  padding: 30px;
+  padding: 32px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: white;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 18px;
+  border: 1px solid var(--erni-blue-light);
+  box-shadow: 0 24px 48px rgba(8, 37, 90, 0.16);
+  color: var(--erni-gray);
 }
 
 .game-header {
@@ -14,7 +16,7 @@
 }
 
 .game-header h1 {
-  color: #2c3e50;
+  color: var(--erni-blue);
   margin: 0 0 10px 0;
   font-size: 2.5em;
 }
@@ -29,33 +31,33 @@
 
 .timer {
   font-size: 1.5em;
-  color: #3498db;
+  color: var(--erni-blue-light);
   font-weight: bold;
 }
 
 .points {
   font-size: 1.5em;
-  color: #2ecc71;
+  color: var(--erni-blue);
   font-weight: bold;
 }
 
 .player-info {
-  background-color: #f8f9fa;
+  background-color: var(--erni-blue-soft);
   padding: 15px;
   border-radius: 8px;
   text-align: center;
   margin-bottom: 20px;
-  border-left: 4px solid #3498db;
+  border-left: 4px solid var(--erni-blue);
 }
 
 .player-info h3 {
   margin: 0 0 10px 0;
-  color: #2c3e50;
+  color: var(--erni-blue);
 }
 
 .accumulated-points {
   font-size: 1.3em;
-  color: #2ecc71;
+  color: var(--erni-blue-light);
   font-weight: bold;
   margin: 0;
 }
@@ -67,11 +69,11 @@
   margin: 10px 0;
   flex-wrap: wrap;
   font-size: 1.1em;
-  color: #2c3e50;
+  color: var(--erni-gray);
 }
 
 .player-info-inline .total-points {
-  color: #2ecc71;
+  color: var(--erni-blue-light);
 }
 
 .game-controls {
@@ -89,7 +91,7 @@
 }
 
 .difficulty-selection h2 {
-  color: #2c3e50;
+  color: var(--erni-blue);
   margin-bottom: 30px;
   font-size: 2em;
 }
@@ -111,18 +113,19 @@
   cursor: pointer;
   transition: all 0.3s ease;
   text-transform: uppercase;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--erni-blue) 0%, var(--erni-blue-light) 100%);
+  color: #fff;
   min-width: 150px;
+  letter-spacing: 0.05em;
 }
 
 .btn-difficulty:hover:not(:disabled) {
   transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 12px 24px rgba(13, 60, 138, 0.25);
 }
 
 .btn-difficulty.completed {
-  background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+  background: linear-gradient(135deg, var(--erni-gray-light) 0%, var(--erni-gray) 100%);
   opacity: 0.7;
   position: relative;
 }
@@ -135,11 +138,11 @@
 
 .difficulty-info {
   font-size: 1.1em;
-  color: #2c3e50;
+  color: var(--erni-gray);
 }
 
 .difficulty-info strong {
-  color: #3498db;
+  color: var(--erni-blue);
 }
 
 .button-group {
@@ -157,55 +160,58 @@
   cursor: pointer;
   transition: all 0.3s ease;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .btn-primary {
-  background-color: #3498db;
-  color: white;
+  background-color: var(--erni-blue);
+  color: #fff;
+  box-shadow: 0 6px 12px rgba(13, 60, 138, 0.2);
 }
 
 .btn-primary:hover {
-  background-color: #2980b9;
+  background-color: var(--erni-blue-dark);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 12px 20px rgba(8, 37, 90, 0.24);
 }
 
 .btn-secondary {
-  background-color: #95a5a6;
-  color: white;
+  background-color: transparent;
+  border: 1px solid var(--erni-blue);
+  color: var(--erni-blue);
 }
 
 .btn-secondary:hover {
-  background-color: #7f8c8d;
+  background-color: rgba(13, 60, 138, 0.08);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 16px rgba(13, 60, 138, 0.15);
 }
 
 .btn-hint {
-  background-color: #f39c12;
-  color: white;
+  background-color: var(--erni-blue-light);
+  color: #fff;
 }
 
 .btn-hint:hover:not(:disabled) {
-  background-color: #e67e22;
+  background-color: var(--erni-blue);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 12px 20px rgba(8, 37, 90, 0.24);
 }
 
 .btn-solve {
-  background-color: #e74c3c;
-  color: white;
+  background-color: var(--erni-gray);
+  color: #fff;
 }
 
 .btn-solve:hover:not(:disabled) {
-  background-color: #c0392b;
+  background-color: #555a5c;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 16px rgba(85, 90, 92, 0.22);
 }
 
 .win-message {
-  background-color: #2ecc71;
-  color: white;
+  background-color: var(--erni-blue);
+  color: #fff;
   padding: 15px;
   border-radius: 8px;
   text-align: center;
@@ -218,19 +224,19 @@
 .points-earned {
   font-size: 0.9em;
   margin-top: 10px;
-  color: #fff;
+  color: var(--erni-blue-soft);
 }
 
 .points-forfeited {
   font-size: 0.9em;
   margin-top: 10px;
-  color: #ffebee;
+  color: #f0f3fb;
   font-style: italic;
 }
 
 .solved-message {
-  background-color: #95a5a6;
-  color: white;
+  background-color: var(--erni-gray);
+  color: #fff;
   padding: 15px;
   border-radius: 8px;
   text-align: center;
@@ -258,20 +264,20 @@
 
 .game-instructions {
   margin-top: 30px;
-  background-color: #f8f9fa;
+  background-color: var(--erni-blue-soft);
   padding: 20px;
   border-radius: 8px;
-  border-left: 4px solid #3498db;
+  border-left: 4px solid var(--erni-blue);
 }
 
 .game-instructions h3 {
-  color: #2c3e50;
+  color: var(--erni-blue);
   margin-top: 0;
 }
 
 .game-instructions ul {
   line-height: 1.8;
-  color: #555;
+  color: var(--erni-gray);
 }
 
 .game-instructions li {
@@ -281,7 +287,7 @@
 .loading {
   text-align: center;
   font-size: 1.5em;
-  color: #3498db;
+  color: var(--erni-blue);
   padding: 50px;
 }
 
