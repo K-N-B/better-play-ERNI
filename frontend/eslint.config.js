@@ -1,23 +1,43 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import tseslint from 'typescript-eslint'
-import { defineConfig, globalIgnores } from 'eslint/config'
+import js from "@eslint/js";
+import tseslint from "typescript-eslint";
+import react from "eslint-plugin-react";
+import globals from "globals";
 
-export default defineConfig([
-  globalIgnores(['dist']),
+export default [
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
   {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      js.configs.recommended,
-      tseslint.configs.recommended,
-      reactHooks.configs['recommended-latest'],
-      reactRefresh.configs.vite,
-    ],
+    files: ["**/*.{js,jsx,ts,tsx}"],
     languageOptions: {
-      ecmaVersion: 2020,
       globals: globals.browser,
+      parser: tseslint.parser,
+    },
+    plugins: {
+      react,
+    },
+    rules: {
+      // ✅ JSX formatting rules
+      "react/jsx-first-prop-new-line": ["error", "never"], // keep props on same line
+      "react/jsx-max-props-per-line": ["error", { maximum: 3, when: "always" }], // adjust 3 → 1 for stricter
+      "react/jsx-closing-bracket-location": ["error", "line-aligned"],
+      "react/jsx-tag-spacing": [
+        "error",
+        {
+          closingSlash: "never",
+          beforeSelfClosing: "always",
+          afterOpening: "never",
+          beforeClosing: "never",
+        },
+      ],
+
+      // 🧠 General React cleanup
+      "react/react-in-jsx-scope": "off", // React 17+ doesn’t need import React
+      "react/prop-types": "off", // using TypeScript, so not needed
+    },
+    settings: {
+      react: {
+        version: "detect",
+      },
     },
   },
-])
+];
