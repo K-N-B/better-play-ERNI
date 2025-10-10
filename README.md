@@ -11,7 +11,7 @@ Use this to activate the virtual environment. Make sure that you are in this env
 If activate provides an error do this command and run the activate again: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
 
 Using the requirements.txt file
-To save the current dependencies run the command in the parent folder "better-play-erni"
+To save the current dependencies run the command in the "backend" folder
 `pip freeze > requirements.txt`
 
 To install packages from the requirements.txt
