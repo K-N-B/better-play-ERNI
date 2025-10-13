@@ -1,4 +1,4 @@
-import Navbar from "./components/Navbar";
+
 import {
   puzzle,
   sudoku,
@@ -85,6 +85,7 @@ export default function Home() {
             <div className="bg-slate-50 rounded-3xl p-6 shadow-md h-full">
               <div className="grid h-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {games.map((g) => (
+                  <a href={g.title === 'Games' ? '/leaderboards' : `/${g.title.toLowerCase()}`}>
                   <article
                     key={g.title}
                     className={`rounded-2xl ${g.color} shadow-[0_8px_0_0] active:shadow-[0_4px_0_0_rgba(0,0,0,0.15)] translate-y-[-2px] active:translate-y-0 p-8 flex flex-col items-center justify-center h-full`}
@@ -99,6 +100,7 @@ export default function Home() {
                       <div className="text-base mt-2">{g.subtitle}</div>
                     </div>
                   </article>
+                  </a>
                 ))}
               </div>
             </div>
