@@ -42,8 +42,8 @@ export default function Leaderboards() {
 
   const options = ["Today", "This week", "This month"];
   return (
-    <div className="grid grid-cols-2 h-full gap-8">
-      <div className="bg-slate-50 rounded-3xl p-6 shadow-md">
+    <div className="grid grid-cols-2 h-full gap-8 ">
+      <div className="flex flex-col bg-slate-50 rounded-3xl p-6 shadow-md overflow-hidden">
         <span className="flex justify-start items-center">
           <button
             id="dropdownButton"
@@ -192,7 +192,7 @@ export default function Leaderboards() {
             </div>
           </div>
         </div>
-        <div>
+        <div className="flex-grow overflow-y-auto">
           {hasData ? (
             <ul className="divide-y divide-gray-200">
               {leaderboardData.map((player) => (
@@ -232,7 +232,7 @@ export default function Leaderboards() {
           )}
         </div>
       </div>
-      <div className="bg-slate-50 rounded-3xl p-6 shadow-md">
+      <div className="flex flex-col bg-slate-50 rounded-3xl p-6 shadow-md overflow-hidden">
         <div className="flex justify-start items-center">
           <h2 className="text-xl font-bold text-center py-2.5 ">All-time Leaderboards</h2>
           
@@ -341,7 +341,7 @@ export default function Leaderboards() {
             </div>
           </div>
         </div>
-        <div>
+        <div className="flex-grow overflow-y-auto">
           {hasData ? (
             <ul className="divide-y divide-gray-200">
               {leaderboardData.map((player) => (
