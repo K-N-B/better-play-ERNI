@@ -30,21 +30,25 @@ export default function Navbar() {
                         </a>
 
                         <nav className="absolute left-0 right-0 flex justify-center items-center space-x-6">
-                            {navItems.map((item, idx) => (
-                                item.name === "┃" ? (
-                                    <span key={idx} className="font-semibold text-primary">┃</span>
-                                ) : (
-                                    <Link
-                                        key = {item.path}
-                                        to = {item.path}
-                                        className = {`font-semibold text-primary px-4 py-2 rounded-md 
-                                            ${location.pathname === item.path ? item.color : ''}`
-                                        }
-                                    >
-                                        {item.name}
-                                    </Link>
-                                )
-                            ))}
+                            {navItems.map((item, idx) => {
+                                if (item.name === "┃") {
+                                    return <span key={`separator-${idx}`} className="font-semibold text-primary">┃</span>;
+                                }
+                                // Only render Link if path is defined
+                                if (item.path) {
+                                    return (
+                                        <Link
+                                            key={item.path}
+                                            to={item.path}
+                                            className={`font-semibold text-primary px-4 py-2 rounded-md 
+                                                ${location.pathname === item.path ? item.color : ''}`}
+                                        >
+                                            {item.name}
+                                        </Link>
+                                    );
+                                }
+                                return null;
+                            })}
                             {/* <a href="/#" className="bg-primary font-medium text-md text-slate-50 px-4 py-2 rounded-md shadow-[0_5px_0_0_#033778] active:shadow-[0_4px_0_0_rgba(0,0,0,0.15)] translate-y-[-2px] active:translate-y-0" type="button">
                                 Home
                             </a>
