@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import SudokuBoard from './SudokuBoard';
 import { checkSolution, copyBoard } from '../utils/sudokuGenerator';
 import { fetchSudokuPuzzleByDifficulty } from '../services/sudokuApi';
 import './SudokuGame.css';
+
+const STORAGE_KEY = 'sudokuGameState';
 
 const SudokuGame = () => {
   const [gameData, setGameData] = useState(null);
@@ -22,6 +24,9 @@ const SudokuGame = () => {
     accumulatedPoints: 0
   });
 
+  const todayKey = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const [hasHydrated, setHasHydrated] = useState(false);
+
   // Track completed games per day
   const [completedToday, setCompletedToday] = useState({
     easy: false,
@@ -38,23 +43,121 @@ const SudokuGame = () => {
     return () => clearInterval(interval);
   }, [isRunning]);
 
-  const startNewGame = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await fetchSudokuPuzzleByDifficulty(difficulty);
-      setGameData({ puzzle: copyBoard(data.puzzle), solution: data.solution });
-      setBoard(copyBoard(data.puzzle));
-      setGameStatus('playing');
-      setTimer(0);
-      setIsRunning(true);
-    } catch (err) {
-      setError('Failed to load puzzle. Please try again.');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      setHasHydrated(true);
+      return;
     }
-  };
+
+    const storedState = window.localStorage.getItem(STORAGE_KEY);
+    if (!storedState) {
+      setHasHydrated(true);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(storedState);
+      if (!parsed || parsed.date !== todayKey) {
+        window.localStorage.removeItem(STORAGE_KEY);
+        return;
+      }
+
+      if (parsed.gameData) {
+        setGameData({
+          puzzle: parsed.gameData.puzzle?.map(row => [...row]) ?? null,
+          solution: parsed.gameData.solution?.map(row => [...row]) ?? null
+        });
+      }
+
+      if (Array.isArray(parsed.board)) {
+        setBoard(parsed.board.map(row => [...row]));
+      }
+
+      if (parsed.difficulty) {
+        setDifficulty(parsed.difficulty);
+      }
+
+      if (parsed.gameStatus) {
+        setGameStatus(parsed.gameStatus);
+      }
+
+      if (typeof parsed.timer === 'number') {
+        setTimer(parsed.timer);
+      }
+
+      if (typeof parsed.isRunning === 'boolean') {
+        setIsRunning(parsed.isRunning && parsed.gameStatus === 'playing');
+      }
+
+      if (typeof parsed.points === 'number') {
+        setPoints(parsed.points);
+      }
+
+      if (typeof parsed.hintsRemaining === 'number') {
+        setHintsRemaining(parsed.hintsRemaining);
+      }
+
+      if (parsed.completedToday) {
+        setCompletedToday(parsed.completedToday);
+      }
+
+      if (parsed.player) {
+        setPlayer(prev => ({
+          ...prev,
+          ...parsed.player
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to restore Sudoku state:', error);
+      window.localStorage.removeItem(STORAGE_KEY);
+    } finally {
+      setHasHydrated(true);
+    }
+  }, [todayKey]);
+
+  useEffect(() => {
+    if (!hasHydrated || typeof window === 'undefined') {
+      return;
+    }
+
+    const stateToStore = {
+      date: todayKey,
+      gameData: gameData
+        ? {
+            puzzle: gameData.puzzle,
+            solution: gameData.solution
+          }
+        : null,
+      board,
+      difficulty,
+      gameStatus,
+      timer,
+      isRunning,
+      points,
+      hintsRemaining,
+      completedToday,
+      player
+    };
+
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToStore));
+    } catch (error) {
+      console.error('Failed to persist Sudoku state:', error);
+    }
+  }, [
+    todayKey,
+    gameData,
+    board,
+    difficulty,
+    gameStatus,
+    timer,
+    isRunning,
+    points,
+    hintsRemaining,
+    completedToday,
+    player,
+    hasHydrated
+  ]);
 
   const handleCellChange = (row, col, value) => {
     if (gameStatus === 'won' || gameStatus === 'solved') return;
@@ -75,18 +178,18 @@ const SudokuGame = () => {
         accumulatedPoints: prev.accumulatedPoints + points
       }));
 
-      // Mark this difficulty as completed today
-      setCompletedToday(prev => ({
-        ...prev,
-        [difficulty]: true
-      }));
+      // Mark today's puzzle as completed for both difficulties
+      setCompletedToday({
+        easy: true,
+        hard: true
+      });
     }
   };
 
   const handleStartGame = async (selectedDifficulty) => {
     // Check if this difficulty has already been completed today
-    if (completedToday[selectedDifficulty]) {
-      setError(`You have already completed the ${selectedDifficulty} puzzle today. Try again tomorrow!`);
+    if (completedToday.easy || completedToday.hard) {
+      setError('You have already completed today\'s puzzle. Try again tomorrow!');
       return;
     }
 
@@ -115,28 +218,40 @@ const SudokuGame = () => {
   const handleNewGame = () => {
     setGameStatus('selecting');
     setIsRunning(false);
-  };
-
-  const handleReset = async () => {
-    setIsLoading(true);
+    setGameData(null);
+    setBoard(null);
+    setDifficulty('easy');
+    setTimer(0);
+    setPoints(0);
+    setHintsRemaining(5);
+    setCompletedToday({
+      easy: false,
+      hard: false
+    });
     setError(null);
-    try {
-      const data = await fetchSudokuPuzzleByDifficulty(difficulty);
-      setGameData({ puzzle: copyBoard(data.puzzle), solution: data.solution });
-      setBoard(copyBoard(data.puzzle));
-      setGameStatus('playing');
-      setTimer(0);
-      setIsRunning(true);
-      // Reset points based on difficulty
-      setPoints(difficulty === 'easy' ? 100 : 200);
-      setHintsRemaining(5);
-    } catch (err) {
-      setError('Failed to load puzzle. Please try again.');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(STORAGE_KEY);
     }
   };
+
+  const forfeitPuzzle = useCallback(() => {
+    if (gameData?.solution) {
+      setBoard(copyBoard(gameData.solution));
+    }
+    setGameStatus('solved');
+    setIsRunning(false);
+    setPoints(0);
+    setCompletedToday({
+      easy: true,
+      hard: true
+    });
+  }, [gameData]);
+
+  useEffect(() => {
+    if (gameStatus === 'playing' && timer >= 300) {
+      forfeitPuzzle();
+    }
+  }, [timer, gameStatus, forfeitPuzzle]);
 
   const handleHint = () => {
     if (gameStatus === 'won' || gameStatus === 'solved' || hintsRemaining <= 0) return;
@@ -170,20 +285,7 @@ const SudokuGame = () => {
 
   const handleSolve = () => {
     if (gameStatus === 'won' || gameStatus === 'solved') return;
-
-    // Set the board to the solution
-    setBoard(copyBoard(gameData.solution));
-    setGameStatus('solved'); // Changed from 'won' to 'solved'
-    setIsRunning(false);
-
-    // Forfeit points - set to 0 and don't add to accumulated points
-    setPoints(0);
-
-    // Mark this difficulty as completed today (but with no points earned)
-    setCompletedToday(prev => ({
-      ...prev,
-      [difficulty]: true
-    }));
+    forfeitPuzzle();
   };
 
   const formatTime = (seconds) => {
@@ -267,13 +369,10 @@ const SudokuGame = () => {
       <div className="game-controls">
         <div className="button-group">
           <button onClick={handleNewGame} className="btn btn-primary" disabled={isLoading}>
-            New Game
-          </button>
-          <button onClick={handleReset} className="btn btn-secondary" disabled={isLoading}>
-            Reset
+            New Game (For Debug Only)
           </button>
           <button onClick={handleHint} className="btn btn-hint" disabled={isLoading || hintsRemaining <= 0}>
-            Hint ({hintsRemaining})
+            Hint -{difficulty === 'hard' ? 20 : 10} ({hintsRemaining})
           </button>
           <button onClick={handleSolve} className="btn btn-solve" disabled={isLoading}>
             Solve

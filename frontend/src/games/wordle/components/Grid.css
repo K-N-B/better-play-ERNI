@@ -1,0 +1,60 @@
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 30px;
+}
+
+.row {
+  display: flex;
+  gap: 5px;
+}
+
+.cell {
+  width: 62px;
+  height: 62px;
+  border: 2px solid var(--primary-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--primary-blue);
+  text-transform: uppercase;
+  background-color: #ffffff;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 6px 12px rgba(11, 47, 107, 0.08);
+}
+
+.cell.correct {
+  background-color: var(--primary-blue);
+  border-color: var(--primary-blue);
+  color: #ffffff;
+  animation: flip 0.5s ease-in-out;
+}
+
+.cell.present {
+  background-color: var(--hint-gold);
+  border-color: var(--hint-gold);
+  color: #ffffff;
+  animation: flip 0.5s ease-in-out;
+}
+
+.cell.absent {
+  background-color: var(--soft-blue);
+  border-color: var(--soft-blue);
+  color: var(--text-muted);
+  animation: flip 0.5s ease-in-out;
+}
+
+@keyframes flip {
+  0% {
+    transform: rotateX(0);
+  }
+  50% {
+    transform: rotateX(90deg);
+  }
+  100% {
+    transform: rotateX(0);
+  }
+}

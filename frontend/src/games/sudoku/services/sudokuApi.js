@@ -66,9 +66,30 @@ export const fetchSudokuPuzzleByDifficulty = async (difficulty) => {
       selectedGrid = grids[0];
     }
 
+    const puzzle = selectedGrid.value.map(row => [...row]);
+    const solution = selectedGrid.solution.map(row => [...row]);
+
+    if (difficulty.toLowerCase() === 'easy' && puzzle.length === 9 && solution.length === 9) {
+      let revealed = 0;
+      const targetReveals = 4; // add four more clues
+      const maxAttempts = 50;
+      let attempts = 0;
+
+      while (revealed < targetReveals && attempts < maxAttempts) {
+        attempts += 1;
+        const row = Math.floor(Math.random() * 9);
+        const col = Math.floor(Math.random() * 9);
+
+        if (puzzle[row][col] === 0) {
+          puzzle[row][col] = solution[row][col];
+          revealed += 1;
+        }
+      }
+    }
+
     return {
-      puzzle: selectedGrid.value,
-      solution: selectedGrid.solution,
+      puzzle,
+      solution,
       difficulty: selectedGrid.difficulty.toLowerCase()
     };
   } catch (error) {
