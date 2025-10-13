@@ -106,10 +106,10 @@ export default function Leaderboards() {
 
                 {/* Circle */}
                 
-                <div className="absolute z-30 w-12 h-12 bg-[#5E5F5F] top-6 left-6 rounded-full flex items-center justify-center">
-                  <p className="text-white text-xl font-extrabold leading-none">2<sup className="pt-1 font-bold">nd</sup></p>
+                <div className="absolute z-30 w-8 h-8 bg-[#5E5F5F] top-6 left-6 rounded-full flex items-center justify-center">
+                  <p className="text-white text-sm font-extrabold leading-none">2<sup className="pt-1 font-semibold">nd</sup></p>
                 </div>
-                <div className="absolute z-20 rounded-full w-20 h-20 bg-white top-6"></div>
+                <div className="absolute z-20 rounded-full w-20 h-20 bg-neutral-100 top-6"></div>
                 <div className="absolute z-20 top-29 text-center">
                   <p className="text font-semibold m-0 p-0 leading-none text-neutral-900 ">Yna Foronda</p>
                   <p className="text font-sm m-0 p-0 leading-none text-neutral-900 ">1827pts</p>
@@ -140,10 +140,10 @@ export default function Leaderboards() {
                 </svg>
 
                 {/* Circle */}
-                <div className="absolute z-30 w-12 h-12 bg-[#A65D15] top-8 left-8 rounded-full flex items-center justify-center">
-                  <p className="text-white text-xl font-extrabold leading-none">1<sup className="pt-1 font-bold">st</sup></p>
+                <div className="absolute z-30 w-8 h-8 bg-[#A65D15] top-8 left-8 rounded-full flex items-center justify-center">
+                  <p className="text-white text-sm font-extrabold leading-none">1<sup className="pt-1 font-semibold">st</sup></p>
                 </div>
-                <div className="absolute z-20 rounded-full w-22 h-22 bg-white top-10"></div>
+                <div className="absolute z-20 rounded-full w-22 h-22 bg-neutral-100 top-9"></div>
                 <div className="absolute z-20 top-34 text-center">
                   <p className="text font-semibold m-0 p-0 leading-none  text-yellow-800">Jerome Barba</p>
                   <p className="text font-sm m-0 p-0 leading-none  text-yellow-800">1827pts</p>
@@ -174,10 +174,10 @@ export default function Leaderboards() {
                 </svg>
 
                 {/* Circle */}
-                <div className="absolute z-30 w-12 h-12 bg-[#724212] top-6 left-6 rounded-full flex items-center justify-center">
-                  <p className="text-white text-xl font-extrabold leading-none">3<sup className="pt-1 font-bold">rd</sup></p>
+                <div className="absolute z-30 w-8 h-8 bg-[#724212] top-6 left-6 rounded-full flex items-center justify-center">
+                  <p className="text-white text-sm font-extrabold leading-none">3<sup className="pt-1 font-semibold">rd</sup></p>
                 </div>
-                <div className="absolute z-20 rounded-full w-20 h-20 bg-white top-6"></div>
+                <div className="absolute z-20 rounded-full w-20 h-20 bg-neutral-100 top-6"></div>
                 <div className="absolute z-20 top-29 text-center">
                   <p className="text font-semibold m-0 p-0 leading-none  text-amber-900">Dayniel Caadiang</p>
                   <p className="text font-sm m-0 p-0 leading-none  text-amber-900">1827pts</p>
@@ -255,11 +255,10 @@ export default function Leaderboards() {
                 </svg>
 
                 {/* Circle */}
-                
-                <div className="absolute z-30 w-12 h-12 bg-[#5E5F5F] top-6 left-6 rounded-full flex items-center justify-center">
-                  <p className="text-white text-xl font-extrabold leading-none">2<sup className="pt-1 font-bold">nd</sup></p>
+                <div className="absolute z-30 w-8 h-8 bg-[#5E5F5F] top-6 left-6 rounded-full flex items-center justify-center">
+                  <p className="text-white text-sm font-extrabold leading-none">2<sup className="pt-1 font-semibold">nd</sup></p>
                 </div>
-                <div className="absolute z-20 rounded-full w-20 h-20 bg-white top-6"></div>
+                <div className="absolute z-20 rounded-full w-20 h-20 bg-neutral-100 top-6"></div>
                 <div className="absolute z-20 top-29 text-center">
                   <p className="text font-semibold m-0 p-0 leading-none text-neutral-900">Yna Foronda</p>
                   <p className="text font-sm m-0 p-0 leading-none text-neutral-900 ">1827pts</p>
@@ -290,10 +289,10 @@ export default function Leaderboards() {
                 </svg>
 
                 {/* Circle */}
-                <div className="absolute z-30 w-12 h-12 bg-[#A65D15] top-8 left-8 rounded-full flex items-center justify-center">
-                  <p className="text-white text-xl font-extrabold leading-none">1<sup className="pt-1 font-bold">st</sup></p>
+                <div className="absolute z-30 w-8 h-8 bg-[#A65D15] top-8 left-8 rounded-full flex items-center justify-center">
+                  <p className="text-white text-sm font-extrabold leading-none">1<sup className="pt-1 font-semibold">st</sup></p>
                 </div>
-                <div className="absolute z-20 rounded-full w-22 h-22 bg-white top-10"></div>
+                <div className="absolute z-20 rounded-full w-22 h-22 bg-neutral-100 top-9"></div>
                 <div className="absolute z-20 top-34 text-center">
                   <p className="text font-semibold m-0 p-0 leading-none text-yellow-800">Jerome Barba</p>
                   <p className="text font-sm m-0 p-0 leading-none text-yellow-800 ">1827pts</p>
@@ -324,10 +323,10 @@ export default function Leaderboards() {
                 </svg>
 
                 {/* Circle */}
-                <div className="absolute z-30 w-12 h-12 bg-[#724212] top-6 left-6 rounded-full flex items-center justify-center">
-                  <p className="text-white text-xl font-extrabold leading-none">3<sup className="pt-1 font-bold">rd</sup></p>
+                <div className="absolute z-30 w-8 h-8 bg-[#724212] top-6 left-6 rounded-full flex items-center justify-center">
+                  <p className="text-white text-sm font-extrabold leading-none">3<sup className="pt-1 font-semibold">rd</sup></p>
                 </div>
-                <div className="absolute z-20 rounded-full w-20 h-20 bg-white top-6"></div>
+                <div className="absolute z-20 rounded-full w-20 h-20 bg-neutral-100 top-6"></div>
                 <div className="absolute z-20 top-29 text-center">
                   <p className="text font-semibold m-0 p-0 leading-none  text-amber-900">Dayniel Caadiang</p>
                   <p className="text font-sm m-0 p-0 leading-none  text-amber-900">1827pts</p>
