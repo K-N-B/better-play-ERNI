@@ -18,7 +18,7 @@ export default function Navbar() {
     ];
 
     return (
-        <header className="fixed top-0 left-0 w-full bg-slate-50 shadow-md z-50">
+        <header className=" top-0 left-0 w-full bg-slate-50 shadow-md z-50">
             <div
                 className="mx-auto w-full max-w-[80rem] border transition-colors rounded-lg my-[10px] border-transparent bg-transparent"
                 role="menu"
