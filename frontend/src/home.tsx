@@ -51,9 +51,9 @@ export default function Home() {
   return (
     // <div className="min-h-screen h-full w-full bg-[#F1ECE6] absolute inset-0 bg-[linear-gradient(to_right,#D2B694_2px,transparent_1px),linear-gradient(to_bottom,#D2B694_2px,transparent_1px)] bg-[size:24px_24px]">
     //   <main className="w-full h-dvh mx-auto pt-20 px-6 ">
-        <div className="flex h-full gap-8 py-8">
+        <div className="flex h-full gap-8 ">
           {/* Left leaderboard column */}
-          <aside className="w-1/4 h-full bg-slate-50 rounded-2xl p-6 shadow-md sticky top-20 self-start">
+          <aside className="w-1/4 h-full bg-slate-50 rounded-2xl p-6 shadow-md sticky self-start">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">Leaderboards</h2>
               <button className="text-sm text-slate-500 bg-slate-100 px-2 py-1 rounded">
