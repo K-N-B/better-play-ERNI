@@ -1,0 +1,110 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String?
+  azureId       String?   @unique @map("azure_id")
+  role          Role      @default(USER)
+  status        Status    @default(ACTIVE)
+  lastLogin     DateTime? @map("last_login")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  
+  sessions      Session[]
+  puzzles       Puzzle[]
+  activities    Activity[]
+
+  @@map("users")
+}
+
+model Session {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  token         String   @unique
+  expiresAt     DateTime @map("expires_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Puzzle {
+  id            String   @id @default(uuid())
+  title         String
+  description   String?
+  difficulty    Difficulty @default(EASY)
+  content       Json
+  createdBy     String   @map("created_by")
+  status        PuzzleStatus @default(DRAFT)
+  publishedAt   DateTime? @map("published_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  
+  creator       User     @relation(fields: [createdBy], references: [id])
+  completions   PuzzleCompletion[]
+
+  @@map("puzzles")
+}
+
+model PuzzleCompletion {
+  id            String   @id @default(uuid())
+  puzzleId      String   @map("puzzle_id")
+  userId        String   @map("user_id")
+  completedAt   DateTime @default(now()) @map("completed_at")
+  timeSpent     Int      @map("time_spent") // in seconds
+  score         Int?
+  
+  puzzle        Puzzle   @relation(fields: [puzzleId], references: [id], onDelete: Cascade)
+
+  @@unique([puzzleId, userId])
+  @@map("puzzle_completions")
+}
+
+model Activity {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  action        String
+  description   String?
+  metadata      Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+  
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("activities")
+}
+
+enum Role {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
+}
+
+enum PuzzleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}

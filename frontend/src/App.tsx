@@ -7,15 +7,15 @@ import Home from "./home";
 import Leaderboards from "./leaderboards";
 import SudokuGame from './games/sudoku';
 import HangmanGame from './games/hangman';
-
+import LoginPage from './pages/LoginPage';
 
 function App() {
 
   return (
     <>
-      <Navbar />
+
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<LoginPage />} />
         <Route path="/leaderboards" element={<Leaderboards />} />
         <Route path="/sudoku" element={<SudokuGame />} />
         <Route path="/hangman" element={<HangmanGame />} />
