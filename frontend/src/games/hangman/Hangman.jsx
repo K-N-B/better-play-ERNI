@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './Hangman.css';
 
 const WORDS = [
@@ -20,6 +20,7 @@ const WORDS = [
 ];
 
 const MAX_WRONG = 6;
+const STORAGE_KEY = 'hangmanGameState';
 
 const Hangman = () => {
   const [difficulty, setDifficulty] = useState(null); // null, 'easy', 'hard'
@@ -32,12 +33,91 @@ const Hangman = () => {
   const [player] = useState({ name: 'John Doe' });
   const [totalPoints, setTotalPoints] = useState(0);
   const [hintUsed, setHintUsed] = useState(false);
+  const guessedLettersRef = useRef(new Set());
+  const isRestoringRef = useRef(true);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      isRestoringRef.current = false;
+      return;
+    }
+
+    const savedState = window.localStorage.getItem(STORAGE_KEY);
+    if (!savedState) {
+      isRestoringRef.current = false;
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(savedState);
+      if (parsed && typeof parsed === 'object') {
+        if (parsed.difficulty === 'easy' || parsed.difficulty === 'hard') {
+          setDifficulty(parsed.difficulty);
+        }
+        if (typeof parsed.word === 'string') {
+          setWord(parsed.word);
+        }
+        if (Array.isArray(parsed.guessedLetters)) {
+          setGuessedLetters(parsed.guessedLetters);
+        }
+        if (typeof parsed.wrongGuesses === 'number') {
+          setWrongGuesses(parsed.wrongGuesses);
+        }
+        if (typeof parsed.gameStatus === 'string') {
+          setGameStatus(parsed.gameStatus);
+        }
+        if (typeof parsed.score === 'number') {
+          setScore(parsed.score);
+        }
+        if (typeof parsed.totalPoints === 'number') {
+          setTotalPoints(parsed.totalPoints);
+        }
+        if (typeof parsed.hintUsed === 'boolean') {
+          setHintUsed(parsed.hintUsed);
+        }
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error('Failed to restore Hangman game state:', error);
+      window.localStorage.removeItem(STORAGE_KEY);
+    } finally {
+      isRestoringRef.current = false;
+    }
+  }, []);
 
   useEffect(() => {
     if (word && guessedLetters.length > 0) {
       checkGameStatus();
     }
   }, [guessedLetters, wrongGuesses]);
+
+  useEffect(() => {
+    if (isRestoringRef.current || typeof window === 'undefined') {
+      return;
+    }
+
+    if (difficulty === null || !word) {
+      window.localStorage.removeItem(STORAGE_KEY);
+      return;
+    }
+
+    const stateToStore = {
+      difficulty,
+      word,
+      guessedLetters,
+      wrongGuesses,
+      gameStatus,
+      score,
+      totalPoints,
+      hintUsed,
+    };
+
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToStore));
+    } catch (error) {
+      console.error('Failed to persist Hangman game state:', error);
+    }
+  }, [difficulty, word, guessedLetters, wrongGuesses, gameStatus, score, totalPoints, hintUsed]);
 
   const fetchAdminWords = async () => {
     try {
@@ -121,22 +201,35 @@ const Hangman = () => {
 
   const startGame = async (selectedDifficulty) => {
     setDifficulty(selectedDifficulty);
+    guessedLettersRef.current = new Set();
     setGuessedLetters([]);
     setWrongGuesses(0);
     setGameStatus('playing');
     setHintUsed(false);
     // Set initial score based on difficulty
     setScore(selectedDifficulty === 'easy' ? 100 : 200);
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(STORAGE_KEY);
+    }
     await fetchRandomWord(selectedDifficulty);
+  };
+  const handleNewGame = () => {
+    resetGame();
   };
 
   const resetGame = () => {
     setDifficulty(null);
     setWord('');
+    guessedLettersRef.current = new Set();
     setGuessedLetters([]);
     setWrongGuesses(0);
     setGameStatus('playing');
     setScore(0);
+    setHintUsed(false);
+    setIsLoading(false);
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(STORAGE_KEY);
+    }
   };
 
   const checkGameStatus = () => {
@@ -163,21 +256,58 @@ const Hangman = () => {
     }
   };
 
-  const handleGuess = (letter) => {
-    if (gameStatus !== 'playing' || guessedLetters.includes(letter)) {
+  useEffect(() => {
+    guessedLettersRef.current = new Set(guessedLetters);
+  }, [guessedLetters]);
+
+  const handleGuess = useCallback((letter) => {
+    if (gameStatus !== 'playing' || !word || guessedLettersRef.current.has(letter)) {
       return;
     }
 
-    const newGuessedLetters = [...guessedLetters, letter];
-    setGuessedLetters(newGuessedLetters);
+    const isCorrect = word.includes(letter);
 
-    if (!word.includes(letter)) {
-      setWrongGuesses(wrongGuesses + 1);
+    guessedLettersRef.current = new Set([...guessedLettersRef.current, letter]);
+    setGuessedLetters(prevGuessed => [...prevGuessed, letter]);
+
+    if (!isCorrect) {
+      setWrongGuesses(prevWrong => prevWrong + 1);
       // Deduct points based on difficulty
       const pointsToDeduct = difficulty === 'easy' ? 10 : 20;
-      setScore(Math.max(0, score - pointsToDeduct));
+      setScore(prevScore => Math.max(0, prevScore - pointsToDeduct));
     }
-  };
+  }, [difficulty, gameStatus, word]);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      const { key } = event;
+      if (!key) {
+        return;
+      }
+
+      const letter = key.toUpperCase();
+      if (/^[A-Z]$/.test(letter)) {
+        if (event.repeat || guessedLettersRef.current.has(letter)) {
+          event.preventDefault();
+          return;
+        }
+
+        const button = document.querySelector(`button.key[data-letter=\"${letter}\"]`);
+        if (!button || button.disabled) {
+          event.preventDefault();
+          return;
+        }
+
+        event.preventDefault();
+        button.click();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   const solvePuzzle = () => {
     setGameStatus('solved');
@@ -223,8 +353,10 @@ const Hangman = () => {
         {alphabet.map(letter => (
           <button
             key={letter}
+            type="button"
             onClick={() => handleGuess(letter)}
             disabled={guessedLetters.includes(letter) || gameStatus !== 'playing'}
+            data-letter={letter}
             className={`key ${guessedLetters.includes(letter) ?
               (word.includes(letter) ? 'correct' : 'wrong') : ''}`}
           >
@@ -334,6 +466,13 @@ const Hangman = () => {
 
       <div className="game-info">
         <p>Wrong Guesses: {wrongGuesses} / {MAX_WRONG}</p>
+        <button
+          type="button"
+          className="ml-4 px-3 py-1 text-xs rounded bg-slate-200 text-slate-700 border border-slate-300 hover:bg-slate-300"
+          onClick={handleNewGame}
+        >
+          New Game (For Debug only)
+        </button>
       </div>
 
       {renderHangman()}

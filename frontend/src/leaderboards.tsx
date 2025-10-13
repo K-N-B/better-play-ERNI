@@ -1,4 +1,3 @@
-import Navbar from "./components/Navbar";
 import { puzzle, sudoku, wordle, hangman, crossword, connections } from "./assets/icons/icons";
 
 const games = [
