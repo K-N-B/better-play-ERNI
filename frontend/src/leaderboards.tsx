@@ -1,18 +1,6 @@
 
 import "flowbite"
 import { useState, useEffect } from "react";
-import { puzzle, sudoku, wordle, hangman, crossword, connections } from "./assets/icons/icons";
-
-const games = [
-  { title: "Games", subtitle: "Choose your poison for today or experience all of them!", color: "bg-slate-50 text-black shadow-slate-50", icon: puzzle },
-  { title: "Sudoku", subtitle: "Sharpen your logic — fill the grid without repeating numbers.", color: "bg-sky-400 text-slate-50 shadow-sky-800", icon: sudoku },
-  { title: "Wordle", subtitle: "Guess the hidden word in six tries or less.", color: "bg-emerald-500 text-slate-50 shadow-emerald-900", icon: wordle },
-  { title: "Hangman", subtitle: "Save the stickman — reveal the word before time runs out.", color: "bg-pink-400 text-slate-50 shadow-pink-800", icon: hangman },
-  { title: "Crossword", subtitle: "Test your vocabulary and wit by solving the daily word clues.", color: "bg-yellow-400 text-slate-50 shadow-yellow-800", icon: crossword },
-  { title: "Connections", subtitle: "Group words into four hidden categories and find the link.", color: "bg-purple-500 text-slate-50 shadow-purple-900", icon: connections },
-];
-
-
 
 export default function Leaderboards() {
   
@@ -42,8 +30,8 @@ export default function Leaderboards() {
 
   const options = ["Today", "This week", "This month"];
   return (
-    <div className="grid grid-cols-2 h-full gap-8">
-      <div className="bg-slate-50 rounded-3xl p-6 shadow-md">
+    <div className="grid grid-cols-2 h-full gap-8 ">
+      <div className="flex flex-col bg-slate-50 rounded-3xl p-6 shadow-md overflow-hidden">
         <span className="flex justify-start items-center">
           <button
             id="dropdownButton"
@@ -192,7 +180,7 @@ export default function Leaderboards() {
             </div>
           </div>
         </div>
-        <div>
+        <div className="flex-grow overflow-y-auto">
           {hasData ? (
             <ul className="divide-y divide-gray-200">
               {leaderboardData.map((player) => (
@@ -232,7 +220,7 @@ export default function Leaderboards() {
           )}
         </div>
       </div>
-      <div className="bg-slate-50 rounded-3xl p-6 shadow-md">
+      <div className="flex flex-col bg-slate-50 rounded-3xl p-6 shadow-md overflow-hidden">
         <div className="flex justify-start items-center">
           <h2 className="text-xl font-bold text-center py-2.5 ">All-time Leaderboards</h2>
           
@@ -341,7 +329,7 @@ export default function Leaderboards() {
             </div>
           </div>
         </div>
-        <div>
+        <div className="flex-grow overflow-y-auto">
           {hasData ? (
             <ul className="divide-y divide-gray-200">
               {leaderboardData.map((player) => (
