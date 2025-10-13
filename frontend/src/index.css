@@ -1,13 +1,22 @@
 @import "tailwindcss";
 
-@theme {
+@import "@fontsource/poppins";
+@plugin "flowbite/plugin";
+@config "../tailwind.config.js";
 
-  --font-sans: "Poppins", sans-serif;
+layer base {
+  * {
+    font-family: "Poppins", sans-serif;
+  }
+}
+
+@theme {
+  --font-family: 'Poppins', sans-serif;
 
   /* Primary color scale derived from #2449A4 */
   --color-primary-50:  #F3F4F7;
   --color-primary-100: #E4E8F2;
-  --color-primary-200: #C0CDED;
+  --color-primary-200: #E8F5FB;
   --color-primary-300: #9AB1EA;
   --color-primary-400: #5E86E8;
   --color-primary-500: #2449A4; /* base */
@@ -22,3 +31,4 @@
   --color-primary: var(--color-primary-500);
 
 }
+
