@@ -33,6 +33,8 @@ const Hangman = () => {
   const [player] = useState({ name: 'John Doe' });
   const [totalPoints, setTotalPoints] = useState(0);
   const [hintUsed, setHintUsed] = useState(false);
+  const [timer, setTimer] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
   const guessedLettersRef = useRef(new Set());
   const isRestoringRef = useRef(true);
 
@@ -75,6 +77,14 @@ const Hangman = () => {
         if (typeof parsed.hintUsed === 'boolean') {
           setHintUsed(parsed.hintUsed);
         }
+        if (typeof parsed.timer === 'number') {
+          setTimer(parsed.timer);
+        }
+        if (typeof parsed.isTimerRunning === 'boolean') {
+          setIsTimerRunning(parsed.isTimerRunning && parsed.gameStatus === 'playing');
+        } else if (parsed.gameStatus === 'playing') {
+          setIsTimerRunning(true);
+        }
         setIsLoading(false);
       }
     } catch (error) {
@@ -100,7 +110,6 @@ const Hangman = () => {
       window.localStorage.removeItem(STORAGE_KEY);
       return;
     }
-
     const stateToStore = {
       difficulty,
       word,
@@ -110,6 +119,8 @@ const Hangman = () => {
       score,
       totalPoints,
       hintUsed,
+      timer,
+      isTimerRunning,
     };
 
     try {
@@ -117,7 +128,7 @@ const Hangman = () => {
     } catch (error) {
       console.error('Failed to persist Hangman game state:', error);
     }
-  }, [difficulty, word, guessedLetters, wrongGuesses, gameStatus, score, totalPoints, hintUsed]);
+  }, [difficulty, word, guessedLetters, wrongGuesses, gameStatus, score, totalPoints, hintUsed, timer, isTimerRunning]);
 
   const fetchAdminWords = async () => {
     try {
@@ -206,12 +217,15 @@ const Hangman = () => {
     setWrongGuesses(0);
     setGameStatus('playing');
     setHintUsed(false);
+    setTimer(0);
+    setIsTimerRunning(false);
     // Set initial score based on difficulty
     setScore(selectedDifficulty === 'easy' ? 100 : 200);
     if (typeof window !== 'undefined') {
       window.localStorage.removeItem(STORAGE_KEY);
     }
     await fetchRandomWord(selectedDifficulty);
+    setIsTimerRunning(true);
   };
   const handleNewGame = () => {
     resetGame();
@@ -226,6 +240,8 @@ const Hangman = () => {
     setGameStatus('playing');
     setScore(0);
     setHintUsed(false);
+    setTimer(0);
+    setIsTimerRunning(false);
     setIsLoading(false);
     if (typeof window !== 'undefined') {
       window.localStorage.removeItem(STORAGE_KEY);
@@ -244,6 +260,7 @@ const Hangman = () => {
 
     if (hasWon) {
       setGameStatus('won');
+      setIsTimerRunning(false);
       // Add current score to total points when player wins
       setTotalPoints(prevTotal => prevTotal + score);
       return;
@@ -252,6 +269,7 @@ const Hangman = () => {
     // Check if lost
     if (wrongGuesses >= MAX_WRONG) {
       setGameStatus('lost');
+      setIsTimerRunning(false);
       // No points added to total when player loses
     }
   };
@@ -309,12 +327,44 @@ const Hangman = () => {
     };
   }, []);
 
-  const solvePuzzle = () => {
+  const solvePuzzle = useCallback(() => {
+    if (!word) {
+      return;
+    }
+
     setGameStatus('solved');
-    // Reveal all letters
     setGuessedLetters(word.split(''));
-    // No points awarded when solving
-  };
+    setScore(0);
+    setIsTimerRunning(false);
+  }, [word]);
+
+  useEffect(() => {
+    if (!isTimerRunning) {
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      setTimer(prevTimer => prevTimer + 1);
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [isTimerRunning]);
+
+  useEffect(() => {
+    if (gameStatus === 'playing' && word) {
+      setIsTimerRunning(true);
+    } else {
+      setIsTimerRunning(false);
+    }
+  }, [gameStatus, word]);
+
+  useEffect(() => {
+    if (gameStatus !== 'playing' || timer < 300) {
+      return;
+    }
+    setIsTimerRunning(false);
+    solvePuzzle();
+  }, [gameStatus, timer, solvePuzzle]);
 
   const useHint = () => {
     if (hintUsed || gameStatus !== 'playing') {
@@ -337,6 +387,12 @@ const Hangman = () => {
     }
   };
 
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const renderWord = () => {
     return word.split('').map((letter, idx) => (
       <span key={idx} className="letter-box">
@@ -346,22 +402,30 @@ const Hangman = () => {
   };
 
   const renderKeyboard = () => {
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    const rows = [
+      ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+      ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+      ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
+    ];
 
     return (
       <div className="keyboard">
-        {alphabet.map(letter => (
-          <button
-            key={letter}
-            type="button"
-            onClick={() => handleGuess(letter)}
-            disabled={guessedLetters.includes(letter) || gameStatus !== 'playing'}
-            data-letter={letter}
-            className={`key ${guessedLetters.includes(letter) ?
-              (word.includes(letter) ? 'correct' : 'wrong') : ''}`}
-          >
-            {letter}
-          </button>
+        {rows.map((row, rowIndex) => (
+          <div className="keyboard-row" key={`row-${rowIndex}`}>
+            {row.map(letter => (
+              <button
+                key={letter}
+                type="button"
+                onClick={() => handleGuess(letter)}
+                disabled={guessedLetters.includes(letter) || gameStatus !== 'playing'}
+                data-letter={letter}
+                className={`key ${guessedLetters.includes(letter) ?
+                  (word.includes(letter) ? 'correct' : 'wrong') : ''}`}
+              >
+                {letter}
+              </button>
+            ))}
+          </div>
         ))}
       </div>
     );
@@ -446,6 +510,9 @@ const Hangman = () => {
         </div>
         <div className="score-display">
           Score: {score} points
+        </div>
+        <div className="timer-display">
+          Time: {formatTime(timer)}
         </div>
       </div>
 

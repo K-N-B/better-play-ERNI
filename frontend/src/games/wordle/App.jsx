@@ -43,8 +43,16 @@ function App() {
   const [isFetchingWords, setIsFetchingWords] = useState(false)
   const [wordFetchError, setWordFetchError] = useState('')
   const [hasHydrated, setHasHydrated] = useState(false)
+  const [timer, setTimer] = useState(0)
+  const [isTimerRunning, setIsTimerRunning] = useState(false)
   const [activeKey, setActiveKey] = useState(null)
   const activeKeyTimeoutRef = useRef(null)
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
 
   const initializePuzzle = useCallback((mode, solutionWord, persisted = {}) => {
     const initialGuesses =
@@ -89,6 +97,12 @@ function App() {
     setHintUsed(Boolean(persisted.hintUsed))
     setHintText(storedHintText)
     setHintIndex(storedHintIndex)
+
+    const storedTimer = typeof persisted.timer === 'number' ? persisted.timer : 0
+    setTimer(storedTimer)
+    const resumeTimer =
+      !puzzleCompleted && (persisted.isTimerRunning === undefined ? true : Boolean(persisted.isTimerRunning))
+    setIsTimerRunning(resumeTimer)
   }, [])
 
   useEffect(() => {
@@ -170,6 +184,8 @@ function App() {
       hintText,
       hintIndex,
       completed: dailyComplete,
+      timer,
+      isTimerRunning,
     }
 
     try {
@@ -190,8 +206,26 @@ function App() {
     isGameOver,
     points,
     solution,
+    timer,
+    isTimerRunning,
     todayKey,
   ])
+
+  useEffect(() => {
+    if (!isTimerRunning) return
+
+    const intervalId = setInterval(() => {
+      setTimer((prev) => prev + 1)
+    }, 1000)
+
+    return () => clearInterval(intervalId)
+  }, [isTimerRunning])
+
+  useEffect(() => {
+    if (isGameOver) {
+      setIsTimerRunning(false)
+    }
+  }, [isGameOver])
 
   const getPoolForMode = (mode) => {
     if (mode === 'hard') {
@@ -355,24 +389,49 @@ function App() {
     setPoints((prev) => Math.max(0, prev - cost))
   }
 
-  const handleSolve = () => {
-    if (!difficulty || isGameOver || !solution) return
+  const forfeitPuzzle = useCallback(
+    ({ showAlert = true, message } = {}) => {
+      if (!difficulty || isGameOver || !solution) return
 
-    const updatedGuesses = [...guesses]
-    if (currentRow < updatedGuesses.length) {
-      updatedGuesses[currentRow] = solution
-    } else if (updatedGuesses.length > 0) {
-      updatedGuesses[updatedGuesses.length - 1] = solution
+      setGuesses((prevGuesses) => {
+        if (!prevGuesses.length) {
+          return prevGuesses
+        }
+        const updated = [...prevGuesses]
+        const targetRow =
+          currentRow < updated.length ? currentRow : updated.length - 1
+        updated[targetRow] = solution
+        return updated
+      })
+
+      setPoints(0)
+      setIsGameOver(true)
+      setDailyComplete(true)
+      setHintText(message ?? `Solution revealed: ${solution}.`)
+      setCurrentGuess('')
+      setIsTimerRunning(false)
+
+      if (showAlert) {
+        setTimeout(() => alert(`Puzzle forfeited. The solution was ${solution}.`), 100)
+      }
+    },
+    [currentRow, difficulty, isGameOver, solution]
+  )
+
+  const handleSolve = () => {
+    forfeitPuzzle()
+  }
+
+  useEffect(() => {
+    if (!difficulty || isGameOver || timer < 300) {
+      return
     }
 
-    setGuesses(updatedGuesses)
-    setPoints(0)
-    setIsGameOver(true)
-    setDailyComplete(true)
-    setHintText(`Solution revealed: ${solution}.`)
-    setCurrentGuess('')
-    setTimeout(() => alert(`Puzzle forfeited. The solution was ${solution}.`), 100)
-  }
+    forfeitPuzzle({
+      showAlert: false,
+      message: `Time expired. Solution revealed: ${solution}.`,
+    })
+  }, [difficulty, forfeitPuzzle, isGameOver, solution, timer])
 
   const resetToDifficultySelection = useCallback(() => {
     setDifficulty(null)
@@ -387,6 +446,8 @@ function App() {
     setHintUsed(false)
     setHintText('')
     setHintIndex(null)
+    setTimer(0)
+    setIsTimerRunning(false)
     setActiveKey(null)
     if (activeKeyTimeoutRef.current) {
       clearTimeout(activeKeyTimeoutRef.current)
@@ -503,6 +564,9 @@ function App() {
               <span className='player-name'>Player Name: John Doe</span>
               <span className='player-points'>
                 {`Current Points: ${points}`}
+              </span>
+              <span className='player-time'>
+                {`Time: ${formatTime(timer)}`}
               </span>
             </div>
             <div className='mode-actions'>
