@@ -3,7 +3,7 @@ import SudokuGame from './components/SudokuGame';
 
 function App() {
   return (
-    <div className="App">
+    <div className="App bg-sky-300" >
       <SudokuGame />
     </div>
   );
