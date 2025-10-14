@@ -1,8 +1,7 @@
 .sudoku-game {
-  max-width: 800px;
   margin: 0 auto;
-  padding: 32px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background: rgba(255, 255, 255, 0.96);
   border-radius: 18px;
   border: 1px solid var(--erni-blue-light);
@@ -12,7 +11,6 @@
 
 .game-header {
   text-align: center;
-  margin-bottom: 20px;
 }
 
 .game-header h1 {
@@ -46,7 +44,6 @@
   padding: 15px;
   border-radius: 8px;
   text-align: center;
-  margin-bottom: 20px;
   border-left: 4px solid var(--erni-blue);
 }
 
@@ -80,19 +77,16 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 20px;
   flex-wrap: wrap;
   gap: 15px;
 }
 
 .difficulty-selection {
   text-align: center;
-  margin: 40px 0;
 }
 
 .difficulty-selection h2 {
   color: var(--erni-blue);
-  margin-bottom: 30px;
   font-size: 2em;
 }
 
@@ -101,7 +95,6 @@
   justify-content: center;
   gap: 20px;
   flex-wrap: wrap;
-  margin-bottom: 20px;
 }
 
 .btn-difficulty {
@@ -113,7 +106,11 @@
   cursor: pointer;
   transition: all 0.3s ease;
   text-transform: uppercase;
-  background: linear-gradient(135deg, var(--erni-blue) 0%, var(--erni-blue-light) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--erni-blue) 0%,
+    var(--erni-blue-light) 100%
+  );
   color: #fff;
   min-width: 150px;
   letter-spacing: 0.05em;
@@ -125,7 +122,11 @@
 }
 
 .btn-difficulty.completed {
-  background: linear-gradient(135deg, var(--erni-gray-light) 0%, var(--erni-gray) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--erni-gray-light) 0%,
+    var(--erni-gray) 100%
+  );
   opacity: 0.7;
   position: relative;
 }
@@ -147,7 +148,6 @@
 
 .button-group {
   display: flex;
-  gap: 10px;
   flex-wrap: wrap;
 }
 
@@ -263,7 +263,6 @@
 }
 
 .game-instructions {
-  margin-top: 30px;
   background-color: var(--erni-blue-soft);
   padding: 20px;
   border-radius: 8px;
@@ -288,7 +287,6 @@
   text-align: center;
   font-size: 1.5em;
   color: var(--erni-blue);
-  padding: 50px;
 }
 
 .error-message {
@@ -311,6 +309,7 @@
   box-shadow: none;
 }
 
+/*
 @media (max-width: 600px) {
   .sudoku-cell {
     width: 35px;
@@ -331,3 +330,4 @@
     font-size: 2em;
   }
 }
+  */

@@ -8,7 +8,6 @@
 
 .sudoku-row {
   display: flex;
-  height: 50px;
 }
 
 .sudoku-row:nth-child(3),
