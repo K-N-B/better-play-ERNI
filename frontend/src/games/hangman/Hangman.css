@@ -1,7 +1,7 @@
 .hangman-container {
   text-align: center;
   padding: 32px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   max-width: 840px;
   margin: 0 auto;
   background: rgba(255, 255, 255, 0.96);
@@ -23,8 +23,6 @@ h1 {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 30px;
-  margin-bottom: 20px;
   flex-wrap: wrap;
   background-color: var(--erni-blue-soft);
   border-left: 4px solid var(--erni-blue);
@@ -243,13 +241,12 @@ h1 {
 
 /* Difficulty Selection */
 .difficulty-selection {
-  margin: 50px auto;
   max-width: 600px;
 }
 
 .difficulty-selection h2 {
   color: var(--erni-blue);
-  margin-bottom: 30px;
+
   font-size: 2rem;
 }
 
@@ -283,11 +280,19 @@ h1 {
 }
 
 .difficulty-button.easy {
-  background: linear-gradient(135deg, var(--erni-blue-light) 0%, var(--erni-blue) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--erni-blue-light) 0%,
+    var(--erni-blue) 100%
+  );
 }
 
 .difficulty-button.hard {
-  background: linear-gradient(135deg, var(--erni-blue) 0%, var(--erni-blue-dark) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--erni-blue) 0%,
+    var(--erni-blue-dark) 100%
+  );
 }
 
 .difficulty-description {
@@ -321,7 +326,11 @@ h1 {
 .score-display {
   display: inline-block;
   padding: 8px 20px;
-  background: linear-gradient(135deg, var(--erni-blue-light) 0%, var(--erni-blue) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--erni-blue-light) 0%,
+    var(--erni-blue) 100%
+  );
   color: #fff;
   border-radius: 20px;
   font-weight: bold;
@@ -336,7 +345,8 @@ h1 {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
