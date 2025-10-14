@@ -1,28 +1,107 @@
-import { Routes, Route } from "react-router-dom";
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { MsalProvider, useIsAuthenticated, useMsal } from '@azure/msal-react';
+import { PublicClientApplication } from '@azure/msal-browser';
+import { msalConfig } from './authConfig';
+import { authAPI } from './api/authAPI';
+import LoginPage from './pages/LoginPage';
+import AdminDashboard from './pages/AdminDashboard';
+import UserDashboard from './pages/UserDashboard';
 
-import Navbar from "./components/Navbar";
-import Home from "./home";
-import Leaderboards from "./leaderboards";
-import SudokuGame from "./games/sudoku";
-import HangmanGame from "./games/hangman";
+const msalInstance = new PublicClientApplication(msalConfig);
+
+// Component to handle authentication and role-based routing
+const AuthenticatedApp = () => {
+  const isAuthenticated = useIsAuthenticated();
+  const { accounts, instance } = useMsal();
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const initUser = async () => {
+      if (isAuthenticated && accounts.length > 0) {
+        try {
+          // Get the ID token
+          const response = await instance.acquireTokenSilent({
+            scopes: ['User.Read'],
+            account: accounts[0],
+          });
+
+          // Store token for API calls
+          sessionStorage.setItem('msal.idtoken', response.idToken);
+
+          // Sync user with backend
+          await authAPI.syncUser();
+
+          // Get user roles from the token
+          const roles = (response.idTokenClaims as any)?.roles || ['User'];
+          setUserRole(roles.includes('Admin') ? 'Admin' : 'User');
+        } catch (error) {
+          console.error('Failed to initialize user:', error);
+          setUserRole('User'); // Default to User role
+        }
+      }
+      setLoading(false);
+    };
+
+    initUser();
+  }, [isAuthenticated, accounts, instance]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route
+        path="/"
+        element={
+          isAuthenticated ? (
+            <Navigate to={userRole === 'Admin' ? '/admin' : '/dashboard'} replace />
+          ) : (
+            <LoginPage />
+          )
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          isAuthenticated && userRole === 'Admin' ? (
+            <AdminDashboard />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/dashboard"
+        element={
+          isAuthenticated ? (
+            <UserDashboard />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+};
 
 function App() {
   return (
-    <>
-      <div className="flex flex-col h-dvh w-dvw bg-[#F1ECE6]  bg-[linear-gradient(to_right,#D2B694_2px,transparent_1px),linear-gradient(to_bottom,#D2B694_2px,transparent_1px)] bg-[size:24px_24px]">
-        <Navbar />
-        <main className="md:h-full md:w-full md:overflow-hidden">
-          <div className="h-full w-full p-5 md:p-10">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/leaderboards" element={<Leaderboards />} />
-              <Route path="/sudoku" element={<SudokuGame />} />
-              <Route path="/hangman" element={<HangmanGame />} />
-            </Routes>
-          </div>
-        </main>
-      </div>
-    </>
+    <MsalProvider instance={msalInstance}>
+      <BrowserRouter>
+        <AuthenticatedApp />
+      </BrowserRouter>
+    </MsalProvider>
   );
 }
 
