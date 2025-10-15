@@ -10,10 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@azure/msal-browser": "^4.25.0",
+    "@azure/msal-react": "^3.0.20",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
     "@tailwindcss/vite": "^4.1.14",
     "@tailwindplus/elements": "^1.0.17",
+    "axios": "^1.12.2",
     "flowbite": "^3.1.2",
     "lucide-react": "^0.545.0",
     "react": "^19.1.1",
