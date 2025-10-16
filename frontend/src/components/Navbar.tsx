@@ -11,9 +11,9 @@ export default function Navbar() {
         { name: "Home", path: "/", color: "bg-primary text-slate-50 shadow-[0_5px_0_0] shadow-primary-900", },
         { name: "Leaderboards", path: "/leaderboards", color: "bg-primary text-slate-50 shadow-[0_5px_0_0] shadow-primary-900", },
         { name: "┃" },
-        { name: "Sudoku", path: "/sudoku", color: "bg-sky-400 text-slate-50 shadow-[0_5px_0_0] shadow-sky-800", },
+        { name: "Sudoku", path: "/sudoku", color: "bg-pink-400 text-slate-50 shadow-[0_5px_0_0] shadow-pink-800", },
         { name: "Wordle", path: "/wordle", color: "bg-emerald-500 text-slate-50 shadow-[0_5px_0_0] shadow-emerald-900", },
-        { name: "Hangman", path: "/hangman", color: "bg-pink-400 text-slate-50 shadow-[0_5px_0_0] shadow-pink-800", },
+        { name: "ERNIgram", path: "/hangman", color: "bg-sky-400 text-slate-50 shadow-[0_5px_0_0] shadow-sky-800", },
         { name: "Crossword", path: "/crossword", color: "bg-yellow-400 text-slate-50 shadow-[0_5px_0_0] shadow-yellow-800", },
         { name: "Connections", path: "/connections", color: "bg-purple-500 text-slate-50 shadow-[0_5px_0_0] shadow-purple-900", },
     ];

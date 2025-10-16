@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import DifficultyToggle from '../../components/DifficultyToggle';
+import PrimaryButton from '../../components/PrimaryButton';
 import './Hangman.css';
 
 const WORDS = [
@@ -22,11 +24,12 @@ const WORDS = [
 const MAX_WRONG = 6;
 
 const Hangman = () => {
-  const [difficulty, setDifficulty] = useState(null); // null, 'easy', 'hard'
+  const [difficulty, setDifficulty] = useState('easy'); // 'easy' or 'hard'
+  const [gameStarted, setGameStarted] = useState(false);
   const [word, setWord] = useState('');
   const [guessedLetters, setGuessedLetters] = useState([]);
   const [wrongGuesses, setWrongGuesses] = useState(0);
-  const [gameStatus, setGameStatus] = useState('playing'); // playing, won, lost, solved
+  const [gameStatus, setGameStatus] = useState('pending'); // pending, playing, won, lost, solved
   const [isLoading, setIsLoading] = useState(false);
   const [score, setScore] = useState(0);
   const [player] = useState({ name: 'John Doe' });
@@ -119,23 +122,23 @@ const Hangman = () => {
     }
   };
 
-  const startGame = async (selectedDifficulty) => {
-    setDifficulty(selectedDifficulty);
+  const startGame = async () => {
+    setGameStarted(true);
     setGuessedLetters([]);
     setWrongGuesses(0);
     setGameStatus('playing');
     setHintUsed(false);
     // Set initial score based on difficulty
-    setScore(selectedDifficulty === 'easy' ? 100 : 200);
-    await fetchRandomWord(selectedDifficulty);
+    setScore(difficulty === 'easy' ? 100 : 200);
+    await fetchRandomWord(difficulty);
   };
 
   const resetGame = () => {
-    setDifficulty(null);
+    setDifficulty('easy');
+    setGameStarted(false);
     setWord('');
     setGuessedLetters([]);
     setWrongGuesses(0);
-    setGameStatus('playing');
     setScore(0);
   };
 
@@ -260,31 +263,30 @@ const Hangman = () => {
   };
 
   // Difficulty selection screen
-  if (difficulty === null) {
+  if (!gameStarted) {
     return (
-      <div className="hangman-container">
-        <h1>Hangman Game</h1>
-        <div className="player-info">
-          <span className="player-name">Player: {player.name}</span>
-          <span className="total-points">Total Points: {totalPoints}</span>
+      <div className="hangman-container grid grid-cols-2 flex-col-reverse">
+        <div className="place-content-center p-20 text-2xl leading-6 bg-white h-full rounded-3xl">
+            <div className="font-medium ">Do you think you know ERNI well enough? Let’s find out!</div>
+            <div className="font-semibold mt-8">How to play:</div>
+            <div className="mt-2">A secret word or phrase related to our company, culture, or projects is waiting to be solved. Guess it one letter at a time. Correct letters will appear in their spots. A wrong guess removes a bar from the battery, so don’t let it drain!</div>
         </div>
-        <div className="difficulty-selection">
-          <h2>Select Difficulty</h2>
-          <div className="difficulty-buttons">
-            <button
-              className="difficulty-button easy"
-              onClick={() => startGame('easy')}
-            >
-              Easy
-              <span className="difficulty-description">4-6 letter words</span>
-            </button>
-            <button
-              className="difficulty-button hard"
-              onClick={() => startGame('hard')}
-            >
-              Hard
-              <span className="difficulty-description">8-10 letter words</span>
-            </button>
+        <div className="place-content-center p-20 text-xl leading-5">
+          <div className="text-5xl font-bold">ERNIgram</div>
+          <div className="mt-10 font-medium">
+            <div>You will earn <span className="font-bold">100pts</span> for finishing this puzzle, x2 for finishing Hard difficulty.</div>
+            <div className="mt-10">Using a hint will deduct <span className="font-bold">20pts</span>. You will get additional points for completing it early.</div>
+          </div>
+          <div className="difficulty-selection mt-6 text-xl">
+            <div className="font-semibold text-black">Choose a difficulty:</div> 
+            <DifficultyToggle
+              onToggle={(isHard) => setDifficulty(isHard ? 'hard' : 'easy')}
+            />
+            <div className="difficulty-buttons mt-10">
+              <button className="font-semibold text-primary text-4xl leading-none px-6 py-4 rounded-2xl bg-sky-400 text-slate-50 shadow-[0_5px_0_0] shadow-sky-800" onClick={startGame}>
+                Start
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -303,7 +305,7 @@ const Hangman = () => {
 
   return (
     <div className="hangman-container">
-      <h1>Hangman Game</h1>
+      <h1>ERNIgram</h1>
       <div className="player-info">
         <span className="player-name">Player: {player.name}</span>
         <span className="total-points">Total Points: {totalPoints}</span>

@@ -1,14 +1,10 @@
 .hangman-container {
+  height: 100%;
   text-align: center;
   padding: 32px;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  max-width: 840px;
   margin: 0 auto;
-  background: rgba(255, 255, 255, 0.96);
-  border-radius: 18px;
-  border: 1px solid var(--erni-blue-light);
-  box-shadow: 0 24px 48px rgba(8, 37, 90, 0.16);
-  color: var(--erni-gray);
+  
 }
 
 h1 {
