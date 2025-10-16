@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DifficultyToggle from '../../components/DifficultyToggle';
+import GameIntro from '../../components/GameIntro';
 import PrimaryButton from '../../components/PrimaryButton';
 import './Hangman.css';
 
@@ -265,31 +266,16 @@ const Hangman = () => {
   // Difficulty selection screen
   if (!gameStarted) {
     return (
-      <div className="hangman-container grid grid-cols-2 flex-col-reverse">
-        <div className="place-content-center p-20 text-2xl leading-6 bg-white h-full rounded-3xl">
-            <div className="font-medium ">Do you think you know ERNI well enough? Let’s find out!</div>
-            <div className="font-semibold mt-8">How to play:</div>
-            <div className="mt-2">A secret word or phrase related to our company, culture, or projects is waiting to be solved. Guess it one letter at a time. Correct letters will appear in their spots. A wrong guess removes a bar from the battery, so don’t let it drain!</div>
-        </div>
-        <div className="place-content-center p-20 text-xl leading-5">
-          <div className="text-5xl font-bold">ERNIgram</div>
-          <div className="mt-10 font-medium">
-            <div>You will earn <span className="font-bold">100pts</span> for finishing this puzzle, x2 for finishing Hard difficulty.</div>
-            <div className="mt-10">Using a hint will deduct <span className="font-bold">20pts</span>. You will get additional points for completing it early.</div>
-          </div>
-          <div className="difficulty-selection mt-6 text-xl">
-            <div className="font-semibold text-black">Choose a difficulty:</div> 
-            <DifficultyToggle
-              onToggle={(isHard) => setDifficulty(isHard ? 'hard' : 'easy')}
-            />
-            <div className="difficulty-buttons mt-10">
-              <button className="font-semibold text-primary text-4xl leading-none px-6 py-4 rounded-2xl bg-sky-400 text-slate-50 shadow-[0_5px_0_0] shadow-sky-800" onClick={startGame}>
-                Start
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <GameIntro
+        title="ERNIgram"
+        description="Do you think you know ERNI well enough? Let’s find out!"
+        howToPlay="A secret word or phrase related to our company, culture, or projects is waiting to be solved. Guess it one letter at a time. Correct letters will appear in their spots. A wrong guess removes a bar from the battery, so don’t let it drain!"
+        pointsInfo='You will earn <span class="font-bold">100pts</span> for finishing this puzzle, x2 for finishing Hard difficulty.'
+        hintInfo='Using a hint will deduct <span class="font-bold">20pts</span>. You will get additional points for completing it early.'
+        onStart={startGame}
+        onDifficultyChange={setDifficulty}
+        color="bg-sky-500"
+      />
     );
   }
 
