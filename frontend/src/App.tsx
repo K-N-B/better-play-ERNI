@@ -59,7 +59,7 @@ function App() {
           }
         />
         <Route
-          path="/hangman"
+          path="/ernigram"
           element={
             <ProtectedRoute>
               <Layout>

@@ -37,7 +37,7 @@ const games = [
   {
     title: "Crossword",
     subtitle: "Test your vocabulary and wit by solving the daily word clues.",
-    color: "bg-yellow-400 text-slate-50 shadow-yellow-800",
+    color: "bg-amber-400 text-slate-50 shadow-amber-800",
     icon: crossword,
   },
   {
