@@ -1,4 +1,4 @@
-import Navbar from "./components/Navbar";
+
 import {
   puzzle,
   sudoku,
@@ -7,6 +7,7 @@ import {
   crossword,
   connections,
 } from "./assets/icons/icons";
+import GameButton from "./components/GameButton";
 
 const games = [
   {
@@ -49,11 +50,11 @@ const games = [
 
 export default function Home() {
   return (
-    <div className="min-h-screen h-full w-full bg-[#F1ECE6] absolute inset-0 bg-[linear-gradient(to_right,#D2B694_2px,transparent_1px),linear-gradient(to_bottom,#D2B694_2px,transparent_1px)] bg-[size:24px_24px]">
-      <main className="w-full h-dvh mx-auto pt-20 px-6 ">
-        <div className="flex h-full gap-8 py-8">
+    // <div className="min-h-screen h-full w-full bg-[#F1ECE6] absolute inset-0 bg-[linear-gradient(to_right,#D2B694_2px,transparent_1px),linear-gradient(to_bottom,#D2B694_2px,transparent_1px)] bg-[size:24px_24px]">
+    //   <main className="w-full h-dvh mx-auto pt-20 px-6 ">
+        <div className="flex h-full gap-8 ">
           {/* Left leaderboard column */}
-          <aside className="w-1/4 h-full bg-slate-50 rounded-2xl p-6 shadow-md sticky top-20 self-start">
+          <aside className="w-1/4 h-full bg-slate-50 rounded-2xl p-6 shadow-md sticky self-start">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">Leaderboards</h2>
               <button className="text-sm text-slate-500 bg-slate-100 px-2 py-1 rounded">
@@ -85,26 +86,13 @@ export default function Home() {
             <div className="bg-slate-50 rounded-3xl p-6 shadow-md h-full">
               <div className="grid h-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {games.map((g) => (
-                  <article
-                    key={g.title}
-                    className={`rounded-2xl ${g.color} shadow-[0_8px_0_0] active:shadow-[0_4px_0_0_rgba(0,0,0,0.15)] translate-y-[-2px] active:translate-y-0 p-8 flex flex-col items-center justify-center h-full`}
-                  >
-                    <div className="flex flex-col items-center text-center">
-                      <img
-                        src={g.icon}
-                        alt="Puzzle Icon"
-                        className="size-24 mb-4"
-                      />
-                      <div className="text-3xl font-extrabold">{g.title}</div>
-                      <div className="text-base mt-2">{g.subtitle}</div>
-                    </div>
-                  </article>
+                  <GameButton key={g.title} title={g.title} subtitle={g.subtitle} color={g.color} icon={g.icon} />
                 ))}
               </div>
             </div>
           </section>
         </div>
-      </main>
-    </div>
+    //   </main>
+    // </div>
   );
 }

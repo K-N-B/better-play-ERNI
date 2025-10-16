@@ -1,6 +1,4 @@
 .sudoku-cell {
-  width: 50px;
-  height: 50px;
   border: 1px solid var(--erni-blue-light);
   text-align: center;
   font-size: 20px;
