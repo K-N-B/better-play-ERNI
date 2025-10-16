@@ -3,7 +3,7 @@ import Hangman from './Hangman';
 
 function App() {
   return (
-    <div className="App bg-pink-300">
+    <div className="App bg-sky-300">
       <Hangman />
     </div>
   );
