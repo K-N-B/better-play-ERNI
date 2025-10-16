@@ -8,7 +8,7 @@ import Leaderboards from "./leaderboards";
 import SudokuGame from "./games/sudoku";
 import ErnigramGame from "./games/ernigram";
 import WordleGame from "./games/wordle";
-import Ernigram from "./games/ernigram";
+import UnderConstruction from "./components/UnderConstruction";
 
 function App() {
   return (
@@ -73,7 +73,7 @@ function App() {
           element={
             <ProtectedRoute>
               <Layout>
-                <div>Crossword Game Coming Soon!</div>
+                <UnderConstruction title="Crossword" bg="bg-amber-200" text="text-amber-900"/>
               </Layout>
             </ProtectedRoute>
           }
@@ -83,7 +83,7 @@ function App() {
           element={
             <ProtectedRoute>
               <Layout>
-                <div>Connections Game Coming Soon!</div>
+                <UnderConstruction title="Connections" bg="bg-purple-300" text="text-purple-900"/>
               </Layout>
             </ProtectedRoute>
           }
