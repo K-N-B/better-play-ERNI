@@ -1,5 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Shield, AlertCircle } from 'lucide-react';
+import logoImage from '../assets/image-removebg-preview.png';
+
+const ErniPuzzleLogo = () => (
+  <div className="flex items-center gap-3">
+    {/* You can add text/logo here if needed */}
+  </div>
+);
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
@@ -27,9 +35,9 @@ export default function Login() {
       const response = await fetch('http://localhost:8000/auth/login/', {
         credentials: 'include',
       });
-      
+
       const data = await response.json();
-      
+
       if (data.auth_url) {
         window.location.href = data.auth_url;
       } else {
@@ -37,77 +45,95 @@ export default function Login() {
         setLoading(false);
       }
     } catch (err) {
+      console.error('Login error:', err);
       setError('An error occurred. Please try again.');
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-sky-400 via-purple-500 to-pink-400 flex items-center justify-center p-4">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-      </div>
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="border-b border-gray-200 py-4 px-6">
+        <ErniPuzzleLogo />
+      </header>
 
-      <div className="relative w-full max-w-md">
-        <div className="bg-white rounded-3xl shadow-2xl p-8 backdrop-blur-lg">
-          <div className="flex justify-center mb-8">
-            <div className="w-20 h-20 bg-gradient-to-br from-sky-400 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg">
-              <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-
+      {/* Main Content */}
+      <div
+        className="flex items-center justify-center px-4"
+        style={{ minHeight: 'calc(100vh - 80px)' }}
+      >
+        <div className="max-w-md w-full">
+          {/* Logo and Tagline */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Welcome Back</h1>
-            <p className="text-gray-600">Sign in to access your favorite games</p>
+            <img
+              src={logoImage}
+              alt="Welcome Back"
+              className="mx-auto mb-2 max-w-[1000px] w-full h-auto object-contain"
+            />
+            <p className="text-gray-600">Sign in to access your puzzles</p>
           </div>
 
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-600 text-sm text-center">{error}</p>
-            </div>
-          )}
-
-          <button
-            onClick={handleMicrosoftLogin}
-            disabled={loading}
-            className="w-full bg-white border-2 border-gray-300 hover:border-gray-400 text-gray-800 font-semibold py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-3 shadow-md hover:shadow-lg disabled:opacity-50"
-          >
-            {loading ? (
-              <>
-                <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
-                <span>Redirecting...</span>
-              </>
-            ) : (
-              <>
-                <svg className="w-6 h-6" viewBox="0 0 23 23">
-                  <path fill="#f3f3f3" d="M0 0h23v23H0z"/>
-                  <path fill="#f35325" d="M1 1h10v10H1z"/>
-                  <path fill="#81bc06" d="M12 1h10v10H12z"/>
-                  <path fill="#05a6f0" d="M1 12h10v10H1z"/>
-                  <path fill="#ffba08" d="M12 12h10v10H12z"/>
-                </svg>
-                <span>Sign in with Microsoft</span>
-              </>
+          {/* Login Card */}
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-8">
+            {/* Error Message */}
+            {error && (
+              <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4 flex gap-3">
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-red-700">{error}</div>
+              </div>
             )}
-          </button>
 
-          <div className="flex items-center my-6">
-            <div className="flex-1 border-t border-gray-300"></div>
-            <span className="px-4 text-sm text-gray-500">Secure Authentication</span>
-            <div className="flex-1 border-t border-gray-300"></div>
+            {/* Microsoft Login Button */}
+            <button
+              onClick={handleMicrosoftLogin}
+              disabled={loading}
+              className="w-full bg-blue-900 hover:bg-blue-800 disabled:bg-blue-300 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-3 mb-4"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span>Signing in...</span>
+                </>
+              ) : (
+                <>
+                  <Shield className="w-5 h-5" />
+                  <span>Sign in with Microsoft</span>
+                </>
+              )}
+            </button>
+
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-white text-gray-500">
+                  Secure SSO Authentication
+                </span>
+              </div>
+            </div>
+
+            {/* Info Section */}
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+              <div className="flex gap-3">
+                <Shield className="w-5 h-5 text-blue-900 flex-shrink-0 mt-0.5" />
+                <div className="text-sm">
+                  <p className="text-gray-700 font-medium mb-1">
+                    Enterprise Single Sign-On
+                  </p>
+                  <p className="text-gray-600 text-xs">
+                    Protected by Microsoft Entra ID with multi-factor authentication
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 text-sm text-gray-600">
-              <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <span>Track your progress across all games</span>
-            </div>
+          {/* Footer */}
+          <div className="mt-8 text-center text-sm text-gray-500">
+            <p>© {new Date().getFullYear()} ERNI Puzzle Platform</p>
           </div>
         </div>
       </div>
