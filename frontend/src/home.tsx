@@ -7,6 +7,7 @@ import {
   crossword,
   connections,
 } from "./assets/icons/icons";
+import GameButton from "./components/GameButton";
 
 const games = [
   {
@@ -85,22 +86,7 @@ export default function Home() {
             <div className="bg-slate-50 rounded-3xl p-6 shadow-md h-full">
               <div className="grid h-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {games.map((g) => (
-                  <a href={g.title === 'Games' ? '/leaderboards' : `/${g.title.toLowerCase()}`}>
-                  <article
-                    key={g.title}
-                    className={`rounded-2xl ${g.color} shadow-[0_8px_0_0] active:shadow-[0_4px_0_0_rgba(0,0,0,0.15)] translate-y-[-2px] active:translate-y-0 p-8 flex flex-col items-center justify-center h-full`}
-                  >
-                    <div className="flex flex-col items-center text-center">
-                      <img
-                        src={g.icon}
-                        alt="Puzzle Icon"
-                        className="size-24 mb-4"
-                      />
-                      <div className="text-3xl font-extrabold">{g.title}</div>
-                      <div className="text-base mt-2">{g.subtitle}</div>
-                    </div>
-                  </article>
-                  </a>
+                  <GameButton key={g.title} title={g.title} subtitle={g.subtitle} color={g.color} icon={g.icon} />
                 ))}
               </div>
             </div>
