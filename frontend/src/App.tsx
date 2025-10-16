@@ -6,8 +6,9 @@ import Layout from "./components/Layout"; // Layout includes Navbar
 import Home from "./home";
 import Leaderboards from "./leaderboards";
 import SudokuGame from "./games/sudoku";
-import HangmanGame from "./games/hangman";
+import ErnigramGame from "./games/ernigram";
 import WordleGame from "./games/wordle";
+import Ernigram from "./games/ernigram";
 
 function App() {
   return (
@@ -62,7 +63,7 @@ function App() {
           element={
             <ProtectedRoute>
               <Layout>
-                <HangmanGame />
+                <ErnigramGame />
               </Layout>
             </ProtectedRoute>
           }

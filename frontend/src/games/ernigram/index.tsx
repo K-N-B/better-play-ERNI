@@ -1,11 +1,11 @@
 import { StrictMode } from 'react';
-import HangmanApp from './App';
+import ErnigramApp from './App';
 import './index.css';
 
-export default function HangmanGame() {
+export default function Ernigram() {
   return (
     <StrictMode>
-      <HangmanApp />
+      <ErnigramApp />
     </StrictMode>
   );
 }
