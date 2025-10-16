@@ -7,6 +7,7 @@ import Home from "./home";
 import Leaderboards from "./leaderboards";
 import SudokuGame from "./games/sudoku";
 import HangmanGame from "./games/hangman";
+import WordleGame from "./games/wordle";
 
 function App() {
   return (
@@ -51,7 +52,7 @@ function App() {
           element={
             <ProtectedRoute>
               <Layout>
-                <div>Wordle Game Coming Soon!</div>
+                <WordleGame />
               </Layout>
             </ProtectedRoute>
           }
@@ -89,7 +90,6 @@ function App() {
       </Routes>
     </>
   );
-    
 }
 
 export default App;
