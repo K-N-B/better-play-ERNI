@@ -19,7 +19,7 @@ const games = [
   {
     title: "Sudoku",
     subtitle: "Sharpen your logic — fill the grid without repeating numbers.",
-    color: "bg-sky-400 text-slate-50 shadow-sky-800",
+    color: "bg-pink-400 text-slate-50 shadow-[0_5px_0_0] shadow-pink-800",
     icon: sudoku,
   },
   {
@@ -29,9 +29,9 @@ const games = [
     icon: wordle,
   },
   {
-    title: "Hangman",
+    title: "ERNIgram",
     subtitle: "Save the stickman — reveal the word before time runs out.",
-    color: "bg-pink-400 text-slate-50 shadow-pink-800",
+    color: "bg-sky-400 text-slate-50 shadow-[0_5px_0_0] shadow-sky-800",
     icon: hangman,
   },
   {
