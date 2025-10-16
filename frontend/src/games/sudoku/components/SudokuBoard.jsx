@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import SudokuCell from './SudokuCell';
-import './SudokuBoard.css';
+import React, { useState } from "react";
+import SudokuCell from "./SudokuCell";
+import "./SudokuBoard.css";
 
 const SudokuBoard = ({ board, initialBoard, onCellChange, solution }) => {
   const [selectedCell, setSelectedCell] = useState(null);
