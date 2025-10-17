@@ -89,13 +89,15 @@ function ERNIgramGame({ difficulty }) {
           ))}
         </div>
 
-        <div className="text-left w-full text-sm md:text-base">
+        <div className="text-center w-full text-sm md:text-base">
           <div className="text-red-600 font-semibold text-2xl mb-4">
             Wrong letters: {wrongLetters.join(", ") || "None"}
           </div>
-          <div className="font-semibold text-gray-800 text-2xl flex items-center gap-2">
+          <div className="font-semibold justify-center text-gray-800 text-2xl flex items-center gap-2">
             Battery
-            <div className="flex gap-1">
+            
+          </div>
+          <div className="flex mt-2 gap-1 justify-center">
               {Array.from({ length: difficulty === "hard" ? 3 : 6 }).map((_, i) => (
                 <div
                   key={i}
@@ -103,7 +105,6 @@ function ERNIgramGame({ difficulty }) {
                 ></div>
               ))}
             </div>
-          </div>
         </div>
 
         {(gameOver || gameWon) && (
