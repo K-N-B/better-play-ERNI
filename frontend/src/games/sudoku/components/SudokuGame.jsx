@@ -214,6 +214,7 @@ const SudokuGame = () => {
           onStart={startGame}
           onDifficultyChange={setDifficulty}
           color="bg-[#C7337A]"
+          darkColor="shadow-sky-900"
         />
         <div className="sudoku-game grid grid-cols-1 md:grid-cols-2 place-items-center h-full gap-15">
           <div>
