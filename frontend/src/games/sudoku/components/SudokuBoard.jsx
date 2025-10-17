@@ -37,7 +37,7 @@ const SudokuBoard = ({ board, initialBoard, onCellChange, solution }) => {
   };
 
   return (
-    <div className="sudoku-board">
+    <div className="sudoku-board rounded-xl">
       {board.map((row, rowIndex) => (
         <div key={rowIndex} className="sudoku-row">
           {row.map((cell, colIndex) => (
