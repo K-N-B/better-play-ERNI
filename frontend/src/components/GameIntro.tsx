@@ -27,7 +27,10 @@ export default function GameIntro({
       <div className="place-content-center p-20 text-2xl leading-6 bg-white h-full rounded-3xl">
         <div className="font-medium">{description}</div>
         <div className="font-semibold mt-8">How to play:</div>
-        <div className="mt-2">{howToPlay}</div>
+        <div
+          className="mt-2 text-gray-700 whitespace-pre-line"
+          dangerouslySetInnerHTML={{ __html: howToPlay }}
+        />
       </div>
 
       {/* RIGHT SIDE */}
@@ -36,11 +39,16 @@ export default function GameIntro({
 
         <div className="mt-10 font-medium">
           <div dangerouslySetInnerHTML={{ __html: pointsInfo }} />
-          <div className="mt-10" dangerouslySetInnerHTML={{ __html: hintInfo }} />
+          <div
+            className="mt-10"
+            dangerouslySetInnerHTML={{ __html: hintInfo }}
+          />
         </div>
 
         <div className="mt-6 text-xl">
-          <div className="font-semibold text-black mb-4">Choose a difficulty:</div>
+          <div className="font-semibold text-black mb-4">
+            Choose a difficulty:
+          </div>
 
           <DifficultyToggle
             onToggle={(isHard) => onDifficultyChange(isHard ? "hard" : "easy")}
