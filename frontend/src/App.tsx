@@ -3,8 +3,8 @@ import Login from "./components/Login";
 import AuthCallback from "./components/AuthCallback";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout"; // Layout includes Navbar
-import Home from "./home";
-import Leaderboards from "./leaderboards";
+import Home from "./pages/home";
+import Leaderboards from "./pages/leaderboards";
 import SudokuGame from "./games/sudoku";
 import ErnigramGame from "./games/ernigram";
 import WordleGame from "./games/wordle";

@@ -26,3 +26,5 @@ When applying changes on the backend do:
 To install dependencies run: `npm install`
 
 
+Save into folder. If in frontend, save into local storage API. < yags >
+
