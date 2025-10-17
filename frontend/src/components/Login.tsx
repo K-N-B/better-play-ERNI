@@ -1,31 +1,43 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Shield, AlertCircle } from 'lucide-react';
-import logoImage from '../assets/image-removebg-preview.png';
-
-const ErniPuzzleLogo = () => (
-  <div className="flex items-center gap-3">
-    {/* You can add text/logo here if needed */}
-  </div>
-);
+import { useNavigate, useLocation } from 'react-router-dom';
+import { AlertCircle, Shield } from 'lucide-react';
+import logoImage from '../assets/image-removebg-preview.png'; // update path if needed
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    fetch('http://localhost:8000/auth/check/', {
-      credentials: 'include',
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.authenticated) {
-          navigate('/');
-        }
-      })
-      .catch(err => console.error('Auth check failed:', err));
-  }, [navigate]);
+    const searchParams = new URLSearchParams(location.search);
+    const loggedOut = searchParams.get('logged_out');
+
+    if (loggedOut === 'true') {
+      setCheckingAuth(false);
+      return;
+    }
+
+    checkAuthentication();
+  }, [location, navigate]);
+
+  const checkAuthentication = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/auth/check/', {
+        credentials: 'include',
+      });
+      const data = await response.json();
+
+      if (data.authenticated) {
+        navigate('/', { replace: true });
+      }
+    } catch (err) {
+      console.error('Auth check failed:', err);
+    } finally {
+      setCheckingAuth(false);
+    }
+  };
 
   const handleMicrosoftLogin = async () => {
     setLoading(true);
@@ -45,36 +57,41 @@ export default function Login() {
         setLoading(false);
       }
     } catch (err) {
-      console.error('Login error:', err);
       setError('An error occurred. Please try again.');
       setLoading(false);
     }
   };
 
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-900 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-gray-700">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
-      <header className="border-b border-gray-200 py-4 px-6">
-        <ErniPuzzleLogo />
-      </header>
+
 
       {/* Main Content */}
-      <div
-        className="flex items-center justify-center px-4"
-        style={{ minHeight: 'calc(100vh - 80px)' }}
-      >
+      <main className="flex-1 flex items-center justify-center px-4">
         <div className="max-w-md w-full">
-          {/* Logo and Tagline */}
+          {/* Logo + Tagline */}
           <div className="text-center mb-8">
             <img
               src={logoImage}
               alt="Welcome Back"
-              className="mx-auto mb-2 max-w-[1000px] w-full h-auto object-contain"
+              className="mx-auto mb-2 max-w-[600px] w-full h-auto object-contain"
             />
             <p className="text-gray-600">Sign in to access your puzzles</p>
           </div>
 
-          {/* Login Card */}
+          {/* Card */}
           <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-8">
             {/* Error Message */}
             {error && (
@@ -93,7 +110,7 @@ export default function Login() {
               {loading ? (
                 <>
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span>Signing in...</span>
+                  <span>Redirecting...</span>
                 </>
               ) : (
                 <>
@@ -115,7 +132,7 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Info Section */}
+            {/* Info Box */}
             <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
               <div className="flex gap-3">
                 <Shield className="w-5 h-5 text-blue-900 flex-shrink-0 mt-0.5" />
@@ -124,7 +141,8 @@ export default function Login() {
                     Enterprise Single Sign-On
                   </p>
                   <p className="text-gray-600 text-xs">
-                    Protected by Microsoft Entra ID with multi-factor authentication
+                    Protected by Microsoft Entra ID with multi-factor
+                    authentication
                   </p>
                 </div>
               </div>
@@ -133,10 +151,10 @@ export default function Login() {
 
           {/* Footer */}
           <div className="mt-8 text-center text-sm text-gray-500">
-            <p>© {new Date().getFullYear()} ERNI Puzzle Platform</p>
+            <p>© 2025 ERNI Puzzle Platform</p>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
