@@ -1,4 +1,4 @@
-:root {
+/* :root {
   --primary-blue: #0b2f6b;
   --accent-blue: #1d4ed8;
   --soft-blue: #c7d7f8;
@@ -8,7 +8,7 @@
   --warning-red: #dc2626;
   --warning-red-dark: #b91c1c;
   --hint-gold: #f59e0b;
-}
+} */
 
 .app h1 {
   color: var(--primary-blue);
