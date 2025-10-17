@@ -2,7 +2,7 @@ import { StrictMode } from 'react';
 import WordleApp from './App';
 import './index.css';
 
-export default function WordleGame() {
+export default function Wordle() {
   return (
     <StrictMode>
       <WordleApp />

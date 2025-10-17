@@ -19,6 +19,7 @@ export default function Ernigram() {
           onStart={startGame}
           onDifficultyChange={setDifficulty}
           color="bg-sky-500"
+          darkColor="shadow-sky-900"
         />
       ) : (
           <ERNIgramGame difficulty={difficulty} />
