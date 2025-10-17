@@ -125,12 +125,12 @@ function ERNIgramGame({ difficulty }) {
 
       {/* RIGHT SIDE */}
       <div className="flex flex-col items-center justify-center text-center">
-        <div className="text-4xl font-bold text-gray-900">ERNIgram</div>
-        <div className="text-gray-700 mt-1 text-base font-medium">
+        <div className="text-6xl font-bold text-gray-900">ERNIgram</div>
+        <div className="text-gray-700 mt-2 text-2xl font-medium">
           on {difficulty} difficulty
         </div>
 
-        <button className="mt-6 px-4 py-2 bg-white border border-sky-500 text-sky-600 rounded-full text-sm font-semibold hover:bg-sky-50 transition">
+        <button className="mt-6 px-5 py-4 bg-white border border-sky-500 text-sky-600 rounded-full text-2xl font-semibold hover:bg-sky-50 transition">
           Hint
         </button>
       </div>
