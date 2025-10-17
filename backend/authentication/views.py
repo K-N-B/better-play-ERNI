@@ -21,6 +21,7 @@ def get_msal_app():
     )
 
 
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_auth_url(request):
@@ -164,11 +165,26 @@ def get_current_user(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])  # IMPORTANT: Changed from IsAuthenticated
 def logout_view(request):
-    """Logout user"""
-    logout(request)
-    return Response({'success': True, 'message': 'Logged out successfully'})
+    """Logout user and clear session"""
+    try:
+        # Log out the user (clears session)
+        logout(request)
+        
+        # Explicitly flush the session
+        request.session.flush()
+        
+        return Response({
+            'success': True, 
+            'message': 'Logged out successfully'
+        })
+    except Exception as e:
+        print(f"Logout error: {str(e)}")
+        return Response({
+            'success': False,
+            'message': 'Logout failed'
+        }, status=500)
 
 
 @api_view(['GET'])
