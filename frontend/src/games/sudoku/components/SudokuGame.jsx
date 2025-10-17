@@ -40,7 +40,7 @@ export default function SudokuGame() {
 function SudokuGameMain({ difficulty }) {
   const [gameData, setGameData] = useState(null);
   const [board, setBoard] = useState(null);
-  const [gameStatus, setGameStatus] = useState("playing"); // playing, won, solved
+  const [gameStatus, setGameStatus] = useState("playing");
   const [timer, setTimer] = useState(0);
   const [isRunning, setIsRunning] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -48,10 +48,7 @@ function SudokuGameMain({ difficulty }) {
     difficulty === "hard" ? HARD_START_POINTS : EASY_START_POINTS
   );
   const [hintsRemaining, setHintsRemaining] = useState(MAX_HINTS);
-  const [player, setPlayer] = useState({
-    name: "John Doe",
-    accumulatedPoints: 0,
-  });
+  const [hintUsed, setHintUsed] = useState(false);
 
   // Timer
   useEffect(() => {
@@ -60,7 +57,7 @@ function SudokuGameMain({ difficulty }) {
     return () => clearInterval(interval);
   }, [isRunning]);
 
-  // Fetch new puzzle on start
+  // Fetch puzzle
   useEffect(() => {
     const loadPuzzle = async () => {
       setIsLoading(true);
@@ -100,17 +97,14 @@ function SudokuGameMain({ difficulty }) {
       if (isComplete && checkSolution(newBoard, gameData.solution)) {
         setGameStatus("won");
         setIsRunning(false);
-        setPlayer((p) => ({
-          ...p,
-          accumulatedPoints: p.accumulatedPoints + points,
-        }));
+        alert(`🎉 You solved it! Time: ${formatTime(timer)} — +${points} pts`);
       }
     },
-    [board, gameData, gameStatus, points]
+    [board, gameData, gameStatus, points, timer]
   );
 
   const handleHint = () => {
-    if (gameStatus !== "playing" || hintsRemaining <= 0) return;
+    if (gameStatus !== "playing" || hintsRemaining <= 0 || hintUsed) return;
 
     const emptyCells = [];
     for (let r = 0; r < 9; r++) {
@@ -125,6 +119,7 @@ function SudokuGameMain({ difficulty }) {
     newBoard[r][c] = gameData.solution[r][c];
     setBoard(newBoard);
     setHintsRemaining((h) => h - 1);
+    setHintUsed(true);
     setPoints((p) => Math.max(0, p - HINT_COST[difficulty]));
   };
 
@@ -137,10 +132,11 @@ function SudokuGameMain({ difficulty }) {
   };
 
   const resetGame = () => {
-    setTimer(0);
+    setGameStatus("playing");
+    setHintUsed(false);
     setHintsRemaining(MAX_HINTS);
     setPoints(difficulty === "hard" ? HARD_START_POINTS : EASY_START_POINTS);
-    setGameStatus("playing");
+    setTimer(0);
     setIsRunning(true);
     setBoard(copyBoard(gameData.puzzle));
   };
@@ -150,9 +146,9 @@ function SudokuGameMain({ difficulty }) {
   }
 
   return (
-    <div className="h-full grid grid-cols-1 md:grid-cols-2 place-items-center p-6">
-      {/* LEFT: Board */}
-      <div className="order-2 md:order-1">
+    <div className="h-full text-center grid grid-cols-2">
+      {/* LEFT SIDE (Board) */}
+      <div className="p-10 bg-white rounded-3xl flex flex-col items-center justify-center">
         <SudokuBoard
           board={board}
           initialBoard={gameData.puzzle}
@@ -161,41 +157,41 @@ function SudokuGameMain({ difficulty }) {
         />
       </div>
 
-      {/* RIGHT: Controls and Stats */}
-      <div className="order-1 md:order-2 flex flex-col items-center text-center gap-4">
-        <h1 className="text-4xl font-bold text-[#C7337A]">Sudoku</h1>
-        <div className="text-sm text-gray-600">
-          Difficulty: <strong>{difficulty}</strong>
+      {/* RIGHT SIDE (Stats + Controls) */}
+      <div className="flex flex-col items-center justify-center text-center">
+        <div className="text-6xl font-bold text-gray-900">Sudoku</div>
+        <div className="text-gray-700 mt-2 text-2xl font-medium">
+          on {difficulty} difficulty
         </div>
-        <div className="text-base">Time: {formatTime(timer)}</div>
-        <div className="font-semibold">Points: {points}</div>
+        <div className="text-gray-600 mt-2 text-lg">
+          Time: <span className="font-semibold">{formatTime(timer)}</span>
+        </div>
+        <div className="text-gray-600 mt-1 text-lg">
+          Points: <span className="font-semibold">{points}</span>
+        </div>
 
-        <div className="flex flex-wrap justify-center gap-3 mt-4">
-          <button onClick={resetGame} className="btn btn-primary">
-            Reset
-          </button>
+        <button
+          onClick={handleHint}
+          disabled={hintUsed || hintsRemaining <= 0 || gameStatus !== "playing"}
+          className="mt-6 px-5 py-4 bg-white border border-[#C7337A] text-[#C7337A] rounded-full text-2xl font-semibold hover:bg-[#F7E3EC] transition"
+        >
+          {hintUsed ? "Hint Used" : `Hint (${hintsRemaining})`}
+        </button>
+
+        <button
+          onClick={handleSolve}
+          disabled={gameStatus !== "playing"}
+          className="mt-6 px-5 py-4 bg-white border border-[#C7337A] text-[#C7337A] rounded-full text-2xl font-semibold hover:bg-[#F7E3EC] transition"
+        >
+          Solve
+        </button>
+        {gameStatus !== "playing" && (
           <button
-            onClick={handleHint}
-            disabled={hintsRemaining <= 0 || gameStatus !== "playing"}
-            className="btn btn-hint"
+            onClick={resetGame}
+            className="mt-6 px-6 py-3 bg-[#C7337A] text-white rounded-full font-semibold hover:bg-[#9C1C5D]"
           >
-            Hint ({hintsRemaining})
+            Play Again
           </button>
-          <button onClick={handleSolve} className="btn btn-solve">
-            Solve
-          </button>
-        </div>
-
-        {gameStatus === "won" && (
-          <div className="mt-4 text-green-600 font-semibold">
-            🎉 You solved it in {formatTime(timer)}! +{points} pts
-          </div>
-        )}
-
-        {gameStatus === "solved" && (
-          <div className="mt-4 text-red-500 font-semibold">
-            Puzzle auto-solved — no points earned.
-          </div>
         )}
       </div>
     </div>
