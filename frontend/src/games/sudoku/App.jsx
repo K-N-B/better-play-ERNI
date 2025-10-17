@@ -1,9 +1,9 @@
-import './App.css';
-import SudokuGame from './components/SudokuGame';
+import "./App.css";
+import SudokuGame from "./components/SudokuGame";
 
 function App() {
   return (
-    <div className="App bg-sky-300" >
+    <div className="App bg-[#EEB3CB]">
       <SudokuGame />
     </div>
   );

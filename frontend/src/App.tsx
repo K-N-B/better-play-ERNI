@@ -41,31 +41,25 @@ function App() {
         <Route
           path="/sudoku"
           element={
-            <ProtectedRoute>
-              <Layout>
-                <SudokuGame />
-              </Layout>
-            </ProtectedRoute>
+            <Layout>
+              <SudokuGame />
+            </Layout>
           }
         />
         <Route
           path="/wordle"
           element={
-            <ProtectedRoute>
-              <Layout>
-                <WordleGame />
-              </Layout>
-            </ProtectedRoute>
+            <Layout>
+              <WordleGame />
+            </Layout>
           }
         />
         <Route
           path="/ernigram"
           element={
-            <ProtectedRoute>
-              <Layout>
-                <ErnigramGame />
-              </Layout>
-            </ProtectedRoute>
+            <Layout>
+              <ErnigramGame />
+            </Layout>
           }
         />
         <Route
@@ -73,7 +67,11 @@ function App() {
           element={
             <ProtectedRoute>
               <Layout>
-                <UnderConstruction title="Crossword" bg="bg-amber-200" text="text-amber-900"/>
+                <UnderConstruction
+                  title="Crossword"
+                  bg="bg-amber-200"
+                  text="text-amber-900"
+                />
               </Layout>
             </ProtectedRoute>
           }
@@ -83,7 +81,11 @@ function App() {
           element={
             <ProtectedRoute>
               <Layout>
-                <UnderConstruction title="Connections" bg="bg-purple-300" text="text-purple-900"/>
+                <UnderConstruction
+                  title="Connections"
+                  bg="bg-purple-300"
+                  text="text-purple-900"
+                />
               </Layout>
             </ProtectedRoute>
           }

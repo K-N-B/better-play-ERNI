@@ -3,6 +3,7 @@ import SudokuBoard from "./SudokuBoard";
 import { checkSolution, copyBoard } from "../utils/sudokuGenerator";
 import { fetchSudokuPuzzleByDifficulty } from "../services/sudokuApi";
 import "./SudokuGame.css";
+import GameIntro from "../../../components/GameIntro";
 
 const SudokuGame = () => {
   const [gameData, setGameData] = useState(null);
@@ -15,6 +16,9 @@ const SudokuGame = () => {
   const [error, setError] = useState(null);
   const [points, setPoints] = useState(0);
   const [hintsRemaining, setHintsRemaining] = useState(5);
+
+  const [gameStarted, setGameStarted] = useState(false);
+  const startGame = () => setGameStarted(true);
 
   // Player data - will be replaced with actual logged in user data
   const [player, setPlayer] = useState({
@@ -200,69 +204,82 @@ const SudokuGame = () => {
   // Difficulty selection screen
   if (gameStatus === "selecting") {
     return (
-      <div className="sudoku-game grid grid-cols-1 md:grid-cols-2 place-items-center h-full gap-15">
-        <div>
-          <div className="game-header text-sm md:text-xl">
-            <h1>Sudoku Game</h1>
-          </div>
-
-          <div className="player-info gap-5 mb-5">
-            <h3>Player: {player.name}</h3>
-            <p className="accumulated-points">
-              Total Points: {player.accumulatedPoints}
-            </p>
-          </div>
-
-          <div className="difficulty-selection">
-            <h2 className="py-5 md:py-10 text-center">Select Difficulty</h2>
-            {error && <div className="error-message">{error}</div>}
-            <div className="difficulty-buttons">
-              <button
-                onClick={() => handleStartGame("easy")}
-                className={`btn btn-difficulty ${
-                  completedToday.easy ? "completed" : ""
-                }`}
-                disabled={isLoading || completedToday.easy}
-              >
-                Easy
-                {completedToday.easy && (
-                  <span className="completed-badge">✓ Completed</span>
-                )}
-              </button>
-              <button
-                onClick={() => handleStartGame("hard")}
-                className={`btn btn-difficulty ${
-                  completedToday.hard ? "completed" : ""
-                }`}
-                disabled={isLoading || completedToday.hard}
-              >
-                Hard
-                {completedToday.hard && (
-                  <span className="completed-badge">✓ Completed</span>
-                )}
-              </button>
+      <div>
+        <GameIntro
+          title="Sudoku"
+          description="Time to test your logic with the Daily Sudoku! No math required, just pure logic and deduction"
+          howToPlay="The goal is to fill the 9x9 grid with numbers from 1 to 9. Each row, column, and 3x3 square must contain the numbers 1 through 9, with no repeats. <br /> <br /> Find the right place for every number!"
+          pointsInfo='You will earn <span class="font-bold">100pts</span> for finishing this puzzle, x2 for finishing Hard difficulty.'
+          hintInfo='Using a hint will deduct <span class="font-bold">20pts</span>. You will get additional points for completing it early.'
+          onStart={startGame}
+          onDifficultyChange={setDifficulty}
+          color="bg-[#C7337A]"
+          darkColor="shadow-sky-900"
+        />
+        <div className="sudoku-game grid grid-cols-1 md:grid-cols-2 place-items-center h-full gap-15">
+          <div>
+            <div className="game-header text-sm md:text-xl">
+              <h1>Sudoku Game</h1>
             </div>
-            <div
-              className={`${
-                isLoading ? "hidden md:visible" : "hidden md:invisible"
-              } loading`}
-            >
-              Loading puzzle...
+
+            <div className="player-info gap-5 mb-5">
+              <h3>Player: {player.name}</h3>
+              <p className="accumulated-points">
+                Total Points: {player.accumulatedPoints}
+              </p>
+            </div>
+
+            <div className="difficulty-selection">
+              <h2 className="py-5 md:py-10 text-center">Select Difficulty</h2>
+              {error && <div className="error-message">{error}</div>}
+              <div className="difficulty-buttons">
+                <button
+                  onClick={() => handleStartGame("easy")}
+                  className={`btn btn-difficulty ${
+                    completedToday.easy ? "completed" : ""
+                  }`}
+                  disabled={isLoading || completedToday.easy}
+                >
+                  Easy
+                  {completedToday.easy && (
+                    <span className="completed-badge">✓ Completed</span>
+                  )}
+                </button>
+                <button
+                  onClick={() => handleStartGame("hard")}
+                  className={`btn btn-difficulty ${
+                    completedToday.hard ? "completed" : ""
+                  }`}
+                  disabled={isLoading || completedToday.hard}
+                >
+                  Hard
+                  {completedToday.hard && (
+                    <span className="completed-badge">✓ Completed</span>
+                  )}
+                </button>
+              </div>
+              <div
+                className={`${
+                  isLoading ? "hidden md:visible" : "hidden md:invisible"
+                } loading`}
+              >
+                Loading puzzle...
+              </div>
             </div>
           </div>
-        </div>
-        <div>
-          <div className="game-instructions">
-            <h3>How to Play:</h3>
-            <ul>
-              <li>Fill the 9×9 grid with numbers 1-9</li>
-              <li>Each row must contain all digits 1-9</li>
-              <li>Each column must contain all digits 1-9</li>
-              <li>Each 3×3 box must contain all digits 1-9</li>
-              <li>Click a cell to select it and type a number</li>
-              <li>Invalid entries will be highlighted in red</li>
-              <li>Each difficulty can only be completed once per day</li>
-            </ul>
+          <div>
+            <div className="game-instructions">
+              <h3>How to Play:</h3>
+              <ul>
+                <li>Fill the 9×9 grid with numbers 1-9</li>
+                <li>Each row must contain all digits 1-9</li>
+                <li>Each column must contain all digits 1-9</li>
+                <li>Each 3×3 box must contain all digits 1-9</li>
+                <li>Click a cell to select it and type a number</li>
+                <li>Invalid entries will be highlighted in red</li>
+                <li>Each difficulty can only be completed once per day</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
