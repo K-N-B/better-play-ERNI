@@ -3,7 +3,7 @@ import {
   puzzle,
   sudoku,
   wordle,
-  hangman,
+  ernigram,
   crossword,
   connections,
 } from "./assets/icons/icons";
@@ -32,7 +32,7 @@ const games = [
     title: "ERNIgram",
     subtitle: "Save the stickman — reveal the word before time runs out.",
     color: "bg-sky-400 text-slate-50 shadow-[0_5px_0_0] shadow-sky-800",
-    icon: hangman,
+    icon: ernigram,
   },
   {
     title: "Crossword",
