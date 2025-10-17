@@ -6,8 +6,8 @@ import {
   ernigram,
   crossword,
   connections,
-} from "./assets/icons/icons";
-import GameButton from "./components/GameButton";
+} from "../assets/icons/icons";
+import GameButton from "../components/GameButton";
 
 const games = [
   {

@@ -22,7 +22,7 @@ export default function Wordle() {
           description="Test your vocabulary and logic in our ERNI Wordle challenge!"
           howToPlay="Guess the 5-letter word. Green letters are correct and in the right place, yellow are correct but misplaced. You have 6 tries!"
           pointsInfo='Earn <span class="font-bold">100pts</span> for finishing on Easy, <span class="font-bold">200pts</span> on Hard.'
-          hintInfo='Using a hint deducts <span class="font-bold">20pts</span>.'
+          hintInfo='Using a hint deducts <span class="font-bold">20pts</span>. You will get additional points for completing it early.'
           onStart={startGame}
           onDifficultyChange={setDifficulty}
           color="bg-emerald-500"

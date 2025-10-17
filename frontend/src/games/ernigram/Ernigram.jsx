@@ -70,15 +70,15 @@ function ERNIgramGame({ difficulty }) {
   return (
     <div className="h-full text-center grid grid-cols-2">
       <div className="p-20 text-2xl rounded-3xl flex flex-col items-center justify-center bg-white">
-        <div className="font-semibold bg-sky-400 text-white rounded-full px-6 py-1 text-sm mb-6">
-          What is ERNI's tagline?
+        <div className="font-semibold bg-sky-400 text-3xl text-white rounded-full px-10 py-4 mb-6">
+          What is ERNI's tagline? 
         </div>
 
         <div className="grid grid-cols-6 gap-2 mb-6">
           {secretWord.split("").map((letter, i) => (
             <div
               key={i}
-              className={`w-10 h-10 md:w-12 md:h-12 flex items-center justify-center font-bold text-lg md:text-xl rounded-md border ${
+              className={`w-15 h-15  flex items-center justify-center font-bold text-lg rounded-md border ${
                 guessedLetters.includes(letter)
                   ? "bg-sky-900 text-white border-sky-900"
                   : "bg-sky-100 border-sky-300"
@@ -90,16 +90,16 @@ function ERNIgramGame({ difficulty }) {
         </div>
 
         <div className="text-left w-full text-sm md:text-base">
-          <div className="text-red-600 font-semibold mb-1">
+          <div className="text-red-600 font-semibold text-2xl mb-4">
             Wrong letters: {wrongLetters.join(", ") || "None"}
           </div>
-          <div className="font-semibold text-gray-800 flex items-center gap-2">
+          <div className="font-semibold text-gray-800 text-2xl flex items-center gap-2">
             Battery
             <div className="flex gap-1">
               {Array.from({ length: difficulty === "hard" ? 3 : 6 }).map((_, i) => (
                 <div
                   key={i}
-                  className={`w-5 h-3 rounded-sm ${i < battery ? "bg-green-500" : "bg-gray-300"}`}
+                  className={`w-8 h-10 rounded-sm ${i < battery ? "bg-emerald-500" : "bg-gray-500"}`}
                 ></div>
               ))}
             </div>
