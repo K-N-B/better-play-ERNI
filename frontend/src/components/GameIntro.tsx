@@ -9,6 +9,7 @@ interface PuzzleIntroProps {
   onStart: () => void; // Function when "Start" button is clicked
   onDifficultyChange: (difficulty: "easy" | "hard") => void; // Callback when toggled
   color?: string; // Tailwind color for the toggle knob, e.g. "bg-sky-500"
+  darkColor?: string;
 }
 
 export default function GameIntro({
@@ -19,15 +20,16 @@ export default function GameIntro({
   hintInfo,
   onStart,
   onDifficultyChange,
-  color = "bg-sky-500", // default color
+  color = "bg-primary-500", // default color
+  darkColor="bg-primary-900",
 }: PuzzleIntroProps) {
   return (
     <div className="h-full text-center grid grid-cols-2">
       {/* LEFT SIDE */}
       <div className="place-content-center p-20 text-2xl leading-6 bg-white h-full rounded-3xl">
-        <div className="font-medium">{description}</div>
+        <div className="font-medium" dangerouslySetInnerHTML={{ __html: description}}></div>
         <div className="font-semibold mt-8">How to play:</div>
-        <div className="mt-2">{howToPlay}</div>
+        <div className="mt-2" dangerouslySetInnerHTML={{ __html: howToPlay }} />
       </div>
 
       {/* RIGHT SIDE */}
@@ -50,7 +52,7 @@ export default function GameIntro({
           <div className="difficulty-buttons mt-10">
             <button
               onClick={onStart}
-              className="font-semibold text-primary text-4xl leading-none px-6 py-4 rounded-2xl bg-sky-400 text-slate-50 shadow-[0_5px_0_0] shadow-sky-800"
+              className={`font-semibold text-primary text-4xl leading-none px-6 py-4 rounded-2xl ${color} ${darkColor} text-white shadow-[0_5px_0_0] `}
             >
               Start
             </button>
