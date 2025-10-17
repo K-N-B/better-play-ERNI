@@ -89,7 +89,7 @@
   color: var(--erni-blue);
   font-size: 2em;
 }
-
+/*
 .difficulty-buttons {
   display: flex;
   justify-content: center;
@@ -131,6 +131,7 @@
   position: relative;
 }
 
+*/
 .completed-badge {
   display: block;
   font-size: 0.8em;
@@ -151,6 +152,7 @@
   flex-wrap: wrap;
 }
 
+/*
 .btn {
   padding: 10px 20px;
   border: none;
@@ -209,6 +211,8 @@
   box-shadow: 0 8px 16px rgba(85, 90, 92, 0.22);
 }
 
+*/
+
 .win-message {
   background-color: var(--erni-blue);
   color: #fff;
@@ -258,7 +262,6 @@
 }
 
 .sudoku-board {
-  margin: 20px auto;
   display: block;
 }
 
