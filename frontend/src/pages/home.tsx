@@ -31,13 +31,13 @@ const games = [
   {
     title: "ERNIgram",
     subtitle: "Save the stickman — reveal the word before time runs out.",
-    color: "bg-sky-400 text-slate-50 shadow-[0_5px_0_0] shadow-sky-800",
+    color: "bg-sky-500 text-slate-50 shadow-[0_5px_0_0] shadow-sky-800",
     icon: ernigram,
   },
   {
     title: "Crossword",
     subtitle: "Test your vocabulary and wit by solving the daily word clues.",
-    color: "bg-amber-400 text-slate-50 shadow-amber-800",
+    color: "bg-amber-500 text-slate-50 shadow-amber-800",
     icon: crossword,
   },
   {
