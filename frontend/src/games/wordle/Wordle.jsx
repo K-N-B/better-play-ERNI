@@ -123,7 +123,7 @@ function WordleGame({ difficulty }) {
 
   return (
     <div className="h-full text-center grid grid-cols-2">
-      <div className="p-20 bg-white rounded-3xl flex flex-col items-center justify-center">
+      <div className="p-10 bg-white rounded-3xl flex items-center justify-center">
         <Grid
           guesses={guesses}
           currentGuess={currentGuess}
@@ -142,14 +142,14 @@ function WordleGame({ difficulty }) {
       </div>
 
       <div className="flex flex-col items-center justify-center text-center">
-        <div className="text-4xl font-bold text-gray-900">Wordle</div>
-        <div className="text-gray-700 mt-1 text-base font-medium">
+        <div className="text-6xl font-bold text-gray-900">Wordle</div>
+        <div className="text-gray-700 mt-2 text-2xl font-medium">
           on {difficulty} difficulty
         </div>
         <button
           onClick={handleHint}
           disabled={hintUsed || isGameOver}
-          className="mt-6 px-4 py-2 bg-white border border-emerald-500 text-emerald-600 rounded-full text-sm font-semibold hover:bg-emerald-50 transition"
+          className="mt-6 px-5 py-4 bg-white border border-emerald-500 text-emerald-600 rounded-full text-2xl font-semibold hover:bg-emerald-50 transition"
         >
           {hintUsed ? "Hint Used" : "Hint"}
         </button>
