@@ -1,9 +1,9 @@
 .sudoku-cell {
-  border: 1px solid var(--erni-blue-light);
+  border: 1px solid #041e31;
   text-align: center;
   font-size: 20px;
   font-weight: bold;
-  color: var(--erni-blue-dark);
+  color: #d6d4d4;
   cursor: pointer;
   transition: all 0.2s ease;
   outline: none;
@@ -11,33 +11,33 @@
 }
 
 .sudoku-cell:focus {
-  outline: 2px solid var(--erni-blue);
+  outline: 2px solid #5e5f5f;
   outline-offset: -2px;
 }
 
 .sudoku-cell.initial {
-  background-color: var(--erni-blue-soft);
-  color: var(--erni-blue-dark);
+  background-color: #d6d4d4;
+  color: #000000;
   cursor: not-allowed;
   font-weight: 900;
 }
 
 .sudoku-cell.selected {
-  background-color: var(--erni-accent);
+  background-color: #d6d4d4;
 }
 
 .sudoku-cell.error {
-  background-color: #f4d6d3;
-  color: #a72828;
+  background-color: #a72828;
+  color: #000000;
 }
 
 .sudoku-cell.highlighted {
-  background-color: var(--erni-blue);
+  background-color: #eeb3cb;
   color: #fff;
 }
 
 .sudoku-cell:not(.initial):hover {
-  background-color: var(--erni-accent);
+  background-color: #c7337a;
 }
 
 .sudoku-cell::-webkit-inner-spin-button,

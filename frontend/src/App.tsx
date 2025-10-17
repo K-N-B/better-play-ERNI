@@ -41,39 +41,43 @@ function App() {
         <Route
           path="/sudoku"
           element={
-            <Layout>
-              <SudokuGame />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <SudokuGame />
+              </Layout>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/wordle"
           element={
-            <Layout>
-              <WordleGame />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <WordleGame />
+              </Layout>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/ernigram"
           element={
-            <Layout>
-              <ErnigramGame />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <ErnigramGame />
+              </Layout>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/crossword"
           element={
-            <ProtectedRoute>
-              <Layout>
-                <UnderConstruction
-                  title="Crossword"
-                  bg="bg-amber-200"
-                  text="text-amber-900"
-                />
-              </Layout>
-            </ProtectedRoute>
+            <Layout>
+              <UnderConstruction
+                title="Crossword"
+                bg="bg-amber-200"
+                text="text-amber-900"
+              />
+            </Layout>
           }
         />
         <Route

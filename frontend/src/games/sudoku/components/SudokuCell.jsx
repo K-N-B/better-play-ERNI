@@ -18,7 +18,7 @@ const SudokuCell = ({
   };
 
   const getCellClass = () => {
-    let className = "sudoku-cell w-10 h-10 md:w-10 md:h-10 ";
+    let className = "sudoku-cell w-10 h-10 md:w-14 md:h-14 p-2";
     if (isInitial) className += " initial";
     if (isSelected) className += " selected";
     if (isError) className += " error";
