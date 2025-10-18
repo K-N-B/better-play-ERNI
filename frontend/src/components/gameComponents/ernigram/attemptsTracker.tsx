@@ -1,0 +1,1 @@
+//Takes remainingAttempts as a prop and displays it (e.g., "Guesses left: 5/6").

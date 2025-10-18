@@ -1,0 +1,1 @@
+// The top navigation bar. It contains Link components from react-router-dom to your main pages (Home, Leaderboards) and includes the NotificationsBell component.

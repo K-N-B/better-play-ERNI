@@ -1,0 +1,1 @@
+// Uses the useAuth() hook to get the userProfile and displays stats like name, team, total_points_alltime, and streak_count.

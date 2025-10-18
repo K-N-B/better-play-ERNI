@@ -1,0 +1,1 @@
+// Takes the solutionPhrase and guessedLetters as props. It renders the phrase, showing _ for unguessed letters and the correct letter where guessed.

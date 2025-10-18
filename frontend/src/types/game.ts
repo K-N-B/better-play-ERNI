@@ -1,0 +1,1 @@
+// interface WordPuzzle { ... }, interface SudokuPuzzle { ... }, interface DailyPuzzleResponse { ... }, interface Submission { ... }, interface PuzzleAttempt { ... }.

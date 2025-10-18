@@ -1,0 +1,1 @@
+// A route wrapper. It uses useMsal() to check for an authenticated user. If !isAuthenticated, it uses Maps from react-router-dom to redirect to /login.

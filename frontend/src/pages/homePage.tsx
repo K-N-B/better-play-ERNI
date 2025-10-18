@@ -1,4 +1,4 @@
-
+// The main dashboard. It renders GameSuite and CommunityHub.
 import {
   puzzle,
   sudoku,

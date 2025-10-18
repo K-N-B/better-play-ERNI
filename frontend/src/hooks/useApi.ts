@@ -1,0 +1,1 @@
+// In summary, useApi.ts is an optional helper file, but it will make your component code much cleaner, more readable, and easier to maintain.

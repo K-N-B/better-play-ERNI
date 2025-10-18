@@ -1,0 +1,1 @@
+// Fetches from api/activity-hub/ on a timer (e.g., setInterval every 30s) and renders the list of ActivityEvent messages.

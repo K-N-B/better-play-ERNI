@@ -1,0 +1,1 @@
+// The main logic for your Hangman clone. It fetches the puzzle (phrase and clue), manages the array of guessedLetters, and tracks remainingAttempts. Calls submitPuzzle() on win or loss.

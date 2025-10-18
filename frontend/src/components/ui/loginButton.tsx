@@ -1,0 +1,1 @@
+// A simple button that uses the useMsal() hook from @azure/msal-react and calls instance.loginPopup() or instance.loginRedirect() on click.

@@ -2,7 +2,7 @@
 
 @import "@fontsource/poppins";
 @plugin "flowbite/plugin";
-@config "../tailwind.config.js";
+@config "../../../tailwind.config.js";
 
 layer base {
   * {

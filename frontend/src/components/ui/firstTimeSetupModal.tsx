@@ -1,0 +1,1 @@
+// The modal for new users. It's triggered by the Layout component. It fetches authService.getTeams() to populate a dropdown. The "Save" button calls authService.completeProfile() and then closes.

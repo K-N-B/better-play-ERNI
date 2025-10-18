@@ -1,0 +1,1 @@
+// A simple page that centers the LoginButton for unauthenticated users.
