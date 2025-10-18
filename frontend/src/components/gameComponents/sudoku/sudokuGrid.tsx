@@ -1,0 +1,1 @@
+// Renders the 9x9 grid. It highlights the selected cell, row, column, and 3x3 box. It renders "given" numbers differently from "user-entered" numbers and "notes".

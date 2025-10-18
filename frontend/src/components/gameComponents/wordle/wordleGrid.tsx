@@ -1,0 +1,1 @@
+//A "dumb" component. It just takes the array of guesses and the current guess as props and renders the 6x5 grid, coloring the tiles based on their status (correct, present, absent).

@@ -1,0 +1,1 @@
+// A simple display component that uses the useTimer hook to show the elapsed time.

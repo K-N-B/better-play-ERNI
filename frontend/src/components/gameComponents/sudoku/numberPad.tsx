@@ -1,0 +1,1 @@
+// The UI for input. Renders buttons 1-9, an "Erase" button, and a "Note Mode" toggle. It emits events to the SudokuGame parent.

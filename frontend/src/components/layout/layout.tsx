@@ -1,0 +1,1 @@
+// Wraps your entire application. It renders the Navbar, the main page content (passed as children), and the Footer. This is also the best place to render the FirstTimeSetupModal when it's needed.

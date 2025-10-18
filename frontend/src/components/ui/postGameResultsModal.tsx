@@ -1,0 +1,1 @@
+// A modal that pops up after a game is submitted. It takes score, time, etc., as props. It contains the ChallengeModal (or a button to open it).

@@ -1,0 +1,1 @@
+// Uses useParams from react-router-dom to get the :gameType from the URL. It then uses a switch statement to render WordleGame, SudokuGame, or ErnigramGame.

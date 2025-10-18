@@ -1,3 +1,11 @@
+// The leaderboard hub.
+
+// Manages state for period ('daily', 'weekly', etc.) and type ('individual', 'team').
+// Manages state for the archiveDate (for viewing history).
+// Renders the filter buttons/tabs.
+// Calls leaderboardService.getLeaderboard() in a useEffect when the filters change.
+// Renders the list of scores.
+
 
 import "flowbite"
 import { useState, useEffect } from "react";

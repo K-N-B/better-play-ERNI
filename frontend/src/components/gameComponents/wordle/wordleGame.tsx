@@ -1,0 +1,1 @@
+// The main logic. It will fetch the puzzle, manage the game state (guesses, current row, letter status), handle keyboard input (from the Keyboard component), and call submitPuzzle() on win or loss.

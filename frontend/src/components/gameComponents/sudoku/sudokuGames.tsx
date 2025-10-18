@@ -1,0 +1,1 @@
+// The main logic. It fetches the puzzle string, manages the 9x9 grid state (likely a 2D array of objects: { value: number | null, isGiven: boolean, notes: number[] }), and handles cell selection. It also manages the "note mode" toggle. It calls saveProgress() and submitPuzzle().

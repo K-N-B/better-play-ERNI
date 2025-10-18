@@ -1,0 +1,1 @@
+// interface Team { id: number; name: string; }, interface UserProfile { id: number; username: string; email: string; team: Team | null; profile_complete: boolean; total_points_alltime: number; streak_count: number; }.

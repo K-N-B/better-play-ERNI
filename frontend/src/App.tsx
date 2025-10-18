@@ -1,10 +1,18 @@
+// The heart of your app's routing.
+
+// What you need to do:
+// Wrap the entire app in your <AuthProvider>.
+// Set up BrowserRouter and Routes.
+// Define all your routes (e.g., /, /login, /game/:gameType).
+// Wrap all authenticated pages inside the <Layout> component and the <ProtectedRoute> component.
+
 import { Routes, Route } from "react-router-dom";
 import Login from "./components/Login";
 import AuthCallback from "./components/AuthCallback";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout"; // Layout includes Navbar
-import Home from "./pages/home";
-import Leaderboards from "./pages/leaderboards";
+import Home from "./pages/homePage";
+import Leaderboards from "./pages/leaderboardPage";
 import SudokuGame from "./games/sudoku";
 import ErnigramGame from "./games/ernigram";
 import WordleGame from "./games/wordle";

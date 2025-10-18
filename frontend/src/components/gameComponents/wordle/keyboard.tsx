@@ -1,0 +1,1 @@
+// The on-screen keyboard. It takes the status of all used letters as a prop (to color the keys) and emits onKeyClick events (e.g., onKeyClick("A"), onKeyClick("Enter")).

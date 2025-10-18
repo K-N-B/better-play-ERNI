@@ -1,0 +1,1 @@
+// Renders the three cards on your homepage ("Play Wordle," "Play Sudoku," "Play ERNIgram") that link to the GamePage.

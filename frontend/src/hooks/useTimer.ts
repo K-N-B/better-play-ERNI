@@ -1,0 +1,2 @@
+// A custom hook to manage a stopwatch.
+// What you need to do: Use useState for time and useRef for the setInterval ID. Expose functions like startTimer(), stopTimer(), resetTimer(), and the current time value.

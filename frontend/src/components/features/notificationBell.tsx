@@ -1,0 +1,1 @@
+// The bell icon in the Navbar. It fetches challengeService.getPendingChallenges() and displays a red dot/count if there are any. Clicking it opens a dropdown linking to the ChallengePage.

@@ -1,0 +1,1 @@
+// A parent component for the homepage that renders the ActivityFeed and WhosOnline components in a layout (e.g., side-by-side).
