@@ -42,7 +42,7 @@ export default function UserProfileModal({ isOpen, onClose, user }: UserProfileM
             <div>
               <h2 className="text-xl font-bold">{user?.username}</h2>
               <p className="text-sm text-gray-500">{user?.email}</p>
-              <p className="text-sm text-gray-500">Team: {user?.team?.name || 'N/A'}</p>
+              <p className="text-sm text-gray-500">Team: {user?.department?.name || 'N/A'}</p>
             </div>
           </div>
 
