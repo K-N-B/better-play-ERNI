@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { AlertCircle, Shield } from 'lucide-react';
 import logoImage from '../assets/image-removebg-preview.png';
 // Import your new service function
@@ -12,17 +12,13 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const { user, isLoading: authLoading } = useAuth(); // Get user from context
 
-  // If AuthContext is still checking the session, show a spinner
   if (authLoading) {
     return <LoadingSpinner fullPage={true} />;
   }
 
-  // If user *is* logged in, redirect to home
   if (user) {
     return <Navigate to="/" replace />;
   }
-
-  // (The checkAuthentication function is no longer needed here)
 
   const handleMicrosoftLogin = async () => {
     setLoading(true);
@@ -30,7 +26,7 @@ export default function LoginPage() {
     try {
       const data = await getLoginRedirectUrl();
       if (data.auth_url) {
-        window.location.href = data.auth_url; // This is correct
+        window.location.href = data.auth_url; 
       } else {
         setError('Failed to get authorization URL');
         setLoading(false);
@@ -41,7 +37,7 @@ export default function LoginPage() {
     }
   };
 
-  // --- The rest of your JSX can stay exactly the same ---
+  
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* ... (keep all your original JSX: Header, Main Content, Card, Button, etc.) ... */}
@@ -88,7 +84,42 @@ export default function LoginPage() {
                 </>
               )}
             </button>
-            {/* ... (rest of your JSX) ... */}
+            
+
+            
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-white text-gray-500">
+                  Secure SSO Authentication
+                </span>
+              </div>
+            </div>
+
+            {/* Info Box */}
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+              <div className="flex gap-3">
+                <Shield className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5" />
+                <div className="text-sm">
+                  <p className="text-gray-700 font-medium mb-1">
+                    Personal Single Sign-On (For now)
+                  </p>
+                  <p className="text-gray-600 text-xs">
+                    Protected by Microsoft Entra ID with multi-factor
+                    authentication
+                  </p>
+                </div>
+              </div>
+            </div>
+          
+
+            {/* Footer */}
+            <div className="mt-8 text-center text-sm text-gray-500">
+              <p>© 2025 ERNI Puzzle Platform</p>
+            </div>
           </div>
         </div>
       </main>

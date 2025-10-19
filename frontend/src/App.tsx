@@ -107,7 +107,7 @@
 //   );
 // }
 
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './hooks/authContext';
 import LoginPage from './pages/loginPage';
 import AuthCallback from './pages/AuthCallback'
@@ -115,6 +115,7 @@ import { HomePage } from './pages/homePage';
 import { LeaderboardPage } from './pages/leaderboardPage';
 import { ProtectedRoute } from './components/ui/protectedRoute';
 import { Layout } from './components/layout/layout';
+import { GamePage } from './pages/gamePage';
 
 function App() {
   return (
@@ -129,7 +130,7 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/leaderboards" element={<LeaderboardPage />} />
-            {/* <Route path="/game/:gameType" element={<GamePage />} /> */}
+            <Route path="/game/:gameType" element={<GamePage />} />
           </Route>
         </Route>
         

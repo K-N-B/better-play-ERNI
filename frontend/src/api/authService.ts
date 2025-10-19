@@ -38,7 +38,7 @@
 
 import type { Department, UserProfile } from '../types/user';
 import { MOCK_MODE, mockApiCall } from './api';
-import { MOCK_DEPARTMENTS, MOCK_USER_NEW } from '../_mocks/mockData';
+import { MOCK_DEPARTMENTS, MOCK_USER_NEW } from '../data/_mockData';
 
 const API_URL = 'http://localhost:8000'; // Your Django backend
 
