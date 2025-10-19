@@ -3,7 +3,7 @@
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '../../hooks/authContext';
 import { FirstTimeSetupModal } from '../ui/firstTimeSetupModal';
-import { Navbar } from './navbar';
+import Navbar from './navbar';
 
 export const Layout = () => {
   const { user } = useAuth();
