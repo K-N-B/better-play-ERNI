@@ -10,7 +10,7 @@ export const FirstTimeSetupModal = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
-  const { refetchProfile } = useAuth(); // Get the refresh function
+  const { refreshProfile } = useAuth(); // Get the refresh function
 
   useEffect(() => {
     // Fetch teams on mount
@@ -21,15 +21,13 @@ export const FirstTimeSetupModal = () => {
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedTeam) return;
+      e.preventDefault();
+      if (!selectedTeam) return;
 
-    setIsLoading(true);
-    await completeProfile(Number(selectedTeam));
-    
-    // Tell the AuthContext to update the user's profile
-    refetchProfile(); 
-    // The modal will close automatically when the profile is complete
+      setIsLoading(true);
+      // This is the change: pass the teamId to refreshProfile
+      await refreshProfile(Number(selectedTeam)); 
+      // The modal will close automatically when the profile is complete
   };
 
   return (

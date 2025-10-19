@@ -107,36 +107,35 @@
 //   );
 // }
 
-import { Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './hooks/authContext';
-import { LoginPage } from './pages/loginPage';
+import LoginPage from './pages/loginPage';
+import AuthCallback from './pages/AuthCallback'
 import { HomePage } from './pages/homePage';
 import { LeaderboardPage } from './pages/leaderboardPage';
 import { ProtectedRoute } from './components/ui/protectedRoute';
 import { Layout } from './components/layout/layout';
 
-
 function App() {
   return (
     <AuthProvider>
-        <Routes>
-          {/* Public Route */}
-          <Route path="/login" element={<LoginPage />} />
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/login" element={<LoginPage />} /> {/* <-- ADD THIS */}
+        <Route path="/auth-callback" element={<AuthCallback />} />
 
-          {/* Protected Routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route element={<Layout />}>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/leaderboards" element={<LeaderboardPage />} />
-              {/* Add other protected routes here */}
-              {/* <Route path="/game/:gameType" element={<GamePage />} /> */}
-            </Route>
+        {/* Protected Routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<Layout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/leaderboards" element={<LeaderboardPage />} />
+            {/* <Route path="/game/:gameType" element={<GamePage />} /> */}
           </Route>
-          
-        </Routes>
+        </Route>
+        
+      </Routes>
     </AuthProvider>
   );
 }
 
 export default App;
-

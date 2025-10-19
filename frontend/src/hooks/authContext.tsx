@@ -6,80 +6,92 @@
 // Store this userProfile in the context.
 // Provide the MSAL user, your userProfile, and a refetchProfile() function to the entire app.
 // Create a useAuth() hook to easily access this context.
-
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { UserProfile } from '../types/user';    
-import { mockLogin } from '../api/authService';
+import type { UserProfile } from '../types/user';
+import { checkAuth, logoutUser, completeProfile } from '../api/authService';
 import { LoadingSpinner } from '../components/ui/loadingSpinner';
 
-// Define shape
 interface AuthContextType {
-    user: UserProfile | null;
-    isLoading: boolean;
-    login: (type: 'new' | 'existing') => Promise<void>;
-    logout: () => void;
-    refetchProfile: () => void;
+  user: UserProfile | null;
+  isLoading: boolean;
+  logout: () => void;
+  refreshProfile: (departmentId: number) => Promise<void>;
 }
 
-// Create context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Define provider
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [user, setUser] = useState<UserProfile | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  // This is now the ONLY loading state we need
+  const [isLoading, setIsLoading] = useState(true);
 
-    // Can add check here if user is already logged in
-    // For now, initial loading set to false
-    useEffect(() => {
-        setIsInitialLoading(false);
-    }, []);
-
-    // Simulated login
-    const login = async (type: 'new' | 'existing') => {
-        setIsLoading(true);
-        const profile = await mockLogin(type);
-        setUser(profile);
-        setIsLoading(false);
-    };
-
-    const logout = () => {
-        setUser(null);
-    };
-
-    // Allows modal to update user's profile in context
-    const refreshProfile = async() => {
-        // !! re-fetch /api/users/me
-
-        // Simulate: successful profile completion
-        if(user && !user.profile_complete) {
-            setUser({...user, profile_complete: true, department: { id: 1, name: "Backend & Cloud"} });
+  // This runs ONCE when the app loads
+  useEffect(() => {
+    const validateSession = async () => {
+      try {
+        const data = await checkAuth();
+        if (data.authenticated && data.user) {
+          setUser(data.user);
+        } else {
+          setUser(null);
         }
+      } catch (err) {
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
     };
+    validateSession();
+  }, []); // Empty array = run once on mount
 
-    // Show spinner while checking auth status
-    if (isInitialLoading) {
-        return <LoadingSpinner fullPage={true} />;
-    };
-
-    return (
-        <AuthContext.Provider value={{ user, isLoading, login, logout, refetchProfile: refreshProfile }}>
-            {children}
-        </AuthContext.Provider> 
-    );
-
-};
-
-// Create custom hook
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error('useAuth must be within an AuthProvider');
+  // Logout function
+  const logout = async () => {
+    setIsLoading(true); // Show a loading state
+    try {
+      await logoutUser(); // Call the API to destroy the cookie
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      setUser(null); // Set the user to null
+      setIsLoading(false);
     }
-    return context;
+    // No more window.location.href!
+    // ProtectedRoute will now automatically redirect to /login.
+  };
+  
+  // This is for the FirstTimeSetupModal
+  const refreshProfile = async (departmentId: number) => {
+    try {
+      // Call the API to update the backend
+      const updatedUser = await completeProfile(departmentId);
+      // Update the user state in React
+      setUser(updatedUser);
+    } catch (err) {
+      console.error("Failed to update profile", err);
+    }
+  };
+
+  // Show a full-page spinner while checking auth
+  if (isLoading) {
+    return <LoadingSpinner fullPage={true} />;
+  }
+
+  // Pass down the real user data and functions
+  return (
+    <AuthContext.Provider value={{ user, isLoading, logout, refreshProfile }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
+// The hook remains the same
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
 
