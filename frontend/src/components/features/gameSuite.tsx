@@ -4,14 +4,8 @@ import { Link } from 'react-router-dom';
 import { useApi } from '../../hooks/useApi';
 import { getDailyPuzzles } from '../../api/gameService';
 import { LoadingSpinner } from '../ui/loadingSpinner';
-import { Puzzle, Brain, PenTool } from 'lucide-react'; // Example icons
-
-// Define colors here or import from a shared theme/data file
-const gameThemes = {
-  wordle: { color: 'bg-emerald-500', shadow: 'shadow-emerald-900', icon: Puzzle },
-  sudoku: { color: 'bg-pink-400', shadow: 'shadow-pink-800', icon: Brain },
-  ernigram: { color: 'bg-sky-400', shadow: 'shadow-sky-800', icon: PenTool },
-};
+import { GameCard } from './gameCard';
+import { gameCardData } from '../../data/gameCardData'; // Example icons
 
 export const GameSuite = () => {
   // Fetch puzzle data to potentially show puzzle IDs or status later
@@ -34,38 +28,19 @@ export const GameSuite = () => {
   return (
     <div className="p-8 bg-gradient-to-b from-gray-50 to-gray-100 rounded-lg shadow-inner border border-gray-200">
       <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Today's Puzzles</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-        {/* Wordle Card */}
-        <Link
-          to="/game/wordle"
-          className={`group block p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow border-t-4 border-emerald-500`}
-        >
-          <gameThemes.wordle.icon className="w-8 h-8 text-emerald-500 mb-3" />
-          <h3 className="text-xl font-semibold mb-2 text-gray-900 group-hover:text-emerald-600 transition-colors">Daily Wordle</h3>
-          <p className="text-sm text-gray-600">Guess the 5-letter word.</p>
-        </Link>
-
-        {/* Sudoku Card */}
-        <Link
-          to="/game/sudoku"
-          className={`group block p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow border-t-4 border-pink-400`}
-        >
-          <gameThemes.sudoku.icon className="w-8 h-8 text-pink-400 mb-3" />
-          <h3 className="text-xl font-semibold mb-2 text-gray-900 group-hover:text-pink-500 transition-colors">Daily Sudoku</h3>
-          <p className="text-sm text-gray-600">A logic puzzle for your break.</p>
-        </Link>
-
-        {/* ERNIgram Card */}
-        <Link
-          to="/game/ernigram"
-          className={`group block p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow border-t-4 border-sky-400`}
-        >
-          <gameThemes.ernigram.icon className="w-8 h-8 text-sky-400 mb-3" />
-          <h3 className="text-xl font-semibold mb-2 text-gray-900 group-hover:text-sky-500 transition-colors">ERNIgram</h3>
-          <p className="text-sm text-gray-600">Company-themed hangman.</p>
-        </Link>
-
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
+        {/* Map over the imported data */}
+        {gameCardData.map((game) => (
+          <GameCard
+            key={game.title}
+            title={game.title}
+            subtitle={game.subtitle}
+            bgColor={game.bgColor}
+            shadowColor={game.shadowColor}
+            IconComponent={game.IconComponent} // Pass the icon component
+            path={game.path}
+          />
+        ))}
       </div>
     </div>
   );
