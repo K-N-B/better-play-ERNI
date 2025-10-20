@@ -1,4 +1,5 @@
 // interface WordPuzzle { ... }, interface SudokuPuzzle { ... }, interface DailyPuzzleResponse { ... }, interface Submission { ... }, interface PuzzleAttempt { ... }.
+import type { LucideIcon } from 'lucide-react';
 
 export interface WordlePuzzle {
     id: number;
@@ -67,3 +68,11 @@ export interface PuzzleAttemptResponse extends PuzzleAttemptData {
     last_saved: string;
 }
 
+export interface GameCardData {
+  title: string;
+  subtitle: string;
+  bgColor: string; // Tailwind bg class (e.g., "bg-emerald-500")
+  shadowColor: string; // Tailwind shadow class (e.g., "shadow-emerald-900")
+  IconComponent: LucideIcon; // Use LucideIcon type
+  path: string; // React Router path
+}
