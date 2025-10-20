@@ -1,1 +1,0 @@
-// Fetches the list of active users (which you should bundle into the /api/activity-hub/ response) and displays their names.
