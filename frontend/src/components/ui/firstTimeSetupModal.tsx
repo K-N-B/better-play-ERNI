@@ -32,8 +32,8 @@ export const FirstTimeSetupModal = () => {
 
   return (
     // Full-screen modal overlay
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-      <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 bg-opacity-75">
+      <div className="bg-white p-8 rounded-3xl w-full max-w-md">
         <h2 className="text-2xl font-bold mb-4">Welcome to ERNI Puzzles!</h2>
         <p className="mb-6 text-gray-600">
           To get started, please select your team. This is required for the team leaderboards.
