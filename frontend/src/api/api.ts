@@ -14,6 +14,6 @@ export const mockApiCall = <T>(data: T): Promise<T> => {
     return new Promise(resolve => {
         setTimeout(() => {
             resolve(data);
-        }, 5000);
+        }, 100);
     });
 };

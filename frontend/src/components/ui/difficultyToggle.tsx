@@ -53,14 +53,14 @@ export default function DifficultyToggle({
       {/* Toggle Track (the background) */}
       <div
         className={clsx(
-          "relative w-[5.5rem] h-11 rounded-full bg-gray-200 border border-gray-300", // Slightly larger track
+          "relative w-[5rem] h-11 rounded-full bg-white border border-gray-300", // Slightly larger track
           "transition-colors duration-300 ease-in-out"
         )}
       >
         {/* Toggle Knob (the moving part) */}
         <div
           className={clsx(
-            "absolute top-[2px] left-[2px] h-10 w-10 rounded-full",
+            "absolute h-10 w-10 rounded-full",
             "transition-transform duration-300 ease-in-out",
             "shadow-[0_2px_0_0] peer-checked:shadow-[0_2px_0_0]", // Consistent shadow base
             shadowDepthClass, // Apply dynamic shadow depth
