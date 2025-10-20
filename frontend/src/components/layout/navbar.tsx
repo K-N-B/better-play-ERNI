@@ -19,9 +19,9 @@ export default function Navbar() {
   };
 
   return (
-    <header className="top-0 left-0 w-full bg-slate-50 shadow-md z-50">
-      <div className="mx-auto w-full max-w-[80rem] border border-transparent bg-transparent rounded-lg my-[10px] transition-colors">
-        <div className="flex items-center justify-between h-[4rem] px-6 py-4">
+    <header className="top-0 left-0 w-full bg-slate-50 shadow-md z-50 py-2">
+      <div className="mx-auto w-full max-w-[80rem] border border-transparent bg-transparent rounded-lg transition-colors">
+        <div className="flex items-center justify-between h-[4rem] px-6 py-6">
           {/* Left: Logo */}
           <a href="/" className="flex items-center space-x-2">
             <img className="h-14 w-auto" src={logo} alt="Namespace Logo" />
