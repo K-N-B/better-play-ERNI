@@ -1,4 +1,5 @@
 import DifficultyToggle from "../ui/difficultyToggle";
+import type { Difficulty } from '../../pages/gamePage';
 
 interface PuzzleIntroProps {
   title: string; // e.g. "ERNIgram"
@@ -7,7 +8,8 @@ interface PuzzleIntroProps {
   pointsInfo: string; // Main points description
   hintInfo: string; // Hint/bonus info
   onStart: () => void; // Function when "Start" button is clicked
-  onDifficultyChange: (difficulty: "easy" | "hard") => void; // Callback when toggled
+  onDifficultyChange: (difficulty: Difficulty) => void;
+  initialDifficulty: Difficulty; // This prop now represents the current selection
   color?: string; // Tailwind color for the toggle knob, e.g. "bg-sky-500"
   darkColor?: string;
 }
@@ -20,6 +22,7 @@ export default function GameIntro({
   hintInfo,
   onStart,
   onDifficultyChange,
+  initialDifficulty,
   color = "bg-primary-500", // default color
   darkColor = "bg-primary-900",
 }: PuzzleIntroProps) {
@@ -57,7 +60,9 @@ export default function GameIntro({
 
           <DifficultyToggle
             onToggle={(isHard) => onDifficultyChange(isHard ? "hard" : "easy")}
+            initialIsHard={initialDifficulty === 'hard'} // Pass the current selection state
             color={color}
+            darkColor={darkColor}
           />
 
           <div className="difficulty-buttons mt-10">

@@ -4,6 +4,7 @@ import clsx from "clsx";
 interface DifficultyToggleProps {
   // Callback function when the toggle state changes (true for Hard, false for Easy)
   onToggle: (isHard: boolean) => void;
+  initialIsHard?: boolean;
   // Tailwind background color class for the knob (e.g., "bg-emerald-500")
   color: string;
   // Tailwind shadow color class (e.g., "shadow-emerald-900") used for the bottom border/shadow
@@ -12,10 +13,11 @@ interface DifficultyToggleProps {
 
 export default function DifficultyToggle({
   onToggle,
+  initialIsHard,
   color,
   darkColor = "shadow-gray-900", // Default shadow if not provided
 }: DifficultyToggleProps) {
-  const [isHard, setIsHard] = useState(false);
+  const [isHard, setIsHard] = useState(initialIsHard);;
 
   const handleToggle = () => {
     const newState = !isHard;
