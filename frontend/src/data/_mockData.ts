@@ -65,8 +65,10 @@ export const MOCK_LEADERBOARD_INDIVIDUAL_WEEKLY: IndividualScoreEntry[] = [
 ];
 
 export const MOCK_LEADERBOARD_DEPARTMENT_WEEKLY: DepartmentScoreEntry[] = [ // Renamed type
-  { department: { id: 1, name: 'Engineering' }, score: 2230, week_start_date: '2025-10-19' }, // Changed team to department
-  { department: { id: 2, name: 'Marketing' }, score: 1500, week_start_date: '2025-10-19' }, // Changed team to department
+  { department: { id: 1, name: 'Backend & Cloud' }, score: 2230, week_start_date: '2025-10-19' }, // Changed team to department
+  { department: { id: 2, name: 'Data & AI' }, score: 1500, week_start_date: '2025-10-19' }, 
+  { department: { id: 3, name: 'Web Dev 1' }, score: 1234, week_start_date: '2025-10-19' },
+  { department: { id: 4, name: 'Web Dev 2' }, score: 1123, week_start_date: '2025-10-19' }, // Changed team to department
 ];
 
 export const MOCK_ONLINE_USERS: OnlineUser[] = [

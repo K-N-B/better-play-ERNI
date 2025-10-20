@@ -1,37 +1,53 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useApi } from '../hooks/useApi';
 import { getLeaderboard } from '../api/leaderboardService';
-import { LoadingSpinner } from '../components/ui/loadingSpinner';
-import type { LeaderboardData, LeaderboardPeriod, LeaderboardType, IndividualScoreEntry, DepartmentScoreEntry } from '../types/leaderboard'; // Updated import name
-import { TabButton } from '../components/ui/tabButton';
+import { LeaderboardCard } from '../components/features/leaderboardCard';
+import { TabButton } from '../components/ui/tabButton'; // Assuming you have this
+import type { LeaderboardPeriod, LeaderboardType } from '../types/leaderboard';
 import clsx from 'clsx';
-
-// ... (TabButton component remains the same)
 
 export const LeaderboardPage = () => {
   const [period, setPeriod] = useState<LeaderboardPeriod>('weekly');
-  const [type, setType] = useState<LeaderboardType>('individual'); // Default type
+  const [type, setType] = useState<LeaderboardType>('individual');
 
-  const fetchLeaderboardData = React.useCallback(
+  // --- Fetch data for the SELECTED period/type ---
+  const fetchSelectedLeaderboard = useCallback(
       () => getLeaderboard(period, type),
       [period, type]
   );
-  const { data: leaderboardData, loading, error } = useApi(fetchLeaderboardData);
+  const { data: selectedData, loading: loadingSelected, error: errorSelected } = useApi(fetchSelectedLeaderboard);
 
+  // --- Fetch data for ALL-TIME (always individual and alltime) ---
+  const fetchAllTimeIndividual = useCallback(() => getLeaderboard('alltime', 'individual'), []);
+  const { data: allTimeData, loading: loadingAllTime, error: errorAllTime } = useApi(fetchAllTimeIndividual);
+
+  // Determine title for the selected card
+  const selectedTitle = `${period.charAt(0).toUpperCase() + period.slice(1)} ${type === 'department' ? 'Department' : 'Individual'}`;
+  console.log(`[LeaderboardPage] Rendering cards. Selected Type: ${type}, Selected Data:`, selectedData);
+  console.log(`[LeaderboardPage] All-Time Type: individual, All-Time Data:`, allTimeData);
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Leaderboards</h1>
+    <div className="container mx-auto px-4 py-8 h-full"> {/* Ensure container takes height */}
+      <h1 className="text-3xl font-bold mb-6 text-center">Leaderboards</h1>
 
       {/* --- Filters --- */}
-      <div className="mb-6 flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-8">
-        {/* Period Filter (no change) */}
-        {/* ... */}
-        {/* Type Filter (Updated labels/values) */}
-        <div className="flex space-x-2 p-1 bg-gray-100 rounded-lg">
-          {(['individual', 'department'] as LeaderboardType[]).map(t => ( // Changed 'team' to 'department'
+      <div className="mb-6 flex flex-col items-center space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-8">
+        {/* Period Filter */}
+        <div className="flex space-x-2 p-1 bg-gray-100 rounded-lg shadow-inner">
+          {(['daily', 'weekly', 'monthly', 'alltime'] as LeaderboardPeriod[]).map(p => (
+            <TabButton
+              key={p}
+              label={p.charAt(0).toUpperCase() + p.slice(1)}
+              isActive={period === p}
+              onClick={() => setPeriod(p)}
+            />
+          ))}
+        </div>
+        {/* Type Filter */}
+        <div className="flex space-x-2 p-1 bg-gray-100 rounded-lg shadow-inner">
+          {(['individual', 'department'] as LeaderboardType[]).map(t => (
             <TabButton
               key={t}
-              label={t === 'department' ? 'Department' : 'Individual'} // Updated Label
+              label={t === 'department' ? 'Department' : 'Individual'}
               isActive={type === t}
               onClick={() => setType(t)}
             />
@@ -39,57 +55,25 @@ export const LeaderboardPage = () => {
         </div>
       </div>
 
-      {/* --- Leaderboard Table --- */}
-      <div className="bg-white shadow-md rounded-lg overflow-hidden">
-        {loading && <div className="p-10 text-center"><LoadingSpinner /></div>}
-        {error && <p className="p-10 text-center text-red-600">Failed to load leaderboard.</p>}
-        {!loading && !error && leaderboardData && leaderboardData.length > 0 && (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Rank</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {/* Updated Header */}
-                  {type === 'individual' ? 'Player' : 'Department'}
-                </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {leaderboardData.map((entry, index) => {
-                
+      {/* --- Leaderboard Grid --- */}
+      <div className="grid grid-cols-1 md:grid-cols-2 h-[calc(100vh-15rem)] gap-8"> {/* Adjust height calculation */}
+        {/* Selected Period Card */}
+        <LeaderboardCard
+          title={selectedTitle}
+          data={selectedData}
+          type={type} // Pass the selected type
+          loading={loadingSelected}
+          error={errorSelected}
+        />
 
-                // Check if department exists before accessing name (temporary fix/check)
-                const departmentName = (type === 'department' && (entry as DepartmentScoreEntry).department)
-                                        ? (entry as DepartmentScoreEntry).department.name
-                                        : 'N/A';
-                const userName = (type === 'individual' && (entry as IndividualScoreEntry).user)
-                                  ? (entry as IndividualScoreEntry).user.username
-                                  : 'N/A';
-                const entryId = type === 'individual'
-                                ? (entry as IndividualScoreEntry).user?.id
-                                : (entry as DepartmentScoreEntry).department?.id;
-
-                // Use a unique key, even if ID is missing during debug
-                const key = `${type}-${entryId || index}`;
-
-
-                return (
-                  <tr key={key}> {/* Use the generated key */}
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center">{index + 1}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {type === 'individual' ? userName : departmentName}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-right font-semibold">{entry.score}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-        {!loading && !error && (!leaderboardData || leaderboardData.length === 0) && (
-          <p className="p-10 text-center text-gray-500">No data available for this period.</p>
-        )}
+        {/* All-Time Card (Always Individual) */}
+        <LeaderboardCard
+          title="All-Time Individual"
+          data={allTimeData}
+          type="individual" // Always individual for this card
+          loading={loadingAllTime}
+          error={errorAllTime}
+        />
       </div>
     </div>
   );

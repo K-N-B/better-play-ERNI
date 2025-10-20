@@ -18,8 +18,12 @@ export const getLeaderboard = (
         console.log(`Mock: Fetching leaderboard - Period: ${period}, Type: ${type}, Date: ${date}`);
         if (type === 'individual') {
             return mockApiCall(MOCK_LEADERBOARD_INDIVIDUAL_WEEKLY);
-        } else { // type === 'department'
-            return mockApiCall(MOCK_LEADERBOARD_DEPARTMENT_WEEKLY); // Updated variable name
+        } else if (type === 'department') { // Use 'department'
+            return mockApiCall(MOCK_LEADERBOARD_DEPARTMENT_WEEKLY); // Return the department data
+        } else {
+            // Handle unexpected type if necessary, or return empty array
+            console.error(`Mock: Unknown leaderboard type requested: ${type}`);
+            return mockApiCall([]);
         }
     }
     // !! Real call: return api.get(`/api/leaderboard?period=${period}&type=${type}${date ? `&date=${date}` : ''}`);
