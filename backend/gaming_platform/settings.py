@@ -6,7 +6,7 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'your-secret-key-change-in-production')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'your-secret-key')
 
 DEBUG = True
 
@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
+    'django_apscheduler',
     'authentication',
     'games',
 ]
@@ -59,11 +60,11 @@ WSGI_APPLICATION = 'gaming_platform.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'gaming_platform_db'),
-        'USER': os.getenv('DB_USER', 'postgres'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
     }
 }
 
@@ -90,7 +91,6 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:3000",
 ]
-
 CORS_ALLOW_CREDENTIALS = True
 
 # REST Framework
@@ -107,10 +107,17 @@ REST_FRAMEWORK = {
 AZURE_AD_CLIENT_ID = os.getenv('AZURE_AD_CLIENT_ID')
 AZURE_AD_CLIENT_SECRET = os.getenv('AZURE_AD_CLIENT_SECRET')
 AZURE_AD_TENANT_ID = os.getenv('AZURE_AD_TENANT_ID')
-AZURE_AD_REDIRECT_URI = os.getenv('AZURE_AD_REDIRECT_URI', 'http://localhost:8000/auth/callback')
+AZURE_AD_REDIRECT_URI = os.getenv('AZURE_AD_REDIRECT_URI')
+
+# Anthropic AI
+ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
 
 # Session settings
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SECURE = False
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_AGE = 86400
+
+# APScheduler
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
+APSCHEDULER_RUN_NOW_TIMEOUT = 25
