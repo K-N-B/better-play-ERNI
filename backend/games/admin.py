@@ -2,11 +2,13 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import DailyPuzzle, UserPuzzleAttempt, UserDailyProgress, UserStreak, Leaderboard
+from django.core.management import call_command
 
 
 @admin.register(DailyPuzzle)
 class DailyPuzzleAdmin(admin.ModelAdmin):
     list_display = ['date', 'game_type', 'difficulty', 'get_word', 'is_active', 'created_at']
+    actions = ['generate_puzzles_now']
     list_filter = ['game_type', 'difficulty', 'is_active', 'date']
     search_fields = ['date', 'game_type']
     date_hierarchy = 'date'
@@ -29,6 +31,17 @@ class DailyPuzzleAdmin(admin.ModelAdmin):
         return obj.puzzle_data.get('word', 'N/A')
     get_word.short_description = 'Word'
     
+    # Manual puzzle generation action
+    def generate_puzzles_now(self, request, queryset):
+        """Manually trigger puzzle generation from admin"""
+        try:
+            call_command('generate_daily_puzzles')
+            self.message_user(request, "✅ Daily puzzles generated successfully!")
+        except Exception as e:
+            self.message_user(request, f"❌ Failed to generate puzzles: {e}", level='error')
+
+    generate_puzzles_now.short_description = "Generate puzzles manually (run command)"
+
     def get_puzzle_preview(self, obj):
         """Display formatted puzzle data"""
         data = obj.puzzle_data
@@ -200,9 +213,6 @@ class LeaderboardAdmin(admin.ModelAdmin):
             'fields': ('updated_at',)
         }),
     )
-    
-    actions = ['recalculate_leaderboard']
-    
     def recalculate_leaderboard(self, request, queryset):
         """Admin action to manually recalculate leaderboards"""
         for period in ['daily', 'weekly', 'monthly', 'all_time']:
