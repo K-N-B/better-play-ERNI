@@ -1,5 +1,5 @@
 // /src/pages/GamePage.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
 import { getDailyPuzzles } from '../api/gameService';
@@ -43,15 +43,48 @@ const introContent = {
     bgColor: 'bg-sky-200'
   },
 };
-
 export type Difficulty = "easy" | "hard";
+
+// Type for storing the *locked-in* difficulty once started
+interface StartedGamesState {
+  [gameType: string]: Difficulty | null; // null means not started yet
+}
 export const GamePage = () => {
   const { gameType } = useParams<{ gameType: string }>();
-  const [difficulty, setDifficulty] = useState<Difficulty>('easy'); // <-- State for difficulty
-  const [hasStarted, setHasStarted] = useState(false); // <-- State to track if game started
+  // State 1: Tracks the difficulty SELECTED on the intro screen (defaults to 'easy')
+  const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>('easy');
+
+  // State 2: Tracks which games have been STARTED and their locked difficulty
+  // (In a real app, load this from localStorage or backend)
+  const [startedGames, setStartedGames] = useState<StartedGamesState>({});
 
   // Fetch puzzle data (remains the same)
   const { data: puzzles, loading } = useApi(getDailyPuzzles);
+
+  // --- Get the locked-in difficulty for the current game, if it exists ---
+  const lockedDifficulty = gameType ? startedGames[gameType] : null;
+
+  // --- Handler for the Intro screen's toggle ---
+  const handleDifficultySelection = (newDifficulty: Difficulty) => {
+    setSelectedDifficulty(newDifficulty); // Just update the selection
+  };
+
+  // --- Handler for the Intro screen's "Start" button ---
+  const handleStartGame = () => {
+    if (gameType) {
+      // Lock the currently selected difficulty for this game
+      setStartedGames(prev => ({
+        ...prev,
+        [gameType]: selectedDifficulty,
+      }));
+      // (No need for hasStarted state anymore)
+    }
+  };
+
+  // --- Reset selected difficulty when game changes (for Intro screen) ---
+  useEffect(() => {
+     setSelectedDifficulty('easy'); // Reset selection when navigating to a new game type
+  }, [gameType]);
 
   if (loading) {
     return <LoadingSpinner fullPage={true} />;
@@ -87,7 +120,21 @@ export const GamePage = () => {
   }
 
   // --- Render Intro or Game ---
-  if (!hasStarted) {
+  // --- DECIDE: Show Intro or Game ---
+  // If a difficulty is already locked for this game, go straight to the game
+  if (lockedDifficulty) {
+    return (
+      <div className={`h-full w-full rounded-3xl p-12 ${introData.bgColor}`}>
+        {GameComponent && (
+          <GameComponent
+            puzzle={puzzleData}
+            difficulty={lockedDifficulty} // Pass the LOCKED difficulty
+          />
+        )}
+      </div>
+    );
+  } else {
+    // Otherwise, show the Intro screen
     return (
       <div className={`h-full w-full rounded-3xl p-12 ${introData.bgColor}`}>
         <GameIntro
@@ -96,15 +143,13 @@ export const GamePage = () => {
           howToPlay={introData.howToPlay}
           pointsInfo={introData.pointsInfo}
           hintInfo={introData.hintInfo}
-          onStart={() => setHasStarted(true)} // <-- Set started state on click
-          onDifficultyChange={setDifficulty} // <-- Update difficulty state
+          onStart={handleStartGame} // <-- Use the handler that locks the difficulty
+          onDifficultyChange={handleDifficultySelection} // <-- Use the handler for selection
+          initialDifficulty={selectedDifficulty} // <-- Show the current selection
           color={introData.color}
           darkColor={introData.darkColor}
         />
       </div>
     );
-  } else {
-    // Render the actual game component, passing puzzle data AND difficulty
-    return <div className={`h-full w-full rounded-3xl p-12 ${introData.bgColor}`}> <GameComponent puzzle={puzzleData} difficulty={difficulty} /> </div>;
   }
 }
