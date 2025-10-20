@@ -16,7 +16,7 @@ export const MOCK_USER_MAIN: UserProfile = {
     id: 1,
     username: 'forondayna',
     email: 'forondayna1214@gmail.com',
-    department: MOCK_DEPARTMENTS[0],
+    department: MOCK_DEPARTMENTS[1],
     profile_complete: true,
     total_points_alltime: 1250,
     current_streak_count: 3,
