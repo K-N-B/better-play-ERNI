@@ -1,8 +1,8 @@
 // src/components/Navbar.tsx
 import { useState, useEffect } from "react";
 import logo from "../assets/logo.png";
-import PrimaryButton from "./PrimaryButton";
-import UserProfileModal from "./UserProfileModal";
+// import PrimaryButton from "./ui/primaryButton";
+// import UserProfileModal from "./features/userProfileModal";
 
 interface User {
   id: number;

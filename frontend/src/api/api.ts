@@ -4,3 +4,16 @@
 // Set the baseURL to your Django API (e.g., http://localhost:8000/api).
 // This is where you'll add the MSAL interceptor. You'll get the access token from MSAL and automatically add it to the Authorization header of every outgoing request.
 
+// Can hold generic API response types.
+
+// Switch for mock data or not
+export const MOCK_MODE = true;
+
+// Simulate network delay
+export const mockApiCall = <T>(data: T): Promise<T> => {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve(data);
+        }, 100);
+    });
+};

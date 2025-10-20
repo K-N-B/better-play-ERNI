@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DifficultyToggle from '../../components/DifficultyToggle';
 import GameIntro from '../../components/GameIntro';
-import PrimaryButton from '../../components/PrimaryButton';
+import PrimaryButton from '../../components/ui/primaryButton';
 import './Hangman.css';
 
 const WORDS = [
