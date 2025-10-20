@@ -1,4 +1,3 @@
-// src/components/Navbar.tsx
 
 export default function GameButton({title, subtitle, color, icon}: {title: string, subtitle: string, color: string, icon: string}) {
 
