@@ -1,7 +1,7 @@
 
 import { useAuth } from '../../hooks/authContext';
 import type { UserProfile } from '../../types/user';
-import { X, LogOut, Star, TrendingUp } from 'lucide-react';
+import { X, LogOut, Sparkle, Flame, HandFist } from 'lucide-react';
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -17,24 +17,24 @@ export default function UserProfileModal({ isOpen, onClose, user }: UserProfileM
   return (
     // Modal Overlay
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       onClick={onClose}
     >
       {/* Modal Content */}
       <div
-        className="bg-white rounded-lg shadow-xl w-full max-w-sm"
+        className="bg-white rounded-3xl w-full max-w-sm p-6"
         onClick={e => e.stopPropagation()} // Prevent click from closing modal
       >
         {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b">
+        <div className="flex justify-between items-center ">
           <h3 className="text-lg font-semibold">My Profile</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-red-500 hover:text-red-700">
             <X size={20} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-6">
+        <div className="pt-4">
           <div className="flex items-center space-x-4 mb-6">
             <div className="w-16 h-16 bg-sky-400 rounded-full flex items-center justify-center text-white text-3xl font-bold">
               {user?.username.charAt(0).toUpperCase() || '?'}
@@ -46,22 +46,43 @@ export default function UserProfileModal({ isOpen, onClose, user }: UserProfileM
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-6 text-center">
-            <div className="bg-gray-100 p-4 rounded-lg">
-              <Star className="mx-auto text-yellow-500 mb-1" />
-              <div className="text-2xl font-bold">{user?.total_points_alltime || 0}</div>
+          <div className="grid grid-cols-2 gap-4 mb-4 text-center">
+            <div className="bg-gray-100 p-4 rounded-lg items-center justify-center flex flex-col">
+              <div className="flex items-center justify-center gap-1">
+                <div className="text-2xl font-bold">{user?.total_points_alltime || 0}</div>
+                <Sparkle className="text-yellow-500" size={24} />
+              </div>
               <div className="text-sm text-gray-600">Total Points</div>
             </div>
-            <div className="bg-gray-100 p-4 rounded-lg">
-              <TrendingUp className="mx-auto text-green-500 mb-1" />
-              <div className="text-2xl font-bold">{user?.streak_count || 0}</div>
+            <div className="bg-gray-100 p-4 rounded-lg items-center justify-center flex flex-col">
+              <div className="flex items-center justify-center gap-1">
+                <div className="text-2xl font-bold">{user?.challenges_made_count || 0}</div>
+                <HandFist className="text-amber-700" size={24} />
+              </div>
+              <div className="text-sm text-gray-600">Challenges made</div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-6 text-center">
+            <div className="bg-gray-100 p-4 rounded-lg items-center justify-center flex flex-col">
+              <div className="flex items-center justify-center gap-1">
+                <div className="text-2xl font-bold">{user?.current_streak_count || 0}</div>
+                <Flame className="text-orange-500" size={24} />
+              </div>
               <div className="text-sm text-gray-600">Current Streak</div>
+            </div>
+            <div className="bg-gray-100 p-4 rounded-lg items-center justify-center flex flex-col">
+              <div className="flex items-center justify-center gap-1">
+                <div className="text-2xl font-bold">{user?.max_streak_count || 0}</div>
+                <Flame className="text-red-500" size={24} />
+              </div>
+              <div className="text-sm text-gray-600">Max Streak</div>
             </div>
           </div>
 
           <button
             onClick={logout}
-            className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-red-600 shadow-red-700 shadow-[0_5px_0_0] active:shadow-[0_4px_0_0_rgba(0,0,0,0.15)] translate-y-[-2px] active:translate-y-0 text-white rounded-lg hover:bg-red-800 transition-colors"
           >
             <LogOut size={18} />
             <span>Logout</span>
