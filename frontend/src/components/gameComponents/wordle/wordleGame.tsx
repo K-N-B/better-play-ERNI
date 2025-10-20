@@ -9,12 +9,14 @@ import { useTimer } from '../../../hooks/useTimer';
 import { Timer } from '../../ui/timer';
 import { useApi } from '../../../hooks/useApi';
 import { LoadingSpinner } from '../../ui/loadingSpinner';
+import type { Difficulty } from '../../../pages/gamePage';
 
 interface WordleGameProps {
   puzzle: WordlePuzzle;
+  difficulty: Difficulty;
 }
 
-export const WordleGame = ({ puzzle }: WordleGameProps) => {
+export const WordleGame = ({ puzzle, difficulty }: WordleGameProps) => {
   const [solution] = useState(puzzle.solution_word.toUpperCase());
   
   // These states will be initialized by the loading effect
@@ -27,11 +29,13 @@ export const WordleGame = ({ puzzle }: WordleGameProps) => {
 
   const { time, startTimer, stopTimer, setSavedTime } = useTimer();
 
+
   // --- 1. Load saved game ---
   // Memoize the function that calls getSavedAttempt
   const fetchSavedWordle = useCallback(() => getSavedAttempt('wordle'), []);
   // Now pass the STABLE function to useApi
   const { data: savedGame, loading } = useApi(fetchSavedWordle);
+  const MAX_GUESSES = difficulty === 'hard' ? 5 : 6;
 
   // --- 2. Effect to load data ---
 // 1. Effect to load data
@@ -55,8 +59,6 @@ export const WordleGame = ({ puzzle }: WordleGameProps) => {
       // ...
       return;
     }
-
-    // ...
 
     const saveTimer = setTimeout(() => {
       // ...
@@ -108,8 +110,8 @@ export const WordleGame = ({ puzzle }: WordleGameProps) => {
 
         if (currentGuess === solution) {
           endGame(newRow);
-        } else if (newRow === 6) {
-          endGame(6, false);
+        } else if (newRow >= MAX_GUESSES) { // <-- Use >= MAX_GUESSES
+          endGame(MAX_GUESSES, false); // Pass MAX_GUESSES on loss
         }
       }
     } else if (key === 'Backspace') {
@@ -117,19 +119,18 @@ export const WordleGame = ({ puzzle }: WordleGameProps) => {
     } else if (currentGuess.length < 5 && /^[a-zA-Z]$/.test(key)) {
       setCurrentGuess(g => g + key.toUpperCase());
     }
-  }, [isGameOver, currentGuess, guesses, currentRow, letterStatuses, solution, puzzle.id]); // Added puzzle.id
+  }, [isGameOver, currentGuess, guesses, currentRow, letterStatuses, solution, puzzle.id, MAX_GUESSES]); // Added puzzle.id
 
   // 4. endGame (not a hook, just a function)
   const endGame = async (tries: number, won: boolean = true) => {
     setIsGameOver(true);
     stopTimer();
     const finalTime = time;
-
     const submission: SubmissionData = {
       puzzle_id: puzzle.id,
       puzzle_type: 'wordle',
       time_taken_ms: finalTime,
-      tries: tries,
+      tries: tries, // Use the actual number of tries taken
     };
     const result = await submitPuzzle(submission);
     setGameResult(result);
@@ -162,6 +163,7 @@ export const WordleGame = ({ puzzle }: WordleGameProps) => {
         currentGuess={currentGuess}
         solution={solution}
         currentRow={currentRow}
+        maxGuesses={MAX_GUESSES}
       />
       
       <Keyboard onKeyPress={handleKeyPress} letterStatuses={letterStatuses} />
