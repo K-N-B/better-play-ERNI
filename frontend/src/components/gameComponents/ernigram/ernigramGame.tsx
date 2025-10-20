@@ -9,19 +9,21 @@ import { useTimer } from '../../../hooks/useTimer';
 import { Timer } from '../../ui/timer';
 import { useApi } from '../../../hooks/useApi';
 import { LoadingSpinner } from '../../ui/loadingSpinner';
+import type { Difficulty } from '../../../pages/gamePage';
 
 interface ErnigramGameProps {
   puzzle: ErnigramPuzzle;
+  difficulty: Difficulty;
 }
 
-const MAX_ATTEMPTS = 6;
+const MAX_ATTEMPTS = (difficulty: Difficulty) => difficulty === 'hard' ? 3 : 6;
 
-export const ErnigramGame = ({ puzzle }: ErnigramGameProps) => {
+export const ErnigramGame = ({ puzzle, difficulty }: ErnigramGameProps) => {
   const [solution] = useState(puzzle.solution_phrase.toUpperCase());
   
   // States to be loaded/saved
   const [guessedLetters, setGuessedLetters] = useState<string[]>([]);
-  const [attemptsLeft, setAttemptsLeft] = useState(MAX_ATTEMPTS);
+  const [attemptsLeft, setAttemptsLeft] = useState(() => MAX_ATTEMPTS(difficulty));
   const [isGameOver, setIsGameOver] = useState(false);
   
   // Other states
@@ -89,7 +91,7 @@ export const ErnigramGame = ({ puzzle }: ErnigramGameProps) => {
     };
     // --- THIS IS THE FIX ---
     // Remove 'time' from this dependency array
-  }, [guessedLetters, attemptsLeft, /*letterStatuses is not used here*/ isGameOver, /*time,*/ loading, gameResult, puzzle.id]);
+  }, [guessedLetters, attemptsLeft, isGameOver, loading, gameResult, puzzle.id]);
 
   // 3. Memoized handleKeyPress
   const handleKeyPress = useCallback((key: string) => {
@@ -134,12 +136,13 @@ export const ErnigramGame = ({ puzzle }: ErnigramGameProps) => {
     setIsGameOver(true);
     stopTimer();
     const finalTime = time;
+    const maxAttemptsForDifficulty = MAX_ATTEMPTS(difficulty);
 
     const submission: SubmissionData = {
       puzzle_id: puzzle.id,
       puzzle_type: 'ernigram',
       time_taken_ms: finalTime,
-      tries: MAX_ATTEMPTS - (won ? attemptsLeft : 0),
+      tries: maxAttemptsForDifficulty - (won ? attemptsLeft : 0),
     };
     
     if (won) {

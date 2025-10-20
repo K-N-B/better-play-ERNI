@@ -38,13 +38,13 @@ interface WordleGridProps {
   currentGuess: string;
   solution: string;
   currentRow: number;
+  maxGuesses: number;
 }
 
-export const WordleGrid = ({ guesses, currentGuess, solution, currentRow }: WordleGridProps) => {
-  const rows = Array(6).fill(null);
-
+export const WordleGrid = ({ guesses, currentGuess, solution, currentRow, maxGuesses }: WordleGridProps) => {
+  const rows = Array(maxGuesses).fill(null);
   return (
-    <div className="grid grid-rows-6 gap-1.5 w-full max-w-sm mx-auto mb-4">
+    <div className={`grid grid-rows-${maxGuesses} gap-1.5 w-full max-w-sm mx-auto mb-4`}>
       {rows.map((_, rowIndex) => {
         const guess = guesses[rowIndex];
         const isCurrentRow = rowIndex === currentRow;

@@ -16,23 +16,23 @@ const MOCK_SAVE_SLOTS: {
 } = {};
 // --- END FIX ---
 
-console.log('[gameService] Module loaded. Initial MOCK_SAVE_SLOTS:', JSON.stringify(MOCK_SAVE_SLOTS));
+// console.log('[gameService] Module loaded. Initial MOCK_SAVE_SLOTS:', JSON.stringify(MOCK_SAVE_SLOTS));
 
 // Gets the user's saved game *for the specific type*
 export const getSavedAttempt = (
   currentGameType: PuzzleAttemptData['puzzle_type']
 ): Promise<PuzzleAttemptResponse | null> => {
   if (MOCK_MODE) {
-    console.log(`%c[getSavedAttempt] Fetching for ${currentGameType}...`, 'color: blue');
+    // console.log(`%c[getSavedAttempt] Fetching for ${currentGameType}...`, 'color: blue');
     // --- DEBUG LOGGING ---
-    console.log(`%c[getSavedAttempt] Current MOCK_SAVE_SLOTS state: ${JSON.stringify(MOCK_SAVE_SLOTS)}`, 'color: blue');
+    // console.log(`%c[getSavedAttempt] Current MOCK_SAVE_SLOTS state: ${JSON.stringify(MOCK_SAVE_SLOTS)}`, 'color: blue');
     // --- END DEBUG ---
     const savedGame = MOCK_SAVE_SLOTS[currentGameType];
     if (savedGame) {
-      console.log(`%c[getSavedAttempt] Found saved ${currentGameType}`, 'color: green');
+      // console.log(`%c[getSavedAttempt] Found saved ${currentGameType}`, 'color: green');
       return mockApiCall(savedGame);
     } else {
-      console.log(`%c[getSavedAttempt] No saved game found for ${currentGameType}`, 'color: orange');
+      // console.log(`%c[getSavedAttempt] No saved game found for ${currentGameType}`, 'color: orange');
       return mockApiCall(null);
     }
   }
@@ -43,7 +43,7 @@ export const getSavedAttempt = (
 // Saves the user's progress *to the correct slot*
 export const saveProgress = (data: PuzzleAttemptData): Promise<PuzzleAttemptResponse> => {
   if (MOCK_MODE) {
-    console.log(`%c[saveProgress] Saving progress for ${data.puzzle_type}...`, 'color: purple', data);
+    // console.log(`%c[saveProgress] Saving progress for ${data.puzzle_type}...`, 'color: purple', data);
     const savedGame: PuzzleAttemptResponse = {
       ...data,
       id: Math.floor(Math.random() * 1000),
@@ -52,7 +52,7 @@ export const saveProgress = (data: PuzzleAttemptData): Promise<PuzzleAttemptResp
     };
     MOCK_SAVE_SLOTS[data.puzzle_type] = savedGame;
     // --- DEBUG LOGGING ---
-    console.log(`%c[saveProgress] MOCK_SAVE_SLOTS updated: ${JSON.stringify(MOCK_SAVE_SLOTS)}`, 'color: purple; font-weight: bold');
+    // console.log(`%c[saveProgress] MOCK_SAVE_SLOTS updated: ${JSON.stringify(MOCK_SAVE_SLOTS)}`, 'color: purple; font-weight: bold');
     // --- END DEBUG ---
     return mockApiCall(savedGame);
   }
@@ -63,16 +63,16 @@ export const saveProgress = (data: PuzzleAttemptData): Promise<PuzzleAttemptResp
 // Submits a completed puzzle and clears the *correct* slot
 export const submitPuzzle = (data: SubmissionData): Promise<{ score: number }> => {
   if (MOCK_MODE) {
-    console.log(`%c[submitPuzzle] Submitting ${data.puzzle_type}...`, 'color: red', data);
+    // console.log(`%c[submitPuzzle] Submitting ${data.puzzle_type}...`, 'color: red', data);
 
     if (MOCK_SAVE_SLOTS[data.puzzle_type]) {
-      console.log(`%c[submitPuzzle] Clearing saved game for ${data.puzzle_type}`, 'color: red');
+      // console.log(`%c[submitPuzzle] Clearing saved game for ${data.puzzle_type}`, 'color: red');
       delete MOCK_SAVE_SLOTS[data.puzzle_type];
       // --- DEBUG LOGGING ---
-      console.log(`%c[submitPuzzle] MOCK_SAVE_SLOTS after clear: ${JSON.stringify(MOCK_SAVE_SLOTS)}`, 'color: red; font-weight: bold');
+      // console.log(`%c[submitPuzzle] MOCK_SAVE_SLOTS after clear: ${JSON.stringify(MOCK_SAVE_SLOTS)}`, 'color: red; font-weight: bold');
       // --- END DEBUG ---
     } else {
-       console.log(`%c[submitPuzzle] No saved game found for ${data.puzzle_type} to clear.`, 'color: orange');
+      //  console.log(`%c[submitPuzzle] No saved game found for ${data.puzzle_type} to clear.`, 'color: orange');
     }
 
     // Calculate score
