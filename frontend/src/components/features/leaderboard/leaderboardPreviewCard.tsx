@@ -19,8 +19,8 @@ export const LeaderboardPreviewCard = () => {
 
     return (
         <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 flex flex-col h-full"> {/* Added flex flex-col h-full */}
-             <div className="flex justify-between items-center mb-4 flex-shrink-0"> {/* Prevent header shrinking */}
-                <h3 className="text-xl font-semibold mb-3 flex items-center space-x-2">
+             <div className="flex justify-between items-center flex-shrink-0"> {/* Prevent header shrinking */}
+                <h3 className="text-xl font-semibold mb-3 flex items-center space-x-3">
                     <Trophy size={22} strokeWidth={2.5}/>
                     <div className="text-2xl font-semibold text-gray-800">Leaderboards</div>
                 </h3>
@@ -31,7 +31,7 @@ export const LeaderboardPreviewCard = () => {
             </div>
 
             {/* --- Use LeaderboardList Component --- */}
-            <div className="flex-grow overflow-y-auto -mr-2 pr-2"> {/* Allow list to scroll */}
+            <div className="flex-grow overflow-y-auto "> {/* Allow list to scroll */}
                 {loading && <div className="text-center py-4"><LoadingSpinner /></div>}
                 {error && <p className="text-center py-4 text-red-600">Could not load leaderboard.</p>}
                 {!loading && !error && (

@@ -38,7 +38,7 @@ export const LeaderboardListItem: React.FC<LeaderboardListItemProps> = ({ entry,
   return (
     <li
       key={key} // Key is used by the parent map, but good to keep it consistent if needed elsewhere
-      className="flex justify-between items-center py-3 text-lg"
+      className="flex justify-between items-center py-2 text-lg"
     >
       {/* Left side: Rank + Name */}
       <div className="flex items-center gap-3">

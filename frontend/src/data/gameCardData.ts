@@ -1,5 +1,5 @@
 import type { GameCardData } from '../types/game'; // Import the type
-import { Puzzle, Brain, PenTool } from 'lucide-react'; // Import Lucide icons
+import { TextInitial, Brain, PenTool } from 'lucide-react'; // Import Lucide icons
 
 export const gameCardData: GameCardData[] = [
   {
@@ -7,7 +7,7 @@ export const gameCardData: GameCardData[] = [
     subtitle: 'Guess the 5-letter word.',
     bgColor: 'bg-emerald-500',
     shadowColor: 'shadow-emerald-900',
-    IconComponent: Puzzle, // Assign the icon component
+    IconComponent: TextInitial, // Assign the icon component
     path: '/game/wordle',
   },
   {

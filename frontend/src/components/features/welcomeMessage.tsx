@@ -40,27 +40,27 @@ export const WelcomeMessage = () => {
     // ---
 
     return (
-        <div className="p-6 bg-white rounded-4xl shadow border border-gray-200">
-            <h1 className="text-xl font-semibold text-gray-800 mb-2">
+        <div className="p-6 bg-white rounded-4xl text-lg shadow border border-gray-200">
+            <h1 className="text-xl font-semibold text-primary mb-2">
                 Welcome back, {user.username}! 👋
             </h1>
 
             {loadingStats ? (
-                <p className="text-gray-500 animate-pulse">Loading today's stats...</p>
+                <p className="text-black animate-pulse">Loading today's stats...</p>
             ) : (
                 <>
                     {puzzlesLeftToday > 0 ? (
-                        <p className="text-gray-600 leading-5">
+                        <p className="text-black leading-5">
                             You still have <strong className="text-primary">{puzzlesLeftToday}</strong> puzzle
                             {puzzlesLeftToday !== 1 ? 's' : ''} left to play today. Maybe you're up for a challenge?
                         </p>
                     ) : (
-                        <p className="text-gray-600">
+                        <p className="text-black">
                             You've completed all puzzles for today! Great job! 🎉
                         </p>
                     )}
 
-                    <p className="text-gray-600 mt-1">
+                    <p className="text-black mt-1">
                         You've earned <strong className="text-primary">{dailyScore}pts  </strong> for today!
                     </p>
                 </>

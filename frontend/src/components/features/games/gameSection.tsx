@@ -25,7 +25,7 @@ export const GamesSection = () => {
   return (
     <div className="bg-white text-black rounded-4xl p-8 shadow-lg h-full flex flex-col">
       <div className='flex flex-row items-center justify-center gap-2 mb-2'>
-        <Puzzle className="size-10 text-primary" strokeWidth={2.5}/>
+        <Puzzle size={30} strokeWidth={2.5}/>
         <div className="text-4xl font-bold ">Games</div>
       </div>
 
