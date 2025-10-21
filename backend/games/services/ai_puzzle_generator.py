@@ -1,254 +1,312 @@
-# games/services/ai_puzzle_generator.py
-import anthropic
+"""
+AI Puzzle Generator using Google Gemini API
+Generates Wordle puzzles with themes and hints
+"""
+
+import google.generativeai as genai
 import json
-import os
+import re
 from django.conf import settings
-from datetime import datetime
+from typing import Dict, List
 
 
 class AIPuzzleGenerator:
-    """Generate puzzles using Claude AI"""
+    """
+    Generates puzzle content using Google Gemini AI.
+    Supports multiple game types and difficulty levels.
+    """
     
     def __init__(self):
-        self.client = anthropic.Anthropic(
-            api_key=settings.ANTHROPIC_API_KEY
-        )
+        """Initialize Gemini API with key from settings"""
+        if not settings.GEMINI_API_KEY:
+            raise ValueError("GEMINI_API_KEY not found in settings")
+        
+        genai.configure(api_key=settings.GEMINI_API_KEY)
+        self.model = genai.GenerativeModel('gemini-pro')
     
-    def generate_wordle_puzzle(self, difficulty='easy', theme=None):
+    def generate_wordle_puzzle(self, difficulty: str = 'easy') -> Dict:
         """
-        Generate a Wordle puzzle with AI
+        Generate a Wordle puzzle with word, theme, and hints.
         
         Args:
-            difficulty: 'easy' or 'hard'
-            theme: Optional theme like 'Nature', 'Technology', 'Food'
-        
+            difficulty (str): 'easy' or 'hard'
+            
         Returns:
-            dict with puzzle data
+            Dict: {
+                'word': str (5-letter word),
+                'theme': str (category/theme),
+                'hints': List[str] (3 hints)
+            }
         """
         
-        # Define themes by day of week if not specified
-        if not theme:
-            day_of_week = datetime.now().weekday()
-            themes = [
-                'Nature', 'Technology', 'Food', 'Travel', 
-                'Sports', 'Science', 'Arts'
-            ]
-            theme = themes[day_of_week]
-        
-        # Customize prompt based on difficulty
+        # Create prompt based on difficulty
         if difficulty == 'easy':
-            word_instruction = "common, everyday 5-letter English word that most people know"
-            hint_style = "straightforward and clear"
-        else:
-            word_instruction = "more challenging 5-letter English word that requires broader vocabulary"
-            hint_style = "clever and require more thinking"
+            prompt = """Generate a Wordle puzzle with these requirements:
+
+1. Choose a common 5-letter English word that most people know
+2. The word should be something people use in everyday conversation
+3. Avoid obscure, technical, or archaic words
+4. Provide exactly 3 helpful hints
+5. Include a fun theme or category
+
+Format your response EXACTLY like this (no extra text):
+{
+    "word": "PLANT",
+    "theme": "Nature and Gardening",
+    "hints": [
+        "A living organism that grows in soil",
+        "Can be found in gardens and homes",
+        "Needs water and sunlight to survive"
+    ]
+}
+
+Requirements:
+- Word must be EXACTLY 5 letters
+- Word must be all UPPERCASE
+- Word must be a common English word
+- Provide EXACTLY 3 hints
+- Hints should be clear and helpful
+- Make hints progressively more specific
+- Response must be valid JSON
+
+Generate ONE puzzle now:"""
         
-        prompt = f"""Generate a daily Wordle puzzle with these specifications:
+        else:  # hard
+            prompt = """Generate a challenging Wordle puzzle with these requirements:
 
-REQUIREMENTS:
-- Difficulty level: {difficulty}
-- Theme: {theme}
-- Word must be exactly 5 letters
-- Word must be a {word_instruction}
-- Word must be a real English word (no proper nouns, abbreviations, or slang)
-- Provide exactly 3 progressive hints
-- Hints should be {hint_style}
+1. Choose a difficult 5-letter English word
+2. The word should be uncommon but still valid
+3. Consider words with unusual letter combinations
+4. Provide exactly 3 challenging hints
+5. Include an interesting theme
 
-HINT PROGRESSION:
-- Hint 1: Broad contextual clue (most subtle)
-- Hint 2: More specific clue (narrows it down)
-- Hint 3: Very specific or reveals a letter position
+Format your response EXACTLY like this (no extra text):
+{
+    "word": "FJORD",
+    "theme": "Geography and Nature",
+    "hints": [
+        "A narrow inlet of the sea between high cliffs",
+        "Commonly found in Norway and Iceland",
+        "Starts with F and has an unusual spelling"
+    ]
+}
 
-Return ONLY valid JSON in this exact format:
-{{
-  "word": "CRANE",
-  "theme": "{theme}",
-  "difficulty": "{difficulty}",
-  "hints": [
-    "First hint here - broad context",
-    "Second hint here - more specific",
-    "Third hint here - very specific or letter reveal"
-  ],
-  "definition": "Short definition of the word",
-  "example_sentence": "Example sentence using the word naturally"
-}}
+Requirements:
+- Word must be EXACTLY 5 letters
+- Word must be all UPPERCASE
+- Word must be a valid English word
+- Provide EXACTLY 3 hints
+- Hints should be challenging but fair
+- Make hints progressively more specific
+- Response must be valid JSON
 
-IMPORTANT: 
-- Return ONLY the JSON object, no other text
-- Word must be uppercase
-- All hints must be helpful but not give away the answer immediately
-"""
+Generate ONE puzzle now:"""
         
         try:
-            message = self.client.messages.create(
-                model="claude-sonnet-4-20250514",
-                max_tokens=1024,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ]
-            )
+            # Generate content with Gemini
+            response = self.model.generate_content(prompt)
+            
+            if not response or not response.text:
+                raise ValueError("Empty response from Gemini API")
             
             # Extract JSON from response
-            response_text = message.content[0].text
+            puzzle_data = self._parse_response(response.text)
             
-            # Parse JSON
-            puzzle_data = json.loads(response_text)
-            
-            # Validate the response
-            if not self._validate_wordle_puzzle(puzzle_data):
-                raise ValueError("Invalid puzzle data from AI")
-            
-            # Add metadata
-            puzzle_data['ai_metadata'] = {
-                'model': 'claude-3-5-sonnet',
-                'generated_at': datetime.now().isoformat(),
-                'tokens_used': message.usage.input_tokens + message.usage.output_tokens
-            }
+            # Validate the puzzle
+            self._validate_wordle_puzzle(puzzle_data)
             
             return puzzle_data
             
-        except json.JSONDecodeError as e:
-            print(f"Failed to parse AI response as JSON: {e}")
-            print(f"Response was: {response_text}")
-            return self._fallback_puzzle(difficulty, theme)
-        
         except Exception as e:
-            print(f"Error generating puzzle: {e}")
-            return self._fallback_puzzle(difficulty, theme)
+            print(f"Error generating puzzle: {str(e)}")
+            # Return fallback puzzle
+            return self._get_fallback_puzzle(difficulty)
     
-    def _validate_wordle_puzzle(self, puzzle_data):
-        """Validate puzzle data structure"""
-        required_fields = ['word', 'hints', 'definition', 'theme']
-        
-        # Check all required fields exist
-        if not all(field in puzzle_data for field in required_fields):
-            return False
-        
-        # Check word is 5 letters and uppercase
-        if len(puzzle_data['word']) != 5 or not puzzle_data['word'].isupper():
-            return False
-        
-        # Check exactly 3 hints
-        if len(puzzle_data['hints']) != 3:
-            return False
-        
-        # Check all hints are non-empty strings
-        if not all(isinstance(hint, str) and hint for hint in puzzle_data['hints']):
-            return False
-        
-        return True
-    
-    def _fallback_puzzle(self, difficulty, theme):
-        """Fallback puzzles if AI generation fails"""
-        easy_puzzles = [
-            {
-                "word": "CRANE",
-                "theme": "Nature",
-                "difficulty": "easy",
-                "hints": [
-                    "A large bird often seen near water",
-                    "Also the name of a construction machine that lifts heavy objects",
-                    "Starts with C and ends with E"
-                ],
-                "definition": "A tall bird with long legs and neck, or a machine for lifting",
-                "example_sentence": "The CRANE stood majestically at the water's edge."
-            },
-            {
-                "word": "BEACH",
-                "theme": "Nature",
-                "difficulty": "easy",
-                "hints": [
-                    "A popular vacation destination by the water",
-                    "Sandy shore where waves meet the land",
-                    "Contains the letters B, E, A, C, H"
-                ],
-                "definition": "A pebbly or sandy shore by the ocean or lake",
-                "example_sentence": "We spent the day relaxing at the BEACH."
-            }
-        ]
-        
-        hard_puzzles = [
-            {
-                "word": "FJORD",
-                "theme": "Nature",
-                "difficulty": "hard",
-                "hints": [
-                    "A geographical feature common in Scandinavia",
-                    "A narrow inlet of the sea between high cliffs",
-                    "Starts with F, has a J in the middle"
-                ],
-                "definition": "A long, narrow inlet with steep sides created by glacial erosion",
-                "example_sentence": "The boat sailed through the deep FJORD."
-            }
-        ]
-        
-        puzzles = easy_puzzles if difficulty == 'easy' else hard_puzzles
-        puzzle = puzzles[0]  # Use first fallback
-        
-        puzzle['ai_metadata'] = {
-            'model': 'fallback',
-            'generated_at': datetime.now().isoformat(),
-            'is_fallback': True
-        }
-        
-        return puzzle
-    
-    def generate_hint(self, puzzle_word, hint_level, existing_guesses=None):
+    def _parse_response(self, response_text: str) -> Dict:
         """
-        Generate a dynamic hint based on current game state
+        Parse JSON response from Gemini API.
+        Handles various response formats.
         
         Args:
-            puzzle_word: The answer word
-            hint_level: 1, 2, or 3
-            existing_guesses: List of guesses made so far
+            response_text (str): Raw response from API
+            
+        Returns:
+            Dict: Parsed puzzle data
+        """
+        try:
+            # Try to find JSON in response
+            # Remove markdown code blocks if present
+            cleaned = response_text.strip()
+            
+            # Remove ```json and ``` markers
+            if cleaned.startswith('```json'):
+                cleaned = cleaned[7:]
+            if cleaned.startswith('```'):
+                cleaned = cleaned[3:]
+            if cleaned.endswith('```'):
+                cleaned = cleaned[:-3]
+            
+            cleaned = cleaned.strip()
+            
+            # Find JSON object
+            json_match = re.search(r'\{[\s\S]*\}', cleaned)
+            if json_match:
+                json_str = json_match.group(0)
+                puzzle_data = json.loads(json_str)
+                
+                # Ensure word is uppercase
+                if 'word' in puzzle_data:
+                    puzzle_data['word'] = puzzle_data['word'].upper()
+                
+                return puzzle_data
+            else:
+                raise ValueError("No JSON object found in response")
+                
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON in response: {str(e)}")
+    
+    def _validate_wordle_puzzle(self, puzzle_data: Dict) -> None:
+        """
+        Validate puzzle data structure and content.
+        
+        Args:
+            puzzle_data (Dict): Puzzle to validate
+            
+        Raises:
+            ValueError: If puzzle is invalid
+        """
+        # Check required fields
+        required_fields = ['word', 'theme', 'hints']
+        for field in required_fields:
+            if field not in puzzle_data:
+                raise ValueError(f"Missing required field: {field}")
+        
+        # Validate word
+        word = puzzle_data['word']
+        if not isinstance(word, str):
+            raise ValueError("Word must be a string")
+        
+        if len(word) != 5:
+            raise ValueError(f"Word must be exactly 5 letters, got {len(word)}")
+        
+        if not word.isupper():
+            raise ValueError("Word must be uppercase")
+        
+        if not word.isalpha():
+            raise ValueError("Word must contain only letters")
+        
+        # Validate theme
+        if not isinstance(puzzle_data['theme'], str):
+            raise ValueError("Theme must be a string")
+        
+        if len(puzzle_data['theme']) < 3:
+            raise ValueError("Theme too short")
+        
+        # Validate hints
+        hints = puzzle_data['hints']
+        if not isinstance(hints, list):
+            raise ValueError("Hints must be a list")
+        
+        if len(hints) != 3:
+            raise ValueError(f"Must have exactly 3 hints, got {len(hints)}")
+        
+        for i, hint in enumerate(hints):
+            if not isinstance(hint, str):
+                raise ValueError(f"Hint {i+1} must be a string")
+            if len(hint) < 10:
+                raise ValueError(f"Hint {i+1} too short")
+    
+    def _get_fallback_puzzle(self, difficulty: str) -> Dict:
+        """
+        Return a fallback puzzle if generation fails.
+        
+        Args:
+            difficulty (str): 'easy' or 'hard'
+            
+        Returns:
+            Dict: Fallback puzzle data
+        """
+        if difficulty == 'easy':
+            return {
+                'word': 'CRANE',
+                'theme': 'Birds and Machinery',
+                'hints': [
+                    'A large bird often seen near water',
+                    'Also a machine used in construction',
+                    'Rhymes with "train" and starts with C'
+                ]
+            }
+        else:
+            return {
+                'word': 'FJORD',
+                'theme': 'Geography',
+                'hints': [
+                    'A narrow inlet of the sea between high cliffs',
+                    'Common in Norway and Iceland',
+                    'Starts with F and has unusual spelling'
+                ]
+            }
+    
+    def generate_hangman_puzzle(self, difficulty: str = 'easy') -> Dict:
+        """
+        Generate a Hangman puzzle (future implementation).
+        
+        Args:
+            difficulty (str): 'easy', 'medium', or 'hard'
+            
+        Returns:
+            Dict: Hangman puzzle data
+        """
+        # Placeholder for future implementation
+        raise NotImplementedError("Hangman puzzle generation coming soon!")
+    
+    def generate_crossword_puzzle(self, size: str = '5x5') -> Dict:
+        """
+        Generate a Crossword puzzle (future implementation).
+        
+        Args:
+            size (str): Grid size (e.g., '5x5', '7x7')
+            
+        Returns:
+            Dict: Crossword puzzle data
+        """
+        # Placeholder for future implementation
+        raise NotImplementedError("Crossword puzzle generation coming soon!")
+    
+    def test_connection(self) -> bool:
+        """
+        Test if Gemini API connection is working.
         
         Returns:
-            str: Generated hint
+            bool: True if connection successful
         """
-        
-        context = ""
-        if existing_guesses:
-            context = f"\nUser's guesses so far: {', '.join(existing_guesses)}"
-        
-        hint_instructions = {
-            1: "Give a broad, contextual clue about the word's meaning or category",
-            2: "Give a more specific clue, perhaps about word structure or usage",
-            3: "Give a very specific clue or reveal the position of one letter"
-        }
-        
-        prompt = f"""Generate a hint for a Wordle puzzle.
-
-Target word: {puzzle_word}
-Hint level: {hint_level} (progressively more specific)
-Instruction: {hint_instructions[hint_level]}
-{context}
-
-Return ONLY the hint text, nothing else. Make it helpful but not too easy.
-"""
-        
         try:
-            message = self.client.messages.create(
-                model="claude-3-5-sonnet-20241022",
-                max_tokens=150,
-                messages=[{"role": "user", "content": prompt}]
-            )
-            
-            hint = message.content[0].text.strip()
-            return hint
-            
+            response = self.model.generate_content("Say 'test' if you can read this.")
+            return bool(response and response.text)
         except Exception as e:
-            print(f"Error generating hint: {e}")
-            # Fallback hints
-            fallback_hints = [
-                f"This word is {len(puzzle_word)} letters long",
-                f"The word contains the letter '{puzzle_word[2]}'",
-                f"The first letter is '{puzzle_word[0]}'"
-            ]
-            return fallback_hints[hint_level - 1]
+            print(f"Connection test failed: {str(e)}")
+            return False
 
 
-# Singleton instance
-puzzle_generator = AIPuzzleGenerator()
+# Convenience function for easy importing
+def generate_daily_puzzle(game_type: str, difficulty: str) -> Dict:
+    """
+    Generate a daily puzzle for the specified game type.
+    
+    Args:
+        game_type (str): Type of game ('wordle', 'hangman', etc.)
+        difficulty (str): Difficulty level
+        
+    Returns:
+        Dict: Puzzle data
+    """
+    generator = AIPuzzleGenerator()
+    
+    if game_type == 'wordle':
+        return generator.generate_wordle_puzzle(difficulty)
+    elif game_type == 'hangman':
+        return generator.generate_hangman_puzzle(difficulty)
+    elif game_type == 'crossword':
+        return generator.generate_crossword_puzzle(difficulty)
+    else:
+        raise ValueError(f"Unknown game type: {game_type}")

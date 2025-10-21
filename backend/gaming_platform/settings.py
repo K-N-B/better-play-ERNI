@@ -12,8 +12,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
-ANTHROPIC_API_KEY = os.getenv('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')
-
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 USE_TZ = True
 TIME_ZONE = 'Asia/Manila'
 

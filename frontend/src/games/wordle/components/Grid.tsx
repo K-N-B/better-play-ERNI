@@ -1,7 +1,17 @@
+import React from "react";
 import "./Grid.css";
 
-const Grid = ({ guesses, currentGuess, currentRow, solution }) => {
-  const getCellStatus = (rowIndex, cellIndex) => {
+// Define types for the props
+interface GridProps {
+  guesses: string[];
+  currentGuess: string;
+  currentRow: number;
+  solution: string;
+}
+
+const Grid: React.FC<GridProps> = ({ guesses, currentGuess, currentRow, solution }) => {
+  // Function to determine the status of a cell (correct, present, absent)
+  const getCellStatus = (rowIndex: number, cellIndex: number): string => {
     const guess = guesses[rowIndex];
     if (!guess || guess.length < cellIndex + 1) return "";
 

@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import GameIntro from "../../components/GameIntro";
 import Grid from "./components/Grid";
 import Keyboard from "./components/Keyboard";
+import { puzzleApi } from "../../services/api";
 
 const WORD_LENGTH = 5;
 const MAX_GUESSES = 6;
@@ -20,7 +21,7 @@ export default function Wordle() {
           description="Test your vocabulary and logic in our ERNI Wordle challenge!"
           howToPlay="Guess the 5-letter word. Green letters are correct and in the right place, yellow are correct but misplaced. You have 6 tries!"
           pointsInfo='Earn <span class="font-bold">100pts</span> for finishing on Easy, <span class="font-bold">200pts</span> on Hard.'
-          hintInfo='Using a hint deducts <span class="font-bold">20pts</span> on Easy, <span class="font-bold">40pts</span> on Hard.'
+          hintInfo='Using a hint deducts <span class="font-bold">20pts</span> on Easy, <span class="font-bold">40pts</span> on Hard. Complete early for bonus points!'
           onStart={startGame}
           onDifficultyChange={setDifficulty}
           color="bg-emerald-500"
@@ -33,14 +34,18 @@ export default function Wordle() {
   );
 }
 
-function WordleGame({ difficulty }) {
+interface WordleGameProps {
+  difficulty: string;
+}
+
+function WordleGame({ difficulty }: WordleGameProps) {
   // Puzzle & Attempt State
-  const [puzzleData, setPuzzleData] = useState(null);
-  const [attemptId, setAttemptId] = useState(null);
+  const [puzzleData, setPuzzleData] = useState<any>(null);
+  const [attemptId, setAttemptId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Game State
-  const [guesses, setGuesses] = useState(Array(MAX_GUESSES).fill(""));
+  const [guesses, setGuesses] = useState<string[]>(Array(MAX_GUESSES).fill(""));
   const [currentGuess, setCurrentGuess] = useState("");
   const [currentRow, setCurrentRow] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
@@ -48,8 +53,8 @@ function WordleGame({ difficulty }) {
 
   // Scoring State
   const [points, setPoints] = useState(difficulty === "hard" ? 200 : 100);
-  const [hintsUsed, setHintsUsed] = useState([]);
-  const [hintText, setHintText] = useState("");
+  const [hintsUsed, setHintsUsed] = useState<number[]>([]);
+  const [hintText, setHintText] = useState<string>("");
   const [showHintModal, setShowHintModal] = useState(false);
 
   // Game Result State
@@ -81,10 +86,7 @@ function WordleGame({ difficulty }) {
   const fetchPuzzle = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8000/api/puzzles/daily/wordle/?difficulty=${difficulty}`, {
-        credentials: 'include'
-      });
-      const data = await response.json();
+      const data = await puzzleApi.getDailyPuzzle('wordle', difficulty);
       setPuzzleData(data);
 
       // Check if already attempted
@@ -96,15 +98,11 @@ function WordleGame({ difficulty }) {
         if (data.is_completed) {
           setIsGameOver(true);
           setAnswer(data.answer);
-          setMessage(data.is_successful ? "Already completed today!" : "Already attempted today!");
+          setMessage(data.is_successful ? "Already completed!" : "Already attempted!");
         }
       } else {
         // Start new attempt
-        const attemptResponse = await fetch(`http://localhost:8000/api/puzzles/${data.puzzle_id}/start/`, {
-          method: 'POST',
-          credentials: 'include'
-        });
-        const attemptData = await attemptResponse.json();
+        const attemptData = await puzzleApi.startPuzzle(data.puzzle_id);
         setAttemptId(attemptData.attempt_id);
       }
 
@@ -117,7 +115,7 @@ function WordleGame({ difficulty }) {
   };
 
   const handleKeyPress = useCallback(
-    async (key) => {
+    async (key: string) => {
       if (isGameOver || !attemptId) return;
 
       setActiveKey(key);
@@ -134,15 +132,9 @@ function WordleGame({ difficulty }) {
           setMessage("Checking...");
           
           // Submit guess to backend
-          const response = await fetch(`http://localhost:8000/api/puzzles/attempts/${attemptId}/guess/`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ guess: currentGuess })
-          });
-          const result = await response.json();
+          const result = await puzzleApi.submitGuess(attemptId, currentGuess);
 
-          // Update guesses
+          // Update guesses with feedback
           const newGuesses = [...guesses];
           newGuesses[currentRow] = currentGuess;
           setGuesses(newGuesses);
@@ -186,7 +178,7 @@ function WordleGame({ difficulty }) {
 
   // Keyboard event listener
   useEffect(() => {
-    const handleKeyDown = (event) => {
+    const handleKeyDown = (event: KeyboardEvent) => {
       const key = event.key.toUpperCase();
       
       if (key === "ENTER") {
@@ -209,11 +201,7 @@ function WordleGame({ difficulty }) {
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/api/puzzles/attempts/${attemptId}/hint/`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-      const result = await response.json();
+      const result = await puzzleApi.requestHint(attemptId);
       
       setHintText(result.hint);
       setHintsUsed([...hintsUsed, result.hint_number]);
@@ -230,7 +218,7 @@ function WordleGame({ difficulty }) {
     }
   };
 
-  const formatTime = (seconds) => {
+  const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -281,14 +269,12 @@ function WordleGame({ difficulty }) {
         </div>
 
         {/* Keyboard */}
-        {!isGameOver && (
-          <Keyboard
-            onKeyPress={handleKeyPress}
-            guesses={guesses.filter(g => g !== "")}
-            solution={answer || ""}
-            activeKey={activeKey}
-          />
-        )}
+        <Keyboard
+          onKeyPress={handleKeyPress}
+          guesses={guesses.filter(g => g !== "")}
+          solution={answer || ""}
+          activeKey={activeKey}
+        />
 
         {/* Game Over Options */}
         {isGameOver && (
