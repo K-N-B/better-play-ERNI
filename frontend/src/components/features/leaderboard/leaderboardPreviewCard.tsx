@@ -18,7 +18,7 @@ export const LeaderboardPreviewCard = () => {
     const previewData = (data as IndividualScoreEntry[] | null)?.slice(0, PREVIEW_LIMIT) ?? [];
 
     return (
-        <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 flex flex-col h-full"> {/* Added flex flex-col h-full */}
+        <div className="bg-white p-6 rounded-4xl shadow-md border border-gray-100 flex flex-col h-full"> {/* Added flex flex-col h-full */}
              <div className="flex justify-between items-center flex-shrink-0"> {/* Prevent header shrinking */}
                 <h3 className="text-xl font-semibold mb-3 flex items-center space-x-3">
                     <Trophy size={22} strokeWidth={2.5}/>

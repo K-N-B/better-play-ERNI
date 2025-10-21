@@ -61,7 +61,7 @@ export const MOCK_PUZZLES: DailyPuzzleResponse = {
 
 export const MOCK_LEADERBOARD_INDIVIDUAL_WEEKLY: IndividualScoreEntry[] = [
   { user: { id: 1, username: 'gavin_cii' }, score: 1250, week_start_date: '2025-10-19' },
-  { user: { id: 3, username: 'sarah_b' }, score: 1100, week_start_date: '2025-10-19' },
+  { user: { id: 3, username: 'jerome_B' }, score: 1100, week_start_date: '2025-10-19' },
   { user: { id: 4, username: 'mike_t' }, score: 980, week_start_date: '2025-10-19' },
 ];
 
@@ -74,7 +74,7 @@ export const MOCK_LEADERBOARD_DEPARTMENT_WEEKLY: DepartmentScoreEntry[] = [ // R
 
 export const MOCK_ONLINE_USERS: OnlineUser[] = [
     { id: 1, username: 'gavin_cii' }, // Example user
-    { id: 3, username: 'sarah_b' }, // Example user
+    { id: 3, username: 'jerome_B' }, // Example user
     { id: 5, username: 'alex_m'},  // Example user
 ];
 
@@ -98,7 +98,7 @@ export const MOCK_ACTIVITY_HUB: ActivityHubResponse = {
     },
     {
       id: 103,
-      user: { id: 3, username: 'sarah_b' },
+      user: { id: 3, username: 'jerome_B' },
       puzzle_name: 'ERNIgram',
       difficulty: 'easy',
       time_in_minutes: '2:15',
@@ -108,7 +108,7 @@ export const MOCK_ACTIVITY_HUB: ActivityHubResponse = {
   ],
   online_users: [
     { id: 1, username: 'gavin_cii' },
-    { id: 3, username: 'sarah_b' },
+    { id: 3, username: 'jerome_B' },
     { id: 2, username: 'Dayniel Caadiang' },
   ],
 };
