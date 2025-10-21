@@ -80,7 +80,7 @@
 //             </ul>
 //           </div>
 
-//           <h2 className="text-xl font-bold text-center">&nbsp;'s Leaderboards</h2>
+//           <h2 className="text-xl font-bold text-center">&nbsp;'s Leaderboards</div>
           
 //         </span>
 //         <div className="pt-4 ">
@@ -230,7 +230,7 @@
 //       </div>
 //       <div className="flex flex-col bg-slate-50 rounded-3xl p-6 shadow-md overflow-hidden">
 //         <div className="flex justify-start items-center">
-//           <h2 className="text-xl font-bold text-center py-2.5 ">All-time Leaderboards</h2>
+//           <h2 className="text-xl font-bold text-center py-2.5 ">All-time Leaderboards</div>
           
 //         </div>
 //         <div className="pt-4 ">

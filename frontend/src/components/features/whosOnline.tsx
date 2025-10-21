@@ -43,16 +43,16 @@ export const WhosOnline = () => {
     }, []);
 
     return (
-        <div className="bg-white p-4 rounded-lg shadow h-full">
-            <h3 className="text-lg font-semibold mb-3 text-gray-700 flex items-center space-x-2">
-                <Users size={18}/>
+        <div className=" h-full">
+            <h3 className="text-2xl font-semibold mb-3 flex items-center space-x-2">
+                <Users size={22} strokeWidth={2.5}/>
                 <span>Who's Online ({onlineUsers.length})</span>
             </h3>
              {loading ? <div className="text-sm text-gray-500">Loading...</div> : (
                 <ul className="space-y-2">
                     {onlineUsers.length > 0 ? onlineUsers.map(user => (
-                        <li key={user.id} className="flex items-center space-x-2 text-sm text-gray-800">
-                           <Wifi size={14} className="text-green-500"/>
+                        <li key={user.id} className="flex items-center space-x-2 text-base text-gray-800">
+                           <Wifi size={18} className="text-green-500"/>
                            <span>{user.username}</span>
                         </li>
                     )) : <p className="text-sm text-gray-500">No one else is online right now.</p> }

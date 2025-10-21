@@ -1,7 +1,7 @@
-import type { LeaderboardData, LeaderboardType } from '../../types/leaderboard';
+import type { LeaderboardData, LeaderboardType } from '../../../types/leaderboard';
 import { LeaderboardPodium } from './leaderboardPodium';
 import { LeaderboardList } from './leaderboardList';
-import { LoadingSpinner } from '../ui/loadingSpinner';
+import { LoadingSpinner } from '../../ui/loadingSpinner';
 
 interface LeaderboardCardProps {
     title: string; // e.g., "Weekly Individual", "All-Time Department"
@@ -20,7 +20,7 @@ export const LeaderboardCard: React.FC<LeaderboardCardProps> = ({ title, data, t
         <div className="flex flex-col bg-slate-50 rounded-3xl p-6 shadow-md overflow-hidden h-[calc(100vh-12rem)]"> {/* Adjust height as needed */}
         {/* Header */}
         <div className="flex justify-start items-center mb-4">
-            <h2 className="text-xl font-bold text-primary py-1">{title}</h2>
+            <div className="text-xl font-bold text-primary py-1">{title}</div>
         </div>
 
         {/* Content */}

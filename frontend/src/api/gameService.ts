@@ -6,6 +6,8 @@ import type {
   PuzzleAttemptData,
   PuzzleAttemptResponse,
 } from '../types/game';
+import { MOCK_TODAY_SUBMISSIONS } from '../data/_mockData';
+import type { Submission } from '../types/game';
 
 // --- THIS IS THE FIX ---
 // Use an object to store separate save slots for each game type
@@ -102,3 +104,14 @@ export const getDailyPuzzles = (): Promise<DailyPuzzleResponse> => {
 
 // Assuming MAX_ATTEMPTS is defined somewhere, if not add:
 const MAX_ATTEMPTS = 6;
+
+export const getTodaySubmissions = (): Promise<Submission[]> => {
+    if (MOCK_MODE) {
+        console.log("Mock: Fetching today's submissions...");
+        // In a real app, this would filter by user and date on the backend
+        // For mock, just return the predefined list for the mock user
+        return mockApiCall(MOCK_TODAY_SUBMISSIONS);
+    }
+    // Real call: return api.get('/api/submissions/today/'); // Example real endpoint
+    return new Promise(() => {});
+};

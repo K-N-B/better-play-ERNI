@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useApi } from "../hooks/useApi";
 import { getLeaderboard } from "../api/leaderboardService";
-import { LeaderboardCard } from "../components/features/leaderboardCard";
+import { LeaderboardCard } from "../components/features/leaderboard/leaderboardCard";
 import { TabButton } from "../components/ui/tabButton"; // Assuming you have this
 import type { LeaderboardPeriod, LeaderboardType } from "../types/leaderboard";
 import clsx from "clsx";

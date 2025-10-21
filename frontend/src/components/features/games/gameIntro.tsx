@@ -1,5 +1,5 @@
-import DifficultyToggle from "../ui/difficultyToggle";
-import type { Difficulty } from '../../pages/gamePage';
+import DifficultyToggle from "../../ui/difficultyToggle";
+import type { Difficulty } from '../../../pages/gamePage';
 
 interface PuzzleIntroProps {
   title: string; // e.g. "ERNIgram"

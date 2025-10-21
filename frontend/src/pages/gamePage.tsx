@@ -4,7 +4,7 @@ import { useParams, Navigate } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
 import { getDailyPuzzles } from '../api/gameService';
 import { LoadingSpinner } from '../components/ui/loadingSpinner';
-import GameIntro from '../components/features/gameIntro';
+import GameIntro from '../components/features/games/gameIntro';
 
 // Import your game components (we'll create WordleGame next)
 import { WordleGame } from '../components/gameComponents/wordle/wordleGame';
@@ -124,7 +124,7 @@ export const GamePage = () => {
   // If a difficulty is already locked for this game, go straight to the game
   if (lockedDifficulty) {
     return (
-      <div className={`h-full w-full rounded-3xl p-12 ${introData.bgColor}`}>
+      <div className={`container mx-auto rounded-3xl p-12 ${introData.bgColor}`}>
         {GameComponent && (
           <GameComponent
             puzzle={puzzleData}
@@ -136,7 +136,7 @@ export const GamePage = () => {
   } else {
     // Otherwise, show the Intro screen
     return (
-      <div className={`h-full w-full rounded-3xl p-12 ${introData.bgColor}`}>
+      <div className={`container mx-auto rounded-3xl p-12 ${introData.bgColor}`}>
         <GameIntro
           title={introData.title}
           description={introData.description}

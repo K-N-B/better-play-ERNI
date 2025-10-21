@@ -31,10 +31,11 @@ export const GameCard: React.FC<GameCardProps> = ({
       style={{ willChange: 'transform, box-shadow' }}
     >
       <article className="flex flex-col items-center justify-center text-center text-white">
-        {/* Render the Lucide icon component */}
-        <IconComponent className="size-16 sm:size-20 mb-4" strokeWidth={1.5} /> {/* Adjust size/stroke */}
-
-        <div className="text-2xl sm:text-3xl font-extrabold">{title}</div>
+        <div className='flex flex-row items-center justify-center gap-2 mb-2'>
+          <IconComponent className="size-10" strokeWidth={1.5} /> {/* Adjust size/stroke */}
+          <div className="text-2xl sm:text-3xl font-semibold">{title}</div>
+        </div>
+        
         <div className="text-sm sm:text-base mt-2">{subtitle}</div>
       </article>
     </Link>

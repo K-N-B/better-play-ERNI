@@ -33,7 +33,7 @@ export default function AuthCallback() {
         <div className="mb-6">
           <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">{status}</h2>
+        <div className="text-2xl font-bold text-gray-900 mb-2">{status}</div>
         <p className="text-gray-600">Please wait...</p>
       </div>
     </div>
