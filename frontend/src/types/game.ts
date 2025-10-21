@@ -40,6 +40,17 @@ export interface SubmissionData {
     tries: number;
 }
 
+export interface Submission {
+  id: number;           // Unique ID for the submission
+  user_id: number;      // ID of the user who submitted
+  puzzle_type: 'wordle' | 'sudoku' | 'ernigram'; // Type of puzzle
+  puzzle_id: number;      // ID of the specific puzzle instance
+  points_awarded: number; // Score calculated by the backend
+  time_taken_ms: number; // Time spent on the puzzle
+  tries: number;          // Number of attempts/guesses
+  created_at: string;     // ISO 8601 timestamp string when submitted
+}
+
 export type KeyStatus = 'correct' | 'present' | 'absent' | 'default';
 
 export interface WordleProgress {

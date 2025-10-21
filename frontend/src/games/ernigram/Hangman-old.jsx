@@ -332,7 +332,7 @@ const Hangman = () => {
 
       {gameStatus === 'won' && (
         <div className="game-message won">
-          <h2>🎉 You Won!</h2>
+          <div>🎉 You Won!</div>
           <p>The word was: {word}</p>
           <p className="final-score">Final Score: {score} points</p>
           <p className="daily-message">Come back tomorrow for a new puzzle!</p>
@@ -341,7 +341,7 @@ const Hangman = () => {
 
       {gameStatus === 'lost' && (
         <div className="game-message lost">
-          <h2>😢 Game Over!</h2>
+          <div>😢 Game Over!</div>
           <p>The word was: {word}</p>
           <p className="final-score">No points awarded</p>
           <p className="daily-message">Try again tomorrow!</p>
@@ -350,7 +350,7 @@ const Hangman = () => {
 
       {gameStatus === 'solved' && (
         <div className="game-message solved">
-          <h2>Better luck next time!</h2>
+          <div>Better luck next time!</div>
           <p>The word was: {word}</p>
           <p className="final-score">No points awarded</p>
           <p className="daily-message">Try again tomorrow!</p>

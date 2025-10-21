@@ -2,6 +2,7 @@ import type { UserProfile, Department } from '../types/user';
 import type { DailyPuzzleResponse } from '../types/game';
 import type { IndividualScoreEntry, DepartmentScoreEntry } from '../types/leaderboard'; // Updated type name
 import type { ActivityHubResponse, OnlineUser } from '../types/activity';
+import type { Submission } from '../types/game';
 
 // Mock Departments
 export const MOCK_DEPARTMENTS: Department[] = [
@@ -79,10 +80,60 @@ export const MOCK_ONLINE_USERS: OnlineUser[] = [
 
 export const MOCK_ACTIVITY_HUB: ActivityHubResponse = {
   recent_activity: [
-    { id: 105, user: { id: 3, username: 'sarah_b'}, message: 'solved the Wordle!', created_at: new Date(Date.now() - 60000 * 2).toISOString() }, // 2 mins ago
-    { id: 104, user: { id: 1, username: 'gavin_cii'}, message: 'completed the Sudoku!', created_at: new Date(Date.now() - 60000 * 5).toISOString() }, // 5 mins ago
-    { id: 103, user: { id: 5, username: 'alex_m'}, message: 'set a new high score in Wordle!', created_at: new Date(Date.now() - 60000 * 10).toISOString() }, // 10 mins ago
-    { id: 102, user: { id: 1, username: 'gavin_cii'}, message: 'solved the ERNIgram!', created_at: new Date(Date.now() - 60000 * 15).toISOString() }, // 15 mins ago
+    {
+      id: 105,
+      user: { id: 2, username: 'Dayniel Caadiang' },
+      puzzle_name: 'Sudoku',
+      difficulty: 'easy',
+      time_in_minutes: '4:98',
+      created_at: new Date(Date.now() - 60000 * 2).toISOString(), // 2 mins ago
+    },
+    {
+      id: 104,
+      user: { id: 1, username: 'gavin_cii' },
+      puzzle_name: 'Wordle',
+      difficulty: 'hard',
+      time_in_minutes: '1:32',
+      created_at: new Date(Date.now() - 60000 * 5).toISOString(), // 5 mins ago
+    },
+    {
+      id: 103,
+      user: { id: 3, username: 'sarah_b' },
+      puzzle_name: 'ERNIgram',
+      difficulty: 'easy',
+      time_in_minutes: '2:15',
+      created_at: new Date(Date.now() - 60000 * 10).toISOString(), // 10 mins ago
+    },
+    // ... add more as needed
   ],
-  online_users: MOCK_ONLINE_USERS,
+  online_users: [
+    { id: 1, username: 'gavin_cii' },
+    { id: 3, username: 'sarah_b' },
+    { id: 2, username: 'Dayniel Caadiang' },
+  ],
 };
+
+export const MOCK_TODAY_SUBMISSIONS: Submission[] = [
+  // Example: User 1 submitted Wordle
+  {
+    id: 501,
+    user_id: 1, // Matches MOCK_USER_MAIN
+    puzzle_type: 'wordle',
+    puzzle_id: 101, // Matches MOCK_PUZZLES.wordle.id
+    points_awarded: 500,
+    time_taken_ms: 65000,
+    tries: 2,
+    created_at: new Date().toISOString(), // Simulates submission today
+  },
+  // Add more submissions as needed for testing
+  // {
+  //   id: 502,
+  //   user_id: 1,
+  //   puzzle_type: 'sudoku',
+  //   puzzle_id: 201,
+  //   points_awarded: 850,
+  //   time_taken_ms: 300000,
+  //   tries: 1,
+  //   created_at: new Date().toISOString(),
+  // },
+];

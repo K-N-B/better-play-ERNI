@@ -60,7 +60,7 @@ export default function Navbar() {
                       key={item.path}
                       to={item.path}
                       className={`relative inline-flex items-center justify-center h-10 px-5
-                                  rounded-lg font-semibold text-sm tracking-wide 
+                                  rounded-lg font-semibold text-lg tracking-wide 
                                   text-primary transition-colors
                                   ${item.hoverClasses}`} // Add hover classes
                     >

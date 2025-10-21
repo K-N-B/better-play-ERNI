@@ -3,18 +3,21 @@ import type { UserProfile } from './user'; // Make sure UserProfile is defined i
 // Represents a single event in the recent activity feed
 export interface ActivityEvent {
   id: number;
-  user: Pick<UserProfile, 'id' | 'username'>; // Only need basic user info
-  message: string; // e.g., "solved the Wordle!"
-  created_at: string; // ISO 8601 date string (e.g., "2025-10-20T16:30:00Z")
+  user: Pick<UserProfile, 'id' | 'username'>;
+  puzzle_name: 'Sudoku' | 'Wordle' | 'ERNIgram'; // The name of the puzzle
+  difficulty: 'easy' | 'hard';
+  time_in_minutes: string; // Formatted time string, e.g., "4:98"
+  created_at: string; // ISO 8601 date string
+  
+  // 'message' is no longer needed as we will construct it dynamically
+  // message: string;
 }
 
-// Represents a user currently online
+// ... (OnlineUser and ActivityHubResponse remain the same for now)
 export interface OnlineUser {
   id: number;
   username: string;
 }
-
-// The combined response expected from the /api/activity-hub/ endpoint
 export interface ActivityHubResponse {
   recent_activity: ActivityEvent[];
   online_users: OnlineUser[];

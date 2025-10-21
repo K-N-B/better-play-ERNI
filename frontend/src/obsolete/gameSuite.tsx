@@ -1,11 +1,11 @@
 // Renders the three cards on your homepage ("Play Wordle," "Play Sudoku," "Play ERNIgram") that link to the GamePage.
 
 import { Link } from 'react-router-dom';
-import { useApi } from '../../hooks/useApi';
-import { getDailyPuzzles } from '../../api/gameService';
-import { LoadingSpinner } from '../ui/loadingSpinner';
-import { GameCard } from './gameCard';
-import { gameCardData } from '../../data/gameCardData'; // Example icons
+import { useApi } from '../hooks/useApi';
+import { getDailyPuzzles } from '../api/gameService';
+import { LoadingSpinner } from '../components/ui/loadingSpinner';
+import { GameCard } from '../components/features/games/gameCard';
+import { gameCardData } from '../data/gameCardData'; // Example icons
 
 export const GameSuite = () => {
   // Fetch puzzle data to potentially show puzzle IDs or status later
@@ -27,7 +27,7 @@ export const GameSuite = () => {
   // --- Render the Game Cards ---
   return (
     <div className="p-8 bg-gradient-to-b from-gray-50 to-gray-100 rounded-lg shadow-inner border border-gray-200">
-      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Today's Puzzles</h2>
+      <div className="text-2xl font-bold mb-6 text-center text-gray-800">Today's Puzzles</div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
         {/* Map over the imported data */}
         {gameCardData.map((game) => (

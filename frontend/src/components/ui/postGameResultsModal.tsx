@@ -20,7 +20,7 @@ export const PostGameResultsModal = ({ score, onClose }: PostGameResultsModalPro
           <X size={20} />
         </button>
         
-        <h2 className="text-3xl font-bold mb-4">You did it!</h2>
+        <div className="text-3xl font-bold mb-4">You did it!</div>
         
         <p className="text-lg text-gray-700 mb-2">Your Score:</p>
         <p className="text-5xl font-bold text-blue-600 mb-6">{score}</p>

@@ -1,4 +1,4 @@
-import type { IndividualScoreEntry, DepartmentScoreEntry, LeaderboardType } from '../../types/leaderboard';
+import type { IndividualScoreEntry, DepartmentScoreEntry, LeaderboardType } from '../../../types/leaderboard';
 
 // Define a union type for the entries
 type LeaderboardEntry = IndividualScoreEntry | DepartmentScoreEntry;

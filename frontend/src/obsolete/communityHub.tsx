@@ -1,8 +1,8 @@
 // A parent component for the homepage that renders the ActivityFeed and WhosOnline components in a layout (e.g., side-by-side).
 
 import React from 'react';
-import { ActivityFeed } from './activityFeed';
-import { WhosOnline } from './whosOnline';
+import { ActivityFeed } from '../components/features/activityFeed/activityFeed';
+import { WhosOnline } from '../components/features/whosOnline';
 
 export const CommunityHub = () => {
     return (

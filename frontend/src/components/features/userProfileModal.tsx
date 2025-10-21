@@ -40,7 +40,7 @@ export default function UserProfileModal({ isOpen, onClose, user }: UserProfileM
               {user?.username.charAt(0).toUpperCase() || '?'}
             </div>
             <div>
-              <h2 className="text-xl font-bold">{user?.username}</h2>
+              <div className="text-xl font-bold">{user?.username}</div>
               <p className="text-sm text-gray-500">{user?.email}</p>
               <p className="text-sm text-gray-500">Team: {user?.department?.name || 'N/A'}</p>
             </div>
