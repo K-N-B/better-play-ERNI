@@ -32,7 +32,7 @@ export const GameCard: React.FC<GameCardProps> = ({
     >
       <article className="flex flex-col items-center justify-center text-center text-white">
         <div className='flex flex-row items-center justify-center gap-2 mb-2'>
-          <IconComponent className="size-10" strokeWidth={1.5} /> {/* Adjust size/stroke */}
+          <IconComponent className="size-10" strokeWidth={2} /> {/* Adjust size/stroke */}
           <div className="text-2xl sm:text-3xl font-semibold">{title}</div>
         </div>
         
