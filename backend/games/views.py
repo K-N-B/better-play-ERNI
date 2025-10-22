@@ -6,6 +6,7 @@ from rest_framework import status
 from django.utils import timezone
 from django.db.models import Sum, Count, Q
 from datetime import datetime, timedelta
+from rest_framework.permissions import IsAdminUser
 
 from .models import (
     DailyPuzzle, UserPuzzleAttempt, UserDailyProgress, 
@@ -295,6 +296,7 @@ def get_leaderboard(request, period):
     # Get top 100 for the period
     leaderboard_entries = Leaderboard.objects.filter(
         period=period
+        
     ).select_related('user').order_by('rank')[:100]
     
     # Find current user's rank

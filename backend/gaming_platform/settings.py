@@ -2,9 +2,16 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env file
+load_dotenv(os.path.join(BASE_DIR, '.env'))
+
+# Now you can access them
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'your-secret-key')
 
@@ -23,7 +30,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_apscheduler',
     'authentication',
-    'games',
+    'games.apps.GamesConfig',
 ]
 
 MIDDLEWARE = [
@@ -100,6 +107,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
+        
     ],
 }
 
