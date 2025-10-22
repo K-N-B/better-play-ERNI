@@ -53,6 +53,7 @@ export const getDepartments = (): Promise<Department[]> => {
   if (MOCK_MODE) {
     return mockApiCall(MOCK_DEPARTMENTS);
   }
+  
   // Real call will go here
   return new Promise(() => {});
 };

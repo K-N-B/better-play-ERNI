@@ -1,32 +1,22 @@
-// Global state for your user. This is a critical file.
-// What you need to do:
-// Use the useMsal() hook to get the MSAL account info (like email).
-// Create a state for your backend user profile (userProfile: UserProfile | null).
-// When the user logs in (or on app load), call authService.getUserProfile().
-// Store this userProfile in the context.
-// Provide the MSAL user, your userProfile, and a refetchProfile() function to the entire app.
-// Create a useAuth() hook to easily access this context.
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { UserProfile } from '../types/user';
-import { checkAuth, logoutUser, completeProfile } from '../api/authService';
+import { checkAuth, logoutUser } from '../api/authService';
 import { LoadingSpinner } from '../components/ui/loadingSpinner';
 
 interface AuthContextType {
   user: UserProfile | null;
   isLoading: boolean;
   logout: () => void;
-  refreshProfile: (departmentId: number) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
-  // This is now the ONLY loading state we need
   const [isLoading, setIsLoading] = useState(true);
 
-  // This runs ONCE when the app loads
+  // Validate session on app load
   useEffect(() => {
     const validateSession = async () => {
       try {
@@ -43,32 +33,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
     validateSession();
-  }, []); // Empty array = run once on mount
+  }, []);
 
   // Logout function
   const logout = async () => {
-    setIsLoading(true); // Show a loading state
+    setIsLoading(true);
     try {
-      await logoutUser(); // Call the API to destroy the cookie
+      await logoutUser();
     } catch (error) {
       console.error("Logout failed:", error);
     } finally {
-      setUser(null); // Set the user to null
+      setUser(null);
       setIsLoading(false);
-    }
-    // No more window.location.href!
-    // ProtectedRoute will now automatically redirect to /login.
-  };
-  
-  // This is for the FirstTimeSetupModal
-  const refreshProfile = async (departmentId: number) => {
-    try {
-      // Call the API to update the backend
-      const updatedUser = await completeProfile(departmentId);
-      // Update the user state in React
-      setUser(updatedUser);
-    } catch (err) {
-      console.error("Failed to update profile", err);
     }
   };
 
@@ -77,15 +53,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return <LoadingSpinner fullPage={true} />;
   }
 
-  // Pass down the real user data and functions
   return (
-    <AuthContext.Provider value={{ user, isLoading, logout, refreshProfile }}>
+    <AuthContext.Provider value={{ user, isLoading, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// The hook remains the same
+// Custom hook
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
@@ -93,5 +68,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-
