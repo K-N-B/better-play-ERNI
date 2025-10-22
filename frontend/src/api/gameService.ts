@@ -63,7 +63,7 @@ export const saveProgress = (data: PuzzleAttemptData): Promise<PuzzleAttemptResp
 
 
 // Submits a completed puzzle and clears the *correct* slot
-export const submitPuzzle = (data: SubmissionData): Promise<{ score: number }> => {
+export const submitPuzzle = (data: SubmissionData): Promise<{ score: number, submissionId: number | null }> => {
   if (MOCK_MODE) {
     // console.log(`%c[submitPuzzle] Submitting ${data.puzzle_type}...`, 'color: red', data);
 
@@ -88,7 +88,10 @@ export const submitPuzzle = (data: SubmissionData): Promise<{ score: number }> =
         score = Math.max(50, 1000 - Math.floor(data.time_taken_ms / 1000));
     }
 
-    return mockApiCall({ score: score });
+    const mockSubmissionId = Math.floor(Math.random() * 1000) + 500;
+    console.log(`%c[submitPuzzle] Mock submission ID generated: ${mockSubmissionId}`, 'color: green');
+    // Ensure the returned object matches the Promise type
+    return mockApiCall({ score: score, submissionId: mockSubmissionId });
   }
   return new Promise(() => {});
 };

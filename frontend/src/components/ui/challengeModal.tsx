@@ -1,1 +1,0 @@
-// A modal for challenging a colleague. It has a search input that calls challengeService.searchUsers() and a "Send" button that calls challengeService.sendChallenge().

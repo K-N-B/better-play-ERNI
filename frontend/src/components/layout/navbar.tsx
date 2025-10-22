@@ -6,6 +6,7 @@ import PrimaryButton from '../ui/primaryButton';
 import UserProfileModal from '../features/userProfileModal';
 import { useAuth } from '../../hooks/authContext';
 import { navItems } from '../../data/navItems'; // <-- IMPORT YOUR DATA
+import { NotificationsBell } from '../features/notificationBell';
 
 export default function Navbar() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -73,6 +74,11 @@ export default function Navbar() {
             })}
           </nav>
 
+          <div className="flex items-center space-x-3">
+             <NotificationsBell /> {/* <-- Place the bell here */}
+             {/* ... (Profile button and modal) ... */}
+          </div>
+          
           {/* Right: Profile button */}
           <div className="flex items-center">
             {authLoading ? (
