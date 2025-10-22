@@ -1,7 +1,10 @@
 # Python cache
 __pycache__/
 *.py[cod]
-*$py.class
+*.pyc
+*.pyo
+*.pyd
+*.pdb
 
 # Virtual environments
 venv/

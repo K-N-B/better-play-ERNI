@@ -184,6 +184,54 @@ class UserDailyProgress(models.Model):
             
             return True
         return False
+    
+    #MOCK METHOD FOR TESTING
+    @classmethod
+    def generate_mock_points_for_player(cls, username, points=100, puzzles_completed=3, test_date=None):
+        """
+        Generate mock points for a specific player for testing leaderboard
+        
+        Args:
+            username: Player's username
+            points: Total points to award (default: 100)
+            puzzles_completed: Number of puzzles completed (default: 3)
+            test_date: Date to create progress for (default: today)
+        
+        Returns:
+            UserDailyProgress object
+        """
+        from django.contrib.auth import get_user_model
+        from django.utils import timezone
+        
+        User = get_user_model()
+        
+        if test_date is None:
+            test_date = timezone.now().date()
+        
+        # Get the user
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            raise ValueError(f"User '{username}' does not exist")
+        
+        # Create or update daily progress
+        progress, created = UserDailyProgress.objects.update_or_create(
+            user=user,
+            date=test_date,
+            defaults={
+                'puzzles_completed': puzzles_completed,
+                'total_daily_score': points,
+                'is_complete': puzzles_completed >= 3,
+                'daily_completion_bonus': 20 if puzzles_completed >= 3 else 0
+            }
+        )
+        
+        # Update user's total points if this is new progress
+        if created:
+            user.total_points = (user.total_points or 0) + points
+            user.save()
+        
+        return progress
 
 
 class UserStreak(models.Model):
@@ -300,59 +348,70 @@ class Leaderboard(models.Model):
     
     @classmethod
     def calculate_leaderboard(cls, period='daily'):
-        """Calculate and update leaderboard for given period"""
-        from django.db.models import Sum, Count
-        
-        today = timezone.now().date()
-        
-        # Determine date range based on period
+        from django.db.models import Sum
+        from datetime import timedelta, date, time
+        from django.utils import timezone
+
+        today = timezone.localtime().date()
+
+        # Determine period boundaries
         if period == 'daily':
             start_date = today
             end_date = today
         elif period == 'weekly':
-            # Current week (Monday to Sunday)
-            start_date = today - timedelta(days=today.weekday())
+            # Sunday to Saturday
+            start_date = today - timedelta(days=(today.weekday() + 1) % 7)
             end_date = start_date + timedelta(days=6)
         elif period == 'monthly':
-            # Current month
             start_date = today.replace(day=1)
-            # Last day of month
             next_month = today.replace(day=28) + timedelta(days=4)
             end_date = next_month - timedelta(days=next_month.day)
         else:  # all_time
             start_date = date(2000, 1, 1)
             end_date = today
-        
-        # Query user scores for period
-        if period == 'all_time':
-            # Use User.total_points for all-time
-            user_scores = User.objects.filter(
-                is_active=True
-            ).values('id', 'username', 'total_points').order_by('-total_points')
-        else:
-            # Aggregate from daily progress
-            user_scores = UserDailyProgress.objects.filter(
-                date__range=[start_date, end_date]
-            ).values('user').annotate(
-                total_points=Sum('total_daily_score'),
-                puzzles_completed=Sum('puzzles_completed')
-            ).order_by('-total_points')
-        
-        # Delete old entries for this period
+
+        # Clean up old leaderboard entries for that period
         cls.objects.filter(period=period, period_start=start_date).delete()
-        
-        # Create new leaderboard entries
+
+        # Build leaderboard data
+        if period == 'all_time':
+            user_scores = (
+                User.objects.filter(
+                    is_active=True
+                )
+                .exclude(is_staff=True, is_superuser=True)
+                .values('id', 'username', 'total_points')
+                .order_by('-total_points')
+            )
+        else:
+            user_scores = (
+                UserDailyProgress.objects.filter(
+                    date__range=[start_date, end_date],
+                    user__is_active=True,
+                    user__is_staff=False,
+                    user__is_superuser=False,
+                )
+                .values('user')
+                .annotate(
+                    total_points=Sum('total_daily_score'),
+                    puzzles_completed=Sum('puzzles_completed')
+                )
+                .filter(total_points__gt=0)
+                .order_by('-total_points')
+            )
+
+        # Rebuild leaderboard
         leaderboard_entries = []
         for rank, entry in enumerate(user_scores, start=1):
             if period == 'all_time':
                 user_id = entry['id']
                 points = entry['total_points']
-                puzzles = 0  # Not tracked for all-time
+                puzzles = 0
             else:
                 user_id = entry['user']
                 points = entry['total_points'] or 0
                 puzzles = entry['puzzles_completed'] or 0
-            
+
             leaderboard_entries.append(cls(
                 user_id=user_id,
                 period=period,
@@ -362,8 +421,6 @@ class Leaderboard(models.Model):
                 total_points=points,
                 puzzles_completed=puzzles
             ))
-        
-        # Bulk create
+
         cls.objects.bulk_create(leaderboard_entries)
-        
         return len(leaderboard_entries)

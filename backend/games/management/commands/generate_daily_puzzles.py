@@ -1,168 +1,119 @@
 # games/management/commands/generate_daily_puzzles.py
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
-from games.models import DailyPuzzle, Leaderboard
-from games.services.ai_puzzle_generator import puzzle_generator
-import logging
-
-logger = logging.getLogger(__name__)
-
+from games.models import DailyPuzzle
+from games.ai_service import WordleGeneratorAI  # Make sure this import path is correct
+from datetime import datetime, timedelta
 
 class Command(BaseCommand):
-    help = 'Generate daily puzzles at 6 AM'
-    
-    def handle(self, *args, **kwargs):
-        """Generate puzzles for today"""
-        today = timezone.now().date()
-        
-        self.stdout.write(f"Generating puzzles for {today}...")
-        
-        # Game types to generate
-        games_config = [
+    help = 'Generates all daily puzzles (e.g., easy and hard Wordle). Use --date YYYY-MM-DD for testing.'
+
+    def add_arguments(self, parser):
+        """
+        Defines the custom command-line arguments. We only need a date argument for testing,
+        as the command is designed to generate a fixed set of puzzles.
+        """
+        parser.add_argument(
+            '--date',
+            type=str,
+            help='Optional: Specify the date to generate puzzles for in YYYY-MM-DD format. Defaults to today.'
+        )
+
+    def handle(self, *args, **options):
+        """
+        Main command logic. It iterates through a configuration list and generates
+        each defined puzzle for the target date.
+        """
+        # Determine the target date (either from the command line or today's date)
+        target_date_str = options.get('date')
+        if target_date_str:
+            try:
+                target_date = datetime.strptime(target_date_str, '%Y-%m-%d').date()
+                self.stdout.write(self.style.NOTICE(f"Using specified date for generation: {target_date}"))
+            except ValueError:
+                raise CommandError("Invalid date format. Please use YYYY-MM-DD.")
+        else:
+            target_date = timezone.now().date()
+
+        self.stdout.write(f"Starting daily puzzle generation for {target_date}...")
+
+        # --- This list defines which puzzles to generate ---
+        # It's easy to add more games (like Sudoku) here in the future.
+        games_to_generate = [
             {'game_type': 'wordle', 'difficulty': 'easy'},
             {'game_type': 'wordle', 'difficulty': 'hard'},
-            # Add more games here as they're implemented
-            # {'game_type': 'hangman', 'difficulty': 'easy'},
-            # {'game_type': 'crossword', 'difficulty': 'hard'},
         ]
-        
+
+        # Initialize the AI service once
+        ai_generator = WordleGeneratorAI()
         generated_count = 0
-        
-        for config in games_config:
+
+        # Fetch words from the last 30 days to avoid recent repetitions
+        thirty_days_ago = target_date - timedelta(days=30)
+        existing_words = list(
+            DailyPuzzle.objects.filter(
+                game_type='wordle',
+                date__gte=thirty_days_ago
+            ).values_list('puzzle_data__word', flat=True)
+        )
+        existing_words = [word.upper() for word in existing_words if word]
+
+        # --- Loop through the configuration to generate each puzzle ---
+        for config in games_to_generate:
             game_type = config['game_type']
             difficulty = config['difficulty']
-            
-            # Check if puzzle already exists
-            existing = DailyPuzzle.objects.filter(
-                date=today,
-                game_type=game_type,
-                difficulty=difficulty
-            ).exists()
-            
-            if existing:
+
+            self.stdout.write(self.style.HTTP_INFO(f"\n--- Processing: {game_type.upper()} ({difficulty.upper()}) ---"))
+
+            # Check if this specific puzzle already exists
+            if DailyPuzzle.objects.filter(date=target_date, game_type=game_type, difficulty=difficulty).exists():
                 self.stdout.write(
-                    self.style.WARNING(
-                        f"Puzzle already exists: {game_type} ({difficulty})"
-                    )
+                    self.style.WARNING(f"Skipped: Puzzle already exists for this date, game, and difficulty.")
                 )
                 continue
-            
+
+            # Generate the puzzle within a try block to handle potential failures gracefully
             try:
-                # Generate puzzle using AI
-                if game_type == 'wordle':
-                    puzzle_data = puzzle_generator.generate_wordle_puzzle(
-                        difficulty=difficulty
-                    )
-                # Add other game types here
-                # elif game_type == 'hangman':
-                #     puzzle_data = puzzle_generator.generate_hangman_puzzle(difficulty)
-                
-                # Save to database
-                puzzle = DailyPuzzle.objects.create(
-                    date=today,
+                # Generate puzzle data using the AI service
+                puzzle_data = ai_generator.generate_wordle_puzzle_data(
+                    difficulty=difficulty,
+                    existing_words=list(set(existing_words)) # Use the list of words to avoid
+                )
+
+                if not puzzle_data or 'word' not in puzzle_data:
+                    raise ValueError("Failed to get valid puzzle data from the AI service.")
+
+                # Save the new puzzle to the database
+                DailyPuzzle.objects.create(
+                    date=target_date,
                     game_type=game_type,
                     difficulty=difficulty,
                     puzzle_data=puzzle_data,
                     is_active=True
                 )
+
+                new_word = puzzle_data['word'].upper()
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f"✓ Success! Generated and stored puzzle: {new_word} for {target_date} ({difficulty})"
+                    )
+                )
                 
+                # Add the newly generated word to our list to avoid using it
+                # for the 'hard' puzzle if it was just generated for the 'easy' one on the same run.
+                existing_words.append(new_word)
                 generated_count += 1
-                
-                self.stdout.write(
-                    self.style.SUCCESS(
-                        f"✓ Generated: {game_type} ({difficulty}) - Word: {puzzle_data['word']}"
-                    )
-                )
-                
+
             except Exception as e:
-                logger.error(f"Failed to generate {game_type} ({difficulty}): {e}")
                 self.stdout.write(
                     self.style.ERROR(
-                        f"✗ Failed: {game_type} ({difficulty}) - {str(e)}"
+                        f"✗ Failed to generate {game_type} ({difficulty}): {e}"
                     )
                 )
-        
-        # Update leaderboards
-        self.stdout.write("Updating leaderboards...")
-        self._update_leaderboards()
-        
+                # Optionally, print the full traceback for debugging
+                # import traceback
+                # traceback.print_exc()
+
         self.stdout.write(
-            self.style.SUCCESS(
-                f"\n✓ Complete! Generated {generated_count} puzzles."
-            )
+            self.style.SUCCESS(f"\n✓ Generation complete! Created {generated_count} new puzzles for {target_date}.")
         )
-    
-    def _update_leaderboards(self):
-        """Update all leaderboard periods"""
-        for period in ['daily', 'weekly', 'monthly', 'all_time']:
-            try:
-                count = Leaderboard.calculate_leaderboard(period)
-                self.stdout.write(
-                    self.style.SUCCESS(
-                        f"  ✓ {period.title()}: {count} entries"
-                    )
-                )
-            except Exception as e:
-                logger.error(f"Failed to update {period} leaderboard: {e}")
-                self.stdout.write(
-                    self.style.ERROR(
-                        f"  ✗ {period.title()}: Failed"
-                    )
-                )
-
-
-# games/management/commands/update_leaderboards.py
-from django.core.management.base import BaseCommand
-from games.models import Leaderboard
-
-
-class Command(BaseCommand):
-    help = 'Update leaderboards (run hourly)'
-    
-    def handle(self, *args, **kwargs):
-        """Update all leaderboards"""
-        self.stdout.write("Updating leaderboards...")
-        
-        for period in ['daily', 'weekly', 'monthly', 'all_time']:
-            try:
-                count = Leaderboard.calculate_leaderboard(period)
-                self.stdout.write(
-                    self.style.SUCCESS(
-                        f"✓ {period.title()}: {count} entries updated"
-                    )
-                )
-            except Exception as e:
-                self.stdout.write(
-                    self.style.ERROR(
-                        f"✗ {period.title()}: {str(e)}"
-                    )
-                )
-
-
-# games/cron.py (for django-cron or APScheduler)
-from django_cron import CronJobBase, Schedule
-from django.core.management import call_command
-
-
-class GenerateDailyPuzzlesCron(CronJobBase):
-    """
-    Runs at 6 AM daily to generate new puzzles
-    """
-    RUN_AT_TIMES = ['06:00']
-    
-    schedule = Schedule(run_at_times=RUN_AT_TIMES)
-    code = 'games.generate_daily_puzzles'
-    
-    def do(self):
-        call_command('generate_daily_puzzles')
-
-
-class UpdateLeaderboardsCron(CronJobBase):
-    """
-    Runs every hour to update leaderboards
-    """
-    schedule = Schedule(run_every_mins=60)
-    code = 'games.update_leaderboards'
-    
-    def do(self):
-        call_command('update_leaderboards')
