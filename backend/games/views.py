@@ -1,4 +1,6 @@
 # games/views.py
+from datetime import date, timedelta
+from django.utils.timezone import now
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -6,6 +8,7 @@ from rest_framework import status
 from django.utils import timezone
 from django.db.models import Sum, Count, Q
 from datetime import datetime, timedelta
+from rest_framework.permissions import IsAdminUser
 
 from .models import (
     DailyPuzzle, UserPuzzleAttempt, UserDailyProgress, 
@@ -279,51 +282,69 @@ def request_hint(request, attempt_id):
         'hint_cost': 20 if attempt.puzzle.difficulty == 'easy' else 40
     })
 
+from rest_framework.permissions import AllowAny
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny]) 
 def get_leaderboard(request, period):
     """
-    Get leaderboard for specified period
-    period: daily, weekly, monthly, all_time
+    Get leaderboard for a specified period (daily, weekly, monthly, all_time)
+    Returns data formatted for the frontend.
     """
+
     if period not in ['daily', 'weekly', 'monthly', 'all_time']:
         return Response({
             'error': 'Invalid period. Use: daily, weekly, monthly, or all_time'
         }, status=status.HTTP_400_BAD_REQUEST)
-    
-    # Get top 100 for the period
-    leaderboard_entries = Leaderboard.objects.filter(
-        period=period
-    ).select_related('user').order_by('rank')[:100]
-    
-    # Find current user's rank
-    user_entry = Leaderboard.objects.filter(
-        period=period,
-        user=request.user
-    ).first()
-    
-    # Serialize data
+
+    today = now().date()
+
+    #  Compute the correct start date for each period
+    if period == 'daily':
+        start_date = today
+    elif period == 'weekly':
+        start_date = today - timedelta(days=today.weekday())  # Monday as start of week
+    elif period == 'monthly':
+        start_date = date(today.year, today.month, 1)  # first day of current month
+    else:  # all_time
+        start_date = None
+
+    # 🔍 Fetch leaderboard entries
+    leaderboard_entries = (
+        Leaderboard.objects
+        .filter(period=period)
+        .select_related('user')
+        .order_by('-total_points')[:100]
+    )
+
+    # 🧩 Transform data to frontend format
     leaderboard_data = []
     for entry in leaderboard_entries:
-        leaderboard_data.append({
-            'rank': entry.rank,
-            'username': entry.user.username,
-            'display_name': entry.user.display_name or entry.user.username,
-            'total_points': entry.total_points,
-            'puzzles_completed': entry.puzzles_completed,
-            'is_current_user': entry.user.id == request.user.id
-        })
-    
-    response_data = {
-        'period': period,
-        'leaderboard': leaderboard_data,
-        'current_user_rank': user_entry.rank if user_entry else None,
-        'current_user_points': user_entry.total_points if user_entry else 0,
-        'updated_at': leaderboard_entries[0].updated_at if leaderboard_entries else None
-    }
-    
-    return Response(response_data)
+        base_data = {
+            "user": {
+                "id": entry.user.id,
+                "username": entry.user.username,
+            },
+            "score": entry.total_points,
+        }
+
+        # Add the appropriate start date field
+        if period == 'daily':
+            base_data["date"] = start_date.isoformat()
+        elif period == 'weekly':
+            base_data["week_start_date"] = start_date.isoformat()
+        elif period == 'monthly':
+            base_data["month_start_date"] = start_date.isoformat()
+
+        leaderboard_data.append(base_data)
+
+    # ✅ Response format matches frontend expectations
+    return Response({
+        "period": period,
+        "leaderboard": leaderboard_data,
+        "mode": "individual",  # constant for now
+        "updated_at": today.isoformat()
+    })
 
 
 @api_view(['GET'])
