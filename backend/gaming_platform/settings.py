@@ -31,6 +31,8 @@ INSTALLED_APPS = [
     'django_apscheduler',
     'authentication',
     'games.apps.GamesConfig',
+    'drf_spectacular',
+    'drf_spectacular_sidecar',
 ]
 
 MIDDLEWARE = [
@@ -106,9 +108,9 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-        
+        'rest_framework.permissions.IsAuthenticated',  
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 # Azure AD Configuration
@@ -129,3 +131,4 @@ SESSION_COOKIE_AGE = 86400
 # APScheduler
 APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
 APSCHEDULER_RUN_NOW_TIMEOUT = 25
+
