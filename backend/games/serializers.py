@@ -29,12 +29,25 @@ class UserPuzzleAttemptSerializer(serializers.ModelSerializer):
 
 class LeaderboardSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username')
-    display_name = serializers.CharField(source='user.display_name')
-    
+    display_name = serializers.CharField(source='user.display_name', default='')
+    is_current_user = serializers.SerializerMethodField()
+
     class Meta:
         model = Leaderboard
-        fields = ['rank', 'username', 'display_name', 'total_points', 'puzzles_completed']
+        fields = [
+            'rank',
+            'username',
+            'display_name',
+            'total_points',
+            'puzzles_completed',
+            'is_current_user'
+        ]
 
+    def get_is_current_user(self, obj):
+        request = self.context.get('request')
+        if not request or not hasattr(request, 'user'):
+            return False
+        return obj.user == request.user
 
 class UserProgressSerializer(serializers.ModelSerializer):
     class Meta:

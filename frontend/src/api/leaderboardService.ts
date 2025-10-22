@@ -1,31 +1,31 @@
-// What it is: Function for fetching all leaderboard data.
-// What you need to do:
-// getLeaderboard(period: string, type: string, date?: string): A single function that calls your flexible GET /api/leaderboard/ endpoint with the correct query parameters.
+import axios from "axios";
+import type {
+  LeaderboardPeriod,
+  LeaderboardType,
+  LeaderboardData,
+} from "../types/leaderboard";
 
-import { MOCK_MODE, mockApiCall } from './api';
-import {
-    MOCK_LEADERBOARD_INDIVIDUAL_WEEKLY,
-    MOCK_LEADERBOARD_DEPARTMENT_WEEKLY // Updated import name
-} from '../data/_mockData';
-import type { LeaderboardData, LeaderboardPeriod, LeaderboardType } from '../types/leaderboard';
+const API_BASE_URL = "http://127.0.0.1:8000/api/leaderboards";
 
-export const getLeaderboard = (
-    period: LeaderboardPeriod,
-    type: LeaderboardType,
-    date?: string
+export const getLeaderboard = async (
+  period: LeaderboardPeriod,
+  type: LeaderboardType
 ): Promise<LeaderboardData> => {
-    if (MOCK_MODE) {
-        console.log(`Mock: Fetching leaderboard - Period: ${period}, Type: ${type}, Date: ${date}`);
-        if (type === 'individual') {
-            return mockApiCall(MOCK_LEADERBOARD_INDIVIDUAL_WEEKLY);
-        } else if (type === 'department') { // Use 'department'
-            return mockApiCall(MOCK_LEADERBOARD_DEPARTMENT_WEEKLY); // Return the department data
-        } else {
-            // Handle unexpected type if necessary, or return empty array
-            console.error(`Mock: Unknown leaderboard type requested: ${type}`);
-            return mockApiCall([]);
-        }
-    }
-    // !! Real call: return api.get(`/api/leaderboard?period=${period}&type=${type}${date ? `&date=${date}` : ''}`);
-    return new Promise(() => {});
+  try {
+    const token = localStorage.getItem("accessToken");
+
+    const response = await axios.get(`${API_BASE_URL}/${period}/`, {
+      params: { type },
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      withCredentials: true,
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      `[getLeaderboard] Failed to fetch ${period} ${type} data:`,
+      error
+    );
+    throw new Error("Failed to fetch leaderboard data");
+  }
 };
