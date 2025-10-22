@@ -1,7 +1,7 @@
 import DifficultyToggle from "../../ui/difficultyToggle";
 import type { Difficulty } from '../../../pages/gamePage';
 
-interface PuzzleIntroProps {
+export interface PuzzleIntroProps {
   title: string; // e.g. "ERNIgram"
   description: string; // Intro text (the first block)
   howToPlay: string; // Instruction content

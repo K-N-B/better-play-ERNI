@@ -3,6 +3,8 @@ import type { DailyPuzzleResponse } from '../types/game';
 import type { IndividualScoreEntry, DepartmentScoreEntry } from '../types/leaderboard'; // Updated type name
 import type { ActivityHubResponse, OnlineUser } from '../types/activity';
 import type { Submission } from '../types/game';
+import type { Challenge } from '../types/challenge';
+
 
 // Mock Departments
 export const MOCK_DEPARTMENTS: Department[] = [
@@ -137,3 +139,52 @@ export const MOCK_TODAY_SUBMISSIONS: Submission[] = [
   //   created_at: new Date().toISOString(),
   // },
 ];
+
+export const MOCK_USERS_SEARCH: Pick<UserProfile, 'id' | 'username' | 'email'>[] = [
+    { id: 1, username: 'gavin_cii', email: 'gavin@erni.com' },
+    { id: 2, username: 'Dayniel Caadiang', email: 'dayniel@erni.com' },
+    { id: 3, username: 'sarah_b', email: 'sarah@erni.com' },
+    { id: 4, username: 'mike_t', email: 'mike@erni.com' },
+];
+
+export const MOCK_PENDING_CHALLENGES: Challenge[] = [
+  {
+    id: 1,
+    challenger: { id: 1, username: 'gavin_cii' },
+    recipient: { id: 2, username: 'Dayniel Caadiang' }, // Assuming current user is Dayniel
+    puzzle_type: 'wordle',
+    puzzle_id: 101, // Matches MOCK_PUZZLES.wordle.id
+    challenger_submission: { id: 501, points_awarded: 500, time_taken_ms: 65000, tries: 2 },
+    recipient_submission: null,
+    status: 'PENDING',
+    winner: null,
+    created_at: new Date(Date.now() - 60000 * 30).toISOString(), // 30 mins ago
+  },
+  {
+    id: 2,
+    challenger: { id: 3, username: 'sarah_b' },
+    recipient: { id: 2, username: 'Dayniel Caadiang' },
+    puzzle_type: 'sudoku',
+    puzzle_id: 201, // Matches MOCK_PUZZLES.sudoku.id
+    challenger_submission: { id: 503, points_awarded: 750, time_taken_ms: 250000, tries: 1 },
+    recipient_submission: null,
+    status: 'PENDING',
+    winner: null,
+    created_at: new Date(Date.now() - 60000 * 60 * 2).toISOString(), // 2 hours ago
+  },
+];
+
+export const MOCK_COMPLETED_CHALLENGES: Challenge[] = [
+   {
+    id: 3,
+    challenger: { id: 2, username: 'Dayniel Caadiang' },
+    recipient: { id: 1, username: 'gavin_cii' },
+    puzzle_type: 'ernigram',
+    puzzle_id: 301,
+    challenger_submission: { id: 504, points_awarded: 400, time_taken_ms: 90000, tries: 3 },
+    recipient_submission: { id: 505, points_awarded: 450, time_taken_ms: 80000, tries: 2 },
+    status: 'COMPLETED',
+    winner: { id: 1, username: 'gavin_cii' }, // Gavin won
+    created_at: new Date(Date.now() - 60000 * 60 * 24).toISOString(), // 1 day ago
+  },
+]
