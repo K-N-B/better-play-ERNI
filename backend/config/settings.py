@@ -2,16 +2,9 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Load environment variables from .env file
-load_dotenv(os.path.join(BASE_DIR, '.env'))
-
-# Now you can access them
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'your-secret-key')
 
@@ -29,8 +22,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'django_apscheduler',
-    'authentication',
-    'games.apps.GamesConfig',
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -44,7 +36,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'gaming_platform.urls'
+ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
     {
@@ -91,7 +83,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custom User Model
-AUTH_USER_MODEL = 'authentication.User'
+AUTH_USER_MODEL = 'users.User'
 
 # CORS Settings
 CORS_ALLOWED_ORIGINS = [
@@ -107,7 +99,6 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
-        
     ],
 }
 
