@@ -124,6 +124,19 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = [
+    'social_core.backends.google.GoogleOAuth2',
+    'django.contrib.auth.backends.ModelBackend',    
+]
+
+SOCIAL_AUTH_AZUREAD_OAUTH2_CLIENT_ID = os.getenv('AZURE_AD_CLIENT_ID')
+SOCIAL_AUTH_AZUREAD_OAUTH2_CLIENT_SECRET = os.getenv('AZURE_AD_CLIENT_SECRET')
+SOCIAL_AUTH_AZUREAD_OAUTH2_TENANT_ID = os.getenv('AZURE_AD_TENANT_ID')
+SOCIAL_AUTH_AZUREAD_OAUTH2_REDIRECT_URI = os.getenv('AZURE_AD_REDIRECT_URI')
+
+LOGIN_URL = '/auth/login/azuread-oauth2/'
+LOGIN_REDIRECT_URL = 'http://localhost:3000/auth-callback'
+LOGOUT_REDIRECT_URL = 'http://localhost:3000/login'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
