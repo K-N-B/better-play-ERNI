@@ -1,119 +1,170 @@
-# games/management/commands/generate_daily_puzzles.py
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.utils import timezone
-from games.models import DailyPuzzle
-from games.ai_service import WordleGeneratorAI  # Make sure this import path is correct
-from datetime import datetime, timedelta
+from games.models import Puzzle
+from games.services.gemini_service import GeminiPuzzleGenerator
+from games.services.leaderboard_service import LeaderboardService
+from games.services.streak_service import StreakService
+from datetime import timedelta
+
 
 class Command(BaseCommand):
-    help = 'Generates all daily puzzles (e.g., easy and hard Wordle). Use --date YYYY-MM-DD for testing.'
-
+    help = 'Generate daily puzzles and perform daily maintenance tasks'
+    
     def add_arguments(self, parser):
-        """
-        Defines the custom command-line arguments. We only need a date argument for testing,
-        as the command is designed to generate a fixed set of puzzles.
-        """
         parser.add_argument(
             '--date',
             type=str,
-            help='Optional: Specify the date to generate puzzles for in YYYY-MM-DD format. Defaults to today.'
+            help='Generate puzzles for specific date (YYYY-MM-DD). Defaults to today.'
         )
-
+    
     def handle(self, *args, **options):
         """
-        Main command logic. It iterates through a configuration list and generates
-        each defined puzzle for the target date.
+        Main command execution.
+        Should run daily at 6 AM server time via cron or Celery Beat.
         """
-        # Determine the target date (either from the command line or today's date)
-        target_date_str = options.get('date')
-        if target_date_str:
-            try:
-                target_date = datetime.strptime(target_date_str, '%Y-%m-%d').date()
-                self.stdout.write(self.style.NOTICE(f"Using specified date for generation: {target_date}"))
-            except ValueError:
-                raise CommandError("Invalid date format. Please use YYYY-MM-DD.")
+        # Determine target date
+        if options['date']:
+            from datetime import datetime
+            target_date = datetime.strptime(options['date'], '%Y-%m-%d').date()
         else:
             target_date = timezone.now().date()
+        
+        self.stdout.write(self.style.SUCCESS(
+            f'\n{"="*60}\n'
+            f'Starting Daily Puzzle Generation for {target_date}\n'
+            f'{"="*60}\n'
+        ))
+        
+        # 1. Archive yesterday's puzzles
+        self._archive_old_puzzles(target_date)
+        
+        # 2. Generate new puzzles
+        self._generate_puzzles(target_date)
+        
+        # 3. Check and break streaks
+        self._update_streaks()
+        
+        # 4. Reset daily points
+        self._reset_daily_points()
+        
+        # 5. Check if it's Monday (reset weekly)
+        if target_date.weekday() == 0:  # Monday
+            self._reset_weekly_points()
+        
+        # 6. Check if it's 1st of month (reset monthly)
+        if target_date.day == 1:
+            self._reset_monthly_points()
+        
+        # 7. Refresh leaderboards
+        self._refresh_leaderboards()
+        
+        self.stdout.write(self.style.SUCCESS(
+            f'\n{"="*60}\n'
+            f'Daily Maintenance Complete!\n'
+            f'{"="*60}\n'
+        ))
+    
+    def _archive_old_puzzles(self, target_date):
+        """Mark yesterday's puzzles as inactive"""
+        self.stdout.write('📦 Archiving old puzzles...')
+        
+        yesterday = target_date - timedelta(days=1)
+        count = Puzzle.objects.filter(
+            puzzle_date__lt=target_date,
+            is_active=True
+        ).update(is_active=False)
+        
+        self.stdout.write(self.style.SUCCESS(f'   ✓ Archived {count} puzzles\n'))
+    
+    def _generate_puzzles(self, target_date):
+        """Generate new puzzles using Gemini AI"""
+        self.stdout.write('🤖 Generating new puzzles with Gemini AI...')
+        
+        # Check if puzzles already exist for this date
+        existing_count = Puzzle.objects.filter(puzzle_date=target_date).count()
+        if existing_count > 0:
+            self.stdout.write(self.style.WARNING(
+                f'   ⚠ {existing_count} puzzles already exist for {target_date}. Skipping generation.\n'
+            ))
+            return
+        
+        # Generate all puzzles
+        puzzle_data_list = GeminiPuzzleGenerator.generate_all_daily_puzzles(target_date)
+        
+        # Create puzzle records
+        created_count = 0
+        for puzzle_data in puzzle_data_list:
+            puzzle = Puzzle.objects.create(**puzzle_data)
+            created_count += 1
+            self.stdout.write(
+                f'   ✓ Created {puzzle.puzzle_type.upper()} ({puzzle.difficulty}): '
+                f'{puzzle.solution_word or puzzle.solution_phrase or "Sudoku"}'
+            )
+        
+        self.stdout.write(self.style.SUCCESS(f'   ✓ Generated {created_count} puzzles\n'))
+    
+    def _update_streaks(self):
+        """Check and update user streaks"""
+        self.stdout.write('🔥 Updating streaks...')
+        
+        broken_count = StreakService.check_and_break_streaks()
+        
+        self.stdout.write(self.style.SUCCESS(f'   ✓ Updated streaks ({broken_count} broken)\n'))
+    
+    def _reset_daily_points(self):
+        """Reset daily point totals"""
+        self.stdout.write('🔄 Resetting daily points...')
+        
+        LeaderboardService.reset_daily_points()
+        
+        self.stdout.write(self.style.SUCCESS('   ✓ Daily points reset\n'))
+    
+    def _reset_weekly_points(self):
+        """Reset weekly point totals (Monday only)"""
+        self.stdout.write('🔄 Resetting weekly points...')
+        
+        LeaderboardService.reset_weekly_points()
+        
+        self.stdout.write(self.style.SUCCESS('   ✓ Weekly points reset\n'))
+    
+    def _reset_monthly_points(self):
+        """Reset monthly point totals (1st of month only)"""
+        self.stdout.write('🔄 Resetting monthly points...')
+        
+        LeaderboardService.reset_monthly_points()
+        
+        self.stdout.write(self.style.SUCCESS('   ✓ Monthly points reset\n'))
+    
+    def _refresh_leaderboards(self):
+        """Recalculate all leaderboard rankings"""
+        self.stdout.write('🏆 Refreshing leaderboards...')
+        
+        results = LeaderboardService.refresh_all_leaderboards()
+        
+        for period, count in results.items():
+            self.stdout.write(f'   ✓ {period.capitalize()}: {count} entries')
+        
+        self.stdout.write(self.style.SUCCESS('   ✓ Leaderboards refreshed\n'))
 
-        self.stdout.write(f"Starting daily puzzle generation for {target_date}...")
 
-        # --- This list defines which puzzles to generate ---
-        # It's easy to add more games (like Sudoku) here in the future.
-        games_to_generate = [
-            {'game_type': 'wordle', 'difficulty': 'easy'},
-            {'game_type': 'wordle', 'difficulty': 'hard'},
-        ]
+"""
+CRON SETUP INSTRUCTIONS:
 
-        # Initialize the AI service once
-        ai_generator = WordleGeneratorAI()
-        generated_count = 0
+1. Add to your server's crontab:
+   0 6 * * * cd /path/to/project && python manage.py generate_daily_puzzles
 
-        # Fetch words from the last 30 days to avoid recent repetitions
-        thirty_days_ago = target_date - timedelta(days=30)
-        existing_words = list(
-            DailyPuzzle.objects.filter(
-                game_type='wordle',
-                date__gte=thirty_days_ago
-            ).values_list('puzzle_data__word', flat=True)
-        )
-        existing_words = [word.upper() for word in existing_words if word]
+2. Or use Celery Beat (recommended for production):
+   # In your celery.py:
+   from celery.schedules import crontab
+   
+   app.conf.beat_schedule = {
+       'generate-daily-puzzles': {
+           'task': 'games.tasks.generate_daily_puzzles',
+           'schedule': crontab(hour=6, minute=0),
+       },
+   }
 
-        # --- Loop through the configuration to generate each puzzle ---
-        for config in games_to_generate:
-            game_type = config['game_type']
-            difficulty = config['difficulty']
-
-            self.stdout.write(self.style.HTTP_INFO(f"\n--- Processing: {game_type.upper()} ({difficulty.upper()}) ---"))
-
-            # Check if this specific puzzle already exists
-            if DailyPuzzle.objects.filter(date=target_date, game_type=game_type, difficulty=difficulty).exists():
-                self.stdout.write(
-                    self.style.WARNING(f"Skipped: Puzzle already exists for this date, game, and difficulty.")
-                )
-                continue
-
-            # Generate the puzzle within a try block to handle potential failures gracefully
-            try:
-                # Generate puzzle data using the AI service
-                puzzle_data = ai_generator.generate_wordle_puzzle_data(
-                    difficulty=difficulty,
-                    existing_words=list(set(existing_words)) # Use the list of words to avoid
-                )
-
-                if not puzzle_data or 'word' not in puzzle_data:
-                    raise ValueError("Failed to get valid puzzle data from the AI service.")
-
-                # Save the new puzzle to the database
-                DailyPuzzle.objects.create(
-                    date=target_date,
-                    game_type=game_type,
-                    difficulty=difficulty,
-                    puzzle_data=puzzle_data,
-                    is_active=True
-                )
-
-                new_word = puzzle_data['word'].upper()
-                self.stdout.write(
-                    self.style.SUCCESS(
-                        f"✓ Success! Generated and stored puzzle: {new_word} for {target_date} ({difficulty})"
-                    )
-                )
-                
-                # Add the newly generated word to our list to avoid using it
-                # for the 'hard' puzzle if it was just generated for the 'easy' one on the same run.
-                existing_words.append(new_word)
-                generated_count += 1
-
-            except Exception as e:
-                self.stdout.write(
-                    self.style.ERROR(
-                        f"✗ Failed to generate {game_type} ({difficulty}): {e}"
-                    )
-                )
-                # Optionally, print the full traceback for debugging
-                # import traceback
-                # traceback.print_exc()
-
-        self.stdout.write(
-            self.style.SUCCESS(f"\n✓ Generation complete! Created {generated_count} new puzzles for {target_date}.")
-        )
+3. Manual execution for testing:
+   python manage.py generate_daily_puzzles
+   python manage.py generate_daily_puzzles --date=2025-10-24
+"""

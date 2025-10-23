@@ -3,6 +3,10 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('auth/', include('authentication.urls')),
+    
+    # Sprint 1: Authentication
+    path('auth/', include('users.urls')),  # Your existing auth URLs
+    
+    # Sprint 2: Games API (NEW)
     path('api/', include('games.urls')),
 ]
