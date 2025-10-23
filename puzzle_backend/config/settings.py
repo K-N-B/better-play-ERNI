@@ -98,8 +98,8 @@ DATABASES = {
 
 # CORS Settings
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000", # Your React frontend development URL
-    "http://127.0.0.1:3000",
+    "http://localhost:5173", # Your React frontend development URL
+    "http://127.0.0.1:5173",
     # Add your production frontend URL later
 ]
 CORS_ALLOW_CREDENTIALS = True # Allow cookies to be sent cross-origin
@@ -125,7 +125,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'social_core.backends.google.GoogleOAuth2',
+    'social_core.backends.azuread.AzureADOAuth2',
     'django.contrib.auth.backends.ModelBackend',    
 ]
 

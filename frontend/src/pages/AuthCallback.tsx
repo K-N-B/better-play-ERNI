@@ -1,33 +1,30 @@
-import { useEffect, useState } from 'react';
+import { useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/authContext';
+import { LoadingSpinner } from '../components/ui/loadingSpinner'; // Import useAuth
 
 export default function AuthCallback() {
-  const [status] = useState('Processing authentication...');
+  const { user, isLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Just wait a moment and check auth status
-    setTimeout(async () => {
-      try {
-        const response = await fetch('http://localhost:8000/auth/check/', {
-          credentials: 'include',
-        });
-        
-        const data = await response.json();
-        
-        if (data.authenticated) {
-          navigate('/', { replace: true });
-        } else {
-          navigate('/login', { replace: true });
-        }
-      } catch (error) {
-        console.error('Auth check failed:', error);
+    // Wait for the AuthContext to finish its initial check
+    if (!isLoading) {
+      if (user) {
+        // If AuthContext found a user, redirect home
+        console.log('[AuthCallback] User found, navigating home.');
+        navigate('/', { replace: true });
+      } else {
+        // If AuthContext didn't find a user (login failed?), redirect to login
+        console.log('[AuthCallback] No user found after auth check, navigating to login.');
         navigate('/login', { replace: true });
       }
-    }, 500);
-  }, [navigate]);
+    }
+  }, [user, isLoading, navigate]);
 
   return (
+    <>
+    <LoadingSpinner fullPage={true} />
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-400 via-purple-500 to-pink-400">
       <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
         <div className="mb-6">
@@ -37,5 +34,6 @@ export default function AuthCallback() {
         <p className="text-gray-600">Please wait...</p>
       </div>
     </div>
+    </>
   );
 }

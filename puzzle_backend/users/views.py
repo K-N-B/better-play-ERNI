@@ -16,11 +16,24 @@ def get_login_redirect_url(request):
     Builds the Microsoft login URL using social-auth's named URL
     and returns it as JSON for the frontend Login button.
     """
+    base_url = f"https://login.microsoftonline.com/{settings.SOCIAL_AUTH_AZUREAD_OAUTH2_TENANT_ID}/oauth2/v2.0/authorize"
+
+    params = {
+        'client_id': settings.SOCIAL_AUTH_AZUREAD_OAUTH2_CLIENT_ID,
+        'response_type': 'code',
+        'redirect_uri': request.build_absolute_uri('/auth/complete/azuread-oauth2/'), # Build absolute URI
+        'scope': 'User.Read openid email profile', # Add openid, email, profile scopes
+        'response_mode': 'query',
+        # --- ADD THIS LINE ---
+        'prompt': 'select_account', # Forces the Microsoft account selection screen
+        # --- END ADDITION ---
+    }
     # Construct the URL to Django's view that starts the OAuth flow
     # This comes from adding social_django.urls with namespace='social'
     # It redirects the user TO Microsoft's login page
-    login_initiate_url = request.build_absolute_uri('/auth/login/azuread-oauth2/')
-    return Response({'auth_url': login_initiate_url})
+    auth_url = f"{base_url}?{urllib.parse.urlencode(params)}"
+    print(f"Generated Auth URL: {auth_url}") # Add logging for debugging
+    return Response({'auth_url': auth_url})
 
 # Note: The actual /auth/complete/azuread-oauth2/ callback is handled
 # automatically by social-auth-app-django. We don't need a view for it.
