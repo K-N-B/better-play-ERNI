@@ -8,7 +8,7 @@ import { useAuth } from '../hooks/authContext'; // Import useAuth
 import { LoadingSpinner } from '../components/ui/loadingSpinner';
 
 export default function LoginPage() {
-  const [loading, setLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [error, setError] = useState('');
   const { user, isLoading: authLoading } = useAuth(); // Get user from context
 
@@ -21,7 +21,7 @@ export default function LoginPage() {
   }
 
   const handleMicrosoftLogin = async () => {
-    setLoading(true);
+    setIsRedirecting(true);
     setError('');
     try {
       const data = await getLoginRedirectUrl();
@@ -29,20 +29,18 @@ export default function LoginPage() {
         window.location.href = data.auth_url; 
       } else {
         setError('Failed to get authorization URL');
-        setLoading(false);
+        setIsRedirecting(false);
       }
     } catch (err) {
+      console.error("Login initiation failed:", err);
       setError('An error occurred. Please try again.');
-      setLoading(false);
+      setIsRedirecting(false);
     }
   };
 
   
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* ... (keep all your original JSX: Header, Main Content, Card, Button, etc.) ... */}
-      {/* ... The button's onClick={handleMicrosoftLogin} will work perfectly ... */}
-
       {/* Main Content (Pasting your JSX for clarity) */}
       <main className="flex-1 flex items-center justify-center px-4">
         <div className="max-w-md w-full">
@@ -69,10 +67,10 @@ export default function LoginPage() {
             {/* Microsoft Login Button */}
             <button
               onClick={handleMicrosoftLogin}
-              disabled={loading}
+              disabled={isRedirecting}
               className="w-full bg-blue-900 hover:bg-blue-800 disabled:bg-blue-300 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-3 mb-4"
             >
-              {loading ? (
+              {isRedirecting ? (
                 <>
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                   <span>Redirecting...</span>
