@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone # Import timezone
 
+
 class Department(models.Model):
     name = models.CharField(max_length=100, unique=True)
     total_points_alltime = models.BigIntegerField(default=0)
