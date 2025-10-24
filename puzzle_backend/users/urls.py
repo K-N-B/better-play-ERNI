@@ -16,5 +16,6 @@ urlpatterns = [
     # URL for frontend to get the list of departments
     path('api/departments/', views.DepartmentListView.as_view(), name='department-list'),
     # URL for frontend to submit the chosen department for a new user
-    path('api/users/me/complete-profile/', views.CompleteProfileView.as_view(), name='complete-profile'),
+    path('me/complete-profile/', views.CompleteProfileView.as_view(), name='complete-profile'),
+    path('assign-department/', views.AssignDepartmentView.as_view(), name='assign-department'),
 ]
