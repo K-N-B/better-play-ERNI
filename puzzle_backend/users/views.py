@@ -8,6 +8,8 @@ from rest_framework.response import Response
 from .models import Department, User # Import your models
 from .serializers import DepartmentSerializer, UserProfileSerializer # Import your serializers
 import urllib.parse
+from rest_framework import generics # For class-based views
+from .serializers import AssignDepartmentSerializer  
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny]) # Anyone can request the login URL
@@ -110,3 +112,20 @@ class CompleteProfileView(generics.GenericAPIView):
             return Response({'error': 'Department not found'}, status=status.HTTP_404_NOT_FOUND)
         except (ValueError, TypeError):
              return Response({'error': 'Invalid department_id format'}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+from .serializers import DepartmentSerializer, UserProfileSerializer, AssignDepartmentSerializer
+class AssignDepartmentView(generics.GenericAPIView):
+    """
+    POST /api/users/assign-department/
+    Assigns or creates a department for the logged-in user.
+    Triggered when frontend detects the user has no department yet.
+    """
+    serializer_class = AssignDepartmentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)  # ✅ works now
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save(user=request.user)
+        return Response(UserProfileSerializer(user).data, status=status.HTTP_200_OK)

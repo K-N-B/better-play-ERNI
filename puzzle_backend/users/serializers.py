@@ -2,11 +2,35 @@
 from rest_framework import serializers
 from .models import User, Department # Import your models
 
+
 class DepartmentSerializer(serializers.ModelSerializer):
-    """ Serializer for the Department model. """
     class Meta:
         model = Department
-        fields = ['id', 'name'] # Specify fields to include in JSON
+        fields = ['id', 'name', 'total_points_alltime']
+
+
+class AssignDepartmentSerializer(serializers.Serializer):
+    department_name = serializers.CharField(max_length=100)
+
+    def validate_department_name(self, value):
+        """Make sure the department name exists (or create it if new)."""
+        if not value.strip():
+            raise serializers.ValidationError("Department name cannot be blank.")
+        return value
+
+    def save(self, user):
+        """Assigns a department to the user."""
+        department_name = self.validated_data['department_name']
+
+        # Check if department already exists, otherwise create it
+        department, created = Department.objects.get_or_create(name=department_name)
+
+        # Assign department to user
+        user.department = department
+        user.profile_complete = True  # optional, if you use it for tracking
+        user.save()
+
+        return user
 
 class UserProfileSerializer(serializers.ModelSerializer):
     """ Serializer for the custom User model (profile view). """
