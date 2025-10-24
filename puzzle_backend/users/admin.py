@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin # Import base User admin
 from .models import User, Department # Import your models
 
+
 # Customize the User display in the admin
 class UserAdmin(BaseUserAdmin):
     # Add custom fields to the list display, list filter, and fieldsets
