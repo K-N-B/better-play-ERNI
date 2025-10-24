@@ -48,7 +48,9 @@ INSTALLED_APPS = [
     # Add 'games', 'gameplay', 'leaderboards' here later
 
     #Ganes app
-    'leaderboards'
+    'leaderboards',
+    'games',
+    'gameplay',
 ]
 
 SITE_ID = 1
