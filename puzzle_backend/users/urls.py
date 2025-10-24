@@ -1,19 +1,22 @@
 # /users/urls.py
 from django.urls import path
-from . import views  # Import views from the current app (users)
+from . import views
 
 # Define URL patterns specific to the 'users' app
+# These will likely be included under '/auth/' or '/api/' prefixes in config/urls.py
 urlpatterns = [
     # --- Authentication Endpoints ---
-    # URL for frontend to get the Microsoft login redirect URL
-    path('auth/login/', views.get_login_redirect_url, name='auth-login-url'),
-    # URL for frontend to check if the user is already logged in via session
-    path('auth/check/', views.check_auth, name='auth-check'),
-    # URL for frontend to trigger logout
-    path('auth/logout/', views.logout_user, name='auth-logout'),
+    # GET /auth/login/ -> Returns Microsoft URL
+    path('login/', views.get_auth_url, name='auth-login-url'),
+    # GET /auth/callback/ -> Handles redirect back from Microsoft
+    path('callback/', views.auth_callback, name='auth-callback'), # Must match AZURE_AD_REDIRECT_URI path
+    # GET /auth/check/ -> Checks current session status
+    path('check/', views.check_auth, name='auth-check'),
+    # POST /auth/logout/ -> Logs user out
+    path('logout/', views.logout_view, name='auth-logout'),
 
     # --- Profile API Endpoints ---
-    # URL for frontend to get the list of departments
+    # GET /api/departments/ -> Lists departments
     path('api/departments/', views.DepartmentListView.as_view(), name='department-list'),
     # URL for frontend to submit the chosen department for a new user
     path('me/complete-profile/', views.CompleteProfileView.as_view(), name='complete-profile'),

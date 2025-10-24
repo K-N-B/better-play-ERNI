@@ -41,7 +41,6 @@ INSTALLED_APPS = [
 
     # Third-party apps
     'rest_framework',
-    'social_django',
     'corsheaders', # Add this for Cross-Origin Resource Sharing
 
     # Your local apps
@@ -125,14 +124,33 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'social_core.backends.azuread.AzureADOAuth2',
     'django.contrib.auth.backends.ModelBackend',    
 ]
 
-SOCIAL_AUTH_AZUREAD_OAUTH2_CLIENT_ID = os.getenv('AZURE_AD_CLIENT_ID')
-SOCIAL_AUTH_AZUREAD_OAUTH2_CLIENT_SECRET = os.getenv('AZURE_AD_CLIENT_SECRET')
-SOCIAL_AUTH_AZUREAD_OAUTH2_TENANT_ID = os.getenv('AZURE_AD_TENANT_ID')
-SOCIAL_AUTH_AZUREAD_OAUTH2_REDIRECT_URI = os.getenv('AZURE_AD_REDIRECT_URI')
+# --- Azure AD Credentials (Loaded from .env) ---
+AZURE_AD_CLIENT_ID = os.getenv('AZURE_AD_CLIENT_ID')
+AZURE_AD_CLIENT_SECRET = os.getenv('AZURE_AD_CLIENT_SECRET')
+AZURE_AD_TENANT_ID = os.getenv('AZURE_AD_TENANT_ID')
+# This MUST match the 'Web' redirect URI in Azure App Registration AND users/urls.py path
+AZURE_AD_REDIRECT_URI = os.getenv('AZURE_AD_REDIRECT_URI', 'http://localhost:8000/auth/callback/')
+
+# --- Session Settings (Optional but good practice) ---
+SESSION_COOKIE_SAMESITE = 'Lax' # Helps prevent CSRF
+SESSION_COOKIE_SECURE = False   # Set to True if using HTTPS in production
+SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
+SESSION_COOKIE_AGE = 86400      # Session lasts 1 day (optional)
+
+# --- DRF Settings (Optional for basic session auth, but good to have) ---
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # Use SessionAuthentication for browser interaction
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        # Default to requiring authentication for API views
+        'rest_framework.permissions.IsAuthenticated',
+    ]
+}
 
 LOGIN_URL = '/auth/login/azuread-oauth2/'
 LOGIN_REDIRECT_URL = 'http://localhost:3000/auth-callback'
