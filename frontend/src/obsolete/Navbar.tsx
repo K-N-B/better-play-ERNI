@@ -24,7 +24,7 @@ export default function Navbar() {
 
   const fetchUserData = async () => {
     try {
-      const response = await fetch('http://localhost:8000/auth/user/', {
+      const response = await fetch('http://localhost:8080/auth/user/', {
         credentials: 'include',
       });
       

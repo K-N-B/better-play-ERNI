@@ -9,7 +9,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
-    fetch('http://localhost:8000/auth/check/', {
+    fetch('http://localhost:8080/auth/check/', {
       credentials: 'include',
     })
       .then(res => res.json())
