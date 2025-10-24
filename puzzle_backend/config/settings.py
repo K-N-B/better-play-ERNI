@@ -48,8 +48,6 @@ INSTALLED_APPS = [
     # Add 'games', 'gameplay', 'leaderboards' here later
 
     #Ganes app
-    'games',
-    'gameplay',
     'leaderboards'
 ]
 
