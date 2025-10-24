@@ -61,18 +61,6 @@ export const MOCK_PUZZLES: DailyPuzzleResponse = {
   },
 };
 
-export const MOCK_LEADERBOARD_INDIVIDUAL_WEEKLY: IndividualScoreEntry[] = [
-  { user: { id: 1, username: 'gavin_cii' }, score: 1250, week_start_date: '2025-10-19' },
-  { user: { id: 3, username: 'jerome_B' }, score: 1100, week_start_date: '2025-10-19' },
-  { user: { id: 4, username: 'mike_t' }, score: 980, week_start_date: '2025-10-19' },
-];
-
-export const MOCK_LEADERBOARD_DEPARTMENT_WEEKLY: DepartmentScoreEntry[] = [ // Renamed type
-  { department: { id: 1, name: 'Backend & Cloud' }, score: 2230, week_start_date: '2025-10-19' }, // Changed team to department
-  { department: { id: 2, name: 'Data & AI' }, score: 1500, week_start_date: '2025-10-19' }, 
-  { department: { id: 3, name: 'Web Dev 1' }, score: 1234, week_start_date: '2025-10-19' },
-  { department: { id: 4, name: 'Web Dev 2' }, score: 1123, week_start_date: '2025-10-19' }, // Changed team to department
-];
 
 export const MOCK_ONLINE_USERS: OnlineUser[] = [
     { id: 1, username: 'gavin_cii' }, // Example user
@@ -188,3 +176,24 @@ export const MOCK_COMPLETED_CHALLENGES: Challenge[] = [
     created_at: new Date(Date.now() - 60000 * 60 * 24).toISOString(), // 1 day ago
   },
 ]
+
+export const MOCK_USER_SARAH: Pick<UserProfile, 'id' | 'username' | 'email'> =
+    { id: 3, username: 'sarah_b', email: 'sarah@erni.com' };
+export const MOCK_USER_MIKE: Pick<UserProfile, 'id' | 'username' | 'email'> =
+    { id: 4, username: 'mike_t', email: 'mike@erni.com' };
+export const MOCK_USER_DAYNIEL: Pick<UserProfile, 'id' | 'username' | 'email'> =
+    { id: 5, username: 'Dayniel Caadiang', email: 'dayniel@erni.com'}; // Corrected ID from previous example
+
+    export const MOCK_LEADERBOARD_INDIVIDUAL_WEEKLY: IndividualScoreEntry[] = [
+  { user: { id: MOCK_USER_MAIN.id, username: MOCK_USER_MAIN.username }, score: 1250, week_start_date: '2025-10-19' },
+  { user: { id: MOCK_USER_SARAH.id, username: MOCK_USER_SARAH.username }, score: 1100, week_start_date: '2025-10-19' },
+  { user: { id: MOCK_USER_MIKE.id, username: MOCK_USER_MIKE.username }, score: 980, week_start_date: '2025-10-19' },
+  { user: { id: MOCK_USER_DAYNIEL.id, username: MOCK_USER_DAYNIEL.username }, score: 950, week_start_date: '2025-10-19' },
+];
+
+export const MOCK_LEADERBOARD_DEPARTMENT_WEEKLY: DepartmentScoreEntry[] = [
+  { department: { id: MOCK_DEPARTMENTS[0].id, name: MOCK_DEPARTMENTS[0].name }, score: 2230, week_start_date: '2025-10-19' },
+  { department: { id: MOCK_DEPARTMENTS[1].id, name: MOCK_DEPARTMENTS[1].name }, score: 1500, week_start_date: '2025-10-19' },
+  { department: { id: MOCK_DEPARTMENTS[3].id, name: MOCK_DEPARTMENTS[3].name }, score: 1100, week_start_date: '2025-10-19' },
+  { department: { id: MOCK_DEPARTMENTS[2].id, name: MOCK_DEPARTMENTS[2].name }, score: 900, week_start_date: '2025-10-19' },
+];
