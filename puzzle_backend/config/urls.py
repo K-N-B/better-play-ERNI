@@ -21,9 +21,8 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     #Add this line to include URLs from your 'users' app (views we'll create soon)
-    path('', include('users.urls')),
+    path('auth/', include('users.urls')),
 
     # Add this line to include social-auth URLs under the '/auth/' prefix
     # This provides '/auth/login/azuread-oauth2/' and '/auth/complete/azuread-oauth2/'
-    path('auth/', include('social_django.urls', namespace='social')),
 ]

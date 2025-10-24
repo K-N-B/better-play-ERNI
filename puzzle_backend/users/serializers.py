@@ -30,4 +30,4 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'max_streak_count',
             'challenges_made_count',
         ]
-        read_only_fields = ['department'] # Department is set via separate endpoint
+        read_only_fields = ['department', 'total_points_alltime', 'current_streak_count', 'max_streak_count', 'challenges_made_count']
