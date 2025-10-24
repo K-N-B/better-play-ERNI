@@ -88,15 +88,67 @@ export const getDepartments = async (): Promise<Department[]> => {
   
 
 // This is still needed for the modal
-export const completeProfile = (departmentId: number): Promise<UserProfile> => {
-  if (MOCK_MODE) {
-    // TODO: Replace with a real API call later
-    // Real call: return api.post('/api/users/me/complete-profile/', { departmentId });
-    return mockApiCall({
-      ...MOCK_USER_MAIN,
-      profile_complete: true,
-      department: MOCK_DEPARTMENTS[1],
+export const completeProfile = async (departmentId: number): Promise<UserProfile> => {
+  // if (MOCK_MODE) {
+  //   // TODO: Replace with a real API call later
+  //   // Real call: return api.post('/api/users/me/complete-profile/', { departmentId });
+  //   return mockApiCall({
+  //     ...MOCK_USER_MAIN,
+  //     profile_complete: true,
+  //     department: MOCK_DEPARTMENTS[1],
+  //   });
+  // }
+
+  try {
+    console.log(`[completeProfile] Sending real request... Dept ID: ${departmentId}`);
+    // --- Get CSRF Token ---
+    const csrfToken = getCookie('csrftoken'); // Default Django CSRF cookie name
+    if (!csrfToken) {
+       console.error("[completeProfile] CSRF token not found. Ensure backend sends 'csrftoken' cookie.");
+       throw new Error("CSRF token missing. Cannot complete profile.");
+    }
+    // ---
+
+    const response = await fetch(`${API_URL}/api/users/me/complete-profile/`, {
+       method: 'POST',
+       credentials: 'include',
+       headers: {
+         'Content-Type': 'application/json',
+         // --- Add CSRF Token Header ---
+         'X-CSRFToken': csrfToken,
+         // ---
+       },
+       body: JSON.stringify({ department_id: departmentId }),
     });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error(`[completeProfile] API request failed (${response.status}):`, errorData);
+      throw new Error(`Failed to complete profile: ${errorData.detail || response.statusText}`);
+    }
+
+    const updatedUserProfile: UserProfile = await response.json();
+    console.log('[completeProfile] Profile updated successfully:', updatedUserProfile);
+    return updatedUserProfile;
+
+  } catch (error) {
+    console.error('[completeProfile] Fetch error:', error);
+    throw error;
   }
-  return new Promise(() => {});
 };
+
+function getCookie(name: string): string | null {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      // Does this cookie string begin with the name we want?
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}

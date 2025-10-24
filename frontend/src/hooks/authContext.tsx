@@ -16,7 +16,7 @@ interface AuthContextType {
   user: UserProfile | null;
   isLoading: boolean;
   logout: () => void;
-  refreshProfile: (departmentId: number) => Promise<void>;
+  submitProfileCompletion: (departmentId: number) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
   
   // This is for the FirstTimeSetupModal
-  const refreshProfile = async (departmentId: number) => {
+  const submitProfileCompletion = async (departmentId: number) => {
     try {
       // Call the API to update the backend
       const updatedUser = await completeProfile(departmentId);
@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Pass down the real user data and functions
   return (
-    <AuthContext.Provider value={{ user, isLoading, logout, refreshProfile }}>
+    <AuthContext.Provider value={{ user, isLoading, logout, submitProfileCompletion }}> 
       {children}
     </AuthContext.Provider>
   );
