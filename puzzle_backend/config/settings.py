@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     #Ganes app
     'games',
     'gameplay',
+    'leaderboards'
 ]
 
 SITE_ID = 1
