@@ -1,29 +1,6 @@
-//A "dumb" component. It just takes the array of guesses and the current guess as props and renders the 6x5 grid, coloring the tiles based on their status (correct, present, absent).
-// --- Helper logic for coloring the grid ---
+// WordleGrid component - now uses validated statuses from backend
 type GuessStatus = 'correct' | 'present' | 'absent' | 'pending' | 'typing';
 
-const getGuessStatus = (guess: string, solution: string): GuessStatus[] => {
-  const statuses: GuessStatus[] = Array(5).fill('absent');
-  const solChars = solution.split('');
-
-  // 1st pass: find 'correct' (green)
-  for (let i = 0; i < 5; i++) {
-    if (guess[i] === solChars[i]) {
-      statuses[i] = 'correct';
-      solChars[i] = ' '; // Mark as used
-    }
-  }
-  // 2nd pass: find 'present' (yellow)
-  for (let i = 0; i < 5; i++) {
-    if (statuses[i] !== 'correct' && solChars.includes(guess[i])) {
-      statuses[i] = 'present';
-      solChars[solChars.indexOf(guess[i])] = ' '; // Mark as used
-    }
-  }
-  return statuses;
-};
-
-// --- TailwindCSS color map ---
 const statusColors: Record<GuessStatus, string> = {
   correct: 'bg-emerald-500 border-emerald-500 text-white',
   present: 'bg-yellow-400 border-yellow-400 text-white',
@@ -32,29 +9,47 @@ const statusColors: Record<GuessStatus, string> = {
   typing: 'bg-white border-gray-500 scale-105',
 };
 
-// --- Component Props ---
 interface WordleGridProps {
   guesses: string[];
   currentGuess: string;
-  solution: string;
+  guessStatuses: Array<Array<'correct' | 'present' | 'absent'>>; // NEW: Validated statuses from backend
   currentRow: number;
   maxGuesses: number;
 }
 
-export const WordleGrid = ({ guesses, currentGuess, solution, currentRow, maxGuesses }: WordleGridProps) => {
+export const WordleGrid = ({ 
+  guesses, 
+  currentGuess, 
+  guessStatuses,
+  currentRow, 
+  maxGuesses 
+}: WordleGridProps) => {
   const rows = Array(maxGuesses).fill(null);
+  
   return (
-    <div className={`grid grid-rows-${maxGuesses} gap-1.5 w-full max-w-sm mx-auto mb-4`}>
+    <div className={`grid gap-1.5 w-full max-w-sm mx-auto mb-4`} style={{ gridTemplateRows: `repeat(${maxGuesses}, minmax(0, 1fr))` }}>
       {rows.map((_, rowIndex) => {
         const guess = guesses[rowIndex];
         const isCurrentRow = rowIndex === currentRow;
-        const statuses = guess ? getGuessStatus(guess, solution) : [];
+        const statuses = guessStatuses[rowIndex] || [];
 
         return (
           <div key={rowIndex} className="grid grid-cols-5 gap-1.5">
             {Array(5).fill(null).map((_, colIndex) => {
               const char = isCurrentRow ? currentGuess[colIndex] : guess?.[colIndex];
-              const status = guess ? statuses[colIndex] : isCurrentRow && char ? 'typing' : 'pending';
+              
+              // Determine status
+              let status: GuessStatus;
+              if (guess && statuses[colIndex]) {
+                // Validated guess - use backend status
+                status = statuses[colIndex];
+              } else if (isCurrentRow && char) {
+                // Current guess being typed
+                status = 'typing';
+              } else {
+                // Empty cell
+                status = 'pending';
+              }
 
               return (
                 <div

@@ -15,6 +15,9 @@ const MOCK_SAVE_SLOTS: {
   ernigram?: PuzzleAttemptResponse;
 } = {};
 
+// Mock solution for testing
+const MOCK_SOLUTION = "HOUSE";
+
 // ============================================
 // GET DAILY PUZZLES
 // ============================================
@@ -30,6 +33,75 @@ export const getDailyPuzzles = async (difficulty: string = 'easy'): Promise<Dail
   
   if (!response.ok) {
     throw new Error('Failed to fetch daily puzzles');
+  }
+  
+  return response.json();
+};
+
+// ============================================
+// VALIDATE WORDLE GUESS (NEW!)
+// ============================================
+export interface ValidateGuessResponse {
+  statuses: Array<'correct' | 'present' | 'absent'>;
+  is_correct: boolean;
+  letter_statuses: Record<string, 'correct' | 'present' | 'absent'>;
+}
+
+export const validateWordleGuess = async (
+  puzzleId: number,
+  guess: string
+): Promise<ValidateGuessResponse> => {
+  if (MOCK_MODE) {
+    console.log(`[MOCK] Validating guess: ${guess}`);
+    
+    // Mock validation logic
+    const solution = MOCK_SOLUTION;
+    const statuses: Array<'correct' | 'present' | 'absent'> = Array(5).fill('absent');
+    const solChars = solution.split('');
+    
+    // First pass: correct
+    for (let i = 0; i < 5; i++) {
+      if (guess[i] === solChars[i]) {
+        statuses[i] = 'correct';
+        solChars[i] = ' ';
+      }
+    }
+    
+    // Second pass: present
+    for (let i = 0; i < 5; i++) {
+      if (statuses[i] !== 'correct' && solChars.includes(guess[i])) {
+        statuses[i] = 'present';
+        solChars[solChars.indexOf(guess[i])] = ' ';
+      }
+    }
+    
+    const letterStatuses: Record<string, 'correct' | 'present' | 'absent'> = {};
+    guess.split('').forEach((char, i) => {
+      const status = statuses[i];
+      if (!letterStatuses[char] || status === 'correct' || (status === 'present' && letterStatuses[char] === 'absent')) {
+        letterStatuses[char] = status;
+      }
+    });
+    
+    return mockApiCall({
+      statuses,
+      is_correct: guess === solution,
+      letter_statuses: letterStatuses
+    });
+  }
+  
+  const response = await fetch(`${API_BASE_URL}/puzzles/validate-guess/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify({ puzzle_id: puzzleId, guess }),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to validate guess');
   }
   
   return response.json();
@@ -55,7 +127,6 @@ export const getSavedAttempt = async (
     throw new Error('Failed to fetch saved progress');
   }
   
-  // Backend returns null if no saved progress
   const text = await response.text();
   return text ? JSON.parse(text) : null;
 };
@@ -100,12 +171,10 @@ export const submitPuzzle = async (data: SubmissionData): Promise<{ score: numbe
   if (MOCK_MODE) {
     console.log(`[MOCK] Submitting ${data.puzzle_type}...`, data);
     
-    // Clear saved progress
     if (MOCK_SAVE_SLOTS[data.puzzle_type]) {
       delete MOCK_SAVE_SLOTS[data.puzzle_type];
     }
     
-    // Calculate mock score
     let score = 100;
     if (data.puzzle_type === 'wordle') {
       score = Math.max(0, (7 - data.tries) * 100);

@@ -421,3 +421,166 @@ def get_whos_online(request):
     
     serializer = UserBasicSerializer(online_users, many=True)
     return Response(serializer.data)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def validate_wordle_guess(request):
+    """
+    POST /api/puzzles/validate-guess/
+    
+    Validates a Wordle guess and returns tile colors.
+    This allows frontend to show colored tiles without exposing the solution.
+    
+    Request body:
+    {
+        "puzzle_id": 1,
+        "guess": "HOUSE"
+    }
+    
+    Response:
+    {
+        "statuses": ["correct", "present", "absent", "correct", "correct"],
+        "is_correct": true,
+        "letter_statuses": {"H": "correct", "O": "present", ...}
+    }
+    """
+    puzzle_id = request.data.get('puzzle_id')
+    guess = request.data.get('guess', '').upper()
+    
+    if not puzzle_id or not guess:
+        return Response(
+            {'error': 'puzzle_id and guess are required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    if len(guess) != 5:
+        return Response(
+            {'error': 'Guess must be 5 letters'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    puzzle = get_object_or_404(Puzzle, id=puzzle_id)
+    
+    if puzzle.puzzle_type != 'wordle':
+        return Response(
+            {'error': 'This endpoint is only for Wordle puzzles'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    solution = puzzle.solution_word.upper()
+    
+    # Calculate tile statuses (same logic as frontend would use)
+    statuses = ['absent'] * 5
+    sol_chars = list(solution)
+    
+    # First pass: mark correct (green)
+    for i in range(5):
+        if guess[i] == sol_chars[i]:
+            statuses[i] = 'correct'
+            sol_chars[i] = ' '  # Mark as used
+    
+    # Second pass: mark present (yellow)
+    for i in range(5):
+        if statuses[i] != 'correct' and guess[i] in sol_chars:
+            statuses[i] = 'present'
+            sol_chars[sol_chars.index(guess[i])] = ' '  # Mark as used
+    
+    # Calculate letter statuses for keyboard
+    letter_statuses = {}
+    for i, char in enumerate(guess):
+        current_status = letter_statuses.get(char, 'default')
+        new_status = statuses[i]
+        
+        # Priority: correct > present > absent
+        if new_status == 'correct':
+            letter_statuses[char] = 'correct'
+        elif new_status == 'present' and current_status != 'correct':
+            letter_statuses[char] = 'present'
+        elif new_status == 'absent' and current_status == 'default':
+            letter_statuses[char] = 'absent'
+    
+    is_correct = guess == solution
+    
+    return Response({
+        'statuses': statuses,
+        'is_correct': is_correct,
+        'letter_statuses': letter_statuses
+    })
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def validate_wordle_guess(request):
+    """
+    POST /api/puzzles/validate-guess/
+    Validates a Wordle guess and returns tile colors.
+    """
+    puzzle_id = request.data.get('puzzle_id')
+    guess = request.data.get('guess', '').upper()
+    
+    # Validation
+    if not puzzle_id:
+        return Response(
+            {'error': 'puzzle_id is required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    if not guess:
+        return Response(
+            {'error': 'guess is required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    if len(guess) != 5:
+        return Response(
+            {'error': 'Guess must be exactly 5 letters'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Get puzzle
+    puzzle = get_object_or_404(Puzzle, id=puzzle_id)
+    
+    if puzzle.puzzle_type != 'wordle':
+        return Response(
+            {'error': 'This endpoint is only for Wordle puzzles'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    solution = puzzle.solution_word.upper()
+    
+    # Calculate tile statuses (Wordle algorithm)
+    statuses = ['absent'] * 5
+    sol_chars = list(solution)
+    
+    # First pass: mark correct positions (green)
+    for i in range(5):
+        if guess[i] == sol_chars[i]:
+            statuses[i] = 'correct'
+            sol_chars[i] = ' '  # Mark as used
+    
+    # Second pass: mark present but wrong position (yellow)
+    for i in range(5):
+        if statuses[i] != 'correct' and guess[i] in sol_chars:
+            statuses[i] = 'present'
+            sol_chars[sol_chars.index(guess[i])] = ' '  # Mark as used
+    
+    # Calculate keyboard letter statuses
+    letter_statuses = {}
+    for i, char in enumerate(guess):
+        current_status = letter_statuses.get(char, 'default')
+        new_status = statuses[i]
+        
+        # Priority: correct > present > absent
+        if new_status == 'correct':
+            letter_statuses[char] = 'correct'
+        elif new_status == 'present' and current_status != 'correct':
+            letter_statuses[char] = 'present'
+        elif new_status == 'absent' and current_status == 'default':
+            letter_statuses[char] = 'absent'
+    
+    is_correct = guess == solution
+    
+    return Response({
+        'statuses': statuses,
+        'is_correct': is_correct,
+        'letter_statuses': letter_statuses
+    })

@@ -1,5 +1,5 @@
 // API Configuration
-export const MOCK_MODE = true; // Change to false to use real backend
+export const MOCK_MODE = false; // Change to false to use real backend
 export const API_BASE_URL = 'http://localhost:8000/api';
 
 // Mock API delay for testing (only used when MOCK_MODE = true)
