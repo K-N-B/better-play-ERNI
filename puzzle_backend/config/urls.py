@@ -17,21 +17,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from games.views import DailyPuzzleViewSet
-from gameplay.views import PuzzleAttemptViewSet
-
-router = DefaultRouter()
-router.register(r'daily-puzzles', DailyPuzzleViewSet, basename='daily-puzzle')
-router.register(r'puzzle-attempts', PuzzleAttemptViewSet, basename='puzzle-attempt')
-
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     #Add this line to include URLs from your 'users' app (views we'll create soon)
     path('', include('users.urls')), 
     path('auth/', include('users.urls')),
-    path('api/', include(router.urls)), #games and gameplay API endpoints
+    
+    #games and gameplay API endpoints
     # Add this line to include social-auth URLs under the '/auth/' prefix
     # This provides '/auth/login/azuread-oauth2/' and '/auth/complete/azuread-oauth2/'
 ]
