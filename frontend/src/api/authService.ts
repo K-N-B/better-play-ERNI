@@ -4,25 +4,28 @@
 // getTeams(): Calls GET /api/teams/.
 // completeProfile(teamId: number): Calls POST /api/users/me/complete-profile/.
 
-import type { Department, UserProfile } from '../types/user';
-import { MOCK_MODE, mockApiCall } from './api';
-import { MOCK_DEPARTMENTS, MOCK_USER_MAIN } from '../data/_mockData';
+import type { Department, UserProfile } from "../types/user";
+import { MOCK_MODE, mockApiCall } from "./api";
+import { MOCK_DEPARTMENTS, MOCK_USER_MAIN } from "../data/_mockData";
 
-const API_URL = 'http://localhost:8000'; // Your Django backend
+const API_URL = "http://localhost:8000"; // Your Django backend
 
 // This function checks if the user has a valid session cookie
-export const checkAuth = async (): Promise<{ authenticated: boolean; user: UserProfile | null }> => {
+export const checkAuth = async (): Promise<{
+  authenticated: boolean;
+  user: UserProfile | null;
+}> => {
   // We NEVER mock this. This is the core of your auth.
   try {
     const response = await fetch(`${API_URL}/auth/check/`, {
-      credentials: 'include', // This sends the session cookie
+      credentials: "include", // This sends the session cookie
     });
     if (!response.ok) {
       return { authenticated: false, user: null };
     }
     const data = await response.json();
     // Assumes your /auth/check/ returns { authenticated: true, user: {...} }
-    return data; 
+    return data;
   } catch (err) {
     return { authenticated: false, user: null };
   }
@@ -31,10 +34,10 @@ export const checkAuth = async (): Promise<{ authenticated: boolean; user: UserP
 // This gets the Microsoft redirect URL from your backend
 export const getLoginRedirectUrl = async (): Promise<{ auth_url: string }> => {
   const response = await fetch(`${API_URL}/auth/login/`, {
-    credentials: 'include',
+    credentials: "include",
   });
   if (!response.ok) {
-    throw new Error('Failed to get auth URL');
+    throw new Error("Failed to get auth URL");
   }
   return response.json();
 };
@@ -42,27 +45,30 @@ export const getLoginRedirectUrl = async (): Promise<{ auth_url: string }> => {
 // This tells the backend to destroy the session cookie
 export const logoutUser = async (): Promise<void> => {
   await fetch(`${API_URL}/auth/logout/`, {
-    method: 'POST',
-    credentials: 'include',
+    method: "POST",
+    credentials: "include",
   });
 };
 
 // --- This part can still be mocked ---
 // Gets the list of departments for the "FirstTimeSetupModal"
-export const getDepartments = (): Promise<Department[]> => {
-  if (MOCK_MODE) {
-    return mockApiCall(MOCK_DEPARTMENTS);
-  }
+export const getDepartments = async (): Promise<Department[]> => {
+  // if (MOCK_MODE) {
+  //   return mockApiCall(MOCK_DEPARTMENTS);
+  // }
   // Real call will go here
-  return new Promise(() => {});
-};
+  try {     console.log('[getDepartments] Fetching real data...');     const response = await fetch(`${API_URL}/api/departments/`, { // <-- Use correct endpoint URLcredentials: 'include', // <-- Include cookies for authenticationheaders: {         'Accept': 'application/json', // Optional: Specify expected content type      }    });     if (!response.ok) {       // Handle non-2xx responses (like 403 Forbidden if not authenticated)console.error(`[getDepartments] API request failed with status ${response.status}`);       throw new Error(`Failed to fetch departments: ${response.statusText}`);     }     const data: Department[] = await response.json(); // Parse the JSON responseconsole.log('[getDepartments] Fetched real data:', data);     return data; } catch (error) { console.error('[getDepartments] Fetch error:', error); // Re-throw the error or return an empty array, depending on how you want to handle errorsthrow error; // Let the calling component handle the error state// Or return []; }
 
 // This is still needed for the modal
 export const completeProfile = (departmentId: number): Promise<UserProfile> => {
   if (MOCK_MODE) {
-     // TODO: Replace with a real API call later
+    // TODO: Replace with a real API call later
     // Real call: return api.post('/api/users/me/complete-profile/', { departmentId });
-    return mockApiCall({ ...MOCK_USER_MAIN, profile_complete: true, department: MOCK_DEPARTMENTS[1] });
+    return mockApiCall({
+      ...MOCK_USER_MAIN,
+      profile_complete: true,
+      department: MOCK_DEPARTMENTS[1],
+    });
   }
   return new Promise(() => {});
 };
