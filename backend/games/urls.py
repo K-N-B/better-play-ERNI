@@ -7,7 +7,7 @@ urlpatterns = [
     # Puzzle endpoints
     path('puzzles/daily/', views.get_daily_puzzles, name='daily-puzzles'),
     path('puzzles/<int:puzzle_id>/hints/', views.get_puzzle_hints, name='puzzle-hints'),
-    path('puzzles/validate-guess/', views.validate_wordle_guess, name='validate-guess'),  # <-- ADD THIS LINE
+    path('puzzles/validate-guess/', views.validate_wordle_guess, name='validate-guess'),  
     
     # Progress endpoints
     path('progress/<str:puzzle_type>/', views.get_saved_progress, name='get-progress'),

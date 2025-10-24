@@ -16,7 +16,7 @@ export default function UserProfileModal({ isOpen, onClose, user }: UserProfileM
   return (
     // Modal Overlay
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-50 flex i tems-center justify-center bg-black/50"
       onClick={onClose}
     >
       {/* Modal Content */}
