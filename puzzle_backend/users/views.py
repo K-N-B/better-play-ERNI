@@ -200,18 +200,18 @@ class CompleteProfileView(generics.GenericAPIView):
              return Response({'error': 'Invalid department_id format'}, status=status.HTTP_400_BAD_REQUEST)
         
 
-from .serializers import DepartmentSerializer, UserProfileSerializer, AssignDepartmentSerializer
-class AssignDepartmentView(generics.GenericAPIView):
-    """
-    POST /api/users/assign-department/
-    Assigns or creates a department for the logged-in user.
-    Triggered when frontend detects the user has no department yet.
-    """
-    serializer_class = AssignDepartmentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+# from .serializers import DepartmentSerializer, UserProfileSerializer, AssignDepartmentSerializer
+# class AssignDepartmentView(generics.GenericAPIView):
+#     """
+#     POST /api/users/assign-department/
+#     Assigns or creates a department for the logged-in user.
+#     Triggered when frontend detects the user has no department yet.
+#     """
+#     serializer_class = AssignDepartmentSerializer
+#     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)  # ✅ works now
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save(user=request.user)
-        return Response(UserProfileSerializer(user).data, status=status.HTTP_200_OK)
+#     def post(self, request, *args, **kwargs):
+#         serializer = self.get_serializer(data=request.data)  # ✅ works now
+#         serializer.is_valid(raise_exception=True)
+#         user = serializer.save(user=request.user)
+#         return Response(UserProfileSerializer(user).data, status=status.HTTP_200_OK)
