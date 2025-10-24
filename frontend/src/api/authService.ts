@@ -57,7 +57,35 @@ export const getDepartments = async (): Promise<Department[]> => {
   //   return mockApiCall(MOCK_DEPARTMENTS);
   // }
   // Real call will go here
-  try {     console.log('[getDepartments] Fetching real data...');     const response = await fetch(`${API_URL}/api/departments/`, { // <-- Use correct endpoint URLcredentials: 'include', // <-- Include cookies for authenticationheaders: {         'Accept': 'application/json', // Optional: Specify expected content type      }    });     if (!response.ok) {       // Handle non-2xx responses (like 403 Forbidden if not authenticated)console.error(`[getDepartments] API request failed with status ${response.status}`);       throw new Error(`Failed to fetch departments: ${response.statusText}`);     }     const data: Department[] = await response.json(); // Parse the JSON responseconsole.log('[getDepartments] Fetched real data:', data);     return data; } catch (error) { console.error('[getDepartments] Fetch error:', error); // Re-throw the error or return an empty array, depending on how you want to handle errorsthrow error; // Let the calling component handle the error state// Or return []; }
+  // --- START REAL API CALL ---
+  try {
+    console.log('[getDepartments] Fetching real data...');
+    const response = await fetch(`${API_URL}/api/departments/`, { // <-- Use correct endpoint URL
+      credentials: 'include', // <-- Include cookies for authentication
+      headers: {
+        'Accept': 'application/json', // Optional: Specify expected content type
+      }
+    });
+
+    if (!response.ok) {
+      // Handle non-2xx responses (like 403 Forbidden if not authenticated)
+      console.error(`[getDepartments] API request failed with status ${response.status}`);
+      throw new Error(`Failed to fetch departments: ${response.statusText}`);
+    }
+
+    const data: Department[] = await response.json(); // Parse the JSON response
+    console.log('[getDepartments] Fetched real data:', data);
+    return data;
+
+  } catch (error) {
+    console.error('[getDepartments] Fetch error:', error);
+    // Re-throw the error or return an empty array, depending on how you want to handle errors
+    throw error; // Let the calling component handle the error state
+    // Or return [];
+  }
+  // --- END REAL API CALL ---
+}
+  
 
 // This is still needed for the modal
 export const completeProfile = (departmentId: number): Promise<UserProfile> => {
