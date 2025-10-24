@@ -5,7 +5,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 # Import puzzle models for type hinting or specific relations if needed elsewhere
-# from games.models import WordlePuzzle, SudokuPuzzle, ErnigramPuzzle
+from games.models import WordlePuzzle, SudokuPuzzle, ErnigramPuzzle
 
 class PuzzleAttempt(models.Model):
     """ Stores a user's in-progress game state for a specific day/puzzle. """

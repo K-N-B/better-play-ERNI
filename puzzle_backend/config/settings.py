@@ -45,12 +45,9 @@ INSTALLED_APPS = [
 
     # Your local apps
     'users.apps.UsersConfig',
-    # Add 'games', 'gameplay', 'leaderboards' here later
-
-    #Ganes app
-    'leaderboards',
-    'games',
-    'gameplay',
+    'games.apps.GamesConfig',
+    'gameplay.apps.GameplayConfig', # <-- Ensure this line is present
+    'leaderboards.apps.LeaderboardsConfig',
 ]
 
 SITE_ID = 1
