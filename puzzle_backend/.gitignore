@@ -66,3 +66,12 @@ staticfiles/
 # OS files
 .DS_Store
 Thumbs.db
+
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Optional: ignore virtual environment
+venv/
+.env/
