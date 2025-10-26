@@ -67,21 +67,21 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, userPoints, onCl
         {/* Footer with points and button */}
         <div className="flex justify-between items-center mt-auto pt-3 border-t border-gray-200">
           <span className="font-bold text-primary text-lg flex items-center gap-1">
-            <Star size={16} className="text-yellow-500 fill-current" />
             {reward.cost}
+            <Star size={16} className="text-yellow-500 fill-current" />
           </span>
           <button
             onClick={handleClaim}
             disabled={!canAfford || isClaiming || claimStatus === 'success'}
-            className={`px-3 py-1.5 rounded-xl text-xs sm:px-4 sm:py-2 sm:text-sm font-medium transition-all duration-150 ease-in-out flex items-center gap-1.5 shadow-sm 
+            className={`px-3 py-1.5 rounded-xl text-xs sm:px-4 sm:py-2 sm:text-sm font-medium transition-transform duration-150 ease-in-out flex items-center gap-1.5
               ${!canAfford ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : ''}
-              ${canAfford && !isClaiming && claimStatus !== 'success' ? 'bg-primary text-white hover:bg-primary-dark active:translate-y-px' : ''}
+              ${canAfford && !isClaiming && claimStatus !== 'success' ? 'bg-primary text-white hover:bg-primary-dark active:translate-y-px shadow-[0_5px_0_0] shadow-primary-700' : ''}
               ${isClaiming ? 'bg-gray-400 text-white cursor-wait' : ''}
               ${claimStatus === 'success' ? 'bg-green-500 text-white cursor-default' : ''}
               ${claimStatus === 'error' ? 'bg-red-500 text-white  hover:bg-red-600' : ''}
             `}
           >
-            {isClaiming ? <LoadingSpinner /> :
+            {isClaiming ? <LoadingSpinner size="sm"/> :
              claimStatus === 'success' ? <CheckCircle size={16}/> :
              claimStatus === 'error' ? <XCircle size={16}/> :
              <ShoppingCart size={16}/>}
