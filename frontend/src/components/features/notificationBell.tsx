@@ -5,11 +5,21 @@ import type { Challenge } from '../../types/challenge';
 import { Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { LoadingSpinner } from '../ui/loadingSpinner'; // Assuming you have this
+import clsx from 'clsx';
 
-export const NotificationsBell = () => {
+interface NotificationsBellProps {
+    activeClasses?: string; // e.g., "bg-primary text-white shadow-[...]"
+    hoverClasses?: string; // e.g., "hover:bg-primary hover:text-white"
+}
+
+export const NotificationsBell: React.FC<NotificationsBellProps> = ({ // Destructure props
+    activeClasses = 'bg-primary text-white shadow-[0_5px_0_0] shadow-primary-900', // Default active style
+    hoverClasses = 'hover:bg-primary hover:text-white' // Default hover style
+}) => {
     const [pendingChallenges, setPendingChallenges] = useState<Challenge[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const isActive = isDropdownOpen; // Bell is "active" when dropdown is open
 
     useEffect(() => {
         let isMounted = true;
@@ -59,12 +69,21 @@ export const NotificationsBell = () => {
         <div className="relative items-center"> {/* Added class for positioning context */}
             <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="relative p-1 text-gray-600 hover:text-primary rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                // --- Apply conditional styles ---
+                className={clsx(
+                    // Base styles
+                    'relative inline-flex items-center justify-center h-10 w-10 rounded-lg transition-all duration-150',
+                    // Active styles (when dropdown is open)
+                    isActive && `active:translate-y-[2px] active:shadow-[0_3px_0_0] ${activeClasses}`,
+                    // Inactive styles
+                    !isActive && `text-primary ${hoverClasses}`
+                )}
+                // ---
                 aria-label="Notifications"
                 aria-haspopup="true"
                 aria-expanded={isDropdownOpen}
             >
-                <Bell size={24} />
+                <Bell size={20} />
                 {challengeCount > 0 && (
                     <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full ring-2 ring-white bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
                         {challengeCount > 9 ? '9+' : challengeCount}
