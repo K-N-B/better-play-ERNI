@@ -4,6 +4,8 @@ from datetime import timedelta
 from django.utils import timezone
 from .models import WordlePuzzle, SudokuPuzzle, ErnigramPuzzle, DailyPuzzle
 from .ai_service import WordleGeneratorAI
+from .api_client import generate_sudoku_puzzle_data
+from .api_client import generate_ernigram_puzzle_data
 
 
 def _generate_unique_wordle_data(ai_generator, difficulty, existing_words):
@@ -26,33 +28,11 @@ def _generate_unique_wordle_data(ai_generator, difficulty, existing_words):
         f"AI failed to generate a valid puzzle for difficulty '{difficulty}' after {max_retries} attempts.")
 
 
-def _generate_unique_sudoku_data(date_to_be_used):
-    if date_to_be_used.day % 3 == 0:
-        puzzle_string = "003020600900305001001806400008102900700000008006708200002609500800203009005010300"
-    elif date_to_be_used.day % 3 == 1:
-        puzzle_string = "000000010400000000020000000000050400000000000000000000000000000000000000000000000"
-    else:
-        puzzle_string = "900000000080000000007000000000600000000050000000040000000003000000002000000000010"
-    return {"puzzle_string_easy": puzzle_string, "puzzle_string_hard": puzzle_string, "date_to_be_used": date_to_be_used}
-
-
-def _generate_unique_ernigram_data(date_to_be_used):
-    if date_to_be_used.day % 2 == 0:
-        return {
-            "solution_phrase": "DJANGO REST FRAMEWORK",
-            "clue": "Popular Python API framework"
-        }
-    else:
-        return {
-            "solution_phrase": "PYTHON PROGRAMMING",
-            "clue": "General purpose language"
-        }
-
-
 # --- Main generator ---
 def generate_daily_puzzles(target_date: datetime.date = None) -> DailyPuzzle:
     """
-    Generates a full set of daily puzzles using AI for Wordle.
+    Generates a full set of daily puzzles for the target date.
+    Uses get_or_create for idempotency to prevent database errors.
     """
     if target_date is None:
         target_date = timezone.now().date()
@@ -78,30 +58,62 @@ def generate_daily_puzzles(target_date: datetime.date = None) -> DailyPuzzle:
     wordle_hard_data = _generate_unique_wordle_data(
         ai_generator, 'HARD', existing_words)
 
-    sudoku_data = _generate_unique_sudoku_data(target_date)
-    # --- FIX IS HERE ---
-    # The call to generate Ernigram data now correctly provides TWO arguments.
-    ernigram_data = _generate_unique_ernigram_data(target_date)
+    # Sudoku logic is now delegated to api_client.py
+    sudoku_data = generate_sudoku_puzzle_data(target_date)
+    ernigram_data = generate_ernigram_puzzle_data(target_date)
 
-    # 4. Create the puzzle objects in the database
-    wordle_easy = WordlePuzzle.objects.create(
-        date_to_be_used=target_date, **wordle_easy_data)
-    wordle_hard = WordlePuzzle.objects.create(
-        date_to_be_used=target_date, **wordle_hard_data)
-    # Make sure the date field isn't duplicated
+    # 4. Create/Get the puzzle objects in the database (using get_or_create)
+    print("Wordle EASY data:", wordle_easy_data)
+    print("Wordle HARD data:", wordle_hard_data)
+
+    # Wordle Easy
+    wordle_easy, _ = WordlePuzzle.objects.update_or_create(
+        date_to_be_used=target_date,
+        # Query on date AND difficulty
+        difficulty=wordle_easy_data['difficulty'],
+        defaults=wordle_easy_data
+    )
+    print(f"Wordle Easy saved: {wordle_easy.solution_word}")
+
+    # Wordle Hard - Using update_or_create to ensure the word is always the latest AI-generated one
+    # Wordle Hard - Using update_or_create to ensure the word is always the latest AI-generated one
+    wordle_hard, _ = WordlePuzzle.objects.update_or_create(  # Use get_or_create or update_or_create
+        date_to_be_used=target_date,
+        # Query on date AND difficulty
+        difficulty=wordle_hard_data['difficulty'],
+        defaults=wordle_hard_data
+    )
+
+    # Sudoku
     sudoku_data.pop("date_to_be_used", None)
-    sudoku = SudokuPuzzle.objects.create(
-        date_to_be_used=target_date, **sudoku_data)
+    sudoku, created = SudokuPuzzle.objects.get_or_create(
+        date_to_be_used=target_date, defaults=sudoku_data)
+
+    if created:
+        print(f"✅ Successfully created new Sudoku puzzle for {target_date}.")
+    else:
+        print(
+            f"⚠️ Sudoku puzzle for {target_date} already exists. Using existing record.")
+
+    # Ernigram
     ernigram_data.pop("date_to_be_used", None)
-    ernigram = ErnigramPuzzle.objects.create(
-        date_to_be_used=target_date, **ernigram_data)
+    ernigram, _ = ErnigramPuzzle.objects.get_or_create(
+        date_to_be_used=target_date, defaults=ernigram_data)
 
     # 5. Link them all in the DailyPuzzle object
-    daily_puzzle_set = DailyPuzzle.objects.create(
+    daily_puzzle_set, created = DailyPuzzle.objects.get_or_create(
         date=target_date,
-        wordle_easy=wordle_easy,
-        wordle_hard=wordle_hard,
-        sudoku=sudoku,
-        ernigram=ernigram
+        defaults={
+            "wordle_easy": wordle_easy,
+            "wordle_hard": wordle_hard,
+            "sudoku": sudoku,
+            "ernigram": ernigram
+        }
     )
+
+    if created:
+        print(f"🎉 Successfully completed Daily Puzzle Set for {target_date}!")
+    else:
+        print(f"⚠️ Daily Puzzle Set for {target_date} was already complete.")
+
     return daily_puzzle_set
