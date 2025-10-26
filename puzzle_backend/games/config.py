@@ -7,4 +7,4 @@ DEFAULT_HARD_BLANKS = 55
 
 
 NEWS_API_BASE_URL = "https://api.rss2json.com/v1/api.json"
-NEWS_API_FEED_PARAM = "?rss_url=https://www.manilatimes.net/rssFeed/10"
+NEWS_API_FEED_PARAM = "?rss_url=https%3A%2F%2Fwww.manilatimes.net%2Fnews%2Ffeed%2F"
