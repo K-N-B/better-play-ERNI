@@ -4,6 +4,12 @@ import type { IndividualScoreEntry, DepartmentScoreEntry } from '../types/leader
 import type { ActivityHubResponse, OnlineUser } from '../types/activity';
 import type { Submission } from '../types/game';
 import type { Challenge } from '../types/challenge';
+import type { RewardItem, ClaimResponse } from '../types';
+
+import stickerImage from '../assets/images/stickers.jpg'; // Adjust path/filename
+import mugImage from '../assets/images/mug.jpg';
+import pinImage from '../assets/images/pin.png';
+import ballerImage from '../assets/images/baller.jpg';
 
 
 // Mock Departments
@@ -24,6 +30,7 @@ export const MOCK_USER_MAIN: UserProfile = {
     department: MOCK_DEPARTMENTS[1],
     profile_complete: true,
     total_points_alltime: 1250,
+    current_points: 1250,
     current_streak_count: 3,
     max_streak_count: 5,
     challenges_made_count: 10
@@ -37,6 +44,7 @@ export const MOCK_USER_NEW: UserProfile = {
   department: null,
   profile_complete: false,
   total_points_alltime: 0,
+  current_points: 0,
   current_streak_count: 0,
   max_streak_count: 0,
   challenges_made_count: 0
@@ -196,4 +204,35 @@ export const MOCK_LEADERBOARD_DEPARTMENT_WEEKLY: DepartmentScoreEntry[] = [
   { department: { id: MOCK_DEPARTMENTS[1].id, name: MOCK_DEPARTMENTS[1].name }, score: 1500, week_start_date: '2025-10-19' },
   { department: { id: MOCK_DEPARTMENTS[3].id, name: MOCK_DEPARTMENTS[3].name }, score: 1100, week_start_date: '2025-10-19' },
   { department: { id: MOCK_DEPARTMENTS[2].id, name: MOCK_DEPARTMENTS[2].name }, score: 900, week_start_date: '2025-10-19' },
+];
+
+export const MOCK_REWARDS: RewardItem[] = [
+    {
+        id: 'reward-001',
+        name: 'Company Sticker Pack',
+        description: 'Show your ERNI pride with these cool stickers.',
+        cost: 250,
+        imageUrl: stickerImage, // Placeholder image
+    },
+    {
+        id: 'reward-002',
+        name: 'ERNI Coffee Mug',
+        description: 'Enjoy your morning brew in style.',
+        cost: 1000,
+        imageUrl: mugImage, // Placeholder image
+    },
+    {
+        id: 'reward-003',
+        name: 'ERNI Button Pin',
+        description: 'Be an Ernian, loud and proud!',
+        cost: 500,
+        imageUrl: pinImage, // Placeholder image
+    },
+     {
+        id: 'reward-004',
+        name: 'ERNI Baller',
+        description: 'Proof of life at ERNI',
+        cost: 750,
+        imageUrl: ballerImage, // Placeholder image
+    },
 ];
