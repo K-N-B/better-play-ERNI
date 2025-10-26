@@ -94,11 +94,11 @@ export const NotificationsBell: React.FC<NotificationsBellProps> = ({ // Destruc
             {/* Dropdown Menu */}
             {isDropdownOpen && (
                 <div
-                 className="origin-top-right absolute right-0 mt-2 w-72 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-20"
+                 className="origin-top-right absolute right-0 mt-4 w-72 rounded-md shadow-2xl bg-white z-20"
                  role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabIndex={-1}
                  >
                     <div className="py-1" role="none">
-                        <div className="px-4 py-2 text-sm font-semibold text-gray-800 border-b">
+                        <div className="px-4 pt-2 text-base font-semibold text-black">
                             Pending Challenges ({challengeCount})
                         </div>
                         <div className="max-h-60 overflow-y-auto">
@@ -109,7 +109,7 @@ export const NotificationsBell: React.FC<NotificationsBellProps> = ({ // Destruc
                                     <Link
                                         key={challenge.id}
                                         to={`/game/${challenge.puzzle_type}?challenge_id=${challenge.id}`}
-                                        className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100"
+                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                         role="menuitem" tabIndex={-1}
                                         onClick={() => setIsDropdownOpen(false)} // Close dropdown on click
                                     >
@@ -117,7 +117,7 @@ export const NotificationsBell: React.FC<NotificationsBellProps> = ({ // Destruc
                                             <strong className="font-medium">{challenge.challenger.username}</strong> challenged you to{' '}
                                             <strong className="font-medium">{challenge.puzzle_type}</strong>!
                                         </p>
-                                        <p className="text-xs text-gray-500 mt-1">
+                                        <p className="text-xs text-gray-500">
                                             Their score: {challenge.challenger_submission.points_awarded} pts {/* Use points_awarded */}
                                         </p>
                                     </Link>
@@ -129,7 +129,7 @@ export const NotificationsBell: React.FC<NotificationsBellProps> = ({ // Destruc
                          {/* Optional Link to view all challenges */}
                         <Link
                             to="/challenges" // Your challenge history page
-                            className="block px-4 py-2 text-sm text-center text-primary hover:bg-gray-50 border-t"
+                            className="block px-4 py-2 text-sm text-center text-primary font-medium hover:bg-gray-50"
                             role="menuitem" tabIndex={-1}
                             onClick={() => setIsDropdownOpen(false)}
                             >
