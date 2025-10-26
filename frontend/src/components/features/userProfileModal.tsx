@@ -52,7 +52,7 @@ export default function UserProfileModal({ isOpen, onClose, user }: UserProfileM
                 <div className="text-2xl font-bold">{user?.total_points_alltime || 0}</div>
                 <Star size={24} className="fill-current text-yellow-500" />
               </div>
-              <div className="text-sm text-gray-600">Total Points</div>
+              <div className="text-sm text-gray-600">All-time Points</div>
             </div>
             <div className="bg-gray-100 p-4 rounded-lg items-center justify-center flex flex-col">
               <div className="flex items-center justify-center gap-1">
