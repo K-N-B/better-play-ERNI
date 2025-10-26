@@ -42,6 +42,7 @@ class User(AbstractUser):
 
     # --- Stats Fields from DBML ---
     total_points_alltime = models.BigIntegerField(default=0)
+    current_points = models.BigIntegerField(default=0, help_text="Current spendable points balance.")
     current_streak_count = models.IntegerField(default=0)
     max_streak_count = models.IntegerField(default=0)
     challenges_made_count = models.IntegerField(default=0)

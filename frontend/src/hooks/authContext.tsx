@@ -6,7 +6,7 @@
 // Store this userProfile in the context.
 // Provide the MSAL user, your userProfile, and a refetchProfile() function to the entire app.
 // Create a useAuth() hook to easily access this context.
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type { UserProfile } from '../types/user';
 import { checkAuth, logoutUser, completeProfile } from '../api/authService';
@@ -17,6 +17,7 @@ interface AuthContextType {
   isLoading: boolean;
   logout: () => void;
   submitProfileCompletion: (departmentId: number) => Promise<void>;
+  updateUserPoints: (newPoints: number) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -46,7 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []); // Empty array = run once on mount
 
   // Logout function
-  const logout = async () => {
+  const logout = useCallback(async () => {
     setIsLoading(true); // Show a loading state
     try {
       await logoutUser(); // Call the API to destroy the cookie
@@ -58,10 +59,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     // No more window.location.href!
     // ProtectedRoute will now automatically redirect to /login.
-  };
+  }, []);
   
   // This is for the FirstTimeSetupModal
-  const submitProfileCompletion = async (departmentId: number) => {
+  const submitProfileCompletion = useCallback(async (departmentId: number) => {
     try {
       // Call the API to update the backend
       const updatedUser = await completeProfile(departmentId);
@@ -70,16 +71,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (err) {
       console.error("Failed to update profile", err);
     }
-  };
+  }, []);
 
+  const updateUserPoints = useCallback((newPoints: number) => {
+        setUser(currentUser => {
+            if (!currentUser) return null;
+            return { ...currentUser, current_points: newPoints }; // Update only current_points
+        });
+  }, []);
+  
   // Show a full-page spinner while checking auth
   if (isLoading) {
     return <LoadingSpinner fullPage={true} />;
   }
 
+  
+
   // Pass down the real user data and functions
   return (
-    <AuthContext.Provider value={{ user, isLoading, logout, submitProfileCompletion }}> 
+    <AuthContext.Provider value={{ user, isLoading, logout, submitProfileCompletion, updateUserPoints }}> 
       {children}
     </AuthContext.Provider>
   );
@@ -93,3 +103,4 @@ export const useAuth = () => {
   }
   return context;
 };
+

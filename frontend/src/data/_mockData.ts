@@ -4,6 +4,7 @@ import type { IndividualScoreEntry, DepartmentScoreEntry } from '../types/leader
 import type { ActivityHubResponse, OnlineUser } from '../types/activity';
 import type { Submission } from '../types/game';
 import type { Challenge } from '../types/challenge';
+import type { RewardItem, ClaimResponse } from '../types';
 
 
 // Mock Departments
@@ -196,4 +197,35 @@ export const MOCK_LEADERBOARD_DEPARTMENT_WEEKLY: DepartmentScoreEntry[] = [
   { department: { id: MOCK_DEPARTMENTS[1].id, name: MOCK_DEPARTMENTS[1].name }, score: 1500, week_start_date: '2025-10-19' },
   { department: { id: MOCK_DEPARTMENTS[3].id, name: MOCK_DEPARTMENTS[3].name }, score: 1100, week_start_date: '2025-10-19' },
   { department: { id: MOCK_DEPARTMENTS[2].id, name: MOCK_DEPARTMENTS[2].name }, score: 900, week_start_date: '2025-10-19' },
+];
+
+export const MOCK_REWARDS: RewardItem[] = [
+    {
+        id: 'reward-001',
+        name: 'Company Sticker Pack',
+        description: 'Show your ERNI pride with these cool stickers.',
+        cost: 250,
+        imageUrl: 'https://placehold.co/300x200/A9CCE3/4A5568?text=Stickers', // Placeholder image
+    },
+    {
+        id: 'reward-002',
+        name: 'ERNI Coffee Mug',
+        description: 'Enjoy your morning brew in style.',
+        cost: 1000,
+        imageUrl: 'https://placehold.co/300x200/F5B7B1/4A5568?text=Mug', // Placeholder image
+    },
+    {
+        id: 'reward-003',
+        name: '"Puzzle Master" Title (Internal)',
+        description: 'Get recognized internally as a puzzle whiz for a week!',
+        cost: 5000,
+        imageUrl: 'https://placehold.co/300x200/D7BDE2/4A5568?text=Title', // Placeholder image
+    },
+     {
+        id: 'reward-004',
+        name: 'Extra Hint Coupon',
+        description: 'Redeem for one free hint on any puzzle.',
+        cost: 150,
+        // No image needed maybe
+    },
 ];
