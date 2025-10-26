@@ -6,6 +6,11 @@ import type { Submission } from '../types/game';
 import type { Challenge } from '../types/challenge';
 import type { RewardItem, ClaimResponse } from '../types';
 
+import stickerImage from '../assets/images/stickers.jpg'; // Adjust path/filename
+import mugImage from '../assets/images/mug.jpg';
+import pinImage from '../assets/images/pin.png';
+import ballerImage from '../assets/images/baller.jpg';
+
 
 // Mock Departments
 export const MOCK_DEPARTMENTS: Department[] = [
@@ -25,6 +30,7 @@ export const MOCK_USER_MAIN: UserProfile = {
     department: MOCK_DEPARTMENTS[1],
     profile_complete: true,
     total_points_alltime: 1250,
+    current_points: 1250,
     current_streak_count: 3,
     max_streak_count: 5,
     challenges_made_count: 10
@@ -38,6 +44,7 @@ export const MOCK_USER_NEW: UserProfile = {
   department: null,
   profile_complete: false,
   total_points_alltime: 0,
+  current_points: 0,
   current_streak_count: 0,
   max_streak_count: 0,
   challenges_made_count: 0
@@ -205,27 +212,27 @@ export const MOCK_REWARDS: RewardItem[] = [
         name: 'Company Sticker Pack',
         description: 'Show your ERNI pride with these cool stickers.',
         cost: 250,
-        imageUrl: 'https://placehold.co/300x200/A9CCE3/4A5568?text=Stickers', // Placeholder image
+        imageUrl: stickerImage, // Placeholder image
     },
     {
         id: 'reward-002',
         name: 'ERNI Coffee Mug',
         description: 'Enjoy your morning brew in style.',
         cost: 1000,
-        imageUrl: 'https://placehold.co/300x200/F5B7B1/4A5568?text=Mug', // Placeholder image
+        imageUrl: mugImage, // Placeholder image
     },
     {
         id: 'reward-003',
-        name: '"Puzzle Master" Title (Internal)',
-        description: 'Get recognized internally as a puzzle whiz for a week!',
-        cost: 5000,
-        imageUrl: 'https://placehold.co/300x200/D7BDE2/4A5568?text=Title', // Placeholder image
+        name: 'ERNI Button Pin',
+        description: 'Be an Ernian, loud and proud!',
+        cost: 500,
+        imageUrl: pinImage, // Placeholder image
     },
      {
         id: 'reward-004',
-        name: 'Extra Hint Coupon',
-        description: 'Redeem for one free hint on any puzzle.',
-        cost: 150,
-        // No image needed maybe
+        name: 'ERNI Baller',
+        description: 'Proof of life at ERNI',
+        cost: 750,
+        imageUrl: ballerImage, // Placeholder image
     },
 ];
