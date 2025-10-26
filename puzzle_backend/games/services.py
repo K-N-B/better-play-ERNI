@@ -1,8 +1,8 @@
 # games/services.py
 import datetime
 from datetime import timedelta
+from django.utils import timezone
 from .models import WordlePuzzle, SudokuPuzzle, ErnigramPuzzle, DailyPuzzle
-from games.utils.timezone_helpers import get_local_today
 from .ai_service import WordleGeneratorAI
 
 
@@ -50,10 +50,14 @@ def _generate_unique_ernigram_data(date_to_be_used):
 
 
 # --- Main generator ---
-def generate_daily_puzzles(target_date: datetime.date) -> DailyPuzzle:
+def generate_daily_puzzles(target_date: datetime.date = None) -> DailyPuzzle:
     """
     Generates a full set of daily puzzles using AI for Wordle.
     """
+    if target_date is None:
+        target_date = timezone.now().date()
+    print(f"Generating daily puzzles for date: {target_date}")
+
     # 1. Initialize the AI service
     ai_generator = WordleGeneratorAI()
 
