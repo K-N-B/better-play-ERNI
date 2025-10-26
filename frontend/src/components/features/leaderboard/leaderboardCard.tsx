@@ -37,11 +37,11 @@ export const LeaderboardCard: React.FC<LeaderboardCardProps> = ({
   const restOfList = leaderboardArray.slice(3);
 
   return (
-    <div className="flex flex-col bg-slate-50 rounded-3xl p-6 shadow-md overflow-hidden h-[calc(100vh-12rem)]">
+    <div className="flex flex-col h-[calc(100vh-12rem)]">
       {/* Header */}
-      <div className="flex justify-start items-center mb-4">
+      {/* <div className="flex justify-start items-center mb-4">
         <div className="text-xl font-bold text-primary py-1">{title}</div>
-      </div>
+      </div> */}
 
       {/* Content */}
       {loading && (
