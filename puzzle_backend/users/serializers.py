@@ -50,6 +50,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'profile_complete',
             'is_admin', # Include the admin flag
             'total_points_alltime',
+            'current_points',
             'current_streak_count',
             'max_streak_count',
             'challenges_made_count',

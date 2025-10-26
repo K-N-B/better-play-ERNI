@@ -7,6 +7,7 @@ import UserProfileModal from '../features/userProfileModal';
 import { useAuth } from '../../hooks/authContext';
 import { navItems } from '../../data/navItems'; // <-- IMPORT YOUR DATA
 import { NotificationsBell } from '../features/notificationBell';
+import { Store, Star } from 'lucide-react';
 
 export default function Navbar() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,6 +19,8 @@ export default function Navbar() {
     const name = user.username;
     return name.charAt(0).toUpperCase();
   };
+
+  const currentPoints = user?.current_points ?? 0;
 
   return (
     <header className="top-0 left-0 w-full bg-slate-50 shadow-md z-50 py-2">
@@ -74,31 +77,47 @@ export default function Navbar() {
             })}
           </nav>
 
-          <div className="flex items-center space-x-3">
-             <NotificationsBell /> {/* <-- Place the bell here */}
-             {/* ... (Profile button and modal) ... */}
+          <div className="flex items-center gap-4">
+            <Link
+              to="/shop"
+              className=" text-gray-600 hover:text-primary rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              aria-label="Shop"
+              title="Shop" // Tooltip
+            >
+              <Store size={24} />
+            </Link>
+
+            <NotificationsBell /> {/* <-- Place the bell here */}
+
+            {!authLoading && user && ( // Only show if user is loaded
+              <div className="flex items-center space-x-1 bg-yellow-100 text-yellow-800 px-3 py-1.5 rounded-full text-sm font-semibold shadow-inner">
+                <Star size={20} className="fill-current text-yellow-500" />
+                <span>{currentPoints}</span>
+              </div>
+            )}
+            {/* Right: Profile button */}
+            <div className="flex items-center">
+              {authLoading ? (
+                <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
+              ) : (
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="w-10 h-10 bg-sky-400 rounded-full flex items-center justify-center text-white font-bold hover:bg-sky-500 transition"
+                  title={user?.username || 'Profile'}
+                >
+                  {getUserInitial()}
+                </button>
+              )}
+
+              <UserProfileModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                user={user}
+              />
+            </div>
           </div>
           
-          {/* Right: Profile button */}
-          <div className="flex items-center">
-            {authLoading ? (
-              <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
-            ) : (
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="w-10 h-10 bg-sky-400 rounded-full flex items-center justify-center text-white font-bold hover:bg-sky-500 transition"
-                title={user?.username || 'Profile'}
-              >
-                {getUserInitial()}
-              </button>
-            )}
-
-            <UserProfileModal
-              isOpen={isModalOpen}
-              onClose={() => setIsModalOpen(false)}
-              user={user}
-            />
-          </div>
+          
         </div>
       </div>
     </header>
