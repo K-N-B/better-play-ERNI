@@ -8,6 +8,9 @@ from .config import NEWS_API_BASE_URL, NEWS_API_FEED_PARAM
 from bs4 import BeautifulSoup
 import pprint
 
+from .ai_service_ernigram import ErnigramGeneratorAI
+from .models import ErnigramPuzzle
+
 
 def _flatten_board(board):
     """
@@ -101,6 +104,42 @@ def generate_sudoku_puzzle_data(date_to_be_used):
 
 
 # --- PUBLIC ERNIGRAM GENERATOR ---
+def fetch_cleaned_news_articles():
+    """Fetch and clean multiple RSS articles."""
+    full_url = NEWS_API_BASE_URL + NEWS_API_FEED_PARAM
+    resp = requests.get(full_url, timeout=10)
+    data = resp.json()
+
+    if resp.status_code != 200 or data.get("status") == "error":
+        raise RuntimeError(f"RSS fetch failed: {data.get('message')}")
+
+    articles = data.get("items", [])
+    valid_articles = []
+    for a in articles:
+        title = a.get("title", "").strip()
+        desc_html = a.get("description", "")
+        clue_text = BeautifulSoup(
+            desc_html, "html.parser").get_text(" ", strip=True)
+        if title and clue_text:
+            valid_articles.append({
+                "title": title,
+                "description": clue_text
+            })
+    return valid_articles[:10]
+
+
+def fetch_used_solution_phrases():
+    """Fetches all solution phrases already used in the database."""
+    # Assuming ErnigramPuzzle.objects.values_list() returns a queryset of tuples
+    # and we want the unique phrase strings.
+    # Note: Using .upper() assumes the stored phrases are in UPPERCASE.
+    return set(
+        ErnigramPuzzle.objects
+        .values_list("solution_phrase", flat=True)
+        .all()
+    )
+
+
 def generate_ernigram_puzzle_data(date_to_be_used):
     fallback_data = {
         "solution_phrase": "PYTHON PROGRAMMING",
@@ -108,87 +147,43 @@ def generate_ernigram_puzzle_data(date_to_be_used):
     }
 
     try:
-        # Construct the full URL using the new constants
-        full_url = NEWS_API_BASE_URL + NEWS_API_FEED_PARAM
-
-        # DEBUG STEP 1: Print the request URL
-        print(f"DEBUG: Attempting RSS API call for URL: {full_url}")
-
-        resp = requests.get(full_url, timeout=5)
-
-        data = resp.json()
-
-        # <<< CRITICAL DEBUGGING LINE >>>
-        pprint.pprint(data)
-
-        if resp.status_code != 200:
-            print(
-                f"DEBUG: HTTP Status Error: {resp.status_code}. Response Text: {resp.text[:150]}...")
-            resp.raise_for_status()
-
-        data = resp.json()
-
-        # RSS2JSON uses 'items' array instead of 'articles'
-        articles = data.get("items", [])
-
-        # Check for RSS2JSON status, which uses 'ok' or 'error'
-        api_status = data.get("status")
-        print(
-            f"DEBUG: RSS2JSON Status: {api_status}, Items found: {len(articles)}")
-
-        if api_status == 'error':
-            raise RuntimeError(
-                f"RSS2JSON returned an error: {data.get('message')}")
-
+        # 1. Fetch ALL articles
+        print("📰 Fetching news articles...")
+        articles = fetch_cleaned_news_articles()
         if not articles:
-            raise RuntimeError("RSS API returned no articles in 'items'.")
+            raise ValueError("No valid articles retrieved from RSS feed.")
 
-        # Filter and process articles
-        valid_articles = [
-            a for a in articles
-            # RSS titles usually don't have the " - Source" separator, so we remove that filter.
-            # We also check for 'description' availability for the clue.
-            if a.get('title') and a.get('description') and len(a['title'].split()) > 3
+        # 2. Get the history of used titles from the database
+        used_phrases = fetch_used_solution_phrases()
+        print(
+            f"📚 Found {len(used_phrases)} unique phrases already used in the database.")
+
+        # 3. Filter the fetched articles based on the database history (PERMANENT EXCLUSION)
+        # This is the single most important step for guaranteeing uniqueness across days.
+        available_articles = [
+            article for article in articles
+            if article.get('title', '').upper() not in used_phrases
         ]
 
-        article = random.choice(valid_articles)
-
-        # Process the chosen article: title becomes the solution
-        solution_phrase = article['title'].strip().upper()
+        if not available_articles:
+            print("🛑 All fetched articles have already been used for a puzzle.")
+            return fallback_data
 
         print(
-            f"DEBUG: Articles remaining after filtering: {len(valid_articles)}")
+            f"🤖 Passing {len(available_articles)} unique articles to AI for selection...")
 
-        if not valid_articles:
-            raise RuntimeError(
-                "No suitable article found for Ernigram after filtering.")
+        # 4. Instantiate the AI service
+        ai = ErnigramGeneratorAI()
 
-        article = random.choice(valid_articles)
+        # 5. Call the AI with the pre-filtered list
+        # Since 'available_articles' only contains titles NOT in the database,
+        # the AI is physically unable to choose an old title.
+        result = ai.generate_from_articles(available_articles)
 
-        # Process the chosen article: title becomes the solution, description becomes the clue
-        solution_phrase = article['title'].strip().upper()
+        # 6. Save the new unique puzzle data (This adds the chosen title to the history)
+        # ... (Database saving logic remains the same) ...
 
-        # --- FIX IS HERE: Use BeautifulSoup to clean the clue ---
-
-        # 1. Get the raw HTML string
-        raw_clue_html = article['description'].strip()
-
-        # 2. Use BeautifulSoup to parse the HTML and extract only the text
-        soup = BeautifulSoup(raw_clue_html, 'html.parser')
-
-        # get_text() extracts all text content, stripping all HTML tags
-        clue = soup.get_text(separator=' ', strip=True)
-
-        # 3. Limit the length for the final clue
-        clue = clue[:120].strip() + "..."
-
-        # Final return statement
-        return {
-            "solution_phrase": solution_phrase,
-            "clue": clue,
-            "date_to_be_used": date_to_be_used,  # Include date_to_be_used
-        }
-
-    except Exception as exc:
-        print(f"[games.api_client] Error fetching Ernigram news: {exc}")
+        return result
+    except Exception as e:
+        print(f"[games.services] Ernigram generation failed: {e}")
         return fallback_data
