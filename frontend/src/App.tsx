@@ -16,6 +16,8 @@ import { ProtectedRoute } from './components/ui/protectedRoute';
 import { Layout } from './components/layout/layout';
 import { GamePage } from './pages/gamePage';
 import { ChallengePage } from './pages/challengePage';
+import { ShopPage } from './pages/shopPage';
+
 
 
 function App() {
@@ -33,6 +35,7 @@ function App() {
             <Route path="/leaderboards" element={<LeaderboardPage />} />
             <Route path="/game/:gameType" element={<GamePage />} />
             <Route path="/challenges" element={<ChallengePage />} />
+            <Route path="/shop" element={<ShopPage />} />
           </Route>
         </Route>
         

@@ -1,7 +1,7 @@
 
 import { useAuth } from '../../hooks/authContext';
 import type { UserProfile } from '../../types/user';
-import { X, LogOut, Sparkle, Flame, HandFist } from 'lucide-react';
+import { X, LogOut, Star, Flame, Dumbbell } from 'lucide-react';
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -50,14 +50,14 @@ export default function UserProfileModal({ isOpen, onClose, user }: UserProfileM
             <div className="bg-gray-100 p-4 rounded-lg items-center justify-center flex flex-col">
               <div className="flex items-center justify-center gap-1">
                 <div className="text-2xl font-bold">{user?.total_points_alltime || 0}</div>
-                <Sparkle className="text-yellow-500" size={24} />
+                <Star size={24} className="fill-current text-yellow-500" />
               </div>
               <div className="text-sm text-gray-600">Total Points</div>
             </div>
             <div className="bg-gray-100 p-4 rounded-lg items-center justify-center flex flex-col">
               <div className="flex items-center justify-center gap-1">
                 <div className="text-2xl font-bold">{user?.challenges_made_count || 0}</div>
-                <HandFist className="text-amber-700" size={24} />
+                <Dumbbell className="fill-current text-amber-700" size={24} />
               </div>
               <div className="text-sm text-gray-600">Challenges made</div>
             </div>
@@ -67,14 +67,14 @@ export default function UserProfileModal({ isOpen, onClose, user }: UserProfileM
             <div className="bg-gray-100 p-4 rounded-lg items-center justify-center flex flex-col">
               <div className="flex items-center justify-center gap-1">
                 <div className="text-2xl font-bold">{user?.current_streak_count || 0}</div>
-                <Flame className="text-orange-500" size={24} />
+                <Flame className="fill-current text-orange-500" size={24} />
               </div>
               <div className="text-sm text-gray-600">Current Streak</div>
             </div>
             <div className="bg-gray-100 p-4 rounded-lg items-center justify-center flex flex-col">
               <div className="flex items-center justify-center gap-1">
                 <div className="text-2xl font-bold">{user?.max_streak_count || 0}</div>
-                <Flame className="text-red-500" size={24} />
+                <Flame className="fill-current text-red-500" size={24} />
               </div>
               <div className="text-sm text-gray-600">Max Streak</div>
             </div>

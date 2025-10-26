@@ -14,6 +14,7 @@ export interface UserProfile {
   department: Department | null;
   profile_complete: boolean;
   total_points_alltime: number;
+  current_points: number;
   current_streak_count: number; // Renamed from streak_count
   max_streak_count: number; // New
   challenges_made_count: number; // New
