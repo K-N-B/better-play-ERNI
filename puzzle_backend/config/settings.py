@@ -55,6 +55,7 @@ INSTALLED_APPS = [
 
 CRON_CLASSES = [
     'games.cron.GenerateDailyPuzzlesCronJob',
+    'leaderboards.cron.AggregateLeaderboardsCronJob',  # NEW
 ]
 
 DJANGO_CRON_LOCK_BACKEND = 'django_cron.backends.lock.database.DatabaseLock'
