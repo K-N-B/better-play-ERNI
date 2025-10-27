@@ -50,7 +50,14 @@ INSTALLED_APPS = [
     'games.apps.GamesConfig',
     'gameplay.apps.GameplayConfig',  # <-- Ensure this line is present
     'leaderboards.apps.LeaderboardsConfig',
+    'django_cron',
 ]
+
+CRON_CLASSES = [
+    'games.cron.GenerateDailyPuzzlesCronJob',
+]
+
+DJANGO_CRON_LOCK_BACKEND = 'django_cron.backends.lock.database.DatabaseLock'
 
 SITE_ID = 1
 
