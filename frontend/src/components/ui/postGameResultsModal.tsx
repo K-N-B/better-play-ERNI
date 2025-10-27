@@ -28,7 +28,7 @@ export const PostGameResultsModal = ({ score, onClose, submissionId }: PostGameR
           </button>
 
           <Trophy className="mx-auto text-yellow-500 mb-3" size={48} />
-          <h2 className="text-2xl font-bold mb-3 text-gray-800">Puzzle Complete!</h2>
+          <h2 className="text-xl font-bold mb-3 text-gray-800">Puzzle Complete!</h2>
 
           <p className="text-lg text-gray-700 mb-1">Your Score:</p>
           <p className="text-4xl font-bold text-blue-600 mb-6">{score}</p>

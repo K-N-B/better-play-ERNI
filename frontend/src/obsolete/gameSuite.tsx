@@ -27,7 +27,7 @@ export const GameSuite = () => {
   // --- Render the Game Cards ---
   return (
     <div className="p-8 bg-gradient-to-b from-gray-50 to-gray-100 rounded-lg shadow-inner border border-gray-200">
-      <div className="text-2xl font-bold mb-6 text-center text-gray-800">Today's Puzzles</div>
+      <div className="text-xl font-bold mb-6 text-center text-gray-800">Today's Puzzles</div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
         {/* Map over the imported data */}
         {gameCardData.map((game) => (
