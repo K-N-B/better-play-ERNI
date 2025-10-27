@@ -1,11 +1,11 @@
 // Represents a single reward item available in the shop
 export interface RewardItem {
-    id: string | number; // Unique identifier
+    id: string | number;
     name: string;
     description: string;
-    cost: number; // Points required to claim
-    imageUrl?: string; // Optional image for the reward
-    // Add other relevant fields if needed (e.g., stock, category)
+    cost: number;
+    image: string | null; // <-- Changed 'imageUrl' to 'image' and type to 'string | null'
+    stock?: number; // Make stock optional
 }
 
 // Optional: Type for the response when claiming a reward
