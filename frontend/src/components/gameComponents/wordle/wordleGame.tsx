@@ -45,7 +45,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
       loadedIsGameOver = progress.isGameOver;
     }
     if (!loadedIsGameOver) {
-        startTimer();
+      startTimer();
     }
   }, [savedGame, startTimer, setSavedTime]);
 
@@ -74,8 +74,8 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
       if (currentGuess.length === 5) {
         // Basic check if word is valid (replace with real dictionary check later)
         if (currentGuess.length !== 5) {
-            console.warn("Invalid guess length"); // Add user feedback later
-            return;
+          console.warn("Invalid guess length"); // Add user feedback later
+          return;
         }
 
         const newGuesses = [...guesses, currentGuess];
@@ -98,7 +98,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
           endGame(MAX_GUESSES, false);
         }
       } else {
-          console.warn("Guess must be 5 letters"); // Add user feedback later
+        console.warn("Guess must be 5 letters"); // Add user feedback later
       }
     } else if (key === 'Backspace') {
       setCurrentGuess(g => g.slice(0, -1));
@@ -133,12 +133,12 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
         await completeChallenge(challengeId, { submission_id: submissionIdForResultModal });
         console.log(`[WordleGame] Challenge ${challengeId} marked as complete.`);
       } else if (challengeId) {
-         console.error("[WordleGame] Challenge ID present but failed to get submission ID.");
+        console.error("[WordleGame] Challenge ID present but failed to get submission ID.");
       }
     } catch (err) {
       console.error("Error during game end submission/challenge completion:", err);
     } finally {
-       setGameResult({ score: finalScore, submissionId: submissionIdForResultModal });
+      setGameResult({ score: finalScore, submissionId: submissionIdForResultModal });
     }
   };
 
@@ -147,9 +147,9 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
     const handleKeyDown = (e: KeyboardEvent) => {
       // Map Backspace and Enter keys
       if (e.key === 'Enter' || e.key === 'Backspace') {
-          handleKeyPress(e.key);
+        handleKeyPress(e.key);
       } else if (/^[a-zA-Z]$/.test(e.key)) {
-          handleKeyPress(e.key);
+        handleKeyPress(e.key);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -161,21 +161,31 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
   }
 
   return (
-    <div className="flex flex-col items-center p-4 max-w-lg mx-auto">
-      <div className="flex justify-between items-center w-full max-w-sm mb-4">
-        <h1 className="text-3xl font-bold">Wordle</h1>
-        <Timer timeMs={time} />
-      </div>
-
-      <WordleGrid
+    <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
+      <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
+        <WordleGrid
         guesses={guesses}
         currentGuess={currentGuess}
         solution={solution}
         currentRow={currentRow}
         maxGuesses={MAX_GUESSES}
       />
-
-      <Keyboard onKeyPress={handleKeyPress} letterStatuses={letterStatuses} />
+      </div>
+      <div className="place-content-center p-20 text-xl leading-5">
+        <div className="flex justify-between mb-10">
+          <div className="">
+            <h1 className="text-4xl font-bold">Wordle</h1>
+            <p>on {difficulty} difficulty</p>
+          
+          </div>
+          <Timer timeMs={time} />
+        </div>
+      <div className={isGameOver ? 'opacity-50 pointer-events-none' : ''}>
+        <Keyboard
+          onKeyPress={handleKeyPress}
+          letterStatuses={letterStatuses}
+        />
+      </div>
 
       {gameResult && (
         <PostGameResultsModal
@@ -184,6 +194,8 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
           onClose={() => setGameResult(null)}
         />
       )}
+      </div>
     </div>
+
   );
 };

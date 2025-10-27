@@ -47,7 +47,7 @@ export const ChallengeIcon: React.FC<ChallengeIconProps> = ({ // Destructure pro
             aria-label={`View Challenges (${challengeCount} pending)`}
             title={`View Challenges (${challengeCount} pending)`}
         >
-            <Mountain size={20} />
+            <Mountain size={24} strokeWidth={2} />
             {/* Badge remains the same */}
             {!isLoading && challengeCount > 0 && (
                 <span className="absolute -top-1 -right-1 block h-4 w-4 ...">
