@@ -7,7 +7,7 @@ class RewardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reward
         # Expose fields the frontend needs to display the card
-        fields = ['id', 'name', 'description', 'cost', 'imageUrl', 'stock']
+        fields = ['id', 'name', 'description', 'cost', 'image', 'stock']
 
 class ClaimedRewardSerializer(serializers.ModelSerializer):
     """ Serializer for viewing claimed rewards. """
