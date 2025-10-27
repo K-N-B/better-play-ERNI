@@ -21,7 +21,7 @@ class UserAdmin(BaseUserAdmin):
     # This adds new sections for "Puzzle Profile" and "Stats"
     fieldsets = BaseUserAdmin.fieldsets + (
         ('Puzzle Profile', {'fields': ('department', 'profile_complete', 'is_admin')}),
-        ('Stats', {'fields': ('total_points_alltime', 'current_streak_count', 'max_streak_count', 'challenges_made_count')}),
+        ('Stats', {'fields': ('total_points_alltime', 'current_points', 'current_streak_count', 'max_streak_count', 'challenges_made_count')}),
         ('Activity', {'fields': ('last_active',)}), # Display last_active
     )
     # Make last_active read-only in the admin if desired

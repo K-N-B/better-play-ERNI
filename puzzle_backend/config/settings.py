@@ -22,10 +22,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'default-insecure-key-for-dev') # Provide a default for safety
+# Provide a default for safety
+SECRET_KEY = os.getenv('SECRET_KEY', 'default-insecure-key-for-dev')
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1'] # Add your production domain later
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']  # Add your production domain later
 
 
 # Application definition
@@ -37,17 +38,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites', # Required by social-auth
+    'django.contrib.sites',  # Required by social-auth
 
     # Third-party apps
     'rest_framework',
-    'corsheaders', # Add this for Cross-Origin Resource Sharing
+    'rest_framework.authtoken',
+    'corsheaders',  # Add this for Cross-Origin Resource Sharing
 
     # Your local apps
     'users.apps.UsersConfig',
     # Add 'games', 'gameplay', 'leaderboards' here later
 
     #Ganes app
+    'games',
+    'gameplay',
     'leaderboards'
 ]
 
@@ -100,11 +104,11 @@ DATABASES = {
 
 # CORS Settings
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173", # Your React frontend development URL
+    "http://localhost:5173",  # Your React frontend development URL
     "http://127.0.0.1:5173",
     # Add your production frontend URL later
 ]
-CORS_ALLOW_CREDENTIALS = True # Allow cookies to be sent cross-origin
+CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent cross-origin
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
@@ -133,7 +137,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',    
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 # --- Azure AD Credentials (Loaded from .env) ---
@@ -141,10 +145,11 @@ AZURE_AD_CLIENT_ID = os.getenv('AZURE_AD_CLIENT_ID')
 AZURE_AD_CLIENT_SECRET = os.getenv('AZURE_AD_CLIENT_SECRET')
 AZURE_AD_TENANT_ID = os.getenv('AZURE_AD_TENANT_ID')
 # This MUST match the 'Web' redirect URI in Azure App Registration AND users/urls.py path
-AZURE_AD_REDIRECT_URI = os.getenv('AZURE_AD_REDIRECT_URI', 'http://localhost:8000/auth/callback/')
+AZURE_AD_REDIRECT_URI = os.getenv(
+    'AZURE_AD_REDIRECT_URI', 'http://localhost:8000/auth/callback/')
 
 # --- Session Settings (Optional but good practice) ---
-SESSION_COOKIE_SAMESITE = 'Lax' # Helps prevent CSRF
+SESSION_COOKIE_SAMESITE = 'Lax'  # Helps prevent CSRF
 SESSION_COOKIE_SECURE = False   # Set to True if using HTTPS in production
 SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
 SESSION_COOKIE_AGE = 86400      # Session lasts 1 day (optional)
@@ -153,6 +158,7 @@ SESSION_COOKIE_AGE = 86400      # Session lasts 1 day (optional)
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # Use SessionAuthentication for browser interaction
+        'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
@@ -170,11 +176,10 @@ LOGOUT_REDIRECT_URL = 'http://localhost:3000/login'
 
 LANGUAGE_CODE = 'en-us'
 
+USE_TZ = True
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
-
-USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)

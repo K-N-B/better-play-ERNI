@@ -1,5 +1,19 @@
 import type { NavItem } from '../types/nav'; // Import the type
 
+// Define styles for icons separately or within navItems
+export const shopNavStyle = {
+  name: 'Shop', // Not strictly needed here, but for consistency
+  path: '/shop',
+  activeClasses: 'bg-yellow-500 text-white shadow-[0_5px_0_0] shadow-yellow-800', // Example colors
+  hoverClasses: 'hover:bg-yellow-500 hover:text-white', // Consistent hover
+};
+
+// You might define one for Notifications too if needed, e.g., using primary color
+export const notificationNavStyle = {
+    activeClasses: 'bg-primary text-white shadow-[0_5px_0_0] shadow-primary-900',
+    hoverClasses: 'hover:bg-primary hover:text-white', // Consistent hover
+}
+
 export const navItems: NavItem[] = [
     {
         name: 'Home',

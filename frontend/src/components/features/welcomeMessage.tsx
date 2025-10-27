@@ -40,8 +40,8 @@ export const WelcomeMessage = () => {
     // ---
 
     return (
-        <div className="p-6 bg-white rounded-4xl text-lg shadow border border-gray-200">
-            <h1 className="text-xl font-semibold text-primary mb-2">
+        <div className="p-6 bg-white rounded-4xl text-base shadow border border-gray-200">
+            <h1 className="text-lg font-semibold text-primary mb-2">
                 Welcome back, {user.username}! 👋
             </h1>
 

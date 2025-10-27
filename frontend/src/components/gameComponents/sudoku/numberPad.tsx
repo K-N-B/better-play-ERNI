@@ -18,7 +18,7 @@ export const NumberPad = ({ onNumberClick, onEraseClick, onNoteToggle, isNoteMod
         <button
           key={num}
           onClick={() => onNumberClick(num)}
-          className="h-12 w-12 sm:h-14 sm:w-14 rounded-lg bg-blue-500 text-white text-2xl font-bold hover:bg-blue-600"
+          className="h-12 w-12 sm:h-14 sm:w-14 rounded-lg bg-blue-500 text-white text-xl font-bold hover:bg-blue-600"
         >
           {num}
         </button>

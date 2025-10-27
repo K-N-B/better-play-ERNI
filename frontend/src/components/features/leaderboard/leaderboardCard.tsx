@@ -5,6 +5,7 @@ import type {
 import { LeaderboardPodium } from "./leaderboardPodium";
 import { LeaderboardList } from "./leaderboardList";
 import { LoadingSpinner } from "../../ui/loadingSpinner";
+import { LeaderboardStack } from "./leaderboardStack";
 
 interface LeaderboardCardProps {
   title: string; // e.g., "Weekly Individual", "All-Time Department"
@@ -37,11 +38,11 @@ export const LeaderboardCard: React.FC<LeaderboardCardProps> = ({
   const restOfList = leaderboardArray.slice(3);
 
   return (
-    <div className="flex flex-col bg-slate-50 rounded-3xl p-6 shadow-md overflow-hidden h-[calc(100vh-12rem)]">
+    <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex justify-start items-center mb-4">
+      {/* <div className="flex justify-start items-center mb-4">
         <div className="text-xl font-bold text-primary py-1">{title}</div>
-      </div>
+      </div> */}
 
       {/* Content */}
       {loading && (
@@ -57,11 +58,18 @@ export const LeaderboardCard: React.FC<LeaderboardCardProps> = ({
 
       {!loading && !error && leaderboardArray.length > 0 && (
         <>
-          {/* Podium for Top 3 */}
-          <LeaderboardPodium topThree={topThree} type={type} />
+          {/* Desktop Podium: Hidden by default, block on 'sm' (640px) and up */}
+          <div className="hidden md:block">
+            <LeaderboardPodium topThree={topThree} type={type} />
+          </div>
+
+          {/* Mobile Stacked List: Block by default, hidden on 'sm' and up */}
+          <div className="block md:hidden">
+            <LeaderboardStack topThree={topThree} type={type} />
+          </div>
 
           {/* Divider */}
-          <hr className="my-4 border-gray-300" />
+          <div className="mt-4" />
 
           {/* List/Table for Ranks 4+ */}
           <LeaderboardList data={restOfList} type={type} offsetRank={4} />
