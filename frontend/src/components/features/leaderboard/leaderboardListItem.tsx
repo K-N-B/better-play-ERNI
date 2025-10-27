@@ -37,21 +37,27 @@ export const LeaderboardListItem: React.FC<LeaderboardListItemProps> = ({ entry,
 
   return (
     <li
-      key={key} // Key is used by the parent map, but good to keep it consistent if needed elsewhere
-      className="flex justify-between items-center py-2 text-lg"
+      key={key}
+      // --- THIS IS THE FIX ---
+      // Adjusted text size to be smaller by default, and larger (text-lg) on sm screens
+      className="flex justify-between items-center py-2 text-base sm:text-lg"
     >
       {/* Left side: Rank + Name */}
-      <div className="flex items-center gap-3">
-        <span className={clsx("font-bold text-xl w-6 text-right text-wrap", rankColor)}>
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Adjusted text size */}
+        <span className={clsx("font-bold text-lg sm:text-xl w-6 text-right text-wrap", rankColor)}>
           {rank}
         </span>
-        <span className="text-primary-800 font-medium text-lg text-wrap">{name}</span>
+        {/* Adjusted text size */}
+        <span className="text-primary-800 font-medium text-base sm:text-lg text-wrap">{name}</span>
       </div>
 
       {/* Right side: Score */}
-      <div className="text-primary-700 text-base xl:text-lg italic">
+      {/* Adjusted text size */}
+      <div className="text-primary-700 text-sm sm:text-base xl:text-lg italic">
         <span className="font-semibold">{score}</span> pts
       </div>
+      {/* --- END FIX --- */}
     </li>
   );
 };
