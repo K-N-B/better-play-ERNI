@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { searchUsers, sendChallenge } from '../../api/challengeService'; // Ensure correct path
-import type { UserProfile, CreateChallengeData } from '../../types'; // Import necessary types
-import { LoadingSpinner } from '../ui/loadingSpinner';
+import { searchUsers, sendChallenge } from '../../../api/challengeService'; // Ensure correct path
+import type { UserProfile, CreateChallengeData } from '../../../types'; // Import necessary types
+import { LoadingSpinner } from '../../ui/loadingSpinner';
 import { X, Send, Search, UserCheck } from 'lucide-react'; // Import icons
 
 interface ChallengeModalProps {
