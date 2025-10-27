@@ -26,7 +26,7 @@ export default function GameIntro({
   return (
     <div className="h-full text-center grid grid-cols-2">
       {/* LEFT SIDE */}
-      <div className="place-content-center p-20 text-2xl leading-6 bg-white h-full rounded-3xl">
+      <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
         <div
           className="font-medium"
           dangerouslySetInnerHTML={{ __html: description }}

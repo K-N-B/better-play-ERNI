@@ -160,7 +160,7 @@ function SudokuGameMain({ difficulty }) {
       {/* RIGHT SIDE (Stats + Controls) */}
       <div className="flex flex-col items-center justify-center text-center">
         <div className="text-6xl font-bold text-gray-900">Sudoku</div>
-        <div className="text-gray-700 mt-2 text-2xl font-medium">
+        <div className="text-gray-700 mt-2 text-xl font-medium">
           on {difficulty} difficulty
         </div>
         <div className="text-gray-600 mt-2 text-lg">
@@ -173,7 +173,7 @@ function SudokuGameMain({ difficulty }) {
         <button
           onClick={handleHint}
           disabled={hintUsed || hintsRemaining <= 0 || gameStatus !== "playing"}
-          className="mt-6 px-5 py-4 bg-white border border-[#C7337A] text-[#C7337A] rounded-full text-2xl font-semibold hover:bg-[#F7E3EC] transition"
+          className="mt-6 px-5 py-4 bg-white border border-[#C7337A] text-[#C7337A] rounded-full text-xl font-semibold hover:bg-[#F7E3EC] transition"
         >
           {hintUsed ? "Hint Used" : `Hint (${hintsRemaining})`}
         </button>
@@ -181,7 +181,7 @@ function SudokuGameMain({ difficulty }) {
         <button
           onClick={handleSolve}
           disabled={gameStatus !== "playing"}
-          className="mt-6 px-5 py-4 bg-white border border-[#C7337A] text-[#C7337A] rounded-full text-2xl font-semibold hover:bg-[#F7E3EC] transition"
+          className="mt-6 px-5 py-4 bg-white border border-[#C7337A] text-[#C7337A] rounded-full text-xl font-semibold hover:bg-[#F7E3EC] transition"
         >
           Solve
         </button>

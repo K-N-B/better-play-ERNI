@@ -52,7 +52,7 @@ export const SudokuGrid = ({ grid, selectedCell, onCellClick }: SudokuGridProps)
             onClick={() => !cell.isGiven && onCellClick(rowIndex, colIndex)}
           >
             {cell.value ? (
-              <span className="text-2xl">{cell.value}</span>
+              <span className="text-xl">{cell.value}</span>
             ) : (
               // Render notes
               <div className="grid grid-cols-3 gap-0.5 text-xs text-gray-500">

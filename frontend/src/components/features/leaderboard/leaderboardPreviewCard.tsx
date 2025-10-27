@@ -34,7 +34,7 @@ export const LeaderboardPreviewCard = () => {
       <div className="flex justify-between items-center flex-shrink-0">
         <h3 className="text-xl font-semibold mb-3 flex items-center space-x-3">
           <Trophy size={22} strokeWidth={2.5} />
-          <div className="text-2xl font-semibold text-black">
+          <div className="text-xl font-semibold text-black">
             Leaderboards
           </div>
         </h3>
