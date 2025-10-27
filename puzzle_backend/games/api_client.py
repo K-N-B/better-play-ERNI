@@ -8,8 +8,9 @@ from .config import NEWS_API_BASE_URL, NEWS_API_FEED_PARAM
 from bs4 import BeautifulSoup
 import pprint
 
-from .ai_service_ernigram import ErnigramGeneratorAI
+from .ai_service_ernigram import fetch_raw_csv_data, ErnigramGeneratorAI
 from .models import ErnigramPuzzle
+
 
 
 def _flatten_board(board):
@@ -140,50 +141,95 @@ def fetch_used_solution_phrases():
     )
 
 
+
+def find_dominant_theme(used_phrases):
+    """Identifies the most common word/phrase segment in the recent history."""
+    if not used_phrases:
+        return None
+    
+    # Analyze history based on your themes (e.g., all UPPERCASE phrases)
+    theme_counts = {}
+    for phrase in used_phrases:
+        if "DIGITAL TRANSFORMATION" in phrase.upper(): 
+            theme_counts["DIGITAL TRANSFORMATION"] = theme_counts.get("DIGITAL TRANSFORMATION", 0) + 1
+        
+    # Example: If 'DIGITAL TRANSFORMATION' has appeared 3 or more times
+    if theme_counts.get("DIGITAL TRANSFORMATION", 0) >= 3:
+        return "DIGITAL TRANSFORMATION"
+    return None
+
+
+
 def generate_ernigram_puzzle_data(date_to_be_used):
     fallback_data = {
         "solution_phrase": "PYTHON PROGRAMMING",
         "clue": "General purpose language"
     }
+    
+    # --- CONFIGURATION FOR CSV ---
+    CSV_FILE_PATH = "games/ERNI_Content.csv" 
+    RAW_TEXT_COLUMN_INDEX = 0 
+    # -----------------------------
 
     try:
-        # 1. Fetch ALL articles
-        print("📰 Fetching news articles...")
-        articles = fetch_cleaned_news_articles()
-        if not articles:
-            raise ValueError("No valid articles retrieved from RSS feed.")
-
-        # 2. Get the history of used titles from the database
-        used_phrases = fetch_used_solution_phrases()
-        print(
-            f"📚 Found {len(used_phrases)} unique phrases already used in the database.")
-
-        # 3. Filter the fetched articles based on the database history (PERMANENT EXCLUSION)
-        # This is the single most important step for guaranteeing uniqueness across days.
-        available_articles = [
-            article for article in articles
-            if article.get('title', '').upper() not in used_phrases
-        ]
-
-        if not available_articles:
-            print("🛑 All fetched articles have already been used for a puzzle.")
+        # 1. FETCH ALL DATA SOURCES
+        
+        # Source A: Structured Articles (RSS/News API)
+        print("📰 Fetching structured news articles...")
+        structured_articles = fetch_cleaned_news_articles()
+        
+        # Source B: Raw Text (CSV)
+        print(f"📁 Fetching raw data from {CSV_FILE_PATH}...")
+        raw_csv_texts = fetch_raw_csv_data(
+            file_path=CSV_FILE_PATH,
+            text_column_index=RAW_TEXT_COLUMN_INDEX
+        )
+        
+        # 2. DETERMINE AVAILABLE SOURCES
+        available_sources = []
+        if structured_articles:
+            available_sources.append("RSS")
+        if raw_csv_texts:
+            available_sources.append("CSV")
+            
+        if not available_sources:
+            print("🛑 ERROR: No valid data available from RSS or CSV.")
             return fallback_data
 
-        print(
-            f"🤖 Passing {len(available_articles)} unique articles to AI for selection...")
+        # 3. RANDOMLY SELECT THE SOURCE FOR TODAY'S PUZZLE
+        # This is where randomization is implemented
+        selected_source = random.choice(available_sources)
+        print(f"🎲 Randomly selected source for today: {selected_source}")
 
-        # 4. Instantiate the AI service
+        # 4. GET GLOBAL HISTORY AND DOMINANT THEME
+        used_phrases = fetch_used_solution_phrases() 
+        dominant_theme = find_dominant_theme(used_phrases)
+
+        # 5. INSTANTIATE AI AND ROUTE DATA
         ai = ErnigramGeneratorAI()
 
-        # 5. Call the AI with the pre-filtered list
-        # Since 'available_articles' only contains titles NOT in the database,
-        # the AI is physically unable to choose an old title.
-        result = ai.generate_from_articles(available_articles)
-
-        # 6. Save the new unique puzzle data (This adds the chosen title to the history)
-        # ... (Database saving logic remains the same) ...
-
+        if selected_source == "RSS":
+            # --- RSS/STRUCTURED DATA PATH ---
+            print("🤖 Routing structured articles to AI for selection...")
+            # Note: The AI MUST handle the uniqueness check internally or the articles 
+            # should be pre-filtered using the initial approach. For simplicity, 
+            # we rely on the AI's internal logic for now.
+            result = ai.generate_from_articles(structured_articles, used_phrases)
+            
+        elif selected_source == "CSV":
+            # --- CSV/RAW TEXT DATA PATH ---
+            print("🤖 Routing raw CSV text to AI for generation...")
+            # Pass raw texts, used phrases, and the dominant theme constraint
+            result = ai.generate_from_raw_text(
+                raw_csv_texts, 
+                used_phrases,
+                dominant_theme
+            )
+        
+        # 6. RETURN RESULT
+        print(f"✅ Generated phrase: {result.get('solution_phrase')}")
         return result
+        
     except Exception as e:
         print(f"[games.services] Ernigram generation failed: {e}")
         return fallback_data

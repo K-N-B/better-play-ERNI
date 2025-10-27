@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import WordlePuzzle, SudokuPuzzle, ErnigramPuzzle, DailyPuzzle
-from rest_framework.authtoken.models import Token
+
 
 
 @admin.register(WordlePuzzle)
@@ -27,4 +27,4 @@ class DailyPuzzleAdmin(admin.ModelAdmin):
     list_display = ("date", "wordle_easy", "wordle_hard", "sudoku", "ernigram")
 
 
-admin.site.register(Token)
+
