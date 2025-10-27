@@ -31,6 +31,15 @@ class AssignDepartmentSerializer(serializers.Serializer):
         user.save()
 
         return user
+    
+class UserNestedSerializer(serializers.ModelSerializer):
+    """
+    A minimal serializer for nesting inside other models.
+    Only exposes essential user info.
+    """
+    class Meta:
+        model = User
+        fields = ['id', 'username'] # Only include id and userna
 
 class UserProfileSerializer(serializers.ModelSerializer):
     """ Serializer for the custom User model (profile view). """

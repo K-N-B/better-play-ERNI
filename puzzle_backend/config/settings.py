@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'games.apps.GamesConfig',
     'gameplay.apps.GameplayConfig',  # <-- Ensure this line is present
     'leaderboards.apps.LeaderboardsConfig',
+    'shop.apps.ShopConfig'
 ]
 
 SITE_ID = 1
