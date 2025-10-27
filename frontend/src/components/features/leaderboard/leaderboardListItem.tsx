@@ -42,14 +42,14 @@ export const LeaderboardListItem: React.FC<LeaderboardListItemProps> = ({ entry,
     >
       {/* Left side: Rank + Name */}
       <div className="flex items-center gap-3">
-        <span className={clsx("font-bold text-xl w-6 text-right", rankColor)}>
+        <span className={clsx("font-bold text-xl w-6 text-right text-wrap", rankColor)}>
           {rank}
         </span>
-        <span className="text-primary-800 font-medium text-lg">{name}</span>
+        <span className="text-primary-800 font-medium text-lg text-wrap">{name}</span>
       </div>
 
       {/* Right side: Score */}
-      <div className="text-primary-700 text-lg italic">
+      <div className="text-primary-700 text-base xl:text-lg italic">
         <span className="font-semibold">{score}</span> pts
       </div>
     </li>

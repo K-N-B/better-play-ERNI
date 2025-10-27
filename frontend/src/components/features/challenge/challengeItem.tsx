@@ -18,32 +18,32 @@ export const ChallengeItem: React.FC<{ challenge: Challenge }> = ({ challenge })
     return (
         // --- 2. Apply conditional classes to the main div ---
         <div className={clsx(
-            "p-4 rounded-lg shadow flex items-center space-x-4 transition-shadow hover:shadow-md", 
-            isPending && "bg-blue-100 ",
-            won && "bg-green-100 ",
-            lost && "bg-red-100 ",
+            "p-4 rounded-lg shadow flex items-center space-x-4 transition-shadow hover:shadow-md",
+            isPending && "bg-yellow-50",
+            won && "bg-green-50 ",
+            lost && "bg-red-50 ",
             !isPending && !won && !lost && "bg-white "
         )}>
-             {/* Icon based on status */}
-             <div className="flex-shrink-0"> {/* Removed pt-1, items-center handles alignment */}
-                 {isPending ? <Hourglass className="text-yellow-500 animate-pulse" /> :
+            {/* Icon based on status */}
+            <div className="flex-shrink-0"> {/* Removed pt-1, items-center handles alignment */}
+                {isPending ? <Hourglass className="text-yellow-500" /> :
                     won ? <CheckCircle className="text-green-500" /> :
                         lost ? <X className="text-red-500" /> :
                             <Swords className="text-gray-500" />}
-             </div>
-             
-             {/* Challenge Details */}
-             {/* This div will expand to fill available space */}
-             <div className="flex-grow"> 
+            </div>
+
+            {/* Challenge Details */}
+            {/* This div will expand to fill available space */}
+            <div className="flex-grow">
                 <p className="text-sm">
                     Challenge {isPending ? 'from' : 'vs'} <strong className="font-medium">{opponent.username}</strong> on{' '}
                     <strong className="font-medium">{challenge.puzzle_type}</strong>
                 </p>
-                 <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-black">
                     {opponent.username}'s Score: {challenge.challenger_submission.points_awarded} pts
                 </p>
                 {challenge.recipient_submission && (
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs black">
                         Your Score: {challenge.recipient_submission.points_awarded} pts
                         {/* Result Badges */}
                         {won && <span className="ml-2 inline-block px-2 py-0.5 rounded bg-green-200 text-green-800 text-[10px] font-semibold">You Won!</span>}
@@ -52,10 +52,10 @@ export const ChallengeItem: React.FC<{ challenge: Challenge }> = ({ challenge })
                     </p>
                 )}
                 {/* --- Play Now button REMOVED from this div --- */}
-             </div>
+            </div>
 
-             {/* --- Play Now Button (now a direct child of the flex container) --- */}
-             {isPending && (
+            {/* --- Play Now Button (now a direct child of the flex container) --- */}
+            {isPending && (
                 <div className="flex-shrink-0 ml-auto"> {/* ml-auto pushes it to the right, flex-shrink-0 prevents shrinking */}
                     <Link
                         to={`/game/${challenge.puzzle_type}?challenge_id=${challenge.id}`}
@@ -64,8 +64,8 @@ export const ChallengeItem: React.FC<{ challenge: Challenge }> = ({ challenge })
                         Play Now
                     </Link>
                 </div>
-             )}
-             {/* --- --- */}
+            )}
+            {/* --- --- */}
         </div>
     );
 };

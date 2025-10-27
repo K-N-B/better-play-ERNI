@@ -69,7 +69,7 @@ export default function Navbar() {
                       key={item.path}
                       to={item.path}
                       className={`relative inline-flex items-center justify-center h-10 px-5
-                                  rounded-lg font-semibold text-lg tracking-wide 
+                                  rounded-lg font-semibold text-base tracking-wide 
                                   text-primary transition-colors
                                   ${item.hoverClasses}`} // Add hover classes
                     >
@@ -178,7 +178,7 @@ export default function Navbar() {
           >
             <X size={24} />
           </button>
-          <h2 className="text-lg font-semibold mb-2 text-gray-800 pb-2">Menu</h2>
+          <h2 className="text-lg text-center font-semibold mb-2 text-gray-800 pb-2">Menu</h2>
           <nav className="flex flex-col space-y-1">
             {/* Map over main navItems */}
             {navItems.map((item) => {
