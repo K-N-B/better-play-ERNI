@@ -24,6 +24,7 @@ urlpatterns = [
     path('', include('users.urls')),
     path('auth/', include('users.urls')),
     path('api/games/', include('games.urls')),
+    path('', include('shop.urls')), # <-- ADD THIS LINE
     # games and gameplay API endpoints
     # Add this line to include social-auth URLs under the '/auth/' prefix
     # This provides '/auth/login/azuread-oauth2/' and '/auth/complete/azuread-oauth2/'
