@@ -49,12 +49,12 @@ export const ChallengePage = () =>  {
            
                 {!loading && !error && (
                     
-                    <div className="mx-auto grid grid-cols-2 h-full gap-8 mt-4">
+                    <div className="mx-auto grid grid-cols-1 md:grid-cols-2 h-full gap-8 mt-4">
                         {/* Pending Challenges */}
-                        <div className="flex flex-col p-2 border-r border-gray-200">
+                        <div className="flex flex-col p-2">
                             <h2 className="text-xl font-semibold text-center mb-4 text-gray-800">Pending Challenges</h2>
                             {pending.length > 0 ? (
-                                <div className="space-y-4 ">
+                                <div className="space-y-2 ">
                                     {pending.map(c => <ChallengeItem key={`pending-${c.id}`} challenge={c} />)}
                                 </div>
                             ) : (
