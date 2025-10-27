@@ -24,7 +24,7 @@ export default function AuthCallback() {
         console.error('Auth check failed:', error);
         navigate('/login', { replace: true });
       }
-    }, 500);
+    }, 100);
   }, [navigate]);
 
   return (
@@ -34,7 +34,6 @@ export default function AuthCallback() {
           <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
         </div>
         <div className="text-2xl font-bold text-black mb-2">{status}</div>
-        <p className="text-gray-600">Please wait...</p>
       </div>
     </div>
   );
