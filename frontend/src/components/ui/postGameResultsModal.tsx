@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Trophy } from 'lucide-react';
-import { ChallengeModal } from '../features/challengeModal'; // Assuming this path is correct
+import { ChallengeModal } from '../features/challenge/challengeModal'; // Assuming this path is correct
 
 interface PostGameResultsModalProps {
   score: number;
