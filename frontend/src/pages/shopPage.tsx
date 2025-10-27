@@ -25,7 +25,7 @@ export const ShopPage = () => {
      try {
        // Pass the user's current points ONLY IF using the mock API
        // The real API determines points on the backend based on the user's session
-       const response = await claimReward(rewardId, userPoints); // Pass userPoints for mock
+       const response = await claimReward(rewardId); // Pass userPoints for mock
 
        // If claim was successful AND the API returned remaining points
        if (response.success && typeof response.remainingPoints === 'number') {
@@ -61,9 +61,9 @@ export const ShopPage = () => {
 
       {/* Loading State */}
       {isLoading && !rewards && ( // Show main loader only if rewards haven't loaded at all
-          <div className="text-center py-20">
+          <div className="flex text-center items-center justify-center py-20 gap-2">
               <LoadingSpinner />
-              <p className="mt-2 text-gray-500">Loading Rewards...</p>
+              <p className=" text-gray-500">Loading Rewards...</p>
           </div>
       )}
 

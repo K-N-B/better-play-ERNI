@@ -45,9 +45,9 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, userPoints, onCl
   return (
     <div className="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col transition-shadow hover:shadow-lg">
       {/* Optional Image */}
-      {reward.imageUrl ? (
+      {reward.image ? (
         <img
-          src={reward.imageUrl}
+          src={reward.image}
           alt={reward.name}
           className="w-full h-40 object-cover bg-gray-100"
           onError={(e) => {

@@ -8,7 +8,7 @@ import type { Department, UserProfile } from "../types/user";
 import { MOCK_MODE, mockApiCall } from "./api";
 import { MOCK_DEPARTMENTS, MOCK_USER_MAIN } from "../data/_mockData";
 
-const API_URL = "http://localhost:8000"; // Your Django backend
+export const API_URL = "http://localhost:8000"; // Your Django backend
 
 // This function checks if the user has a valid session cookie
 export const checkAuth = async (): Promise<{
@@ -137,7 +137,7 @@ export const completeProfile = async (departmentId: number): Promise<UserProfile
   }
 };
 
-function getCookie(name: string): string | null {
+export function getCookie(name: string): string | null {
   let cookieValue = null;
   if (document.cookie && document.cookie !== '') {
     const cookies = document.cookie.split(';');

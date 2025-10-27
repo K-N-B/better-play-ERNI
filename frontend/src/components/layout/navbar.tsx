@@ -88,7 +88,7 @@ export default function Navbar() {
               // Conditionally apply classes using clsx
               className={clsx(
                 // Base styles for the icon button
-                'hidden lg:inline-flex items-center justify-center h-10 w-10 m-0 rounded-lg transition-all duration-150',
+                'hidden md:inline-flex items-center justify-center h-10 w-10 m-0 rounded-lg transition-all duration-150',
                 // Active styles
                 isShopActive && `active:translate-y-[2px] active:shadow-[0_3px_0_0] ${shopNavStyle.activeClasses}`,
                 // Inactive styles
@@ -102,7 +102,7 @@ export default function Navbar() {
             {/* --- End Shop Link/Icon --- */}
 
             {/* --- Pass active styles to NotificationsMountain --- */}
-            <div className="hidden lg:block m-0">
+            <div className="hidden md:block m-0">
               <ChallengeIcon
                 activeClasses={notificationNavStyle.activeClasses}
                 hoverClasses={notificationNavStyle.hoverClasses}
@@ -111,7 +111,7 @@ export default function Navbar() {
 
 
             {!authLoading && user && ( // Only show if user is loaded
-              <div className="hidden lg:flex m-0 items-center space-x-1 bg-yellow-100 text-yellow-800 px-3 py-2 rounded-full text-lg font-bold shadow-inner">
+              <div className="hidden md:flex m-0 items-center space-x-1 bg-yellow-100 text-yellow-800 px-3 py-2 rounded-full text-lg font-bold shadow-inner">
                 <span>{currentPoints}</span>
                 <Star size={24} className="fill-current text-yellow-500" />
               </div>
