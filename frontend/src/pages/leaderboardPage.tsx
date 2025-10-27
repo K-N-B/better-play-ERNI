@@ -60,7 +60,7 @@ export const LeaderboardPage = () => { // Use default export if needed
 
   return (
     <>
-    <div className="container mx-auto px-4 grid grid-cols-2 h-full gap-8 ">
+    <div className="container mx-auto px-4 grid grid-cols-1 lg:grid-cols-1 xl:grid-cols-2 h-[calc(100vh-15rem)] gap-8 ">
       <div className="flex flex-col bg-slate-50 rounded-4xl p-6 shadow-md overflow-hidden">
         <h2 className="text-2xl font-semibold mb-3 text-center text-gray-700">Individual Rankings</h2>
           <PeriodFilters
