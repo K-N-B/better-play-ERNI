@@ -97,7 +97,7 @@ export default function Navbar() {
               aria-label="Shop"
               title="Shop"
             >
-              <Store size={20} />
+              <Store size={24} strokeWidth={2} />
             </Link>
             {/* --- End Shop Link/Icon --- */}
 

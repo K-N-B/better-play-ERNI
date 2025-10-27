@@ -177,37 +177,58 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
   }
 
   return (
-    <div className="flex flex-col items-center p-4">
-      <h1 className="text-3xl font-bold mb-4">Sudoku</h1>
-      <div className="mb-4">
-        <Timer timeMs={time} />
-      </div>
-      <SudokuGrid
+    <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
+      <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
+        <SudokuGrid
         grid={grid}
         selectedCell={selectedCell}
         onCellClick={handleCellClick}
       />
-      <NumberPad
-        isNoteMode={isNoteMode}
-        onNoteToggle={() => !isGameOver && setIsNoteMode(!isNoteMode)}
-        onNumberClick={handleNumberClick}
-        onEraseClick={handleEraseClick}
-      />
-      <button
-        onClick={handleSubmit}
-        disabled={isGameOver}
-        className="mt-6 px-8 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        Submit Solution
-      </button>
+      </div>
+      <div className="place-content-center p-20 text-xl leading-5">
+        <div className="flex justify-between mb-10">
+          <div className="">
+            <h1 className="text-4xl font-bold">Sudoku</h1>
+            <p>on {difficulty} difficulty</p>
+          
+          </div>
+          <Timer timeMs={time} />
+        </div>
 
-      {gameResult && (
-        <PostGameResultsModal
-          score={gameResult.score}
-          submissionId={gameResult.submissionId}
-          onClose={() => setGameResult(null)}
+        <NumberPad
+          isNoteMode={isNoteMode}
+          onNoteToggle={() => !isGameOver && setIsNoteMode(!isNoteMode)}
+          onNumberClick={handleNumberClick}
+          onEraseClick={handleEraseClick}
         />
-      )}
+        <div className="grid grid-cols-2 gap-4 mt-2">
+          <button
+          onClick={handleSubmit}
+          disabled={isGameOver}
+          className="mt-6 px-8 py-3 bg-yellow-500 text-white font-bold rounded-lg shadow-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Hint
+        </button>
+
+        <button
+          onClick={handleSubmit}
+          disabled={isGameOver}
+          className="mt-6 px-8 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Submit
+        </button>
+        </div>
+        
+
+        {gameResult && (
+          <PostGameResultsModal
+            score={gameResult.score}
+            submissionId={gameResult.submissionId}
+            onClose={() => setGameResult(null)}
+          />
+        )}
+    
+      </div>
     </div>
   );
 };

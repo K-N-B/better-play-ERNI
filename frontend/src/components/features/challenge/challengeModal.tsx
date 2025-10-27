@@ -108,9 +108,9 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({ isOpen, onClose,
 
   return (
     // Modal Overlay
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
       {/* Modal Content */}
-      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative mx-4" onClick={e => e.stopPropagation()}>
+      <div className="bg-white p-6 rounded-3xl shadow-xl w-full max-w-md relative mx-4" onClick={e => e.stopPropagation()}>
         {/* Close Button */}
         <button
           onClick={onClose}
