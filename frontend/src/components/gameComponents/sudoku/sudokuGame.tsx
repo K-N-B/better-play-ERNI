@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { submitPuzzle, getSavedAttempt, saveProgress } from '../../../api/gameService'; // Adjust path
-import { completeChallenge } from '../../../api/challengeService';  
+import { completeChallenge } from '../../../api/challengeService';
 import type { SudokuPuzzle, SudokuCell, PuzzleAttemptData, SubmissionData } from '../../../types/game';
 import { SudokuGrid } from './sudokuGrid';
 import { NumberPad } from './numberPad';
@@ -41,7 +41,8 @@ interface SudokuGameProps {
 }
 
 export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps) => {
-  const [grid, setGrid] = useState<SudokuCell[][]>(() => parseGrid(puzzle.puzzle_string));
+  const initialPuzzleString = difficulty === 'easy' ? puzzle.puzzle_string_easy : puzzle.puzzle_string_hard;
+  const [grid, setGrid] = useState<SudokuCell[][]>(() => parseGrid(initialPuzzleString));
   const [selectedCell, setSelectedCell] = useState<{ row: number, col: number } | null>(null);
   const [isNoteMode, setIsNoteMode] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
@@ -63,8 +64,8 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
       // loadedIsGameOver = checkSolution(savedGrid, puzzle.solution_string);
       // setIsGameOver(loadedIsGameOver);
     }
-     if (!loadedIsGameOver) {
-        startTimer();
+    if (!loadedIsGameOver) {
+      startTimer();
     }
   }, [savedGame, startTimer, setSavedTime, puzzle.solution_string]); // Added solution string dependency
 
@@ -112,7 +113,7 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
   const handleEraseClick = () => {
     if (!selectedCell || isGameOver) return;
     const { row, col } = selectedCell;
-     if (grid[row][col].isGiven) return;
+    if (grid[row][col].isGiven) return;
 
     const newGrid = grid.map((r, ri) => r.map((c, ci) => (ri === row && ci === col ? { ...c } : c)));
     newGrid[row][col].value = null;
@@ -121,17 +122,17 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
   };
 
   // Check Solution function (can be moved to utils)
-   const checkSolution = (currentGrid: SudokuCell[][], solutionString: string): boolean => {
-      for (let r = 0; r < 9; r++) {
-         for (let c = 0; c < 9; c++) {
-            const expectedValue = parseInt(solutionString[r * 9 + c]);
-            if (!currentGrid[r][c].value || currentGrid[r][c].value !== expectedValue) {
-               return false; // Found a mismatch
-            }
-         }
+  const checkSolution = (currentGrid: SudokuCell[][], solutionString: string): boolean => {
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        const expectedValue = parseInt(solutionString[r * 9 + c]);
+        if (!currentGrid[r][c].value || currentGrid[r][c].value !== expectedValue) {
+          return false; // Found a mismatch
+        }
       }
-      return true; // All cells match
-   };
+    }
+    return true; // All cells match
+  };
 
   // handleSubmit function
   const handleSubmit = async () => {
@@ -149,6 +150,7 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
         const submissionData: SubmissionData = {
           puzzle_id: puzzle.id,
           puzzle_type: 'sudoku',
+          difficulty: difficulty, // <-- Pass difficulty
           time_taken_ms: finalTime,
           tries: 1,
         };
@@ -157,9 +159,9 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
         submissionIdForResultModal = submissionResult.submissionId ?? null;
 
         if (challengeId && submissionIdForResultModal) {
-            await completeChallenge(challengeId, { submission_id: submissionIdForResultModal });
+          await completeChallenge(challengeId, { submission_id: submissionIdForResultModal });
         } else if (challengeId) {
-             console.error("[SudokuGame] Challenge ID present but failed to get submission ID.");
+          console.error("[SudokuGame] Challenge ID present but failed to get submission ID.");
         }
       } catch (err) {
         console.error("Error during Sudoku submit/challenge:", err);
@@ -171,6 +173,7 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
       startTimer();
     }
   };
+  // ---
 
   if (loading) {
     return <LoadingSpinner fullPage={true} />;
@@ -180,17 +183,17 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
     <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
       <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
         <SudokuGrid
-        grid={grid}
-        selectedCell={selectedCell}
-        onCellClick={handleCellClick}
-      />
+          grid={grid}
+          selectedCell={selectedCell}
+          onCellClick={handleCellClick}
+        />
       </div>
       <div className="place-content-center p-20 text-xl leading-5">
         <div className="flex justify-between mb-10">
           <div className="">
             <h1 className="text-4xl font-bold">Sudoku</h1>
             <p>on {difficulty} difficulty</p>
-          
+
           </div>
           <Timer timeMs={time} />
         </div>
@@ -203,22 +206,22 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
         />
         <div className="grid grid-cols-2 gap-4 mt-2">
           <button
-          onClick={handleSubmit}
-          disabled={isGameOver}
-          className="mt-6 px-8 py-3 bg-yellow-500 text-white font-bold rounded-lg shadow-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Hint
-        </button>
+            onClick={handleSubmit}
+            disabled={isGameOver}
+            className="mt-6 px-8 py-3 bg-yellow-500 text-white font-bold rounded-lg shadow-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Hint
+          </button>
 
-        <button
-          onClick={handleSubmit}
-          disabled={isGameOver}
-          className="mt-6 px-8 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Submit
-        </button>
+          <button
+            onClick={handleSubmit}
+            disabled={isGameOver}
+            className="mt-6 px-8 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Submit
+          </button>
         </div>
-        
+
 
         {gameResult && (
           <PostGameResultsModal
@@ -227,7 +230,7 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
             onClose={() => setGameResult(null)}
           />
         )}
-    
+
       </div>
     </div>
   );

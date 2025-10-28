@@ -127,8 +127,9 @@ export const ErnigramGame = ({ puzzle, difficulty, challengeId }: ErnigramGamePr
         const submissionData: SubmissionData = {
           puzzle_id: puzzle.id,
           puzzle_type: 'ernigram',
+          difficulty: difficulty, // <-- Pass difficulty
           time_taken_ms: finalTime,
-          tries: triesTaken, // Number of incorrect guesses? Or total guesses? Check rules.
+          tries: triesTaken,
         };
         const submissionResult = await submitPuzzle(submissionData);
         finalScore = submissionResult.score;
@@ -144,7 +145,7 @@ export const ErnigramGame = ({ puzzle, difficulty, challengeId }: ErnigramGamePr
         submissionIdForResultModal = null;
         if (challengeId) { /* ... (handle challenge loss) ... */ }
       }
-    } catch (err) {
+    }catch (err) {
       console.error("Error during Ernigram end:", err);
     } finally {
       setGameResult({ score: finalScore, submissionId: submissionIdForResultModal });
