@@ -1,7 +1,7 @@
 import { mockApiCall} from './api'; // Import helpers
 import { getCookie, API_URL } from './authService'
-import { MOCK_REWARDS } from '../data/_mockData'; // Adjust path
-import type { RewardItem, ClaimResponse } from '../types';
+import { MOCK_REWARDS, MOCK_CLAIMED_REWARDS } from '../data/_mockData'; // Adjust path
+import type { RewardItem, ClaimResponse, ClaimedReward } from '../types';
 
 const MOCK_MODE = false;
 /**
@@ -31,6 +31,34 @@ export const getRewards = async (): Promise<RewardItem[]> => {
     throw error;
   }
   // ---
+};
+
+/**
+ * Fetches the user's history of claimed rewards.
+ */
+export const getClaimedRewards = async(): Promise<ClaimedReward[]> => {
+    if (MOCK_MODE) {
+        console.log("Mock: Fetching claimed rewards history...");
+        return mockApiCall([...MOCK_CLAIMED_REWARDS]);
+    }
+
+    // --- REAL API CALL ---
+    try {
+        // This assumes your backend endpoint is /api/shop/claims/
+        const response = await fetch(`${API_URL}/api/shop/claims/`, {
+            method: 'GET',
+            credentials: 'include', // Send session cookie
+            headers: { 'Content-Type': 'application/json' },
+        });
+        if (!response.ok) {
+            throw new Error(`Failed to fetch claimed rewards: ${response.statusText}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('[getClaimedRewards] Fetch error:', error);
+        throw error;
+    }
+    // ---
 };
 
 /**

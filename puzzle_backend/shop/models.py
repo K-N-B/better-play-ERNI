@@ -27,6 +27,12 @@ class Reward(models.Model):
         default=True,
         help_text="Whether the reward is currently available in the shop"
     )
+    
+    max_claims_per_user = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Max times a user can claim this. Null means infinite."
+    )
 
     def __str__(self):
         return f"{self.name} ({self.cost} pts)"
