@@ -175,9 +175,9 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
   };
   // ---
 
-  if (loading) {
-    return <LoadingSpinner fullPage={true} />;
-  }
+  // if (loading) {
+  //   return <LoadingSpinner fullPage={true} />;
+  // }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">

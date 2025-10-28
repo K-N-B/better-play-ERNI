@@ -164,9 +164,9 @@ export const ErnigramGame = ({ puzzle, difficulty, challengeId }: ErnigramGamePr
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyPress]);
 
-  if (loading) {
-    return <LoadingSpinner fullPage={true} />;
-  }
+  // if (loading) {
+  //   return <LoadingSpinner fullPage={true} />;
+  // }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">

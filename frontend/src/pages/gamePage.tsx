@@ -1,5 +1,5 @@
 // /src/pages/GamePage.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect} from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
 import { getDailyPuzzles } from '../api/gameService';
@@ -54,7 +54,12 @@ export const GamePage = () => {
   const [difficulty, setDifficulty] = useState<Difficulty>('easy'); // Single difficulty state
   const [hasStarted, setHasStarted] = useState(false); // State to track if intro is passed
   // This hook now calls the REAL API via gameService
-  const { data: puzzles, loading: loadingPuzzles, error } = useApi(getDailyPuzzles);
+  // const { data: puzzles, loading: loadingPuzzles, error } = useApi(getDailyPuzzles);
+  
+  // Print puzzle data
+  const { data: puzzles, loading: loadingPuzzles, error: error } = useApi(getDailyPuzzles);
+  // console.log(puzzles)
+  // console.log(loadingPuzzles)
 
   // Reset hasStarted and difficulty when the gameType (URL) changes
   useEffect(() => {

@@ -106,28 +106,21 @@ export const getDailyPuzzles = async (): Promise<DailyPuzzleResponse> => {
 
   // --- REAL API CALL ---
   try {
-    const response = await fetch(`${API_URL}/api/games/daily/`, {
-      // Matches backend urls.py
-      method: "GET",
-      credentials: "include", // Send session cookie
+    const response = await fetch(`${API_URL}/api/games/daily/`, { // Matches backend games/urls.py
+      method: 'GET',
+      credentials: 'include', // Send session cookie
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     });
-
-    
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
       console.error(`[getDailyPuzzles] API request failed with status ${response.status}:`, errData);
       throw new Error(`Failed to fetch daily puzzles: ${errData.detail || response.statusText}`);
     }
-    // } else {
-    //   console.log("[getDailyPuzzles] Fetched real data:", await response.json());
-    
-    // }
     return await response.json();
   } catch (error) {
-    console.error("[getDailyPuzzles] Fetch error:", error);
+    console.error('[getDailyPuzzles] Fetch error:', error);
     throw error;
   }
   // ---

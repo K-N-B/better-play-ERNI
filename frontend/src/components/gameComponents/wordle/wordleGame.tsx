@@ -21,6 +21,9 @@ interface WordleGameProps {
 export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps) => {
   const [solution] = useState(puzzle.solution_word.toUpperCase());
   const [wordLength] = useState(solution.length);
+  const MAX_GUESSES = 6;
+  console.log(solution);
+  console.log(wordLength);
 
   const [guesses, setGuesses] = useState<string[]>([]);
   const [currentGuess, setCurrentGuess] = useState('');
@@ -33,7 +36,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
   const fetchSavedWordle = useCallback(() => getSavedAttempt('wordle'), []);
   const { data: savedGame, loading } = useApi(fetchSavedWordle);
 
-  const MAX_GUESSES = difficulty === 'hard' ? 5 : 6;
+
 
   // Effect to load data
   useEffect(() => {
@@ -163,9 +166,9 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyPress]);
 
-  if (loading) {
-    return <LoadingSpinner fullPage={true} />;
-  }
+  // if (loading) {
+  //   return <LoadingSpinner fullPage={true} />;
+  // }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
