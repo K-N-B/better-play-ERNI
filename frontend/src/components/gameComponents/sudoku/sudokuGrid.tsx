@@ -1,6 +1,5 @@
-// Renders the 9x9 grid. It highlights the selected cell, row, column, and 3x3 box. It renders "given" numbers differently from "user-entered" numbers and "notes".
-
-import type { SudokuCell } from '../../../types/game'; // We'll add this type
+import type { SudokuCell } from '../../../types/game'; // Make sure this path is correct
+import clsx from 'clsx'; // Import clsx for cleaner class logic
 
 interface SudokuGridProps {
   grid: SudokuCell[][];
@@ -9,41 +8,45 @@ interface SudokuGridProps {
 }
 
 export const SudokuGrid = ({ grid, selectedCell, onCellClick }: SudokuGridProps) => {
-  // Helper to determine cell classes
+  
   const getCellClasses = (row: number, col: number) => {
-    let classes = 'flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 border border-gray-300 transition-colors';
-
-    // Bold borders for 3x3 boxes
-    if (row % 3 === 0 && row !== 0) classes += ' border-t-2 border-t-primary';
-    if (col % 3 === 0 && col !== 0) classes += ' border-l-2 border-l-primary';
-
-    // Cell value type
     const cell = grid[row][col];
-    if (cell.isGiven) {
-      classes += ' bg-gray-200 text-gray-900 font-bold';
-    } else {
-      classes += ' bg-white text-blue-600 cursor-pointer hover:bg-blue-50';
-    }
-
-    // Selected cell highlighting
-    if (selectedCell) {
-      if (selectedCell.row === row && selectedCell.col === col) {
-        classes += ' bg-blue-200'; // Selected cell
-      } else if (selectedCell.row === row || selectedCell.col === col) {
-        classes += ' bg-blue-50'; // Highlight row/col
-      }
-    }
     
-    // Show error
-    if (cell.isError) {
-      classes += ' bg-red-200 text-red-700';
-    }
+    // --- THIS IS THE FIX ---
+    // 1. REMOVED all 'border', 'border-t-4', 'border-l-4' classes from here.
+    // The parent 'divide-' classes will handle the thin lines.
+    // The parent 'border-6' handles the outer border.
+    const classes = clsx(
+      'flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 font-extrabold transition-colors',
+      
+      // 2. We STILL add THICK borders for the 3x3 box lines.
+      // These will draw ON TOP of the parent's thin divide lines.
+      row % 3 === 0 && row !== 0 && 'border-t-4 border-t-gray-400',
+      col % 3 === 0 && col !== 0 && 'border-l-4 border-l-gray-400',
+
+      // Cell value type
+      cell.isGiven
+        ? 'bg-gray-200 text-gray-900 font-extrabold'
+        : 'bg-white text-blue-600 cursor-pointer hover:bg-blue-50',
+
+      // Selected cell highlighting (no change)
+      selectedCell && selectedCell.row === row && selectedCell.col === col && 'bg-blue-200',
+      selectedCell && (selectedCell.row === row || selectedCell.col === col) && 'bg-blue-50',
+      
+      // Show error (no change)
+      cell.isError && 'bg-red-200 text-red-700'
+    );
+    // --- END FIX ---
     
     return classes;
   };
 
   return (
-    <div className="grid grid-cols-9 border-2 border-primary shadow-lg">
+    // --- THIS IS THE FIX ---
+    // 1. REMOVED 'gap-0'.
+    // 2. ADDED 'divide-x divide-y divide-gray-300' to create the thin 1px grid lines.
+    <div className="grid grid-cols-9 rounded-2xl border-6 border-gray-500 overflow-hidden divide-x divide-y divide-gray-400">
+    {/* --- END FIX --- */}
       {grid.map((row, rowIndex) =>
         row.map((cell, colIndex) => (
           <div
@@ -52,7 +55,7 @@ export const SudokuGrid = ({ grid, selectedCell, onCellClick }: SudokuGridProps)
             onClick={() => !cell.isGiven && onCellClick(rowIndex, colIndex)}
           >
             {cell.value ? (
-              <span className="text-2xl">{cell.value}</span>
+              <span className="text-xl">{cell.value}</span>
             ) : (
               // Render notes
               <div className="grid grid-cols-3 gap-0.5 text-xs text-gray-500">

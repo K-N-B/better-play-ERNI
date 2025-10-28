@@ -120,7 +120,7 @@ export const GamePage = () => {
   }
 
   return (
-    <div className={`h-full w-full rounded-3xl p-4 sm:p-8 md:p-12 ${introData.bgColor}`}>
+    <div className={`container mx-auto h-full w-full shadow-md rounded-4xl p-4 sm:p-8 md:p-12 ${introData.bgColor}`}>
       {content}
     </div>
   );

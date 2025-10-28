@@ -69,7 +69,7 @@ function ERNIgramGame({ difficulty }) {
 
   return (
     <div className="h-full text-center grid grid-cols-2">
-      <div className="p-20 text-2xl rounded-3xl flex flex-col items-center justify-center bg-white">
+      <div className="p-20 text-xl rounded-3xl flex flex-col items-center justify-center bg-white">
         <div className="font-semibold bg-sky-400 text-3xl text-white rounded-full px-10 py-4 mb-6">
           What is ERNI's tagline? 
         </div>
@@ -90,10 +90,10 @@ function ERNIgramGame({ difficulty }) {
         </div>
 
         <div className="text-center w-full text-sm md:text-base">
-          <div className="text-red-600 font-semibold text-2xl mb-4">
+          <div className="text-red-600 font-semibold text-xl mb-4">
             Wrong letters: {wrongLetters.join(", ") || "None"}
           </div>
-          <div className="font-semibold justify-center text-gray-800 text-2xl flex items-center gap-2">
+          <div className="font-semibold justify-center text-gray-800 text-xl flex items-center gap-2">
             Battery
             
           </div>
@@ -127,11 +127,11 @@ function ERNIgramGame({ difficulty }) {
       {/* RIGHT SIDE */}
       <div className="flex flex-col items-center justify-center text-center">
         <div className="text-6xl font-bold text-gray-900">ERNIgram</div>
-        <div className="text-gray-700 mt-2 text-2xl font-medium">
+        <div className="text-gray-700 mt-2 text-xl font-medium">
           on {difficulty} difficulty
         </div>
 
-        <button className="mt-6 px-5 py-4 bg-white border border-sky-500 text-sky-600 rounded-full text-2xl font-semibold hover:bg-sky-50 transition">
+        <button className="mt-6 px-5 py-4 bg-white border border-sky-500 text-sky-600 rounded-full text-xl font-semibold hover:bg-sky-50 transition">
           Hint
         </button>
       </div>

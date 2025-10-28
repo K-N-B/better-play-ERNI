@@ -17,7 +17,7 @@ class WordleGeneratorAI:
         """
         Generate a single Wordle puzzle word based on difficulty.
         EASY  -> Exactly 5 letters
-        HARD  -> Between 6 and 15 letters
+        HARD  -> Between 6 and 10 letters
         """
 
         if existing_words is None:
@@ -27,7 +27,7 @@ class WordleGeneratorAI:
         if difficulty == "EASY":
             min_length = max_length = 5
         else:  # HARD
-            min_length, max_length = 6, 15
+            min_length, max_length = 6, 10
 
         # --- Build dynamic prompt ---
         prompt = f"""

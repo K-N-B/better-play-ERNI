@@ -258,7 +258,7 @@ function WordleGame({ difficulty }) {
         {isGameOver && (
           <div className="mt-6 space-y-3">
             <div className="text-center space-y-2">
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-xl font-bold text-gray-900">
                 Final Score: {finalScore} points
               </p>
               <p className="text-gray-600">Time: {formatTime(timeElapsed)}</p>
@@ -282,7 +282,7 @@ function WordleGame({ difficulty }) {
       <div className="flex flex-col items-center justify-center text-center space-y-6">
         <div>
           <div className="text-6xl font-bold text-gray-900">Wordle</div>
-          <div className="text-gray-700 mt-2 text-2xl font-medium">
+          <div className="text-gray-700 mt-2 text-xl font-medium">
             on {difficulty} difficulty
           </div>
         </div>
@@ -313,7 +313,7 @@ function WordleGame({ difficulty }) {
         <button
           onClick={handleHint}
           disabled={hintsUsed.length >= 3 || isGameOver}
-          className={`px-8 py-4 rounded-full text-2xl font-semibold transition shadow-lg ${
+          className={`px-8 py-4 rounded-full text-xl font-semibold transition shadow-lg ${
             hintsUsed.length >= 3 || isGameOver
               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
               : "bg-white border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50"

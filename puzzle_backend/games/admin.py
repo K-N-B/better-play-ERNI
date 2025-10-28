@@ -24,7 +24,7 @@ class ErnigramPuzzleAdmin(admin.ModelAdmin):
 
 @admin.register(DailyPuzzle)
 class DailyPuzzleAdmin(admin.ModelAdmin):
-    list_display = ("date", "wordle_easy", "wordle_hard", "sudoku", "ernigram")
+    list_display = ( "date", "wordle_easy", "wordle_hard", "sudoku", "ernigram")
 
 
 

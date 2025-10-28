@@ -24,17 +24,16 @@ export default function AuthCallback() {
         console.error('Auth check failed:', error);
         navigate('/login', { replace: true });
       }
-    }, 500);
+    }, 100);
   }, [navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-400 via-purple-500 to-pink-400">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+    <div className="min-h-screen flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="bg-white rounded-4xl shadow-2xl p-8 max-w-md w-full text-center">
         <div className="mb-6">
-          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
         </div>
-        <div className="text-2xl font-bold text-gray-900 mb-2">{status}</div>
-        <p className="text-gray-600">Please wait...</p>
+        <div className="text-xl font-bold text-black mb-2">{status}</div>
       </div>
     </div>
   );
