@@ -11,11 +11,15 @@ from django.views.decorators.csrf import csrf_protect
 
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+from django.db import transaction
+import random
 
 
 
-# @method_decorator(csrf_protect, name='dispatch')
-# @method_decorator(login_required, name='post')
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(login_required, name='post')
+# @method_decorator(csrf_exempt, name='dispatch')
 class SaveProgressView(View):
     def post(self, request, daily_puzzle_id, puzzle_model_name, puzzle_id):
         # NOTE: request.user must be the authenticated user
@@ -136,12 +140,16 @@ class SaveProgressView(View):
     
 
 
-# /gameplay/views.py (within the same file as SaveProgressView)
-# @method_decorator(csrf_protect, name='dispatch')
-# @method_decorator(login_required, name='post')
+
+
+
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(login_required, name='post')
+# @method_decorator(csrf_exempt, name='dispatch')
 class SubmitPuzzleView(View):
     def post(self, request, daily_puzzle_id, puzzle_model_name, puzzle_id):
         user = request.user 
+      
         
         # -----------------------------------------------------------
         # 1. Setup and Validation (Copied from SaveProgressView)
@@ -245,9 +253,9 @@ class SubmitPuzzleView(View):
         }, status=201)
 
 
-
-# @method_decorator(csrf_protect, name='dispatch')
-# @method_decorator(login_required, name='get')
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(login_required, name='get')
+# @method_decorator(csrf_exempt, name='dispatch')
 class GetProgressView(View):
     """
     Handles GET requests to retrieve a user's current PuzzleAttempt state for a specific puzzle.
@@ -300,4 +308,82 @@ class GetProgressView(View):
                 "exists": False,
                 "message": "No active attempt found. Start a new game."
             }, status=200) # Use 200 to signal a successful check, but the attempt doesn't exist
+
+
+
+
+@method_decorator(login_required, name='post')
+@method_decorator(login_required, name='post')
+class GetHintView(View):
+    def post(self, request, daily_puzzle_id, puzzle_model_name, puzzle_id):
+        user = request.user
+        
+        # --- 1. Validation and Data Retrieval ---
+        try:
+            data = json.loads(request.body)
+            difficulty = data.get('difficulty', 'EASY').upper()
+            
+            daily_puzzle = get_object_or_404(DailyPuzzle, pk=daily_puzzle_id)
+
+            # --- FIX C: Dynamically get the PuzzleModel (like other views) ---
+            if puzzle_model_name.lower() == 'sudokupuzzle':
+                 PuzzleModel = SudokuPuzzle
+            else:
+                 # This view is currently only designed for Sudoku, reject others
+                 return JsonResponse({"error": "Hint request not supported for this puzzle type."}, status=400)
+            # -----------------------------------------------------------------
+
+            puzzle_instance = get_object_or_404(PuzzleModel, pk=puzzle_id)
+            puzzle_content_type = ContentType.objects.get_for_model(puzzle_instance)
+
+            # Get current attempt state (uses GFK components)
+            attempt = PuzzleAttempt.objects.get(
+                user=user, daily_puzzle=daily_puzzle, 
+                content_type=puzzle_content_type, object_id=puzzle_instance.pk,
+            )
+
+        # --- FIX B: Better Exception Handling ---
+        except (SudokuPuzzle.DoesNotExist, PuzzleAttempt.DoesNotExist, json.JSONDecodeError):
+             return JsonResponse({"error": "Invalid game state or puzzle reference."}, status=400)
+        # ---------------------------------------
+
+        # --- 2. Hint Limit Check ---
+        hints_used = attempt.progress_data.get('hints_used', 0)
+        max_hints = puzzle_instance.HINT_LIMITS.get(difficulty)
+
+        if max_hints is None:
+            return JsonResponse({"error": "Difficulty config missing HINT_LIMITS."}, status=500)
+
+        if hints_used >= max_hints:
+             return JsonResponse({"error": f"Maximum of {max_hints} hints exceeded."}, status=403)
+
+        # --- 3. Find Available Hint (RANDOMIZED) ---
+        solution_string = puzzle_instance.solution_string
+        current_grid = attempt.progress_data.get('final_grid', '0' * 81)
+
+        # 1. Collect all empty cell indices (where the user has placed a '0' or it's empty)
+        empty_indices = [i for i, char in enumerate(current_grid) if char == '0']
+        
+        # 2. Check if there are any blank spots left
+        if not empty_indices:
+            return JsonResponse({"error": "Puzzle appears to be complete."}, status=400)
+        
+        # 3. Randomly select one index from the list
+        hint_index = random.choice(empty_indices)
+        
+        # 4. Determine the hint value using the randomly selected index
+        hint_value = solution_string[hint_index]
+        
+        # --- 4. Prepare Response ---
+        # The view does NOT save the new state; the frontend must do that via /save/
+        hints_used_new = hints_used + 1
+
+        return JsonResponse({
+            "message": "Hint granted.",
+            "hint_index": hint_index,
+            "hint_value": hint_value,
+            "hints_used_new": hints_used_new, # New count for the frontend to save
+        }, status=200)
+
+
 

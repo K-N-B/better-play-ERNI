@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import SaveProgressView, SubmitPuzzleView, GetProgressView
+from .views import SaveProgressView, SubmitPuzzleView, GetProgressView, GetHintView
 
 urlpatterns = [
     # URL for saving intermediate game state
@@ -22,5 +22,10 @@ urlpatterns = [
         'progress/<str:daily_puzzle_id>/<str:puzzle_model_name>/<int:puzzle_id>/',
         GetProgressView.as_view(),
         name='get_progress' # <-- NEW URL NAME
+    ),
+    path(
+        'hint/<str:daily_puzzle_id>/<str:puzzle_model_name>/<int:puzzle_id>/',
+        GetHintView.as_view(),
+        name='get_hint' 
     ),
 ]

@@ -30,7 +30,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_apscheduler',
     'authentication',
-    'games.apps.GamesConfig',
+    'games',
     'drf_spectacular',
     'drf_spectacular_sidecar',
 ]

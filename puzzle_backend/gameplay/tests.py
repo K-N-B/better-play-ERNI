@@ -253,6 +253,7 @@ class SaveProgressViewTests(TestCase):
         # Define the base URL pattern
         self.save_url_name = 'save_progress' 
         self.submit_url_name = 'submit_puzzle'
+        self.hint_url_name = 'get_hint'
 
     def _get_save_url(self, daily_puzzle_obj, puzzle_instance):
         """ Helper to construct the full URL using reverse(). """
@@ -282,6 +283,17 @@ class SaveProgressViewTests(TestCase):
         """ Helper to construct the full GET PROGRESS URL using reverse(). """
         return reverse(
             'get_progress', # Use the new URL name
+            kwargs={
+                'daily_puzzle_id': daily_puzzle_obj.pk,
+                'puzzle_model_name': puzzle_instance.__class__.__name__.lower(),
+                'puzzle_id': puzzle_instance.pk
+            }
+        )
+    # Add this helper method:
+    def _get_hint_url(self, daily_puzzle_obj, puzzle_instance):
+        """ Helper to construct the full HINT URL using reverse(). """
+        return reverse(
+            self.hint_url_name, 
             kwargs={
                 'daily_puzzle_id': daily_puzzle_obj.pk,
                 'puzzle_model_name': puzzle_instance.__class__.__name__.lower(),
@@ -774,3 +786,125 @@ class SaveProgressViewTests(TestCase):
         
         # The login_required decorator redirects unauthenticated users to the login URL
         self.assertEqual(response.status_code, 302)
+
+
+
+
+    def test_hint_is_always_accurate(self):
+        """Verifies the backend returns the correct solution digit for an empty cell."""
+        url = self._get_hint_url(self.daily_puzzle_easy, self.placeholder_sudoku)
+        
+        # Sudoku solution_string is 81 characters long. 
+        # Example: '123456789...'
+        # We create a grid that is complete EXCEPT for the cell at index 5, which should be '6'.
+        # We substitute a '0' into the solution string at index 5.
+        solution = self.placeholder_sudoku.solution_string
+        incomplete_grid = solution[:5] + '0' + solution[6:]
+        
+        # 1. Create Attempt: Start the game with one empty spot
+        attempt = PuzzleAttempt.objects.create(
+            user=self.user, daily_puzzle=self.daily_puzzle_easy, 
+            content_type=self.sudoku_content_type, object_id=self.placeholder_sudoku.pk,
+            progress_data={'hints_used': 0, 'final_grid': incomplete_grid},
+            time_spent_ms=1000
+        )
+
+        # 2. Send Hint Request
+        payload = {"difficulty": "EASY"}
+        response = self.client.post(url, data=json.dumps(payload), content_type='application/json')
+        
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        
+        # The actual correct digit at index 5 is solution[5]
+        expected_hint_value = solution[5]
+
+        # 3. Verify Hint Accuracy and Index
+        self.assertEqual(data['hint_index'], 5)
+        self.assertEqual(data['hint_value'], expected_hint_value)
+        self.assertEqual(data['hints_used_new'], 1)
+
+
+
+    def test_hint_request_rejected_at_max_limit(self):
+        """Verifies that the server blocks the request when hints_used equals the HINT_LIMITS (5)."""
+        url = self._get_hint_url(self.daily_puzzle_easy, self.placeholder_sudoku)
+        
+        # 1. Create Attempt: Start the game having used the maximum 5 hints
+        attempt = PuzzleAttempt.objects.create(
+            user=self.user, daily_puzzle=self.daily_puzzle_easy, 
+            content_type=self.sudoku_content_type, object_id=self.placeholder_sudoku.pk,
+            progress_data={'hints_used': 5, 'final_grid': '0'*81}, # 5 is the EASY limit
+            time_spent_ms=1000
+        )
+
+        # 2. Send Hint Request
+        payload = {"difficulty": "EASY"}
+        response = self.client.post(url, data=json.dumps(payload), content_type='application/json')
+        
+        self.assertEqual(response.status_code, 403) # Forbidden
+        self.assertIn("Maximum of 5 hints exceeded", response.json()['error'])
+
+    def test_hint_selection_is_randomized(self):
+        """Verifies that the hint_index is NOT always the first available empty cell."""
+        url = self._get_hint_url(self.daily_puzzle_easy, self.placeholder_sudoku)
+        
+        solution = self.placeholder_sudoku.solution_string
+        
+        # 1. Create a grid with multiple known empty spots at indices 1, 2, 3, 4
+        # Ensure index 0 is NOT '0' by using a known digit from the solution (e.g., solution[10])
+        # This guarantees the test starts with a known, fixed state.
+        
+        # We substitute known digits with '0' to ensure they are available empty spots.
+        incomplete_grid_list = list(solution)
+        # Target indices for randomization: 10, 15, 20, 25
+        target_empty_indices = [10, 15, 20, 25] 
+        
+        for idx in target_empty_indices:
+            incomplete_grid_list[idx] = '0'
+            
+        multiple_blanks_grid = "".join(incomplete_grid_list)
+
+        # The actual first empty index is 10. We expect indices 10, 15, 20, 25 to be hit.
+        
+        hint_indices = set() # Use a set to automatically track unique indices
+        payload = {"difficulty": "EASY"}
+        
+        # 2. Loop and Request Hints
+        for _ in range(10): # Run 10 times to strongly prove randomness
+            # Create a fresh attempt for EACH request 
+            attempt = PuzzleAttempt.objects.create(
+                user=self.user, daily_puzzle=self.daily_puzzle_easy, 
+                content_type=self.sudoku_content_type, object_id=self.placeholder_sudoku.pk,
+                progress_data={'hints_used': 0, 'final_grid': multiple_blanks_grid},
+                time_spent_ms=1000
+            )
+            
+            response = self.client.post(url, data=json.dumps(payload), content_type='application/json')
+            self.assertEqual(response.status_code, 200)
+            
+            data = response.json()
+            hint_indices.add(data['hint_index']) # Add to the set
+            
+            attempt.delete() # Clean up
+
+        # 3. Verification: Check that randomization actually occurred.
+
+        # Check 1: Ensure all returned indices are from our target list.
+        for index in hint_indices:
+            self.assertIn(index, target_empty_indices, 
+                        msg=f"Hint logic is flawed: picked index {index}, which should not be empty.")
+
+        # Check 2: Prove it didn't ALWAYS pick the first available index (index 10).
+        # If len(hint_indices) is greater than 1, randomization worked.
+        self.assertTrue(len(hint_indices) > 1, 
+                        msg=f"Hint selection failed; only one unique index ({hint_indices.pop()}) was chosen in 10 attempts.")
+
+
+
+
+
+
+
+
+        
