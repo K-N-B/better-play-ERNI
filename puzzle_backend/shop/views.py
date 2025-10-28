@@ -36,6 +36,19 @@ class ClaimRewardView(generics.GenericAPIView):
             with transaction.atomic():
                 # Get a fresh, locked copy of the user to prevent race conditions
                 user = User.objects.select_for_update().get(pk=user.pk)
+                
+                if reward.max_claims_per_user is not None:
+                    # Count how many times this user has already claimed this specific reward
+                    existing_claims_count = ClaimedReward.objects.filter(
+                        user=user,
+                        reward=reward
+                    ).count()
+                    
+                    if existing_claims_count >= reward.max_claims_per_user:
+                        return Response(
+                            {"success": False, "message": f"Claim limit reached ({reward.max_claims_per_user})."},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
 
                 # 1. Check points
                 if user.current_points < reward.cost:

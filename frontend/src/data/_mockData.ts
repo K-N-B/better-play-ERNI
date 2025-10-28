@@ -4,7 +4,7 @@ import type { IndividualScoreEntry, DepartmentScoreEntry } from '../types/leader
 import type { ActivityHubResponse, OnlineUser } from '../types/activity';
 import type { Submission } from '../types/game';
 import type { Challenge } from '../types/challenge';
-import type { RewardItem, ClaimResponse } from '../types';
+import type { RewardItem, ClaimResponse, ClaimedReward } from '../types';
 
 import stickerImage from '../assets/images/stickers.jpg'; // Adjust path/filename
 import mugImage from '../assets/images/mug.jpg';
@@ -212,27 +212,63 @@ export const MOCK_REWARDS: RewardItem[] = [
         name: 'Company Sticker Pack',
         description: 'Show your ERNI pride with these cool stickers.',
         cost: 250,
-        imageUrl: stickerImage, // Placeholder image
+        image: stickerImage,
+        max_claims_per_user: 5, // User can claim this 5 times
     },
     {
         id: 'reward-002',
         name: 'ERNI Coffee Mug',
         description: 'Enjoy your morning brew in style.',
         cost: 1000,
-        imageUrl: mugImage, // Placeholder image
+        image: mugImage,
+        max_claims_per_user: 1, // User can only claim this ONCE
     },
     {
         id: 'reward-003',
-        name: 'ERNI Button Pin',
-        description: 'Be an Ernian, loud and proud!',
-        cost: 500,
-        imageUrl: pinImage, // Placeholder image
+        name: '"Puzzle Master" Title (Internal)',
+        description: 'Get recognized internally as a puzzle whiz for a week!',
+        cost: 5000,
+        image: ballerImage,
+        max_claims_per_user: null, // No limit (infinite claims)
     },
-     {
+    {
         id: 'reward-004',
-        name: 'ERNI Baller',
-        description: 'Proof of life at ERNI',
-        cost: 750,
-        imageUrl: ballerImage, // Placeholder image
+        name: 'Extra Hint Coupon',
+        description: 'Redeem for one free hint on any puzzle.',
+        cost: 150,
+        image: pinImage,
+        max_claims_per_user: 10, // Can claim 10 coupons
     },
 ];
+
+// --- ADD MOCK CLAIMED REWARDS ---
+// Simulate that the user has already claimed some items
+export const MOCK_CLAIMED_REWARDS: ClaimedReward[] = [
+    // User has already claimed the mug once
+    {
+        id: 901,
+        user: { id: 1, username: 'gavin_cii' }, // Assuming user 1 is logged in
+        reward: MOCK_REWARDS[1], // The ERNI Coffee Mug
+        claimed_at: new Date(Date.now() - 86400000 * 5).toISOString(), // 5 days ago
+        points_spent: 1000,
+        status: 'FULFILLED',
+    },
+    // User has claimed stickers twice
+    {
+        id: 902,
+        user: { id: 1, username: 'gavin_cii' },
+        reward: MOCK_REWARDS[0], // Sticker Pack
+        claimed_at: new Date(Date.now() - 86400000 * 2).toISOString(), // 2 days ago
+        points_spent: 250,
+        status: 'CLAIMED',
+    },
+    {
+        id: 903,
+        user: { id: 1, username: 'gavin_cii' },
+        reward: MOCK_REWARDS[0], // Sticker Pack
+        claimed_at: new Date(Date.now() - 86400000 * 1).toISOString(), // 1 day ago
+        points_spent: 250,
+        status: 'CLAIMED',
+    },
+];
+// ---
