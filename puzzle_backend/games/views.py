@@ -3,13 +3,18 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 from django.utils import timezone
 from django.db import transaction
 from datetime import date, timedelta
 import pytz
 
-from .models import WordlePuzzle, DailyPuzzle
-from .serializers import WordlePuzzleSerializer, WordlePuzzleDetailSerializer, DailyPuzzleSerializer
+from .models import WordlePuzzle, DailyPuzzle, SudokuPuzzle, ErnigramPuzzle
+from .serializers import (
+    WordlePuzzleSerializer, 
+    WordlePuzzleDetailSerializer, 
+    DailyPuzzleSerializer
+)
 from gameplay.models import PuzzleAttempt, Submission
 from gameplay.serializers import (
     PuzzleAttemptSerializer, 
@@ -17,6 +22,107 @@ from gameplay.serializers import (
     SubmissionCreateSerializer
 )
 from gameplay.scoring import WordleScorer
+
+
+class DailyPuzzlesView(APIView):
+    """
+    GET /api/games/daily/
+    GET /api/games/daily/?date=2025-01-28
+    
+    Returns all daily puzzles (Wordle, Sudoku, Ernigram) for a specific date.
+    If no date provided, returns today's puzzles.
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        # Get date from query params or use today
+        date_str = request.query_params.get('date')
+        
+        try:
+            if date_str:
+                target_date = date.fromisoformat(date_str)
+            else:
+                # Get today in Philippine Time
+                pht_tz = pytz.timezone('Asia/Manila')
+                target_date = timezone.now().astimezone(pht_tz).date()
+        except ValueError:
+            return Response(
+                {'error': 'Invalid date format. Use YYYY-MM-DD'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Try to get DailyPuzzle set
+        try:
+            daily_puzzle = DailyPuzzle.objects.get(date=target_date)
+            serializer = DailyPuzzleSerializer(daily_puzzle)
+            return Response(serializer.data)
+        except DailyPuzzle.DoesNotExist:
+            # If DailyPuzzle doesn't exist, try to get individual puzzles
+            # This is a fallback for when you only have Wordle implemented
+            try:
+                wordle = WordlePuzzle.objects.get(date_to_be_used=target_date)
+                
+                # Build response manually
+                response_data = {
+                    'date': target_date.isoformat(),
+                    'wordle': WordlePuzzleSerializer(wordle).data,
+                    'sudoku': None,  # Not implemented yet
+                    'ernigram': None  # Not implemented yet
+                }
+                
+                return Response(response_data)
+            
+            except WordlePuzzle.DoesNotExist:
+                return Response(
+                    {'error': f'No puzzles available for {target_date}'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+
+class MockDailyPuzzlesGenerateView(APIView):
+    """
+    POST /api/games/mock-generate/
+    
+    DEVELOPMENT ONLY: Manually trigger puzzle generation for testing.
+    
+    Body (optional):
+    {
+        "date": "2025-01-28"
+    }
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        from .services import generate_daily_puzzles
+        
+        date_str = request.data.get('date')
+        
+        try:
+            if date_str:
+                target_date = date.fromisoformat(date_str)
+            else:
+                pht_tz = pytz.timezone('Asia/Manila')
+                target_date = timezone.now().astimezone(pht_tz).date()
+        except ValueError:
+            return Response(
+                {'error': 'Invalid date format. Use YYYY-MM-DD'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            daily_puzzle = generate_daily_puzzles(target_date)
+            
+            return Response({
+                'success': True,
+                'message': f'Puzzles generated for {target_date}',
+                'puzzle': DailyPuzzleSerializer(daily_puzzle).data
+            }, status=status.HTTP_201_CREATED)
+        
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to generate puzzles: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class WordleGameViewSet(viewsets.ViewSet):
