@@ -50,13 +50,13 @@ export const ErnigramGame = ({ puzzle, difficulty, challengeId }: ErnigramGamePr
 
       const newStatuses: Record<string, KeyStatus> = {};
       progress.guessedLetters.forEach(char => {
-         if (solution.includes(char)) newStatuses[char] = 'correct';
-         else newStatuses[char] = 'absent';
+        if (solution.includes(char)) newStatuses[char] = 'correct';
+        else newStatuses[char] = 'absent';
       });
       setLetterStatuses(newStatuses);
     }
-     if (!loadedIsGameOver) {
-        startTimer();
+    if (!loadedIsGameOver) {
+      startTimer();
     }
   }, [savedGame, startTimer, setSavedTime, solution, difficulty]); // Added difficulty dependency
 
@@ -124,30 +124,31 @@ export const ErnigramGame = ({ puzzle, difficulty, challengeId }: ErnigramGamePr
 
     try {
       if (won) {
-         const submissionData: SubmissionData = {
-           puzzle_id: puzzle.id,
-           puzzle_type: 'ernigram',
-           time_taken_ms: finalTime,
-           tries: triesTaken, // Number of incorrect guesses? Or total guesses? Check rules.
-         };
-         const submissionResult = await submitPuzzle(submissionData);
-         finalScore = submissionResult.score;
-         submissionIdForResultModal = submissionResult.submissionId ?? null;
+        const submissionData: SubmissionData = {
+          puzzle_id: puzzle.id,
+          puzzle_type: 'ernigram',
+          difficulty: difficulty, // <-- Pass difficulty
+          time_taken_ms: finalTime,
+          tries: triesTaken,
+        };
+        const submissionResult = await submitPuzzle(submissionData);
+        finalScore = submissionResult.score;
+        submissionIdForResultModal = submissionResult.submissionId ?? null;
 
-         if (challengeId && submissionIdForResultModal) {
-             await completeChallenge(challengeId, { submission_id: submissionIdForResultModal });
-         } else if (challengeId) {
-              console.error("[ErnigramGame] Challenge ID present but failed to get submission ID.");
-         }
+        if (challengeId && submissionIdForResultModal) {
+          await completeChallenge(challengeId, { submission_id: submissionIdForResultModal });
+        } else if (challengeId) {
+          console.error("[ErnigramGame] Challenge ID present but failed to get submission ID.");
+        }
       } else {
         finalScore = 0;
         submissionIdForResultModal = null;
-         if (challengeId) { /* ... (handle challenge loss) ... */ }
+        if (challengeId) { /* ... (handle challenge loss) ... */ }
       }
-    } catch (err) {
+    }catch (err) {
       console.error("Error during Ernigram end:", err);
     } finally {
-        setGameResult({ score: finalScore, submissionId: submissionIdForResultModal });
+      setGameResult({ score: finalScore, submissionId: submissionIdForResultModal });
     }
   };
 
@@ -163,23 +164,30 @@ export const ErnigramGame = ({ puzzle, difficulty, challengeId }: ErnigramGamePr
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyPress]);
 
-  if (loading) {
-    return <LoadingSpinner fullPage={true} />;
-  }
+  // if (loading) {
+  //   return <LoadingSpinner fullPage={true} />;
+  // }
 
   return (
-    <div className="flex flex-col items-center p-4 max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold mb-2">ERNIgram</h1>
-      <p className="text-xl text-gray-600 mb-6">{puzzle.clue}</p>
+    <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
+      <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
+        <p className="text-xl text-black mb-6">{puzzle.clue}</p>
 
-      <div className="flex justify-between w-full max-w-sm items-center mb-4">
-        <AttemptsTracker attemptsLeft={attemptsLeft} />
-        <Timer timeMs={time} />
-      </div>
+        <div className="flex justify-between w-full max-w-sm items-center mb-4">
+          <AttemptsTracker attemptsLeft={attemptsLeft} />
+        </div>
 
       <PhraseDisplay solutionPhrase={solution} guessedLetters={guessedLetters} />
-
-      {/* Disable keyboard when game is over */}
+      </div>
+      <div className="place-content-center p-20 text-xl leading-5">
+        <div className="flex justify-between mb-10">
+          <div className="">
+            <h1 className="text-4xl font-bold">ERNIgram</h1>
+            <p>on {difficulty} difficulty</p>
+          
+          </div>
+          <Timer timeMs={time} />
+      </div>
       <div className={isGameOver ? 'opacity-50 pointer-events-none' : ''}>
         <Keyboard
           onKeyPress={handleKeyPress}
@@ -194,6 +202,7 @@ export const ErnigramGame = ({ puzzle, difficulty, challengeId }: ErnigramGamePr
           onClose={() => setGameResult(null)}
         />
       )}
+      </div>
     </div>
   );
 };

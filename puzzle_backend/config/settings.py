@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'leaderboards.apps.LeaderboardsConfig',
     'django_cron',
     'activity',
+    'shop.apps.ShopConfig'
 ]
 
 CRON_CLASSES = [
@@ -204,3 +205,13 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# --- MEDIA FILE CONFIGURATION ---
+# This is the base URL from which media files will be served
+# e.g., http://localhost:8000/media/rewards/my_image.png
+MEDIA_URL = '/media/'
+
+# This is the absolute path to the folder on your server where
+# uploaded files will be stored.
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# ---

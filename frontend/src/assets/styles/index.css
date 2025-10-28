@@ -1,17 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
-@import "@fontsource/poppins";
+
+
+
 @plugin "flowbite/plugin";
 @config "../../../tailwind.config.js";
 
-layer base {
-  * {
-    font-family: "Poppins", sans-serif;
-  }
+
+/* 1. Import your font at the very top */
+
+/* 3. Apply the font to the body (optional, but good practice) */
+body {
+  @apply font-sans; /* 'font-sans' will be defined in the next step */
 }
 
 @theme {
-  --font-family: 'Poppins', sans-serif;
+  
 
   /* Primary color scale derived from #2449A4 */
   --color-primary-50:  #F3F4F7;

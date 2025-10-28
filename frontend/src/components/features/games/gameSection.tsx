@@ -24,20 +24,20 @@ export const GamesSection = () => {
 
   return (
     <div className="bg-white text-black rounded-4xl p-8 shadow-lg h-full flex flex-col">
-      <div className='flex flex-row items-center justify-center gap-2 mb-2'>
-        <Puzzle size={30} strokeWidth={2.5}/>
-        <div className="text-4xl font-bold ">Games</div>
-      </div>
+      <h3 className='text-xl font-semibold mb-3 flex items-center space-x-2 justify-center'>
+        <Puzzle size={22} strokeWidth={2.5}/>
+        <div className="text-xl font-semibold ">Games</div>
+      </h3>
 
-      <p className="mb-4 text-black text-center leading-5">Choose your poison for today or experience all of them!</p>
-      <div className="flex-grow grid grid-rows-3 gap-6">
+      <p className="mb-4 text-black text-center text-base leading-5">Choose your poison for today or experience all of them!</p>
+      <div className="flex-grow grid grid-cols-3 lg:grid-cols-1 gap-6">
         {gameCardData.map((game) => (
           <GameCard
             key={game.title}
             title={game.title}
             subtitle={game.subtitle}
-            bgColor={game.bgColor} // Make cards semi-transparent? Adjust as needed
-            shadowColor={game.shadowColor} // Adjust shadow
+            bgColor={game.bgColor}
+            shadowColor={game.shadowColor}
             IconComponent={game.IconComponent}
             path={game.path}
           />

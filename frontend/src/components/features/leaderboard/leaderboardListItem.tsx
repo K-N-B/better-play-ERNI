@@ -1,11 +1,10 @@
-// /src/components/features/LeaderboardListItem.tsx
+// /src/components/features/leaderboard/leaderboardListItem.tsx
 import React from 'react';
 import type { IndividualScoreEntry, DepartmentScoreEntry, LeaderboardType } from '../../../types/leaderboard';
 import clsx from 'clsx';
 
 type LeaderboardEntry = IndividualScoreEntry | DepartmentScoreEntry;
 
-// Optional: Rename the props interface as well for consistency
 interface LeaderboardListItemProps {
   entry: LeaderboardEntry;
   rank: number;
@@ -18,11 +17,7 @@ const rankColors: Record<number, string> = {
   3: "text-amber-700",
 };
 
-// --- RENAME THE FUNCTION ---
 export const LeaderboardListItem: React.FC<LeaderboardListItemProps> = ({ entry, rank, type }) => {
-// --- END RENAME ---
-
-  // Determine name based on the type and data structure
   const name = type === 'individual'
                  ? (entry as IndividualScoreEntry).user?.username ?? 'N/A'
                  : (entry as DepartmentScoreEntry).department?.name ?? 'N/A';
@@ -37,24 +32,31 @@ export const LeaderboardListItem: React.FC<LeaderboardListItemProps> = ({ entry,
 
   return (
     <li
-      key={key} // Key is used by the parent map, but good to keep it consistent if needed elsewhere
-      className="flex justify-between items-center py-2 text-lg"
+      key={key}
+      // Add gap-4 for spacing between name and score
+      className="flex justify-between items-center py-2 text-base sm:text-lg w-full gap-4"
     >
       {/* Left side: Rank + Name */}
-      <div className="flex items-center gap-3">
-        <span className={clsx("font-bold text-xl w-6 text-right", rankColor)}>
+      {/* Add min-w-0 to allow this flex item to shrink and truncate its children */}
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        {/* Rank (no change) */}
+        <span className={clsx("font-bold text-lg sm:text-xl w-6 text-left", rankColor)}>
           {rank}
         </span>
-        <span className="text-primary-800 font-medium text-lg">{name}</span>
+        {/* Name: Replace 'text-clip' with 'truncate' to add ellipsis */}
+        <span className="text-primary-800 font-medium text-base sm:text-lg truncate">
+          {name}
+        </span>
       </div>
 
       {/* Right side: Score */}
-      <div className="text-primary-700 text-lg italic">
+      {/* Add flex-shrink-0 to prevent this from shrinking */}
+      <div className="text-primary-700 text-sm sm:text-base xl:text-lg italic flex-shrink-0">
         <span className="font-semibold">{score}</span> pts
       </div>
     </li>
   );
 };
 
-// If using default exports, update it here too:
+// If using default exports:
 // export default LeaderboardListItem;
