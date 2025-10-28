@@ -18,13 +18,20 @@ from django.contrib import admin
 from django.urls import path
 from django.urls import path, include
 
+from django.conf import settings
+from django.conf.urls.static import static
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     # Add this line to include URLs from your 'users' app (views we'll create soon)
     path('', include('users.urls')),
     path('auth/', include('users.urls')),
     path('api/games/', include('games.urls')),
+    path('', include('shop.urls')), # <-- ADD THIS LINE
     # games and gameplay API endpoints
     # Add this line to include social-auth URLs under the '/auth/' prefix
     # This provides '/auth/login/azuread-oauth2/' and '/auth/complete/azuread-oauth2/'
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

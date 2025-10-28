@@ -47,12 +47,19 @@ INSTALLED_APPS = [
 
     # Your local apps
     'users.apps.UsersConfig',
+<<<<<<< HEAD
     # Add 'games', 'gameplay', 'leaderboards' here later
 
     #Ganes app
     'games',
     'gameplay',
     'leaderboards'
+=======
+    'games.apps.GamesConfig',
+    'gameplay.apps.GameplayConfig',  # <-- Ensure this line is present
+    'leaderboards.apps.LeaderboardsConfig',
+    'shop.apps.ShopConfig'
+>>>>>>> ecd72b02bc025005cac3f1eb52af99bfe4ae92a7
 ]
 
 SITE_ID = 1
@@ -191,3 +198,13 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# --- MEDIA FILE CONFIGURATION ---
+# This is the base URL from which media files will be served
+# e.g., http://localhost:8000/media/rewards/my_image.png
+MEDIA_URL = '/media/'
+
+# This is the absolute path to the folder on your server where
+# uploaded files will be stored.
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# ---
