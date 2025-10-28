@@ -1,7 +1,6 @@
-# leaderboards/views.py
 from rest_framework import generics, permissions
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny  # Add this import
+from rest_framework.permissions import AllowAny
 from django.utils import timezone
 from datetime import timedelta, date
 from django.db.models import Sum, Q
@@ -25,9 +24,12 @@ def get_week_start(target_date):
 class GetLeaderboardView(generics.ListAPIView):
     """
     API endpoint for fetching leaderboard data.
+    Query params:
+    - type: 'individual' or 'department'
+    - period: 'daily', 'weekly', 'monthly', 'all_time'
+    - date: optional ISO date string
     """
-    # ✨ CHANGE THIS FOR TESTING (change back to IsAuthenticated later)
-    permission_classes = [AllowAny]  # Allow unauthenticated access for testing
+    permission_classes = [AllowAny]
     
     def get_serializer_class(self):
         """Dynamically determine serializer based on type and period"""
@@ -45,9 +47,18 @@ class GetLeaderboardView(generics.ListAPIView):
                 from rest_framework import serializers
                 
                 class UserAllTimeSerializer(serializers.ModelSerializer):
+                    score = serializers.IntegerField(source='total_points_alltime')
+                    user = serializers.SerializerMethodField()
+                    
                     class Meta:
                         model = User
-                        fields = ['id', 'username', 'total_points_alltime']
+                        fields = ['user', 'score']
+                    
+                    def get_user(self, obj):
+                        return {
+                            'id': obj.id,
+                            'username': obj.username
+                        }
                 
                 return UserAllTimeSerializer
                 
@@ -62,9 +73,18 @@ class GetLeaderboardView(generics.ListAPIView):
                 from rest_framework import serializers
                 
                 class DepartmentAllTimeSerializer(serializers.ModelSerializer):
+                    score = serializers.IntegerField(source='total_points_alltime')
+                    department = serializers.SerializerMethodField()
+                    
                     class Meta:
                         model = Department
-                        fields = ['id', 'name', 'total_points_alltime']
+                        fields = ['department', 'score']
+                    
+                    def get_department(self, obj):
+                        return {
+                            'id': obj.id,
+                            'name': obj.name
+                        }
                 
                 return DepartmentAllTimeSerializer
 
@@ -120,8 +140,14 @@ class GetLeaderboardView(generics.ListAPIView):
         return DailyIndividualScore.objects.none()
 
     def list(self, request, *args, **kwargs):
-        """Override list to add custom response format"""
+        """Override list to return plain array"""
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         
+        # Debug logging
+        print(f"[GetLeaderboardView] Type: {request.query_params.get('type')}, Period: {request.query_params.get('period')}")
+        print(f"[GetLeaderboardView] Queryset count: {queryset.count()}")
+        print(f"[GetLeaderboardView] Serialized data length: {len(serializer.data)}")
+        
+        # ✅ CRITICAL: Return plain array, not wrapped object
         return Response(serializer.data)

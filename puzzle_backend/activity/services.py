@@ -5,7 +5,9 @@ from gameplay.models import Submission
 from users.models import User
 from .models import UserActivity
 
-
+class ActivityService:
+    ONLINE_THRESHOLD_MINUTES = 2
+    
 class ActivityService:
     """Service for managing user activity and online status"""
     
@@ -74,3 +76,5 @@ class ActivityService:
             'recent_activity': list(cls.get_recent_activity()),
             'online_users': cls.get_online_users()
         }
+    
+    

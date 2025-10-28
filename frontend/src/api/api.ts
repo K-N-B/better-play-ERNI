@@ -7,9 +7,9 @@
 // Can hold generic API response types.
 
 // Switch for mock data or not
-export const MOCK_MODE = true;
+export const MOCK_MODE = false;
 
-// Simulate network delay
+// Simulate network delay for mock calls
 export const mockApiCall = <T>(data: T): Promise<T> => {
     return new Promise(resolve => {
         setTimeout(() => {
