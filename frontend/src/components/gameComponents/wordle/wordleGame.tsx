@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { submitPuzzle, getSavedAttempt, saveProgress } from '../../../api/gameService'; // Adjust path if needed
 import { completeChallenge } from '../../../api/challengeService';
 import type { WordlePuzzle, SubmissionData, PuzzleAttemptData, WordleProgress, KeyStatus } from '../../../types/game';
@@ -9,7 +9,8 @@ import { useTimer } from '../../../hooks/useTimer';
 import { Timer } from '../../ui/timer';
 import { useApi } from '../../../hooks/useApi';
 import { LoadingSpinner } from '../../ui/loadingSpinner';
-import type { Difficulty } from '../../../pages/gamePage'; // Adjust path if needed
+import type { Difficulty } from '../../../pages/gamePage';
+
 
 interface WordleGameProps {
   puzzle: WordlePuzzle;
@@ -19,6 +20,8 @@ interface WordleGameProps {
 
 export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps) => {
   const [solution] = useState(puzzle.solution_word.toUpperCase());
+  const [wordLength] = useState(solution.length);
+
   const [guesses, setGuesses] = useState<string[]>([]);
   const [currentGuess, setCurrentGuess] = useState('');
   const [currentRow, setCurrentRow] = useState(0);
@@ -71,15 +74,17 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
     if (isGameOver) return;
 
     if (key === 'Enter') {
-      if (currentGuess.length === 5) {
+      // --- Check against dynamic wordLength ---
+      if (currentGuess.length === wordLength) {
         // Basic check if word is valid (replace with real dictionary check later)
-        if (currentGuess.length !== 5) {
+        if (currentGuess.length !== wordLength) {
           console.warn("Invalid guess length"); // Add user feedback later
           return;
         }
 
         const newGuesses = [...guesses, currentGuess];
         const newRow = currentRow + 1;
+
         const newStatuses = { ...letterStatuses };
         currentGuess.split('').forEach((char, i) => {
           if (solution[i] === char) newStatuses[char] = 'correct';
@@ -98,14 +103,15 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
           endGame(MAX_GUESSES, false);
         }
       } else {
-        console.warn("Guess must be 5 letters"); // Add user feedback later
+        console.warn(`Guess must be ${wordLength} letters`); // Use dynamic length
       }
     } else if (key === 'Backspace') {
       setCurrentGuess(g => g.slice(0, -1));
-    } else if (currentGuess.length < 5 && /^[a-zA-Z]$/.test(key)) { // Only allow letters
+    } else if (currentGuess.length < wordLength && /^[a-zA-Z]$/.test(key)) { // Check against dynamic length
       setCurrentGuess(g => g + key.toUpperCase());
     }
-  }, [isGameOver, currentGuess, guesses, currentRow, letterStatuses, solution, puzzle.id, MAX_GUESSES]);
+  }, [isGameOver, currentGuess, guesses, currentRow, letterStatuses, solution, puzzle.id, MAX_GUESSES, wordLength]); // <-- Add wordLength
+  // ---
 
   // endGame function
   const endGame = async (tries: number, won: boolean) => {
@@ -120,13 +126,14 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
       const submissionData: SubmissionData = {
         puzzle_id: puzzle.id,
         puzzle_type: 'wordle',
+        difficulty: difficulty, // <-- Pass difficulty
         time_taken_ms: finalTime,
         tries: tries,
       };
-      // Assume submitPuzzle returns { score: number, submissionId: number }
+
       const submissionResult = await submitPuzzle(submissionData);
       finalScore = submissionResult.score;
-      submissionIdForResultModal = submissionResult.submissionId ?? null; // Use nullish coalescing
+      submissionIdForResultModal = submissionResult.submissionId ?? null;
 
       if (challengeId && submissionIdForResultModal) {
         console.log(`[WordleGame] Completing challenge ${challengeId} with submission ${submissionIdForResultModal}`);
@@ -136,7 +143,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
         console.error("[WordleGame] Challenge ID present but failed to get submission ID.");
       }
     } catch (err) {
-      console.error("Error during game end submission/challenge completion:", err);
+      console.error("Error during game end:", err);
     } finally {
       setGameResult({ score: finalScore, submissionId: submissionIdForResultModal });
     }
@@ -164,36 +171,37 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
     <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
       <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
         <WordleGrid
-        guesses={guesses}
-        currentGuess={currentGuess}
-        solution={solution}
-        currentRow={currentRow}
-        maxGuesses={MAX_GUESSES}
-      />
+          guesses={guesses}
+          currentGuess={currentGuess}
+          solution={solution}
+          currentRow={currentRow}
+          maxGuesses={MAX_GUESSES}
+          wordLength={wordLength} // <-- Pass dynamic length
+        />
       </div>
       <div className="place-content-center p-20 text-xl leading-5">
         <div className="flex justify-between mb-10">
           <div className="">
             <h1 className="text-4xl font-bold">Wordle</h1>
             <p>on {difficulty} difficulty</p>
-          
+
           </div>
           <Timer timeMs={time} />
         </div>
-      <div className={isGameOver ? 'opacity-50 pointer-events-none' : ''}>
-        <Keyboard
-          onKeyPress={handleKeyPress}
-          letterStatuses={letterStatuses}
-        />
-      </div>
+        <div className={isGameOver ? 'opacity-50 pointer-events-none' : ''}>
+          <Keyboard
+            onKeyPress={handleKeyPress}
+            letterStatuses={letterStatuses}
+          />
+        </div>
 
-      {gameResult && (
-        <PostGameResultsModal
-          score={gameResult.score}
-          submissionId={gameResult.submissionId}
-          onClose={() => setGameResult(null)}
-        />
-      )}
+        {gameResult && (
+          <PostGameResultsModal
+            score={gameResult.score}
+            submissionId={gameResult.submissionId}
+            onClose={() => setGameResult(null)}
+          />
+        )}
       </div>
     </div>
 
