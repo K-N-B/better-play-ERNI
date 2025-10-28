@@ -1,143 +1,127 @@
 # leaderboards/views.py
-from rest_framework.views import APIView
+from rest_framework import generics, permissions
 from rest_framework.response import Response
-from rest_framework import status
-from datetime import date, timedelta
+from rest_framework.permissions import AllowAny  # Add this import
 from django.utils import timezone
-
+from datetime import timedelta, date
+from django.db.models import Sum, Q
 from .models import (
     DailyIndividualScore, WeeklyIndividualScore, MonthlyIndividualScore,
     DailyDepartmentScore, WeeklyDepartmentScore, MonthlyDepartmentScore
 )
+from users.models import User, Department
 from .serializers import (
-    DailyIndividualScoreSerializer, WeeklyIndividualScoreSerializer, 
-    MonthlyIndividualScoreSerializer,
-    DailyDepartmentScoreSerializer, WeeklyDepartmentScoreSerializer,
-    MonthlyDepartmentScoreSerializer
+    DailyIndividualScoreSerializer, WeeklyIndividualScoreSerializer, MonthlyIndividualScoreSerializer,
+    DailyDepartmentScoreSerializer, WeeklyDepartmentScoreSerializer, MonthlyDepartmentScoreSerializer,
 )
-from .services import get_week_start, get_month_start
 
 
-class GetLeaderboardView(APIView):
+def get_week_start(target_date):
+    """Get Monday of the week containing target_date"""
+    days_since_monday = target_date.weekday()
+    return target_date - timedelta(days=days_since_monday)
+
+
+class GetLeaderboardView(generics.ListAPIView):
     """
-    GET /api/leaderboard/?scope=individual&period=daily&date=2025-01-15
-    GET /api/leaderboard/?scope=department&period=weekly
-    GET /api/leaderboard/?scope=individual&period=monthly&date=2025-01-01
-    
-    Query Parameters:
-    - scope: 'individual' or 'department' (required)
-    - period: 'daily', 'weekly', or 'monthly' (required)
-    - date: YYYY-MM-DD format (optional, defaults to today)
-    - limit: number of top entries to return (optional, defaults to 100)
+    API endpoint for fetching leaderboard data.
     """
+    # ✨ CHANGE THIS FOR TESTING (change back to IsAuthenticated later)
+    permission_classes = [AllowAny]  # Allow unauthenticated access for testing
     
-    def get(self, request):
-        # Parse query parameters
-        scope = request.query_params.get('scope')
-        period = request.query_params.get('period')
-        date_str = request.query_params.get('date')
-        limit = request.query_params.get('limit', 100)
-        
-        # Validate required parameters
-        if not scope or scope not in ['individual', 'department']:
-            return Response(
-                {'error': "scope parameter is required and must be 'individual' or 'department'"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        if not period or period not in ['daily', 'weekly', 'monthly']:
-            return Response(
-                {'error': "period parameter is required and must be 'daily', 'weekly', or 'monthly'"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Parse date or use today
-        try:
-            if date_str:
+    def get_serializer_class(self):
+        """Dynamically determine serializer based on type and period"""
+        lb_type = self.request.query_params.get('type', 'individual')
+        period = self.request.query_params.get('period', 'weekly')
+
+        if lb_type == 'individual':
+            if period == 'daily':
+                return DailyIndividualScoreSerializer
+            elif period == 'weekly':
+                return WeeklyIndividualScoreSerializer
+            elif period == 'monthly':
+                return MonthlyIndividualScoreSerializer
+            elif period == 'all_time':
+                from rest_framework import serializers
+                
+                class UserAllTimeSerializer(serializers.ModelSerializer):
+                    class Meta:
+                        model = User
+                        fields = ['id', 'username', 'total_points_alltime']
+                
+                return UserAllTimeSerializer
+                
+        elif lb_type == 'department':
+            if period == 'daily':
+                return DailyDepartmentScoreSerializer
+            elif period == 'weekly':
+                return WeeklyDepartmentScoreSerializer
+            elif period == 'monthly':
+                return MonthlyDepartmentScoreSerializer
+            elif period == 'all_time':
+                from rest_framework import serializers
+                
+                class DepartmentAllTimeSerializer(serializers.ModelSerializer):
+                    class Meta:
+                        model = Department
+                        fields = ['id', 'name', 'total_points_alltime']
+                
+                return DepartmentAllTimeSerializer
+
+        return WeeklyIndividualScoreSerializer
+
+    def get_queryset(self):
+        """Dynamically determine queryset based on type, period, and date"""
+        lb_type = self.request.query_params.get('type', 'individual')
+        period = self.request.query_params.get('period', 'weekly')
+        date_str = self.request.query_params.get('date', None)
+
+        target_date = None
+        if date_str:
+            try:
                 target_date = date.fromisoformat(date_str)
-            else:
-                target_date = timezone.now().date()
-        except ValueError:
-            return Response(
-                {'error': 'Invalid date format. Use YYYY-MM-DD'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Parse limit
-        try:
-            limit = int(limit)
-            if limit <= 0:
-                limit = 100
-        except (ValueError, TypeError):
-            limit = 100
-        
-        # Route to appropriate handler
-        try:
-            if scope == 'individual':
-                data = self._get_individual_leaderboard(period, target_date, limit)
-            else:
-                data = self._get_department_leaderboard(period, target_date, limit)
+            except ValueError:
+                target_date = None
+
+        # --- All-Time ---
+        if period == 'all_time':
+            if lb_type == 'individual':
+                return User.objects.filter(is_active=True).order_by('-total_points_alltime')
+            elif lb_type == 'department':
+                return Department.objects.all().order_by('-total_points_alltime')
+
+        # --- Periodic Scores ---
+        if lb_type == 'individual':
+            if period == 'daily':
+                filter_date = target_date if target_date else timezone.now().date()
+                return DailyIndividualScore.objects.filter(date=filter_date).select_related('user')
             
-            return Response(data, status=status.HTTP_200_OK)
+            elif period == 'weekly':
+                week_start = get_week_start(target_date if target_date else timezone.now().date())
+                return WeeklyIndividualScore.objects.filter(week_start_date=week_start).select_related('user')
+            
+            elif period == 'monthly':
+                month_start = (target_date if target_date else timezone.now().date()).replace(day=1)
+                return MonthlyIndividualScore.objects.filter(month_start_date=month_start).select_related('user')
+
+        elif lb_type == 'department':
+            if period == 'daily':
+                filter_date = target_date if target_date else timezone.now().date()
+                return DailyDepartmentScore.objects.filter(date=filter_date).select_related('department')
+            
+            elif period == 'weekly':
+                week_start = get_week_start(target_date if target_date else timezone.now().date())
+                return WeeklyDepartmentScore.objects.filter(week_start_date=week_start).select_related('department')
+            
+            elif period == 'monthly':
+                month_start = (target_date if target_date else timezone.now().date()).replace(day=1)
+                return MonthlyDepartmentScore.objects.filter(month_start_date=month_start).select_related('department')
+
+        return DailyIndividualScore.objects.none()
+
+    def list(self, request, *args, **kwargs):
+        """Override list to add custom response format"""
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
         
-        except Exception as e:
-            return Response(
-                {'error': f'Failed to retrieve leaderboard: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-    
-    def _get_individual_leaderboard(self, period, target_date, limit):
-        """Retrieve individual leaderboard for the given period"""
-        
-        if period == 'daily':
-            scores = DailyIndividualScore.objects.filter(date=target_date)[:limit]
-            serializer = DailyIndividualScoreSerializer(scores, many=True)
-            reference_date = target_date
-        
-        elif period == 'weekly':
-            week_start = get_week_start(target_date)
-            scores = WeeklyIndividualScore.objects.filter(week_start_date=week_start)[:limit]
-            serializer = WeeklyIndividualScoreSerializer(scores, many=True)
-            reference_date = week_start
-        
-        else:  # monthly
-            month_start = get_month_start(target_date)
-            scores = MonthlyIndividualScore.objects.filter(month_start_date=month_start)[:limit]
-            serializer = MonthlyIndividualScoreSerializer(scores, many=True)
-            reference_date = month_start
-        
-        return {
-            'scope': 'individual',
-            'period': period,
-            'reference_date': reference_date.isoformat(),
-            'count': len(serializer.data),
-            'leaderboard': serializer.data
-        }
-    
-    def _get_department_leaderboard(self, period, target_date, limit):
-        """Retrieve department leaderboard for the given period"""
-        
-        if period == 'daily':
-            scores = DailyDepartmentScore.objects.filter(date=target_date)[:limit]
-            serializer = DailyDepartmentScoreSerializer(scores, many=True)
-            reference_date = target_date
-        
-        elif period == 'weekly':
-            week_start = get_week_start(target_date)
-            scores = WeeklyDepartmentScore.objects.filter(week_start_date=week_start)[:limit]
-            serializer = WeeklyDepartmentScoreSerializer(scores, many=True)
-            reference_date = week_start
-        
-        else:  # monthly
-            month_start = get_month_start(target_date)
-            scores = MonthlyDepartmentScore.objects.filter(month_start_date=month_start)[:limit]
-            serializer = MonthlyDepartmentScoreSerializer(scores, many=True)
-            reference_date = month_start
-        
-        return {
-            'scope': 'department',
-            'period': period,
-            'reference_date': reference_date.isoformat(),
-            'count': len(serializer.data),
-            'leaderboard': serializer.data
-        }
+        return Response(serializer.data)

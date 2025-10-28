@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'gameplay.apps.GameplayConfig',  # <-- Ensure this line is present
     'leaderboards.apps.LeaderboardsConfig',
     'django_cron',
+    'activity',
 ]
 
 CRON_CLASSES = [
