@@ -13,7 +13,7 @@ class WordlePuzzleSerializer(serializers.ModelSerializer):
 class SudokuPuzzleSerializer(serializers.ModelSerializer):
     class Meta:
         model = SudokuPuzzle
-        fields = ["date_to_be_used", "solution_string",
+        fields = ['id', "date_to_be_used", "solution_string",
                   "puzzle_string_easy", "puzzle_string_hard"]
         # Similar considerations for puzzle_string_easy/hard if you only want to send one based on user choice
 
@@ -21,7 +21,7 @@ class SudokuPuzzleSerializer(serializers.ModelSerializer):
 class ErnigramPuzzleSerializer(serializers.ModelSerializer):
     class Meta:
         model = ErnigramPuzzle
-        fields = ['id', 'solution_phrase', 'clue', 'employee_image', 'date_to_be_used']
+        fields = ['id', 'solution_phrase', 'clue', 'date_to_be_used']
         # 'solution_phrase' might be removed for public API responses
 
 
