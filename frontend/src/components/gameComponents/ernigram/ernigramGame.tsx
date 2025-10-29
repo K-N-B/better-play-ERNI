@@ -200,14 +200,11 @@ export const ErnigramGame = ({ puzzle, difficulty, challengeId }: ErnigramGamePr
                   !isWon ? "blur-md" : "blur-none" // Stays blurred unless you win
                 )}
               />
-              {/* Optional: Show text clue as well
-            {puzzle.clue && (
-               <p className="text-center text-gray-600 mt-4 text-lg">{puzzle.clue}</p>
-            )} */}
+              <p className="text-xl text-black mt-4 mb-6">{"Guess the employee's name!"}</p>
             </div>
           ) : (
             // Fallback if no image is uploaded
-            <p className="text-xl text-black mb-6">{puzzle.clue || "Guess the employee's name!"}</p>
+            <p className="text-xl text-black mb-6">{puzzle.clue}</p>
 
           )}
           {/* <p className="text-xl text-black mb-6">{puzzle.clue}</p> */}
