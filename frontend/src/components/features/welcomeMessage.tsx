@@ -8,7 +8,7 @@ const TOTAL_DAILY_PUZZLES = 3;
 export const WelcomeMessage = () => {
     const { user } = useAuth();
     const [submissionsToday, setSubmissionsToday] = useState<Submission[]>([]);
-    const [loadingStats, setLoadingStats] = useState(true);
+    const [loadingStats, setLoadingStats] = useState(false);
 
     // Fetch today's submissions when the component mounts or user changes
     useEffect(() => {

@@ -22,6 +22,7 @@ export interface ErnigramPuzzle {
   id: number;
   solution_phrase: string;
   clue: string;
+  employee_image: string | null;
   date_to_be_used: string;
 }
 

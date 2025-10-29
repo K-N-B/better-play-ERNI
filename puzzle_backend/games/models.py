@@ -92,6 +92,13 @@ class ErnigramPuzzle(models.Model):
     clue = models.TextField()
     date_to_be_used = models.DateField(unique=True)
 
+    employee_image = models.ImageField(
+        upload_to='ernigram_employees/', # Saves to /media/ernigram_employees/
+        blank=True,
+        null=True,
+        help_text="Upload a picture of the employee. This will be blurred on the frontend."
+    )
+    
     def save(self, *args, **kwargs):
         self.solution_phrase = self.solution_phrase.upper()  # Ensure uppercase on save
         super().save(*args, **kwargs)
