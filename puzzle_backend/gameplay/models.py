@@ -4,14 +4,36 @@ from django.conf import settings # Uses AUTH_USER_MODEL
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
-# Import puzzle models for type hinting or specific relations if needed elsewhere
-from games.models import WordlePuzzle, SudokuPuzzle, ErnigramPuzzle
+
+
+class PuzzleAttemptManager(models.Manager):
+    def get_or_start_attempt(self, user, daily_puzzle, puzzle_instance):
+        """
+        Retrieves an existing PuzzleAttempt or creates a new one.
+        'puzzle_instance' is the specific WordlePuzzle or SudokuPuzzle object.
+        """
+        # Get ContentType for the specific puzzle model
+        puzzle_content_type = ContentType.objects.get_for_model(puzzle_instance)
+        
+        # Use the unique_together constraint fields to find the attempt
+        attempt, created = self.get_or_create(
+            user=user,
+            daily_puzzle=daily_puzzle,
+            content_type=puzzle_content_type,
+            object_id=puzzle_instance.pk,
+            defaults={
+                'progress_data': {},  # Start with empty progress data
+                'time_spent_ms': 0
+            }
+        )
+        return attempt, created
 
 class PuzzleAttempt(models.Model):
     """ Stores a user's in-progress game state for a specific day/puzzle. """
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='puzzle_attempts')
     # Link to the specific set of daily puzzles being attempted
     daily_puzzle = models.ForeignKey('games.DailyPuzzle', on_delete=models.CASCADE, related_name='attempts')
+    objects = PuzzleAttemptManager()
 
     # Generic Foreign Key to the specific puzzle model instance
     content_type = models.ForeignKey(
@@ -42,6 +64,9 @@ class PuzzleAttempt(models.Model):
 class Submission(models.Model):
     """ Logs every completed puzzle attempt. Source for leaderboards. """
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='submissions')
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    puzzle = GenericForeignKey('content_type', 'object_id')
 
     # Generic Foreign Key to the specific puzzle model instance
     content_type = models.ForeignKey(
