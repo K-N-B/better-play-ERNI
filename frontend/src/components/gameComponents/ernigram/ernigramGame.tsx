@@ -11,6 +11,8 @@ import { Timer } from '../../ui/timer';
 import { useApi } from '../../../hooks/useApi';
 import { LoadingSpinner } from '../../ui/loadingSpinner';
 import type { Difficulty } from '../../../pages/gamePage'; // Adjust path
+import { API_URL } from '../../../api/authService'; // <-- 1. Import your backend URL
+import clsx from 'clsx'; // <-- 2. Import clsx for conditional classes
 
 interface ErnigramGameProps {
   puzzle: ErnigramPuzzle;
@@ -34,6 +36,7 @@ export const ErnigramGame = ({ puzzle, difficulty, challengeId }: ErnigramGamePr
   const fetchSavedErnigram = useCallback(() => getSavedAttempt('ernigram'), []);
   const { data: savedGame, loading } = useApi(fetchSavedErnigram);
 
+  const [isWon, setIsWon] = useState(false); //
   // Effect to load data
   useEffect(() => {
     let loadedIsGameOver = false;
@@ -76,46 +79,17 @@ export const ErnigramGame = ({ puzzle, difficulty, challengeId }: ErnigramGamePr
   }, [guessedLetters, attemptsLeft, isGameOver, time, loading, puzzle.id]); // Removed gameResult
 
 
-  // handleKeyPress callback
-  const handleKeyPress = useCallback((key: string) => {
-    if (isGameOver || key.length > 1) return;
-    const char = key.toUpperCase();
-    if (guessedLetters.includes(char) || !/^[A-Z]$/.test(char)) return; // Only letters, ignore non-alpha
 
-    const newGuessedLetters = [...guessedLetters, char];
-    setGuessedLetters(newGuessedLetters);
-    let newAttemptsLeft = attemptsLeft;
-    const newStatuses = { ...letterStatuses };
-
-    if (solution.includes(char)) {
-      newStatuses[char] = 'correct'; // Or maybe 'present' if you want Wordle style?
-    } else {
-      newStatuses[char] = 'absent';
-      newAttemptsLeft = attemptsLeft - 1;
-      setAttemptsLeft(newAttemptsLeft);
-    }
-    setLetterStatuses(newStatuses);
-    checkGameState(newGuessedLetters, newAttemptsLeft);
-
-  }, [isGameOver, guessedLetters, solution, attemptsLeft, letterStatuses]);
-
-  // checkGameState callback
-  const checkGameState = useCallback((currentGuesses: string[], currentAttempts: number) => {
-    // Only check letters, ignore spaces for win condition
-    const uniqueLetters = [...new Set(solution.replace(/ /g, ''))];
-    const hasWon = uniqueLetters.every(char => currentGuesses.includes(char));
-
-    if (hasWon) {
-      endGame(true);
-    } else if (currentAttempts <= 0) {
-      endGame(false);
-    }
-  }, [solution]);
 
   // endGame function
-  const endGame = async (won: boolean) => {
-    if (isGameOver) return;
-    setIsGameOver(true);
+  const endGame = useCallback(async (won: boolean) => {
+    // Check isGameOver *again* inside async function to prevent race conditions
+    // We can't use isGameOver from state as a dependency easily, so read it from a ref or check here
+    
+    setIsGameOver(true); // Set game over state
+    if (won) {
+      setIsWon(true); // <-- This sets the state for the image
+    }
     stopTimer();
     const finalTime = time;
     let finalScore = 0;
@@ -127,7 +101,7 @@ export const ErnigramGame = ({ puzzle, difficulty, challengeId }: ErnigramGamePr
         const submissionData: SubmissionData = {
           puzzle_id: puzzle.id,
           puzzle_type: 'ernigram',
-          difficulty: difficulty, // <-- Pass difficulty
+          difficulty: difficulty,
           time_taken_ms: finalTime,
           tries: triesTaken,
         };
@@ -137,20 +111,57 @@ export const ErnigramGame = ({ puzzle, difficulty, challengeId }: ErnigramGamePr
 
         if (challengeId && submissionIdForResultModal) {
           await completeChallenge(challengeId, { submission_id: submissionIdForResultModal });
-        } else if (challengeId) {
-          console.error("[ErnigramGame] Challenge ID present but failed to get submission ID.");
         }
       } else {
         finalScore = 0;
         submissionIdForResultModal = null;
-        if (challengeId) { /* ... (handle challenge loss) ... */ }
       }
-    }catch (err) {
+    } catch (err) {
       console.error("Error during Ernigram end:", err);
     } finally {
       setGameResult({ score: finalScore, submissionId: submissionIdForResultModal });
     }
-  };
+  }, [stopTimer, time, maxAttemptsForDifficulty, attemptsLeft, puzzle.id, difficulty, challengeId]); // Add all dependencies
+  // --- END FIX ---
+
+  // checkGameState callback
+  const checkGameState = useCallback((currentGuesses: string[], currentAttempts: number) => {
+    const uniqueLetters = [...new Set(solution.replace(/ /g, ''))];
+    const hasWon = uniqueLetters.every(char => currentGuesses.includes(char));
+
+    if (hasWon) {
+      endGame(true);
+    } else if (currentAttempts <= 0) {
+      endGame(false);
+    }
+  }, [solution, endGame]); // <-- Add endGame as a dependency
+
+
+  const handleKeyPress = useCallback((key: string) => {
+    if (isGameOver || key.length > 1) return;
+
+    const char = key.toUpperCase();
+    if (guessedLetters.includes(char) || !/^[A-Z]$/.test(char)) return;
+
+    const newGuessedLetters = [...guessedLetters, char];
+    setGuessedLetters(newGuessedLetters);
+
+    let newAttemptsLeft = attemptsLeft;
+    const newStatuses = { ...letterStatuses };
+
+    if (solution.includes(char)) {
+      newStatuses[char] = 'correct';
+    } else {
+      newStatuses[char] = 'absent';
+      newAttemptsLeft = attemptsLeft - 1;
+      setAttemptsLeft(newAttemptsLeft);
+    }
+    setLetterStatuses(newStatuses);
+    
+    // Call the memoized function
+    checkGameState(newGuessedLetters, newAttemptsLeft); 
+
+  }, [isGameOver, guessedLetters, solution, attemptsLeft, letterStatuses, checkGameState]); // <-- Add checkGameState
 
   // Keyboard Listener
   useEffect(() => {
@@ -168,40 +179,70 @@ export const ErnigramGame = ({ puzzle, difficulty, challengeId }: ErnigramGamePr
   //   return <LoadingSpinner fullPage={true} />;
   // }
 
+  console.log(isWon)
+
+  const fullImageUrl = API_URL + puzzle.employee_image
+  console.log(fullImageUrl)
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
       <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
-        <p className="text-xl text-black mb-6">{puzzle.clue}</p>
 
-        <div className="flex justify-between w-full max-w-sm items-center mb-4">
-          <AttemptsTracker attemptsLeft={attemptsLeft} />
+        <div className="place-content-center p-4 md:p-20 text-xl leading-6 bg-white h-full rounded-3xl">
+          {fullImageUrl ? (
+            <div className="w-full max-w-sm mx-auto">
+
+              <img
+                src={fullImageUrl}
+                alt="Employee to guess"
+                className={clsx(
+                  "rounded-lg transition-all duration-700 ease-in-out",
+                  !isWon ? "blur-md" : "blur-none" // Stays blurred unless you win
+                )}
+              />
+              {/* Optional: Show text clue as well
+            {puzzle.clue && (
+               <p className="text-center text-gray-600 mt-4 text-lg">{puzzle.clue}</p>
+            )} */}
+            </div>
+          ) : (
+            // Fallback if no image is uploaded
+            <p className="text-xl text-black mb-6">{puzzle.clue || "Guess the employee's name!"}</p>
+
+          )}
+          {/* <p className="text-xl text-black mb-6">{puzzle.clue}</p> */}
+
+          <div className="flex justify-between w-full max-w-sm items-center mb-4">
+            <AttemptsTracker attemptsLeft={attemptsLeft} />
+          </div>
+
+          <PhraseDisplay solutionPhrase={solution} guessedLetters={guessedLetters} />
         </div>
 
-      <PhraseDisplay solutionPhrase={solution} guessedLetters={guessedLetters} />
       </div>
       <div className="place-content-center p-20 text-xl leading-5">
         <div className="flex justify-between mb-10">
           <div className="">
             <h1 className="text-4xl font-bold">ERNIgram</h1>
             <p>on {difficulty} difficulty</p>
-          
+
           </div>
           <Timer timeMs={time} />
-      </div>
-      <div className={isGameOver ? 'opacity-50 pointer-events-none' : ''}>
-        <Keyboard
-          onKeyPress={handleKeyPress}
-          letterStatuses={letterStatuses}
-        />
-      </div>
+        </div>
+        <div className={isGameOver ? 'opacity-50 pointer-events-none' : ''}>
+          <Keyboard
+            onKeyPress={handleKeyPress}
+            letterStatuses={letterStatuses}
+          />
+        </div>
 
-      {gameResult && (
-        <PostGameResultsModal
-          score={gameResult.score}
-          submissionId={gameResult.submissionId}
-          onClose={() => setGameResult(null)}
-        />
-      )}
+        {gameResult && (
+          <PostGameResultsModal
+            score={gameResult.score}
+            submissionId={gameResult.submissionId}
+            onClose={() => setGameResult(null)}
+          />
+        )}
       </div>
     </div>
   );

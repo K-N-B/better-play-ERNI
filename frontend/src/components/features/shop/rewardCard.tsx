@@ -73,7 +73,7 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, userPoints, onCl
     buttonDisabled = true;
   }
   // ---
-
+  console.log(reward.image)
   return (
     <div className={clsx("bg-white rounded-2xl shadow-md overflow-hidden flex flex-col transition-shadow hover:shadow-lg",
       isClaimLimitReached && "opacity-70 bg-gray-50" // Fade if limit reached>

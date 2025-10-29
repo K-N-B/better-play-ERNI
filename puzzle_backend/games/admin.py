@@ -19,7 +19,9 @@ class SudokuPuzzleAdmin(admin.ModelAdmin):
 
 @admin.register(ErnigramPuzzle)
 class ErnigramPuzzleAdmin(admin.ModelAdmin):
-    list_display = ("id", "solution_phrase", "clue", "date_to_be_used")
+    list_display = ('id', 'solution_phrase', 'clue', 'employee_image', 'date_to_be_used')
+    search_fields = ('solution_phrase', 'clue')
+    list_filter = ('date_to_be_used',)
 
 
 @admin.register(DailyPuzzle)
