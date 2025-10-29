@@ -1,7 +1,7 @@
 
 import { useAuth } from '../../hooks/authContext';
 import type { UserProfile } from '../../types/user';
-import { X, LogOut, Star, Flame, Dumbbell } from 'lucide-react';
+import { X, LogOut, Star, Flame, Mountain } from 'lucide-react';
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -57,7 +57,7 @@ export default function UserProfileModal({ isOpen, onClose, user }: UserProfileM
             <div className="bg-gray-100 p-4 rounded-lg items-center justify-center flex flex-col">
               <div className="flex items-center justify-center gap-1">
                 <div className="text-xl font-bold">{user?.challenges_made_count || 0}</div>
-                <Dumbbell className="fill-current text-amber-700" size={24} />
+                <Mountain className="fill-current text-amber-700" size={24} />
               </div>
               <div className="text-sm text-gray-600">Challenges made</div>
             </div>

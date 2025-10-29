@@ -1,5 +1,5 @@
 // /src/pages/GamePage.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect} from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
 import { getDailyPuzzles } from '../api/gameService';
@@ -10,6 +10,8 @@ import GameIntro from '../components/features/games/gameIntro'; // Keep this imp
 import { WordleGame } from '../components/gameComponents/wordle/wordleGame';
 import { SudokuGame } from '../components/gameComponents/sudoku/sudokuGame';
 import { ErnigramGame } from '../components/gameComponents/ernigram/ernigramGame';
+
+import type { DailyPuzzleResponse } from '../types';
 
 // Define game intro content (move this to a separate data file later if desired)
 const introContent = {
@@ -51,40 +53,67 @@ export const GamePage = () => {
   const { gameType } = useParams<{ gameType: string }>();
   const [difficulty, setDifficulty] = useState<Difficulty>('easy'); // Single difficulty state
   const [hasStarted, setHasStarted] = useState(false); // State to track if intro is passed
-
-  const { data: puzzles, loading: loadingPuzzles } = useApi(getDailyPuzzles);
-  // No need to fetch submissions here anymore
-
-  useEffect(() => {
-    setHasStarted(false); // Reset to show intro for the new game
-    setDifficulty('easy'); // Optionally reset difficulty selection too
-  }, [gameType]);
+  // This hook now calls the REAL API via gameService
+  // const { data: puzzles, loading: loadingPuzzles, error } = useApi(getDailyPuzzles);
   
+  // Print puzzle data
+  const { data: puzzles, loading: loadingPuzzles, error: error } = useApi(getDailyPuzzles);
+  // console.log(puzzles)
+  // console.log(loadingPuzzles)
+
+  // Reset hasStarted and difficulty when the gameType (URL) changes
+  useEffect(() => {
+    setHasStarted(false);
+    setDifficulty('easy');
+  }, [gameType]);
 
   // Validate gameType and get introData
   const isValidGameType = gameType && gameType in introContent;
   const introData = isValidGameType ? introContent[gameType as keyof typeof introContent] : null;
 
-
-  const isLoading = loadingPuzzles; // Only check puzzle loading
+  const isLoading = loadingPuzzles;
   if (isLoading) {
     return <LoadingSpinner fullPage={true} />;
   }
 
-  // Navigate away if invalid game type OR required data missing
-  if (!puzzles || !isValidGameType || !introData) {
-    console.error("Invalid game type or missing puzzle/intro data:", gameType);
+  // Handle API error or invalid game type
+  if (error || !puzzles || !isValidGameType || !introData) {
+    if (error) {
+      console.error("[GamePage] Error fetching puzzles:", error);
+      return (
+        <div className="p-8 text-center text-red-600">
+          Could not load daily puzzles from the server. Please try again later.
+          <p className="text-sm">{error.message}</p>
+        </div>
+      );
+    }
+    // Navigate home if game type is invalid
     return <Navigate to="/" replace />;
   }
 
   // Determine GameComponent and puzzleData
   let GameComponent: React.ComponentType<any> | null = null;
-  let puzzleData: any = null;
+  let puzzleData: any = null; // Will remain null if data is missing
 
   switch (gameType) {
-    case 'wordle': GameComponent = WordleGame; puzzleData = puzzles.wordle; break;
-    case 'sudoku': GameComponent = SudokuGame; puzzleData = puzzles.sudoku; break;
-    case 'ernigram': GameComponent = ErnigramGame; puzzleData = puzzles.ernigram; break;
+    case 'wordle':
+      GameComponent = WordleGame;
+      // Select the easy or hard puzzle based on difficulty state
+      puzzleData = difficulty === 'easy' ? puzzles.wordle_easy : puzzles.wordle_hard;
+      break;
+    case 'sudoku':
+      GameComponent = SudokuGame;
+      // Pass the whole sudoku object; the component will choose the string
+      puzzleData = puzzles.sudoku;
+      break;
+    case 'ernigram':
+      GameComponent = ErnigramGame;
+      // Pass the single ernigram puzzle
+      puzzleData = puzzles.ernigram;
+      break;
+    default:
+      // This case is covered by isValidGameType check, but good practice
+      return <Navigate to="/" replace />;
   }
 
   // --- RENDER LOGIC ---
@@ -107,16 +136,32 @@ export const GamePage = () => {
     );
   } else {
     // Show Game
-    content = GameComponent ? (
-      <GameComponent
-        puzzle={puzzleData}
-        difficulty={difficulty} // Pass the shared difficulty state
-        challengeId={null} // We removed challengeId logic from here for now
-        // REMOVED onGameComplete prop
-      />
-    ) : (
-       <p>Error: Could not load game component for {gameType}.</p>
-    );
+    if (!puzzleData || !GameComponent) {
+      // This happens if admin forgot to link a puzzle for this difficulty
+      content = (
+        <div className="text-center p-8 bg-white/50 rounded-lg">
+          <h2 className="text-2xl font-bold text-red-600">Puzzle Not Available</h2>
+          <p className="text-gray-700 mt-2">
+            The {introData.title} puzzle for '{difficulty}' mode has not been set by the admin for today.
+          </p>
+          <button
+            onClick={() => setHasStarted(false)} // Go back to intro
+            className="mt-6 px-6 py-2 bg-primary text-white font-semibold rounded-lg shadow"
+          >
+            Go Back
+          </button>
+        </div>
+      );
+    } else {
+      // Show Game
+      content = (
+        <GameComponent
+          puzzle={puzzleData}
+          difficulty={difficulty} // Pass the selected difficulty
+          challengeId={null} // TODO: Add challengeId logic back later
+        />
+      );
+    }
   }
 
   return (
