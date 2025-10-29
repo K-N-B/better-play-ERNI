@@ -185,6 +185,39 @@ class ErnigramPuzzle(models.Model):
         null=True,
         help_text="Upload a picture of the employee. This will be blurred on the frontend."
     )
+    TIME_LIMITS_MS = {
+        'EASY': ERNIGRAM_EASY_TIME_LIMIT, 
+        'HARD': ERNIGRAM_HARD_TIME_LIMIT,
+    }
+    
+    # Mistake Limits (Used for the 'tries' field in Submission)
+    MISTAKE_LIMITS = {
+        'EASY': ERNIGRAM_EASY_MISTAKE_LIMITS, # 6 mistake letters max
+        'HARD': ERNIGRAM_HARD_MISTAKE_LIMITS, # 4 mistake letters max
+    }
+    
+    # Base Points (Fixed score if solved)
+    BASE_POINTS = {
+        'EASY': ERNIGRAM_EASY_BASE_POINT,
+        'HARD': ERNIGRAM_HARD_BASE_POINT,
+    }
+
+    def validate_and_score(self, progress_data, difficulty="EASY"):
+        # FIX: Ensure 'misses' has a default value if not present in progress_data
+        misses = progress_data.get('misses', 0) 
+        difficulty = difficulty.upper()
+        
+        status = progress_data.get('status', 'ACTIVE').upper()
+        is_solved = (status == 'SOLVED')
+        
+        # 1. Verification: Must be explicitly marked as solved
+        if not is_solved:
+            # FIX: Return tries/misses count even if not solved (for stat tracking)
+            return 0, misses 
+        
+        points = self.BASE_POINTS.get(difficulty, 0)
+        return points, misses
+    
     
     def save(self, *args, **kwargs):
         self.solution_phrase = self.solution_phrase.upper()  # Ensure uppercase on save
@@ -194,31 +227,7 @@ class ErnigramPuzzle(models.Model):
         return f"ERNIgram: {self.solution_phrase[:20]}... ({self.id})"
 
 
-    def validate_and_score(self, progress_data, difficulty="EASY"):
-        # ...
-        misses = progress_data.get('misses', 0) 
-        difficulty = difficulty.upper()
-        
-        # --- FIX: Must check for the unified 'status' field ---
-        status = progress_data.get('status', 'ACTIVE').upper()
-        is_solved = (status == 'SOLVED')
-        # ---------------------------------------------------
-
-        # 1. Verification: Must be explicitly marked as solved
-        if not is_solved:
-            return 0, misses
-        
-        # ... rest of the scoring logic (awards points > 0) ...
-        points = self.BASE_POINTS.get(difficulty, 0)
-        return points, misses
-
-    def save(self, *args, **kwargs):
-        self.solution_phrase = self.solution_phrase.upper()  # Ensure uppercase on save
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"ERNIgram: {self.solution_phrase[:20]}... ({self.id})"
-
+    
 
 class DailyPuzzle(models.Model):
     """ Links a specific date to the puzzles active on that day. """
