@@ -1,12 +1,10 @@
 # games/api_client.py
-import pprint  # Add 'import pprint' at the top of api_client.py
 import requests
 import random
 from .config import SUDOKU_API_BASE_URL, DEFAULT_EASY_BLANKS, DEFAULT_HARD_BLANKS
 
 from .config import NEWS_API_BASE_URL, NEWS_API_FEED_PARAM
 from bs4 import BeautifulSoup
-import pprint
 
 from .ai_service_ernigram import fetch_raw_csv_data, ErnigramGeneratorAI
 from .models import ErnigramPuzzle

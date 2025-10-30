@@ -1,5 +1,6 @@
 import pytest
-from django.core.exceptions import ValidationError
+
+# from django.core.exceptions import ValidationError
 from datetime import date
 from games.models import WordlePuzzle, SudokuPuzzle, ErnigramPuzzle, DailyPuzzle
 

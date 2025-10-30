@@ -1,23 +1,28 @@
 # games/views.py
-from rest_framework import generics
+# from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from django.shortcuts import get_object_or_404
+
+# from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from datetime import date as date_type
+
+# from datetime import date as date_type
 import datetime
 from rest_framework.permissions import AllowAny
 from games.utils.timezone_helpers import get_local_today
 
+from .models import DailyPuzzle
 
-from .models import DailyPuzzle, WordlePuzzle, SudokuPuzzle, ErnigramPuzzle
-from .serializers import (
-    DailyPuzzleSerializer,
-    WordlePuzzleSerializer,
-    SudokuPuzzleSerializer,
-    ErnigramPuzzleSerializer,
-)
+# from .models import DailyPuzzle, WordlePuzzle, SudokuPuzzle, ErnigramPuzzle
+from .serializers import DailyPuzzleSerializer
+
+# from .serializers import (
+#     DailyPuzzleSerializer,
+#     WordlePuzzleSerializer,
+#     SudokuPuzzleSerializer,
+#     ErnigramPuzzleSerializer,
+# )
 
 # Import your new service function
 from .services import generate_daily_puzzles

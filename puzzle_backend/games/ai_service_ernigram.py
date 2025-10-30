@@ -87,11 +87,11 @@ class ErnigramGeneratorAI:
             You are a creative assistant that turns news headlines into puzzles.
             Given a list of available structured articles, pick one that is most interesting for a puzzle.
             **CRITICAL RULE 1: The generated 'solution_phrase' must be UNIQUE. DO NOT generate any phrase that is an exact match or extremely similar to phrases listed in the EXCLUSION LIST below.**
-            **CRITICAL RULE 2: Choose a headline that offers the best blend of relevance and novelty.** 
+            **CRITICAL RULE 2: Choose a headline that offers the best blend of relevance and novelty.**
             **EXCLUSION LIST (Phrases to avoid):** {exclusion_list or "NONE"}
             Then respond with:
-            1. Create a short "solution_phrase" — a concise 3–5 word summary inspired by the chosen article/headline, written in UPPERCASE. 
-            - Must NOT include punctuation or symbols. 
+            1. Create a short "solution_phrase" — a concise 3–5 word summary inspired by the chosen article/headline, written in UPPERCASE.
+            - Must NOT include punctuation or symbols.
             2. Create a "clue" — a two-sentence hint that:
             - Relates to the story naturally.
             - Does NOT reuse any words from the title or the solution phrase.
@@ -167,7 +167,7 @@ class ErnigramGeneratorAI:
 
         # Combine text blocks with an index for easy reference in the prompt
         indexed_texts = [f"--- BLOCK {i+1} ---\n{text}" for i, text in enumerate(raw_text_list)]
-        input_text = "\n\n".join(indexed_texts)
+        # input_text = "\n\n".join(indexed_texts)
 
         # 1. Prepare exclusion list for the AI (for its first choice)
         exclusion_list = ", ".join(used_phrases)
@@ -198,28 +198,22 @@ class ErnigramGeneratorAI:
 
             prompt = f"""
             You are a puzzle assistant. Your goal is to select ONE text block from the available list, summarize it, and create a unique puzzle.
-
             **CRITICAL RULE 1: The generated 'solution_phrase' must be UNIQUE. DO NOT generate any of the phrases listed in the EXCLUSION LIST below.**
             **CRITICAL RULE 2: If a generated phrase is deemed too common (like 'DIGITAL TRANSFORMATION'), choose a more specific phrase or a different block of text on the NEXT attempt.**
-            
             **EXCLUSION LIST:** {exclusion_list or "NONE"}
 
             {theme_constraint}
 
             **AVAILABLE TEXT BLOCKS:**
             {json.dumps(available_blocks, indent=2)}
-            
             Generate the puzzle based on the SELECTED block:
-            A. Create a short "solution_phrase" — a concise 3–5 word summary inspired by the selected text, written in UPPERCASE. 
+            A. Create a short "solution_phrase" — a concise 3–5 word summary inspired by the selected text, written in UPPERCASE.
             - MUST NOT be a generic summary of the entire industry (e.g., avoid using 'DIGITAL TRANSFORMATION' or 'TECHNOLOGICAL CHANGE' as the main subject).
             - Instead, focus on a **SPECIFIC ACTION, BENEFIT, or RESULT** mentioned in the text (e.g., 'DRIVING BUSINESS SUCCESS' or 'TAILORED SOFTWARE SOLUTIONS').
             - Must NOT include punctuation or symbols...
             B. Create a "clue" — a two-sentence hint that:
             - Relates to the content...
             - Does NOT reuse any words...
-
-            
-
             Return strict JSON format: {{"solution_phrase": "...", "clue": "..."}}
             """
 

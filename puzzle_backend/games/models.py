@@ -2,7 +2,27 @@
 from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from .config import *
+from .config import (
+    ERNIGRAM_EASY_BASE_POINT,
+    ERNIGRAM_EASY_MISTAKE_LIMITS,
+    ERNIGRAM_EASY_TIME_LIMIT,
+    ERNIGRAM_HARD_BASE_POINT,
+    ERNIGRAM_HARD_MISTAKE_LIMITS,
+    ERNIGRAM_HARD_TIME_LIMIT,
+    SUDOKU_EASY_BASE_POINT,
+    SUDOKU_EASY_HINT_LIMIT,
+    SUDOKU_EASY_TIME_LIMIT,
+    SUDOKU_HARD_BASE_POINT,
+    SUDOKU_HARD_HINT_LIMIT,
+    SUDOKU_HARD_TIME_LIMIT,
+    SUDOKU_HINT_PENALTY,
+    WORDLE_EASY_BASE_POINT,
+    WORDLE_EASY_TIME_LIMIT,
+    WORDLE_EASY_TRY_LIMITS,
+    WORDLE_HARD_BASE_POINT,
+    WORDLE_HARD_TIME_LIMIT,
+    WORDLE_HARD_TRY_LIMITS,
+)
 
 
 class WordlePuzzle(models.Model):
