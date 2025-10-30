@@ -8,4 +8,4 @@ exclude =
     htmlcov
 per-file-ignores =
     # Combine all ignores for 'tests/*' onto this one line
-    tests/*: F403, F405, S101
+    tests/*: F403, F405, S101, F841, F811

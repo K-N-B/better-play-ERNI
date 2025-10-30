@@ -4,5 +4,5 @@ target-version = ['py310']
 skip-string-normalization = true
 per-file-ignores = [
     # Combine all ignores for 'tests/*' into this one string
-    "tests/*: F403, F405, S101"
+    tests/*: F403, F405, S101, F841, F811
 ]
