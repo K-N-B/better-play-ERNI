@@ -21,6 +21,10 @@ import random
 @method_decorator(login_required, name='post')
 # @method_decorator(csrf_exempt, name='dispatch')
 class SaveProgressView(View):
+    """
+    Handles POST requests to save or update a user's progress for a specific puzzle attempt.
+    Also handles validation for time limits and game-specific move/hint/mistake limits.
+    """
     def post(self, request, daily_puzzle_id, puzzle_model_name, puzzle_id):
         # NOTE: request.user must be the authenticated user
         user = request.user 
@@ -31,9 +35,7 @@ class SaveProgressView(View):
             new_progress_data = data.get('progress_data')
             new_time_spent = data.get('time_spent_ms') # Time reported by the client
 
-            # --- CRITICAL: Get the difficulty level from the request ---
             difficulty = data.get('difficulty', 'EASY').upper() 
-            # ---------------------------------------------------------
             
             if not isinstance(new_progress_data, dict) or new_time_spent is None:
                 return JsonResponse({"error": "Invalid data format."}, status=400)
@@ -41,12 +43,13 @@ class SaveProgressView(View):
             # Get DailyPuzzle instance
             daily_puzzle = get_object_or_404(DailyPuzzle, pk=daily_puzzle_id)
             
-            # Dynamically get the specific puzzle model instance (e.g., WordlePuzzle)
-            if puzzle_model_name.lower() == 'wordlepuzzle':
+            # Dynamically get the specific puzzle model class
+            puzzle_model_name_lower = puzzle_model_name.lower()
+            if puzzle_model_name_lower == 'wordlepuzzle':
                 PuzzleModel = WordlePuzzle
-            elif puzzle_model_name.lower() == 'sudokupuzzle':
+            elif puzzle_model_name_lower == 'sudokupuzzle':
                 PuzzleModel = SudokuPuzzle
-            elif puzzle_model_name.lower() == 'ernigrampuzzle':
+            elif puzzle_model_name_lower == 'ernigrampuzzle':
                 PuzzleModel = ErnigramPuzzle
             else:
                 return JsonResponse({"error": "Unknown puzzle type."}, status=400)
@@ -55,11 +58,12 @@ class SaveProgressView(View):
 
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON."}, status=400)
-        except Exception:
-            return JsonResponse({"error": "Invalid puzzle reference."}, status=400)
+        except Exception as e:
+            # Catching object not found errors (404s become 400s here if not handled by get_object_or_404)
+            return JsonResponse({"error": f"Invalid puzzle reference: {e}"}, status=400)
         
         # ------------------------------------------------------------
-        # --- NEW: TIME LIMIT ENFORCEMENT ---
+        # --- 2. TIME LIMIT ENFORCEMENT ---
         # ------------------------------------------------------------
         if hasattr(PuzzleModel, 'TIME_LIMITS_MS'):
             time_limits = PuzzleModel.TIME_LIMITS_MS
@@ -78,38 +82,37 @@ class SaveProgressView(View):
         
 
         # ------------------------------------------------------------
-        # This check should only run if the model has GUESS_LIMITS defined
+        # --- 3. GUESS/HINT/MISTAKE LIMIT ENFORCEMENT (The Fix!) ---
         # ------------------------------------------------------------
-        # --- GUESS/HINT LIMIT ENFORCEMENT ---
-        # ------------------------------------------------------------
+        
         limit_config = None
+        current_count = None
         limit_type = None
-
-        # If it's a Wordle-type puzzle
+        
+        # Determine the counting mechanism based on the puzzle type
         if hasattr(PuzzleModel, 'GUESS_LIMITS'):
             limit_config = PuzzleModel.GUESS_LIMITS
             current_count = len(new_progress_data.get('guesses', []))
             limit_type = 'guesses'
             
-        # If it's a Sudoku-type puzzle
         elif hasattr(PuzzleModel, 'HINT_LIMITS'): 
             limit_config = PuzzleModel.HINT_LIMITS
-            # CRITICAL: Ensure 'hints_used' is the key being checked
             current_count = new_progress_data.get('hints_used', 0) 
             limit_type = 'hints'
 
-        # --- NEW: Check for Ernigram Mistake Limits ---
         elif hasattr(PuzzleModel, 'MISTAKE_LIMITS'):
             limit_config = PuzzleModel.MISTAKE_LIMITS
-            current_count = new_progress_data.get('misses', 0)
+            current_count = new_progress_data.get('misses', 0) 
             limit_type = 'mistakes'
             
         # Apply the enforcement logic using the determined limits
-        if limit_config is not None:
-            max_limit = limit_config.get(difficulty)
+        if limit_config is not None and current_count is not None:
+            # max_limit is NOW safely defined, resolving the UnboundLocalError
+            max_limit = limit_config.get(difficulty) 
             
             if max_limit is None:
-                return JsonResponse({"error": f"Invalid difficulty '{difficulty}' for this puzzle's limit check."}, status=400)
+                # Fallback if difficulty is bad but model type is fine
+                return JsonResponse({"error": f"Invalid difficulty '{difficulty}' for this puzzle's move limit check."}, status=400)
             
             # **The Enforcement Logic:**
             if current_count > max_limit:
@@ -118,14 +121,17 @@ class SaveProgressView(View):
                     status=403 # Forbidden
                 )
 
-        # --- 3. Get or Start the Attempt ---
+
+        # --- 4. Get or Start the Attempt (UPSERT) ---
         attempt, created = PuzzleAttempt.objects.get_or_start_attempt(
             user=user,
             daily_puzzle=daily_puzzle,
             puzzle_instance=puzzle_instance
         )
 
-        # 3. Update the Attempt's state
+        # 5. Update the Attempt's state
+        # Note: You use .update(), which is fine for shallow JSON merging, 
+        # but be careful with nested data structures.
         attempt.progress_data.update(new_progress_data) 
         
         # The server accepts the client's total accumulated time
@@ -137,7 +143,6 @@ class SaveProgressView(View):
             "message": "Progress saved successfully.",
             "last_saved": attempt.last_saved.isoformat()
         })
-    
 
 
 

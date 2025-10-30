@@ -27,6 +27,7 @@ urlpatterns = [
     path('', include('users.urls')),
     path('auth/', include('users.urls')),
     path('api/games/', include('games.urls')),
+    path('api/gameplay/', include('gameplay.urls')),
     path('', include('shop.urls')), # <-- ADD THIS LINE
     # games and gameplay API endpoints
     # Add this line to include social-auth URLs under the '/auth/' prefix

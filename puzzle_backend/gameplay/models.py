@@ -6,6 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 
 
+
 class PuzzleAttemptManager(models.Manager):
     def get_or_start_attempt(self, user, daily_puzzle, puzzle_instance):
         """
@@ -64,20 +65,17 @@ class PuzzleAttempt(models.Model):
 class Submission(models.Model):
     """ Logs every completed puzzle attempt. Source for leaderboards. """
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='submissions')
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    puzzle = GenericForeignKey('content_type', 'object_id')
-
-    # Generic Foreign Key to the specific puzzle model instance
+        # --- Generic Foreign Key (Content Type) - KEEP ONLY ONE DEFINITION ---
     content_type = models.ForeignKey(
         ContentType,
         on_delete=models.CASCADE,
         help_text="Points to the model of the puzzle (WordlePuzzle, SudokuPuzzle, etc.)"
-        )
+    )
     object_id = models.PositiveIntegerField(
         help_text="Primary key of the specific puzzle instance"
-        )
+    )
     puzzle = GenericForeignKey('content_type', 'object_id')
+    # ------------------------------------------------------------------
 
     # Difficulty played
     difficulty = models.CharField(
@@ -94,6 +92,7 @@ class Submission(models.Model):
     created_at = models.DateTimeField(default=timezone.now, db_index=True)
 
     class Meta:
+        # ... (rest of Meta remains the same)
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['created_at', 'user']),
@@ -105,7 +104,6 @@ class Submission(models.Model):
     def __str__(self):
         puzzle_repr = str(self.puzzle) if self.puzzle else f"{self.content_type.model} ID {self.object_id}"
         return f"{self.user.username} - {puzzle_repr} ({self.difficulty}) - {self.points_awarded} pts"
-
 
 class Challenge(models.Model):
     """ Tracks an asynchronous challenge between two employees. """
