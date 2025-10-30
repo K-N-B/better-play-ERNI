@@ -5,7 +5,13 @@ skip-string-normalization = true
 
 
 [tool.flake8]
-per-file-ignores = [
-    # Add F841 and F811 to the list
-    "*/tests: F403, F405, S101, F841, F811"
+exclude = [
+    ".git",
+    "__pycache__",
+    ".tox",
+    ".venv",
+    "build",
+    "dist",
+    "*/tests.py",  # Ignores files named tests.py
+    "*/tests/"
 ]

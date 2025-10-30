@@ -396,14 +396,14 @@ class SaveProgressViewTests(TestCase):
         PuzzleAttempt.objects.filter(pk=self.solved_attempt.pk).delete()
 
         # Recreate the specific solved attempt for this test (ensures a clean state)
-        # attempt = PuzzleAttempt.objects.create(
-        #     user=self.user,
-        #     daily_puzzle=self.daily_puzzle_easy,
-        #     content_type=self.wordle_content_type,
-        #     object_id=self.wordle_easy.pk,
-        #     progress_data={"guesses": ["WATER", "FIGHT", "HOUSE"], "status": "SOLVED"},
-        #     time_spent_ms=65000,
-        # )
+        attempt = PuzzleAttempt.objects.create(
+            user=self.user,
+            daily_puzzle=self.daily_puzzle_easy,
+            content_type=self.wordle_content_type,
+            object_id=self.wordle_easy.pk,
+            progress_data={"guesses": ["WATER", "FIGHT", "HOUSE"], "status": "SOLVED"},
+            time_spent_ms=65000,
+        )
 
     def test_submission_rejects_if_no_active_attempt_found(self):
         """Tests that trying to submit a non-existent game fails."""
@@ -723,6 +723,17 @@ class SaveProgressViewTests(TestCase):
         self.assertEqual(submission.tries, 3)  # Tries records the 3 mistakes
         self.assertFalse(PuzzleAttempt.objects.filter(pk=attempt.pk).exists())
 
+    def _get_progress_url(self, daily_puzzle_obj, puzzle_instance):
+        """Helper to construct the full GET PROGRESS URL using reverse()."""
+        return reverse(
+            "get_progress",  # Use the new URL name
+            kwargs={
+                "daily_puzzle_id": daily_puzzle_obj.pk,
+                "puzzle_model_name": puzzle_instance.__class__.__name__.lower(),
+                "puzzle_id": puzzle_instance.pk,
+            },
+        )
+
     # --- NEW TEST CASES FOR GET PROGRESS VIEW ---
 
     def test_get_progress_retrieves_existing_attempt(self):
@@ -777,17 +788,17 @@ class SaveProgressViewTests(TestCase):
         # We create a grid that is complete EXCEPT for the cell at index 5, which should be '6'.
         # We substitute a '0' into the solution string at index 5.
         solution = self.placeholder_sudoku.solution_string
-        # incomplete_grid = solution[:5] + "0" + solution[6:]
+        incomplete_grid = solution[:5] + "0" + solution[6:]
 
-        # # 1. Create Attempt: Start the game with one empty spot
-        # attempt = PuzzleAttempt.objects.create(
-        #     user=self.user,
-        #     daily_puzzle=self.daily_puzzle_easy,
-        #     content_type=self.sudoku_content_type,
-        #     object_id=self.placeholder_sudoku.pk,
-        #     progress_data={"hints_used": 0, "final_grid": incomplete_grid},
-        #     time_spent_ms=1000,
-        # )
+        # 1. Create Attempt: Start the game with one empty spot
+        attempt = PuzzleAttempt.objects.create(
+            user=self.user,
+            daily_puzzle=self.daily_puzzle_easy,
+            content_type=self.sudoku_content_type,
+            object_id=self.placeholder_sudoku.pk,
+            progress_data={"hints_used": 0, "final_grid": incomplete_grid},
+            time_spent_ms=1000,
+        )
 
         # 2. Send Hint Request
         payload = {"difficulty": "EASY"}
@@ -809,17 +820,17 @@ class SaveProgressViewTests(TestCase):
         url = self._get_hint_url(self.daily_puzzle_easy, self.placeholder_sudoku)
 
         # 1. Create Attempt: Start the game having used the maximum 5 hints
-        # attempt = PuzzleAttempt.objects.create(
-        #     user=self.user,
-        #     daily_puzzle=self.daily_puzzle_easy,
-        #     content_type=self.sudoku_content_type,
-        #     object_id=self.placeholder_sudoku.pk,
-        #     progress_data={
-        #         "hints_used": 5,
-        #         "final_grid": "0" * 81,
-        #     },  # 5 is the EASY limit
-        #     time_spent_ms=1000,
-        # )
+        attempt = PuzzleAttempt.objects.create(
+            user=self.user,
+            daily_puzzle=self.daily_puzzle_easy,
+            content_type=self.sudoku_content_type,
+            object_id=self.placeholder_sudoku.pk,
+            progress_data={
+                "hints_used": 5,
+                "final_grid": "0" * 81,
+            },  # 5 is the EASY limit
+            time_spent_ms=1000,
+        )
 
         # 2. Send Hint Request
         payload = {"difficulty": "EASY"}
