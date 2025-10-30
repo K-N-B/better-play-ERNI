@@ -19,7 +19,7 @@ export const GamesSection = () => {
   }
 
   if (error) {
-    return <p className="p-8 text-center text-red-600 bg-white rounded-lg shadow-md">Could not load games.</p>;
+    return <p className="p-8 text-center text-red-600 bg-white rounded-lg shadow-md">There are no game yet for now!</p>;
   }
 
   return (

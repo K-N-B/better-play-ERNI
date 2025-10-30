@@ -189,7 +189,7 @@ export const ErnigramGame = ({ puzzle, difficulty, challengeId }: ErnigramGamePr
       <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
 
         <div className="place-content-center p-4 md:p-20 text-xl leading-6 bg-white h-full rounded-3xl">
-          {fullImageUrl ? (
+          {puzzle.employee_image ? (
             <div className="w-full max-w-sm mx-auto">
 
               <img
@@ -200,7 +200,7 @@ export const ErnigramGame = ({ puzzle, difficulty, challengeId }: ErnigramGamePr
                   !isWon ? "blur-md" : "blur-none" // Stays blurred unless you win
                 )}
               />
-              <p className="text-xl text-black mt-4 mb-6">{"Guess the employee's name!"}</p>
+              <p className="text-xl text-black mt-6 mb-6">{"Guess the employee's name!"}</p>
             </div>
           ) : (
             // Fallback if no image is uploaded
