@@ -35,9 +35,7 @@ def get_auth_url(request):
     """
     msal_app = get_msal_app()
     auth_url = msal_app.get_authorization_request_url(
-        scopes=[
-            "User.Read"
-        ],  # Basic scope to read user profile. Ensure this is granted in Azure.
+        scopes=["User.Read"],  # Basic scope to read user profile. Ensure this is granted in Azure.
         redirect_uri=settings.AZURE_AD_REDIRECT_URI,  # The /auth/callback/ URL on *this* backend
         extra_query_params={"prompt": "select_account"},  # Force account selection
     )
@@ -59,9 +57,7 @@ def auth_callback(request):
 
     frontend_base_url = "http://localhost:5173"  # Your React app's base URL
     frontend_login_url = f"{frontend_base_url}/login"
-    frontend_callback_url = (
-        f"{frontend_base_url}/auth-callback"  # Frontend's own callback
-    )
+    frontend_callback_url = f"{frontend_base_url}/auth-callback"  # Frontend's own callback
 
     if error:
         print(f"Azure AD Error on callback: {error} - {error_description}")
@@ -106,9 +102,7 @@ def auth_callback(request):
         email = user_data.get("mail") or user_data.get("userPrincipalName")
         # Create a fallback username if email isn't available
         username_base = email if email else azure_object_id
-        username = (
-            username_base.split("@")[0] if "@" in username_base else username_base
-        )
+        username = username_base.split("@")[0] if "@" in username_base else username_base
         username = username[:150]  # Ensure username fits Django model limit
 
         # Ensure email is set, create a placeholder if necessary but log a warning
@@ -125,12 +119,8 @@ def auth_callback(request):
                 "email": email,
                 "username": username,  # Use the generated username
                 # Use display name or fallback to username if display name is empty
-                "first_name": user_data.get("givenName", "")[
-                    :150
-                ],  # Ensure within max_length
-                "last_name": user_data.get("surname", "")[
-                    :150
-                ],  # Ensure within max_length
+                "first_name": user_data.get("givenName", "")[:150],  # Ensure within max_length
+                "last_name": user_data.get("surname", "")[:150],  # Ensure within max_length
                 # Set user as active by default
                 "is_active": True,
             },
@@ -158,9 +148,7 @@ def auth_callback(request):
 
 
 @api_view(["GET"])
-@permission_classes(
-    [IsAuthenticated]
-)  # Secure this endpoint: requires valid session cookie
+@permission_classes([IsAuthenticated])  # Secure this endpoint: requires valid session cookie
 def check_auth(request):
     """
     Checks if the current request is associated with an authenticated session.
@@ -171,9 +159,7 @@ def check_auth(request):
         return Response({"authenticated": True, "user": serializer.data})
     else:
         # This part should not be reached if IsAuthenticated works correctly
-        return Response(
-            {"authenticated": False, "user": None}, status=status.HTTP_401_UNAUTHORIZED
-        )
+        return Response({"authenticated": False, "user": None}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 @api_view(["POST"])
@@ -229,14 +215,10 @@ class CompleteProfileView(generics.GenericAPIView):
             user.profile_complete = True
             user.save(update_fields=["department", "profile_complete"])
             serializer = self.get_serializer(user)
-            print(
-                f"User '{user.username}' completed profile with department '{department.name}'."
-            )
+            print(f"User '{user.username}' completed profile with department '{department.name}'.")
             return Response(serializer.data)
         except Department.DoesNotExist:
-            return Response(
-                {"error": "Department not found"}, status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"error": "Department not found"}, status=status.HTTP_404_NOT_FOUND)
         except (ValueError, TypeError):
             return Response(
                 {"error": "Invalid department_id format"},

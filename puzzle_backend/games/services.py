@@ -49,14 +49,10 @@ def generate_daily_puzzles(target_date: datetime.date = None) -> DailyPuzzle:
     existing_words = [word.upper() for word in existing_words if word]
 
     # 3. Generate individual puzzle data
-    wordle_easy_data = _generate_unique_wordle_data(
-        ai_generator, "EASY", existing_words
-    )
+    wordle_easy_data = _generate_unique_wordle_data(ai_generator, "EASY", existing_words)
     if wordle_easy_data.get("solution_word"):
         existing_words.append(wordle_easy_data["solution_word"])
-    wordle_hard_data = _generate_unique_wordle_data(
-        ai_generator, "HARD", existing_words
-    )
+    wordle_hard_data = _generate_unique_wordle_data(ai_generator, "HARD", existing_words)
 
     # Sudoku logic is now delegated to api_client.py
     sudoku_data = generate_sudoku_puzzle_data(target_date)
@@ -77,13 +73,11 @@ def generate_daily_puzzles(target_date: datetime.date = None) -> DailyPuzzle:
 
     # Wordle Hard - Using update_or_create to ensure the word is always the latest AI-generated one
     # Wordle Hard - Using update_or_create to ensure the word is always the latest AI-generated one
-    wordle_hard, _ = (
-        WordlePuzzle.objects.update_or_create(  # Use get_or_create or update_or_create
-            date_to_be_used=target_date,
-            # Query on date AND difficulty
-            difficulty=wordle_hard_data["difficulty"],
-            defaults=wordle_hard_data,
-        )
+    wordle_hard, _ = WordlePuzzle.objects.update_or_create(  # Use get_or_create or update_or_create
+        date_to_be_used=target_date,
+        # Query on date AND difficulty
+        difficulty=wordle_hard_data["difficulty"],
+        defaults=wordle_hard_data,
     )
 
     # Sudoku
@@ -95,9 +89,7 @@ def generate_daily_puzzles(target_date: datetime.date = None) -> DailyPuzzle:
     if created:
         print(f"✅ Successfully created new Sudoku puzzle for {target_date}.")
     else:
-        print(
-            f"⚠️ Sudoku puzzle for {target_date} already exists. Using existing record."
-        )
+        print(f"⚠️ Sudoku puzzle for {target_date} already exists. Using existing record.")
 
     # Ernigram
     ernigram_data.pop("date_to_be_used", None)

@@ -29,9 +29,7 @@ class WeeklyIndividualScore(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="weekly_scores"
     )
     score = models.IntegerField(db_index=True)
-    week_start_date = models.DateField(
-        db_index=True, help_text="Date of the Sunday for that week"
-    )
+    week_start_date = models.DateField(db_index=True, help_text="Date of the Sunday for that week")
 
     class Meta:
         ordering = ["-score"]
@@ -50,9 +48,7 @@ class MonthlyIndividualScore(models.Model):
         related_name="monthly_scores",
     )
     score = models.IntegerField(db_index=True)
-    month_start_date = models.DateField(
-        db_index=True, help_text="Date of the 1st of that month"
-    )
+    month_start_date = models.DateField(db_index=True, help_text="Date of the 1st of that month")
 
     class Meta:
         ordering = ["-score"]

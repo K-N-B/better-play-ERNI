@@ -62,9 +62,7 @@ class User(AbstractUser):
     updated_at = models.DateTimeField(auto_now=True)  # Automatically updates on save()
 
     # If you want email to be strictly required (like in DBML), override AbstractUser's default
-    email = models.EmailField(
-        blank=False, unique=True
-    )  # Make email required and unique
+    email = models.EmailField(blank=False, unique=True)  # Make email required and unique
 
     def __str__(self):
         return self.username

@@ -22,9 +22,7 @@ class PuzzleAttemptAdmin(admin.ModelAdmin):
     def get_puzzle_info(self, obj):
         """Displays the linked puzzle model and its primary key."""
         if obj.puzzle:
-            return format_html(
-                "{} (ID: {})", obj.content_type.model.capitalize(), obj.object_id
-            )
+            return format_html("{} (ID: {})", obj.content_type.model.capitalize(), obj.object_id)
         return "N/A"
 
     get_puzzle_info.short_description = "Puzzle"
@@ -50,9 +48,7 @@ class SubmissionAdmin(admin.ModelAdmin):
     def get_puzzle_info(self, obj):
         """Displays the linked puzzle model and its primary key."""
         if obj.puzzle:
-            return format_html(
-                "{} (ID: {})", obj.content_type.model.capitalize(), obj.object_id
-            )
+            return format_html("{} (ID: {})", obj.content_type.model.capitalize(), obj.object_id)
         return f"{obj.content_type.model.capitalize()} ID {obj.object_id}"
 
     get_puzzle_info.short_description = "Puzzle"

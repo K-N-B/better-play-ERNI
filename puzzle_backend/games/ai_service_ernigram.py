@@ -66,15 +66,11 @@ class ErnigramGeneratorAI:
 
         # 1. INITIAL FILTER: Filter out articles whose exact title was used as a solution phrase
         available_articles = [
-            article
-            for article in articles
-            if article.get("title", "").upper() not in used_phrases
+            article for article in articles if article.get("title", "").upper() not in used_phrases
         ]
 
         if not available_articles:
-            print(
-                "🛑 All initial RSS articles have titles matching historical solution phrases."
-            )
+            print("🛑 All initial RSS articles have titles matching historical solution phrases.")
             return {
                 "solution_phrase": "NO UNIQUE ARTICLES AVAILABLE",
                 "clue": "All structured article titles have been previously used as solutions.",
@@ -170,9 +166,7 @@ class ErnigramGeneratorAI:
             return {"solution_phrase": "NO RAW DATA PROVIDED", "clue": "..."}
 
         # Combine text blocks with an index for easy reference in the prompt
-        indexed_texts = [
-            f"--- BLOCK {i+1} ---\n{text}" for i, text in enumerate(raw_text_list)
-        ]
+        indexed_texts = [f"--- BLOCK {i+1} ---\n{text}" for i, text in enumerate(raw_text_list)]
         input_text = "\n\n".join(indexed_texts)
 
         # 1. Prepare exclusion list for the AI (for its first choice)
@@ -193,18 +187,14 @@ class ErnigramGeneratorAI:
 
             # 3. Create a list of blocks that are still available to the AI
             available_blocks = [
-                block
-                for i, block in enumerate(indexed_texts)
-                if i + 1 not in attempted_blocks
+                block for i, block in enumerate(indexed_texts) if i + 1 not in attempted_blocks
             ]
 
             if not available_blocks:
                 print("🛑 All available raw texts have been exhausted.")
                 break  # Exit the loop if nothing is left
 
-            print(
-                f"🤖 Attempt {attempt}: Selecting from {len(available_blocks)} remaining blocks."
-            )
+            print(f"🤖 Attempt {attempt}: Selecting from {len(available_blocks)} remaining blocks.")
 
             prompt = f"""
             You are a puzzle assistant. Your goal is to select ONE text block from the available list, summarize it, and create a unique puzzle.
@@ -275,9 +265,7 @@ class ErnigramGeneratorAI:
 
                 else:
                     # If it's not unique due to the fuzzy check, retry with a new block
-                    print(
-                        f"❌ Phrase '{phrase}' is NOT unique (Fuzzy match failed). Retrying."
-                    )
+                    print(f"❌ Phrase '{phrase}' is NOT unique (Fuzzy match failed). Retrying.")
                     continue  # Continue to the next attempt
 
             except Exception as e:

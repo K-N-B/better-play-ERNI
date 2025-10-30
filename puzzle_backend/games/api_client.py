@@ -60,9 +60,7 @@ def _make_variant_from_base(base_string: str, blanks_target: int) -> str:
     blanks_needed = max(0, blanks_target - len(current_blanks))
     if blanks_needed > 0 and non_blank_indices:
         # sample indices to blank
-        to_blank = random.sample(
-            non_blank_indices, min(blanks_needed, len(non_blank_indices))
-        )
+        to_blank = random.sample(non_blank_indices, min(blanks_needed, len(non_blank_indices)))
         for idx in to_blank:
             arr[idx] = "0"
     return "".join(arr)
@@ -81,12 +79,8 @@ def generate_sudoku_puzzle_data(date_to_be_used):
         base_puzzle_string = _flatten_board(base_puzzle)
 
         # Build variants using imported constants
-        puzzle_string_easy = _make_variant_from_base(
-            base_puzzle_string, DEFAULT_EASY_BLANKS
-        )
-        puzzle_string_hard = _make_variant_from_base(
-            base_puzzle_string, DEFAULT_HARD_BLANKS
-        )
+        puzzle_string_easy = _make_variant_from_base(base_puzzle_string, DEFAULT_EASY_BLANKS)
+        puzzle_string_hard = _make_variant_from_base(base_puzzle_string, DEFAULT_HARD_BLANKS)
 
         return {
             "date_to_be_used": date_to_be_used,
@@ -213,9 +207,7 @@ def generate_ernigram_puzzle_data(date_to_be_used):
             # --- CSV/RAW TEXT DATA PATH ---
             print("🤖 Routing raw CSV text to AI for generation...")
             # Pass raw texts, used phrases, and the dominant theme constraint
-            result = ai.generate_from_raw_text(
-                raw_csv_texts, used_phrases, dominant_theme
-            )
+            result = ai.generate_from_raw_text(raw_csv_texts, used_phrases, dominant_theme)
 
         # 6. RETURN RESULT
         print(f"✅ Generated phrase: {result.get('solution_phrase')}")

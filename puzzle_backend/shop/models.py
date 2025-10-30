@@ -10,9 +10,7 @@ class Reward(models.Model):
 
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    cost = models.PositiveIntegerField(
-        help_text="The price of the reward in spendable points"
-    )
+    cost = models.PositiveIntegerField(help_text="The price of the reward in spendable points")
     image = models.ImageField(
         upload_to="rewards/",  # Subdirectory within your media folder
         blank=True,

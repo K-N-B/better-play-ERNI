@@ -22,9 +22,7 @@ class WordlePuzzle(models.Model):
         ("EASY", "Easy"),
         ("HARD", "Hard"),
     ]
-    difficulty = models.CharField(
-        max_length=4, choices=DIFFICULTY_CHOICES, default="EASY"
-    )
+    difficulty = models.CharField(max_length=4, choices=DIFFICULTY_CHOICES, default="EASY")
     BASE_POINTS = {
         # Assuming imported values are 100 and 200
         "EASY": WORDLE_EASY_BASE_POINT,
@@ -69,9 +67,7 @@ class WordlePuzzle(models.Model):
         client_claims_solved = status == "SOLVED"
 
         # 1. Verification: Check if the last guess is the solution AND client submitted a SOLVED status
-        is_correct_guess = (
-            tries > 0 and guesses[-1].upper() == self.solution_word.upper()
-        )
+        is_correct_guess = tries > 0 and guesses[-1].upper() == self.solution_word.upper()
 
         # The submission is only valid if BOTH the client claims success AND the guess is correct
         if not is_correct_guess or not client_claims_solved:
@@ -129,9 +125,7 @@ class SudokuPuzzle(models.Model):
     def clean(self):
         # Basic validation for string lengths
         if len(self.solution_string) != 81:
-            raise ValidationError(
-                {"solution_string": "Solution string must be 81 characters."}
-            )
+            raise ValidationError({"solution_string": "Solution string must be 81 characters."})
         if len(self.puzzle_string_easy) != 81:
             raise ValidationError(
                 {"puzzle_string_easy": "Easy puzzle string must be 81 characters."}
@@ -249,9 +243,7 @@ class DailyPuzzle(models.Model):
         limit_choices_to={"solution_word__length__gte": 6},
         help_text="The 6+ letter Wordle puzzle for the day (Hard difficulty)",
     )
-    sudoku = models.ForeignKey(
-        SudokuPuzzle, on_delete=models.PROTECT, related_name="daily_sudokus"
-    )
+    sudoku = models.ForeignKey(SudokuPuzzle, on_delete=models.PROTECT, related_name="daily_sudokus")
     ernigram = models.ForeignKey(
         ErnigramPuzzle, on_delete=models.PROTECT, related_name="daily_ernigrams"
     )

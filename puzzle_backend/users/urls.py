@@ -18,9 +18,7 @@ urlpatterns = [
     path("logout/", views.logout_view, name="auth-logout"),
     # --- Profile API Endpoints ---
     # GET /api/departments/ -> Lists departments
-    path(
-        "api/departments/", views.DepartmentListView.as_view(), name="department-list"
-    ),
+    path("api/departments/", views.DepartmentListView.as_view(), name="department-list"),
     # URL for frontend to submit the chosen department for a new user
     path(
         "api/users/me/complete-profile/",

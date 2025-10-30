@@ -77,9 +77,7 @@ class SaveProgressView(View):
 
             if max_time_ms is None:
                 return JsonResponse(
-                    {
-                        "error": f"Invalid difficulty '{difficulty}' for time limit check."
-                    },
+                    {"error": f"Invalid difficulty '{difficulty}' for time limit check."},
                     status=400,
                 )
 
@@ -203,13 +201,9 @@ class SubmitPuzzleView(View):
                 content_type=puzzle_content_type,
                 object_id=puzzle_instance.pk,
             )
-            time_taken = (
-                attempt.time_spent_ms
-            )  # Get time from the attempt, not client payload
+            time_taken = attempt.time_spent_ms  # Get time from the attempt, not client payload
         except PuzzleAttempt.DoesNotExist:
-            return JsonResponse(
-                {"error": "No active attempt found to submit."}, status=404
-            )
+            return JsonResponse({"error": "No active attempt found to submit."}, status=404)
 
         # Retrieve client-sent difficulty (required for Submission model)
         try:
@@ -254,9 +248,7 @@ class SubmitPuzzleView(View):
         # Handle unsolved/failed puzzles (score is 0)
         if points_awarded <= 0:
             return JsonResponse(
-                {
-                    "error": "Puzzle was not successfully solved or achieved zero points."
-                },
+                {"error": "Puzzle was not successfully solved or achieved zero points."},
                 status=400,
             )
 
@@ -317,9 +309,7 @@ class GetProgressView(View):
 
         except Exception:
             # Catch errors like invalid date format or non-existent puzzle IDs
-            return JsonResponse(
-                {"error": "Invalid puzzle reference in URL."}, status=400
-            )
+            return JsonResponse({"error": "Invalid puzzle reference in URL."}, status=400)
 
         # 2. Retrieve the Attempt
         try:
@@ -394,9 +384,7 @@ class GetHintView(View):
             PuzzleAttempt.DoesNotExist,
             json.JSONDecodeError,
         ):
-            return JsonResponse(
-                {"error": "Invalid game state or puzzle reference."}, status=400
-            )
+            return JsonResponse({"error": "Invalid game state or puzzle reference."}, status=400)
         # ---------------------------------------
 
         # --- 2. Hint Limit Check ---
@@ -404,14 +392,10 @@ class GetHintView(View):
         max_hints = puzzle_instance.HINT_LIMITS.get(difficulty)
 
         if max_hints is None:
-            return JsonResponse(
-                {"error": "Difficulty config missing HINT_LIMITS."}, status=500
-            )
+            return JsonResponse({"error": "Difficulty config missing HINT_LIMITS."}, status=500)
 
         if hints_used >= max_hints:
-            return JsonResponse(
-                {"error": f"Maximum of {max_hints} hints exceeded."}, status=403
-            )
+            return JsonResponse({"error": f"Maximum of {max_hints} hints exceeded."}, status=403)
 
         # --- 3. Find Available Hint (RANDOMIZED) ---
         solution_string = puzzle_instance.solution_string

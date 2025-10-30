@@ -13,8 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="user",
             name="current_points",
-            field=models.BigIntegerField(
-                default=0, help_text="Current spendable points balance."
-            ),
+            field=models.BigIntegerField(default=0, help_text="Current spendable points balance."),
         ),
     ]

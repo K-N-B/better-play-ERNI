@@ -49,9 +49,7 @@ class PuzzleAttempt(models.Model):
         on_delete=models.CASCADE,
         help_text="Points to the model of the puzzle (WordlePuzzle, SudokuPuzzle, etc.)",
     )
-    object_id = models.PositiveIntegerField(
-        help_text="Primary key of the specific puzzle instance"
-    )
+    object_id = models.PositiveIntegerField(help_text="Primary key of the specific puzzle instance")
     puzzle = GenericForeignKey("content_type", "object_id")
 
     # Game state and progress
@@ -83,9 +81,7 @@ class Submission(models.Model):
         on_delete=models.CASCADE,
         help_text="Points to the model of the puzzle (WordlePuzzle, SudokuPuzzle, etc.)",
     )
-    object_id = models.PositiveIntegerField(
-        help_text="Primary key of the specific puzzle instance"
-    )
+    object_id = models.PositiveIntegerField(help_text="Primary key of the specific puzzle instance")
     puzzle = GenericForeignKey("content_type", "object_id")
     # ------------------------------------------------------------------
 
@@ -100,9 +96,7 @@ class Submission(models.Model):
     # Submission results
     points_awarded = models.IntegerField()
     time_taken_ms = models.BigIntegerField(help_text="Time in milliseconds")
-    tries = models.PositiveIntegerField(
-        default=1, help_text="Number of guesses/attempts made"
-    )
+    tries = models.PositiveIntegerField(default=1, help_text="Number of guesses/attempts made")
     created_at = models.DateTimeField(default=timezone.now, db_index=True)
 
     class Meta:
@@ -117,11 +111,11 @@ class Submission(models.Model):
 
     def __str__(self):
         puzzle_repr = (
-            str(self.puzzle)
-            if self.puzzle
-            else f"{self.content_type.model} ID {self.object_id}"
+            str(self.puzzle) if self.puzzle else f"{self.content_type.model} ID {self.object_id}"
         )
-        return f"{self.user.username} - {puzzle_repr} ({self.difficulty}) - {self.points_awarded} pts"
+        return (
+            f"{self.user.username} - {puzzle_repr} ({self.difficulty}) - {self.points_awarded} pts"
+        )
 
 
 class Challenge(models.Model):
@@ -157,9 +151,7 @@ class Challenge(models.Model):
         null=True,
         blank=True,
     )
-    status = models.CharField(
-        max_length=10, choices=Status.choices, default=Status.PENDING
-    )
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
     winner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name="challenges_won",

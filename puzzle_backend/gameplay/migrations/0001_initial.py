@@ -57,9 +57,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "created_at",
-                    models.DateTimeField(
-                        db_index=True, default=django.utils.timezone.now
-                    ),
+                    models.DateTimeField(db_index=True, default=django.utils.timezone.now),
                 ),
                 (
                     "content_type",
@@ -210,9 +208,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 "ordering": ["-last_saved"],
-                "unique_together": {
-                    ("user", "daily_puzzle", "content_type", "object_id")
-                },
+                "unique_together": {("user", "daily_puzzle", "content_type", "object_id")},
             },
         ),
         migrations.AddIndex(

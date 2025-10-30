@@ -120,9 +120,7 @@ class Migration(migrations.Migration):
                 ("score", models.IntegerField(db_index=True)),
                 (
                     "month_start_date",
-                    models.DateField(
-                        db_index=True, help_text="Date of the 1st of that month"
-                    ),
+                    models.DateField(db_index=True, help_text="Date of the 1st of that month"),
                 ),
                 (
                     "user",
@@ -185,9 +183,7 @@ class Migration(migrations.Migration):
                 ("score", models.IntegerField(db_index=True)),
                 (
                     "week_start_date",
-                    models.DateField(
-                        db_index=True, help_text="Date of the Sunday for that week"
-                    ),
+                    models.DateField(db_index=True, help_text="Date of the Sunday for that week"),
                 ),
                 (
                     "user",
