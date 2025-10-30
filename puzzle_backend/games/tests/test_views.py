@@ -38,6 +38,7 @@ def setup_daily_puzzle(db):
 # DAILY PUZZLE RETRIEVAL TESTS
 # ---------------------------
 
+
 @pytest.mark.django_db
 def test_get_daily_puzzle_success(api_client, setup_daily_puzzle):
     """Should return the existing daily puzzle for today's date."""
@@ -78,6 +79,7 @@ def test_get_daily_puzzle_invalid_date_format(api_client):
 # ---------------------------
 # MOCK DAILY PUZZLE GENERATION TESTS
 # ---------------------------
+
 
 @pytest.mark.django_db
 def test_mock_generate_puzzles_success(monkeypatch, api_client):
@@ -144,13 +146,12 @@ def test_mock_generate_puzzles_already_exists(api_client, setup_daily_puzzle):
 @pytest.mark.django_db
 def test_mock_generate_puzzles_internal_error(monkeypatch, api_client):
     """Should handle unexpected errors in generation gracefully."""
+
     def raise_error(date):
         raise Exception("Unexpected generation error")
 
     monkeypatch.setattr("games.views.generate_daily_puzzles", raise_error)
 
-    response = api_client.post(
-        "/api/games/mock-generate/", {"date": "2025-05-10"}, format="json"
-    )
+    response = api_client.post("/api/games/mock-generate/", {"date": "2025-05-10"}, format="json")
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
     assert "error generating puzzles" in response.json()["detail"].lower()
