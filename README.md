@@ -32,3 +32,13 @@ Save into folder. If in frontend, save into local storage API. < yags >
 ### Backend (Django)
 `black .`       # This will reformat all your files
 `flake8 .`      # This will show you any remaining errors
+
+### Resetting test databse (cleanup)
+`DROP DATABASE test_betterplay;`
+`CREATE DATABASE test_betterplay WITH OWNER your_user;`
+Run in Supabase SQL editor
+
+![Tests](https://img.shields.io/badge/tests-passing-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-93%25-brightgreen)
+![Code style](https://img.shields.io/badge/style-black-black)
+
