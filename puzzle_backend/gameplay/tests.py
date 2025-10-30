@@ -2,15 +2,21 @@ import json
 from datetime import date
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
+from django.utils import timezone 
+from datetime import timedelta, datetime
+from unittest.mock import patch
 from django.urls import reverse
 
 # Import ALL relevant models from games and gameplay apps
 from games.models import DailyPuzzle, WordlePuzzle, SudokuPuzzle, ErnigramPuzzle 
 from gameplay.models import PuzzleAttempt, Submission
 from django.contrib.contenttypes.models import ContentType
+from .streak_utils import update_daily_activity_streak
+import pytz
 
 User = get_user_model()
 {
+
 # class SaveProgressViewTests(TestCase):
 #     def setUp(self):
 #         # 1. Setup Client and User
@@ -179,6 +185,81 @@ User = get_user_model()
 
 
         }
+
+class StreakLogicTests(TestCase):
+    def setUp(self):
+        # Create a test user
+        self.user = User.objects.create_user(
+            username='streak_tester', 
+            email='test@example.com',
+            password='testpassword',
+            # Fields start at 0 but will be overwritten/initialized below
+            current_streak_count=0,
+            max_streak_count=0,
+            # last_active=None # Explicitly start with no last activity
+        )
+        # Define a base time for testing (e.g., Oct 25, 2025, 10:00 AM UTC)
+        self.base_time = timezone.datetime(2025, 10, 25, 10, 0, 0, tzinfo=pytz.utc)
+    
+    # --- Helper to mock the current time and run the function ---
+    def _mock_time_and_run_update(self, mock_time):
+        """Mocks timezone.now() and calls the streak update function."""
+        with patch('django.utils.timezone.now', return_value=mock_time):
+            # Pass the user instance to the function
+            return update_daily_activity_streak(self.user)
+        
+    def test_user_stats_view_returns_correct_data(self):
+        # 1. Setup Initial Data
+        
+        # Manually set user stats to non-default values for clear verification
+        self.user.current_streak_count = 5
+        self.user.max_streak_count = 10
+        self.user.current_points = 500
+        self.user.total_points_alltime = 1500
+        # Set a last_active time
+        mock_last_active = self.base_time - timedelta(days=5)
+        self.user.last_active = mock_last_active
+        self.user.save()
+        
+        # Use the Django Test Client and authenticate the user
+        client = Client()
+        client.force_login(self.user)
+        
+        # 2. Make the Request
+        # Use the name defined in urls.py: name='user_stats'
+        url = reverse('user_stats') 
+        response = client.get(url)
+        
+        # 3. Assertions
+        
+        # Check HTTP Status
+        self.assertEqual(response.status_code, 200)
+        
+        # Parse the JSON response
+        data = response.json()
+        
+        # Check Data Integrity
+        self.assertEqual(data['username'], 'streak_tester')
+        self.assertEqual(data['current_streak_count'], 5)
+        self.assertEqual(data['max_streak_count'], 10)
+        self.assertEqual(data['current_points'], 500)
+        
+        # Check that the last_active time is returned as a formatted string (ISO 8601)
+        # Note: We only check the beginning of the ISO format as it can be complex.
+        self.assertTrue(data['last_active'].startswith(mock_last_active.isoformat()[:19]))
+
+
+    def test_user_stats_view_requires_login(self):
+        # 1. Make the request without logging in
+        client = Client()
+        url = reverse('user_stats') 
+        response = client.get(url)
+        
+        # 2. Assertions
+        # Expect a redirect to the login page (status 302 or 403, but 302 is common for @login_required)
+        self.assertEqual(response.status_code, 302)
+        # Verify the redirect points to the login page
+        self.assertIn('/login/', response.url)
 
 class SaveProgressViewTests(TestCase):
     def setUp(self):

@@ -15,7 +15,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 import random
 
-
+# --- NEW REQUIRED IMPORT ---
+from .streak_utils import update_daily_activity_streak
+# --------------------------
 
 @method_decorator(csrf_protect, name='dispatch')
 @method_decorator(login_required, name='post')
@@ -250,11 +252,23 @@ class SubmitPuzzleView(View):
 
         # 5. Clean up the PuzzleAttempt
         attempt.delete() 
+        
+        # --- NEW STREAK LOGIC INTEGRATION ---
+        # Call the helper function to update the user's streak status.
+        # (Ensure update_daily_activity_streak is imported at the top of the file)
+        streak_updated = update_daily_activity_streak(request.user)
+        # ------------------------------------
+
+        # 6. Return the final JSON response with the streak data
 
         return JsonResponse({
             "message": "Puzzle submitted successfully.",
             "points_awarded": points_awarded,
-            "submission_id": submission.pk
+            "submission_id": submission.pk,
+            # --- NEW STREAK DATA FOR FRONTEND ---
+            "current_streak": request.user.current_streak_count,
+            "max_streak": request.user.max_streak_count,
+            "streak_updated_today": streak_updated # True if streak was incremented/reset today
         }, status=201)
 
 
@@ -390,5 +404,23 @@ class GetHintView(View):
             "hints_used_new": hints_used_new, # New count for the frontend to save
         }, status=200)
 
-
+@method_decorator(login_required, name='dispatch')
+class UserStatsView(View):
+    """
+    Dedicated endpoint to fetch the user's current streak and points balance.
+    This is used for dashboard/profile displays without requiring a submission.
+    """
+    def get(self, request):
+        # request.user is guaranteed to be authenticated due to @login_required
+        user = request.user
+        
+        return JsonResponse({
+            "username": user.username,
+            "current_points": user.current_points,
+            "total_points_alltime": user.total_points_alltime,
+            "current_streak_count": user.current_streak_count,
+            "max_streak_count": user.max_streak_count,
+            # Use .isoformat() for clean transfer of datetime to frontend
+            "last_active": user.last_active.isoformat() if user.last_active else None
+        }, status=200)
 

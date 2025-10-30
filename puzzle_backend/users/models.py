@@ -36,7 +36,7 @@ class User(AbstractUser):
         help_text='Designates whether the user can access custom website admin features.'
     )
     # Use auto_now=True to automatically update on every save
-    last_active = models.DateTimeField(default=timezone.now)
+    last_active = models.DateTimeField(default=timezone.now, null=True)
     # New field for Azure AD specific ID (optional but can be useful)
     azure_id = models.CharField(max_length=255, unique=True, null=True, blank=True, help_text="Azure Active Directory Object ID")
 
