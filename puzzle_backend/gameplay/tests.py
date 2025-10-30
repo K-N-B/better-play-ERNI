@@ -188,18 +188,98 @@ User = get_user_model()
 
 class StreakLogicTests(TestCase):
     def setUp(self):
-        # Create a test user
-        self.user = User.objects.create_user(
-            username='streak_tester', 
-            email='test@example.com',
-            password='testpassword',
-            # Fields start at 0 but will be overwritten/initialized below
-            current_streak_count=0,
-            max_streak_count=0,
-            # last_active=None # Explicitly start with no last activity
-        )
-        # Define a base time for testing (e.g., Oct 25, 2025, 10:00 AM UTC)
+        # --- 1. Define Base Time (Mock Current Time) ---
+        # This time (Oct 25) will be the 'current' time for our tests
         self.base_time = timezone.datetime(2025, 10, 25, 10, 0, 0, tzinfo=pytz.utc)
+
+        # --- 2. Create the Specific Test User ---
+        self.user = User.objects.create_user(
+            username='jehpentester', 
+            email='jehpentester@gmail.com',
+            password='testpassword',
+            # Do NOT pass current/max streak here; we will set the historical data explicitly below
+        )
+
+        # --- 3. Set Initial Broken Streak State ---
+        # Define a date two days before the base time to simulate missing a day.
+        broken_streak_time = self.base_time - timedelta(days=2) 
+        self.user.current_streak_count = 5 # Start with a high streak to prove reset works
+        self.user.max_streak_count = 5
+        self.user.last_active = broken_streak_time 
+        self.user.save() # Crucial: Save the historical data to the database before the test runs!
+
+        # --- 4. Define Submission Context ---
+
+        # 4a. Get ContentType for a Puzzle Model (using WordlePuzzle as the example)
+        self.puzzle_model = WordlePuzzle 
+        self.puzzle_content_type = ContentType.objects.get_for_model(self.puzzle_model)
+
+        # 4b. Create a Dummy Puzzle Instance (Wordle EASY)
+        self.wordle_easy_instance = WordlePuzzle.objects.create(
+            # Provide necessary dummy fields for model creation
+            solution_word='TESTS', 
+            # points_config='{}' 
+        )
+
+        # We need a HARD Wordle too (assuming your DailyPuzzle model requires it)
+        # We will reuse WordlePuzzle model for simplicity, but need 6+ letters
+        self.wordle_hard_instance = WordlePuzzle.objects.create(
+            solution_word='TESTES', # 6 letters for hard
+        )
+
+        # --- NEW: Create instances for the other required models ---
+
+        # Get models (assuming they are imported at the top)
+        self.SudokuPuzzleModel = SudokuPuzzle
+        self.ErnigramPuzzleModel = ErnigramPuzzle
+
+        # Create Sudoku Instance (Required fields: solution_string, puzzle_string_easy, puzzle_string_hard, date_to_be_used)
+        self.sudoku_instance = SudokuPuzzle.objects.create(
+            solution_string='1' * 81,
+            puzzle_string_easy='1' * 81,
+            puzzle_string_hard='1' * 81,
+            date_to_be_used=self.base_time.date() + timedelta(days=11)
+        )
+
+        # Create Ernigram Instance (Required fields: solution_phrase, clue, date_to_be_used)
+        self.ernigram_instance = ErnigramPuzzle.objects.create(
+            solution_phrase='TEST PHRASE',
+            clue='A short clue',
+            date_to_be_used=self.base_time.date() + timedelta(days=12)
+        )
+
+        # 4c. Create a Dummy Daily Puzzle instance (REQUIRES all foreign keys)
+        self.daily_puzzle = DailyPuzzle.objects.create(
+            date=self.base_time.date() + timedelta(days=10),
+            # Ensure these names match the defined attributes above
+            wordle_easy=self.wordle_easy_instance, # <-- This name must be defined!
+            wordle_hard=self.wordle_hard_instance, 
+            sudoku=self.sudoku_instance,
+            ernigram=self.ernigram_instance,
+        )
+
+        # 4d. Mock the scoring method on the Puzzle Model
+        # This is crucial: SubmitPuzzleView calls puzzle_instance.validate_and_score()
+        def mock_score(self, progress_data, difficulty):
+            return 100, 5 # Returns 100 points and 5 tries (points_awarded, tries)
+
+        # Temporarily patch the method on the class for all tests
+        self.puzzle_model.validate_and_score = mock_score
+
+        # 4e. Initialize the test client and the URL
+        # Initialize the test client and the URL
+        self.client = Client()
+
+        # FIX: Change self.puzzle_instance.pk to a specific instance's pk
+        self.submit_url = reverse(
+            'submit_puzzle',
+            kwargs={
+                'daily_puzzle_id': self.daily_puzzle.pk,
+                'puzzle_model_name': 'WordlePuzzle',
+                # Use the ID of a puzzle instance you successfully created (Wordle Easy)
+                'puzzle_id': self.wordle_easy_instance.pk 
+            }
+        )
     
     # --- Helper to mock the current time and run the function ---
     def _mock_time_and_run_update(self, mock_time):
@@ -239,7 +319,7 @@ class StreakLogicTests(TestCase):
         data = response.json()
         
         # Check Data Integrity
-        self.assertEqual(data['username'], 'streak_tester')
+        self.assertEqual(data['username'], 'jehpentester')
         self.assertEqual(data['current_streak_count'], 5)
         self.assertEqual(data['max_streak_count'], 10)
         self.assertEqual(data['current_points'], 500)
