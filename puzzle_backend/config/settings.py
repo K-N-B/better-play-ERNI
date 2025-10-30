@@ -45,11 +45,11 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "corsheaders",  # Add this for Cross-Origin Resource Sharing
     # Your local apps
-    "users.apps.UsersConfig",
-    "games.apps.GamesConfig",
-    "gameplay.apps.GameplayConfig",  # <-- Ensure this line is present
-    "leaderboards.apps.LeaderboardsConfig",
-    "shop.apps.ShopConfig",
+    "puzzle_backend.users.apps.UsersConfig",
+    "puzzle_backend.games.apps.GamesConfig",
+    "puzzle_backend.gameplay.apps.GameplayConfig",
+    "puzzle_backend.leaderboards.apps.LeaderboardsConfig",
+    "puzzle_backend.shop.apps.ShopConfig",
 ]
 
 SITE_ID = 1
