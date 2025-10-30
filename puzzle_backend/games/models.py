@@ -189,6 +189,39 @@ class SudokuPuzzle(models.Model):
         return f"Sudoku {self.id} (Easy/Hard)"
 
 
+class EmployeeImageSource(models.Model):
+    """Stores the source image file and metadata for the 'Guess the Employee' puzzle."""
+    
+    employee_name = models.CharField(
+        max_length=100, 
+        unique=True,
+        help_text="Full name of the employee (The solution phrase)."
+    )
+    
+    clue_context = models.CharField(
+        max_length=255, 
+        blank=True, 
+        help_text="Role or project context for the AI clue."
+    )
+    
+    # --- THE FIX: The ImageField now lives here. ---
+    # We will consistently use the name 'image_file' everywhere.
+    image_file = models.ImageField(
+        upload_to='ernigram_employees/',
+        help_text="Upload a picture of the employee."
+    )
+    
+    is_available = models.BooleanField(default=True)
+    
+    def __str__(self):
+        return self.employee_name
+
+    class Meta:
+        verbose_name = "Employee Image Source"
+        verbose_name_plural = "Employee Image Sources"
+
+
+
 class ErnigramPuzzle(models.Model):
     """A single Hangman (ERNIgram) puzzle."""
 
@@ -198,12 +231,14 @@ class ErnigramPuzzle(models.Model):
     clue = models.TextField()
     date_to_be_used = models.DateField(unique=True)
 
-    employee_image = models.ImageField(
-        upload_to="ernigram_employees/",  # Saves to /media/ernigram_employees/
+    employee_source = models.ForeignKey(
+        EmployeeImageSource,
+        on_delete=models.SET_NULL, # If the source is deleted, keep the puzzle record
         blank=True,
         null=True,
-        help_text="Upload a picture of the employee. This will be blurred on the frontend.",
+        help_text="A link to the employee source if this is an employee puzzle."
     )
+    
     TIME_LIMITS_MS = {
         "EASY": ERNIGRAM_EASY_TIME_LIMIT,
         "HARD": ERNIGRAM_HARD_TIME_LIMIT,

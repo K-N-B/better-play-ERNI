@@ -26,7 +26,7 @@ class SudokuPuzzleSerializer(serializers.ModelSerializer):
 class ErnigramPuzzleSerializer(serializers.ModelSerializer):
     class Meta:
         model = ErnigramPuzzle
-        fields = ["id", "solution_phrase", "clue", "employee_image", "date_to_be_used"]
+        fields = ['id', 'solution_phrase', 'clue', 'employee_source', 'date_to_be_used']
         # 'solution_phrase' might be removed for public API responses
 
 
