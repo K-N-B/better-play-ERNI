@@ -97,13 +97,13 @@ DATABASES = {
         "HOST": os.getenv("DB_HOST"),
         "PORT": os.getenv("DB_PORT"),
         "TEST": {
-            "NAME": "test_postgres",  # MUST match the name in the error message
-            "OPTIONS": {
-                "init_session": "SELECT pg_terminate_backend(pg_stat_activity.pid) "
-                "FROM pg_stat_activity "
-                "WHERE pg_stat_activity.datname = current_database() "
-                "AND pid <> pg_backend_pid();",
-            },
+            "NAME": os.getenv("DB_TEST"),  # MUST match the name in the error message
+            # "OPTIONS": {
+            #     "init_session": "SELECT pg_terminate_backend(pg_stat_activity.pid) "
+            #     "FROM pg_stat_activity "
+            #     "WHERE pg_stat_activity.datname = current_database() "
+            #     "AND pid <> pg_backend_pid();",
+            # },
         },
         # ----------------------------------------------------
     }
