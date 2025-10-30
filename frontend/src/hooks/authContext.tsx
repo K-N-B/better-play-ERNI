@@ -6,6 +6,7 @@
 // Store this userProfile in the context.
 // Provide the MSAL user, your userProfile, and a refetchProfile() function to the entire app.
 // Create a useAuth() hook to easily access this context.
+// Global state for your user. This is a critical file.
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type { UserProfile } from '../types/user';
@@ -15,7 +16,7 @@ import { LoadingSpinner } from '../components/ui/loadingSpinner';
 interface AuthContextType {
   user: UserProfile | null;
   isLoading: boolean;
-  logout: () => void;
+  logout: () => Promise<void>; // Change to return a Promise<void> to reflect async nature
   submitProfileCompletion: (departmentId: number) => Promise<void>;
   updateUserPoints: (newPoints: number) => void;
 }
@@ -24,7 +25,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
-  // This is now the ONLY loading state we need
   const [isLoading, setIsLoading] = useState(true);
 
   // This runs ONCE when the app loads
@@ -50,17 +50,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = useCallback(async () => {
     setIsLoading(true); // Show a loading state
     try {
-      await logoutUser(); // Call the API to destroy the cookie
+      await logoutUser(); // Call the API to destroy the cookie (now sends CSRF)
+      // Only clear state if API call succeeds
+      setUser(null); 
     } catch (error) {
       console.error("Logout failed:", error);
+      // If logout fails, we *might* still be authenticated, so re-check or just clear state for safety
+      setUser(null); // Force clear the state anyway to redirect user
     } finally {
-      setUser(null); // Set the user to null
       setIsLoading(false);
     }
-    // No more window.location.href!
-    // ProtectedRoute will now automatically redirect to /login.
   }, []);
-  
+
   // This is for the FirstTimeSetupModal
   const submitProfileCompletion = useCallback(async (departmentId: number) => {
     try {
@@ -70,26 +71,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(updatedUser);
     } catch (err) {
       console.error("Failed to update profile", err);
+      // Re-fetch user or handle error state if needed
+      throw err;
     }
   }, []);
 
   const updateUserPoints = useCallback((newPoints: number) => {
-        setUser(currentUser => {
-            if (!currentUser) return null;
-            return { ...currentUser, current_points: newPoints }; // Update only current_points
-        });
+    setUser(currentUser => {
+      if (!currentUser) return null;
+      return { ...currentUser, current_points: newPoints }; // Update only current_points
+    });
   }, []);
-  
+
   // Show a full-page spinner while checking auth
   if (isLoading) {
     return <LoadingSpinner fullPage={true} />;
   }
 
-  
-
   // Pass down the real user data and functions
   return (
-    <AuthContext.Provider value={{ user, isLoading, logout, submitProfileCompletion, updateUserPoints }}> 
+    <AuthContext.Provider value={{ user, isLoading, logout, submitProfileCompletion, updateUserPoints }}>
       {children}
     </AuthContext.Provider>
   );
@@ -103,4 +104,3 @@ export const useAuth = () => {
   }
   return context;
 };
-

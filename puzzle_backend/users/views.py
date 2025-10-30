@@ -11,6 +11,7 @@ from rest_framework.decorators import api_view, permission_classes # DRF decorat
 from rest_framework.response import Response # DRF response object
 from users.models import User, Department # Import your models
 from users.serializers import UserProfileSerializer, DepartmentSerializer # Import your serializers
+from django.views.decorators.csrf import csrf_exempt
 
 # --- MSAL Helper ---
 def get_msal_app():
@@ -25,6 +26,8 @@ def get_msal_app():
 from rest_framework import generics # For class-based views
 from .serializers import AssignDepartmentSerializer  
 
+
+@csrf_exempt
 @api_view(['GET'])
 @permission_classes([AllowAny]) # Anyone can request the login URL
 def get_auth_url(request):
@@ -41,7 +44,7 @@ def get_auth_url(request):
     print(f"Generated MSAL Auth URL: {auth_url}") # Log for debugging
     return Response({'auth_url': auth_url})
 
-
+@csrf_exempt
 @api_view(['GET'])
 @permission_classes([AllowAny]) # Callback is accessed without initial login session
 def auth_callback(request):
@@ -153,13 +156,27 @@ def check_auth(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated]) # Must be logged in to logout
+@permission_classes([IsAuthenticated])
 def logout_view(request):
-    """ Logs the user out of the Django session. """
-    print(f"Logging out user: {request.user.username}")
-    logout(request) # Clears the Django session
-    # Frontend will handle redirect after check_auth fails on next load
-    return Response({'success': True, 'message': 'Logged out successfully'}, status=status.HTTP_200_OK)
+    """Logs the user out of the Django session and clears online status."""
+    user = request.user
+    print(f"🚪 [Logout] Logging out user: {user.username}")
+    
+    # ✅ Clear the user's activity status before logout
+    try:
+        from activity.models import UserActivity
+        UserActivity.objects.filter(user=user).delete()
+        print(f"✅ [Logout] Cleared activity status for: {user.username}")
+    except Exception as e:
+        print(f"⚠️ [Logout] Failed to clear activity status: {str(e)}")
+    
+    # Logout from Django session
+    logout(request)
+    
+    return Response(
+        {'success': True, 'message': 'Logged out successfully'},
+        status=status.HTTP_200_OK
+    )
 
 
 # --- Profile API Views ---

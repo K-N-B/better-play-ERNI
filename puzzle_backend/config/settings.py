@@ -50,10 +50,21 @@ INSTALLED_APPS = [
     'games.apps.GamesConfig',
     'gameplay.apps.GameplayConfig',  # <-- Ensure this line is present
     'leaderboards.apps.LeaderboardsConfig',
-    'shop.apps.ShopConfig'
+    'shop.apps.ShopConfig',
+    'django_cron',
+    'activity',
 ]
 
+CRON_CLASSES = [
+    'games.cron.GenerateDailyPuzzlesCronJob',
+    'leaderboards.cron.AggregateLeaderboardsCronJob',  # NEW
+]
+
+DJANGO_CRON_LOCK_BACKEND = 'django_cron.backends.lock.database.DatabaseLock'
+
 SITE_ID = 1
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -65,6 +76,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+
 
 ROOT_URLCONF = 'config.urls'
 
@@ -85,6 +98,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
+CSRF_USE_SESSIONS = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = False
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
