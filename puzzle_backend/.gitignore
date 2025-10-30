@@ -56,7 +56,7 @@ env/
 *.pyo
 *.pyd
 db.sqlite3
-media/
+# media/
 staticfiles/
 
 # IDE files
