@@ -1,7 +1,7 @@
 // frontend/src/api/authService.ts
 import type { Department, UserProfile } from "../types/user";
 
-const API_URL = "http://localhost:8000"; // Your Django backend
+export const API_URL = "http://localhost:8000";
 
 /**
  * Check if user has a valid session cookie
@@ -147,7 +147,7 @@ export const completeProfile = async (departmentId: number): Promise<UserProfile
 /**
  * Helper function to get CSRF token from cookies
  */
-function getCookie(name: string): string | null {
+export function getCookie(name: string): string | null {
   let cookieValue = null;
   if (document.cookie && document.cookie !== '') {
     const cookies = document.cookie.split(';');
