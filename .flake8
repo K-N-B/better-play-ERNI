@@ -6,3 +6,8 @@ exclude =
     __pycache__,
     migrations,
     htmlcov
+per-file-ignores =
+    # Ignore star imports (F403, F405) in test files
+    tests/*: F403, F405
+    # You can add other common test-related ignores
+    tests/*: S101  # Ignore 'assert' statements (if using pytest)
