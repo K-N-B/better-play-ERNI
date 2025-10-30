@@ -1,0 +1,7 @@
+# /puzzle_backend/.flake8
+[flake8]
+ignore = E501, W503
+# E501: Line too long (black handles this)
+# W503: Line break before binary operator (black conflicts with this)
+max-line-length = 88
+exclude = .git,__pycache__,venv,migrations

@@ -6,13 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('shop', '0002_remove_reward_imageurl_reward_image'),
+        ("shop", "0002_remove_reward_imageurl_reward_image"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='reward',
-            name='max_claims_per_user',
-            field=models.PositiveIntegerField(blank=True, help_text='Max times a user can claim this. Null means infinite.', null=True),
+            model_name="reward",
+            name="max_claims_per_user",
+            field=models.PositiveIntegerField(
+                blank=True,
+                help_text="Max times a user can claim this. Null means infinite.",
+                null=True,
+            ),
         ),
     ]

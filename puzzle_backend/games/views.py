@@ -12,7 +12,12 @@ from games.utils.timezone_helpers import get_local_today
 
 
 from .models import DailyPuzzle, WordlePuzzle, SudokuPuzzle, ErnigramPuzzle
-from .serializers import DailyPuzzleSerializer, WordlePuzzleSerializer, SudokuPuzzleSerializer, ErnigramPuzzleSerializer
+from .serializers import (
+    DailyPuzzleSerializer,
+    WordlePuzzleSerializer,
+    SudokuPuzzleSerializer,
+    ErnigramPuzzleSerializer,
+)
 
 # Import your new service function
 from .services import generate_daily_puzzles
@@ -23,37 +28,38 @@ class DailyPuzzlesView(APIView):
     API endpoint to retrieve the set of daily puzzles for a given date.
     If no date is provided, it defaults to today.
     """
+
     # permission_classes = [IsAuthenticated] # Uncomment this for production
     # For dev convenience, remove/change for production
     permission_classes = [AllowAny]
 
     def get(self, request, format=None):
-        date_param = request.query_params.get('date', None)
+        date_param = request.query_params.get("date", None)
         print("Django timezone now():", timezone.now())
         print("Django timezone date():", timezone.now().date())
 
         if date_param:
             try:
-                target_date = datetime.datetime.strptime(
-                    date_param, '%Y-%m-%d').date()
+                target_date = datetime.datetime.strptime(date_param, "%Y-%m-%d").date()
             except ValueError:
                 return Response(
                     {"detail": "Invalid date format. Use YYYY-MM-DD."},
-                    status=status.HTTP_400_BAD_REQUEST
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
         else:
             target_date = get_local_today()
         try:
             daily_puzzle_set = DailyPuzzle.objects.select_related(
-                'wordle_easy', 'wordle_hard', 'sudoku', 'ernigram'
+                "wordle_easy", "wordle_hard", "sudoku", "ernigram"
             ).get(date=target_date)
             serializer = DailyPuzzleSerializer(daily_puzzle_set)
             return Response(serializer.data)
         except DailyPuzzle.DoesNotExist:
             return Response(
                 {"detail": f"Daily puzzles for {target_date} not found."},
-                status=status.HTTP_404_NOT_FOUND
+                status=status.HTTP_404_NOT_FOUND,
             )
+
 
 # --- Mock Data Generation Endpoint (FOR DEVELOPMENT ONLY) ---
 
@@ -63,22 +69,30 @@ class MockDailyPuzzlesGenerateView(APIView):
     Mocks the creation of a daily puzzle set for a specific date.
     Uses dedicated service functions for generation logic.
     """
-    permission_classes = [
-        AllowAny]  # For dev convenience, remove/change for production
+
+    permission_classes = [AllowAny]  # For dev convenience, remove/change for production
 
     def post(self, request, format=None):
-        date_param = request.data.get('date', None)
+        date_param = request.data.get("date", None)
         if not date_param:
-            return Response({"detail": "Date is required (YYYY-MM-DD)."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Date is required (YYYY-MM-DD)."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         try:
-            target_date = datetime.datetime.strptime(
-                date_param, '%Y-%m-%d').date()
+            target_date = datetime.datetime.strptime(date_param, "%Y-%m-%d").date()
         except ValueError:
-            return Response({"detail": "Invalid date format. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Invalid date format. Use YYYY-MM-DD."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         if DailyPuzzle.objects.filter(date=target_date).exists():
-            return Response({"detail": f"Daily puzzles for {target_date} already exist."}, status=status.HTTP_409_CONFLICT)
+            return Response(
+                {"detail": f"Daily puzzles for {target_date} already exist."},
+                status=status.HTTP_409_CONFLICT,
+            )
 
         try:
             # Call the service function to generate all puzzles for the date
@@ -87,4 +101,7 @@ class MockDailyPuzzlesGenerateView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
             # Catch any error during generation and return a 500
-            return Response({"detail": f"Error generating puzzles: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"detail": f"Error generating puzzles: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

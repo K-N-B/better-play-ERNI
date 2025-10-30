@@ -9,48 +9,155 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='ErnigramPuzzle',
+            name="ErnigramPuzzle",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('solution_phrase', models.CharField(help_text='The phrase to guess (uppercase recommended)', max_length=255)),
-                ('clue', models.TextField()),
-                ('date_to_be_used', models.DateField(blank=True, null=True, unique=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "solution_phrase",
+                    models.CharField(
+                        help_text="The phrase to guess (uppercase recommended)",
+                        max_length=255,
+                    ),
+                ),
+                ("clue", models.TextField()),
+                (
+                    "date_to_be_used",
+                    models.DateField(blank=True, null=True, unique=True),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='SudokuPuzzle',
+            name="SudokuPuzzle",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('solution_string', models.CharField(help_text='81 chars (1-9), the complete solution grid.', max_length=81)),
-                ('puzzle_string_easy', models.CharField(help_text='81 chars (0-9), 0 for blank. Easy version (~50 givens).', max_length=81)),
-                ('puzzle_string_hard', models.CharField(help_text='81 chars (0-9), 0 for blank. Hard version (~40 givens).', max_length=81)),
-                ('date_to_be_used', models.DateField(blank=True, null=True, unique=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "solution_string",
+                    models.CharField(
+                        help_text="81 chars (1-9), the complete solution grid.",
+                        max_length=81,
+                    ),
+                ),
+                (
+                    "puzzle_string_easy",
+                    models.CharField(
+                        help_text="81 chars (0-9), 0 for blank. Easy version (~50 givens).",
+                        max_length=81,
+                    ),
+                ),
+                (
+                    "puzzle_string_hard",
+                    models.CharField(
+                        help_text="81 chars (0-9), 0 for blank. Hard version (~40 givens).",
+                        max_length=81,
+                    ),
+                ),
+                (
+                    "date_to_be_used",
+                    models.DateField(blank=True, null=True, unique=True),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='WordlePuzzle',
+            name="WordlePuzzle",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('solution_word', models.CharField(help_text='The solution word (uppercase, 5 for easy, 6+ for hard)', max_length=15)),
-                ('date_to_be_used', models.DateField(blank=True, help_text='Optional: Date this specific puzzle instance should appear', null=True, unique=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "solution_word",
+                    models.CharField(
+                        help_text="The solution word (uppercase, 5 for easy, 6+ for hard)",
+                        max_length=15,
+                    ),
+                ),
+                (
+                    "date_to_be_used",
+                    models.DateField(
+                        blank=True,
+                        help_text="Optional: Date this specific puzzle instance should appear",
+                        null=True,
+                        unique=True,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='DailyPuzzle',
+            name="DailyPuzzle",
             fields=[
-                ('date', models.DateField(default=django.utils.timezone.now, primary_key=True, serialize=False, unique=True)),
-                ('ernigram', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='daily_puzzles', to='games.ernigrampuzzle')),
-                ('sudoku', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='daily_puzzles', to='games.sudokupuzzle')),
-                ('wordle_easy', models.ForeignKey(help_text='The 5-letter Wordle puzzle for the day (Easy difficulty)', limit_choices_to={'solution_word__length': 5}, on_delete=django.db.models.deletion.PROTECT, related_name='daily_puzzles_easy', to='games.wordlepuzzle')),
-                ('wordle_hard', models.ForeignKey(help_text='The 6+ letter Wordle puzzle for the day (Hard difficulty)', limit_choices_to={'solution_word__length__gte': 6}, on_delete=django.db.models.deletion.PROTECT, related_name='daily_puzzles_hard', to='games.wordlepuzzle')),
+                (
+                    "date",
+                    models.DateField(
+                        default=django.utils.timezone.now,
+                        primary_key=True,
+                        serialize=False,
+                        unique=True,
+                    ),
+                ),
+                (
+                    "ernigram",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="daily_puzzles",
+                        to="games.ernigrampuzzle",
+                    ),
+                ),
+                (
+                    "sudoku",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="daily_puzzles",
+                        to="games.sudokupuzzle",
+                    ),
+                ),
+                (
+                    "wordle_easy",
+                    models.ForeignKey(
+                        help_text="The 5-letter Wordle puzzle for the day (Easy difficulty)",
+                        limit_choices_to={"solution_word__length": 5},
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="daily_puzzles_easy",
+                        to="games.wordlepuzzle",
+                    ),
+                ),
+                (
+                    "wordle_hard",
+                    models.ForeignKey(
+                        help_text="The 6+ letter Wordle puzzle for the day (Hard difficulty)",
+                        limit_choices_to={"solution_word__length__gte": 6},
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="daily_puzzles_hard",
+                        to="games.wordlepuzzle",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-date'],
+                "ordering": ["-date"],
             },
         ),
     ]

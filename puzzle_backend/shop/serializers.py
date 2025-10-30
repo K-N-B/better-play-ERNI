@@ -2,15 +2,27 @@ from rest_framework import serializers
 from users.serializers import UserNestedSerializer
 from .models import Reward, ClaimedReward
 
+
 class RewardSerializer(serializers.ModelSerializer):
-    """ Serializer for listing rewards in the shop. """
+    """Serializer for listing rewards in the shop."""
+
     class Meta:
         model = Reward
         # Expose fields the frontend needs to display the card
-        fields = ['id', 'name', 'description', 'cost', 'image', 'stock', 'max_claims_per_user']
+        fields = [
+            "id",
+            "name",
+            "description",
+            "cost",
+            "image",
+            "stock",
+            "max_claims_per_user",
+        ]
+
 
 class ClaimedRewardSerializer(serializers.ModelSerializer):
-    """ Serializer for viewing claimed rewards. """
+    """Serializer for viewing claimed rewards."""
+
     # Nest minimal user info (who claimed it)
     user = UserNestedSerializer(read_only=True)
     # Nest minimal reward info (what was claimed)
@@ -19,4 +31,4 @@ class ClaimedRewardSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClaimedReward
         # Expose all fields the frontend might want to see
-        fields = ['id', 'user', 'reward', 'claimed_at', 'points_spent', 'status']
+        fields = ["id", "user", "reward", "claimed_at", "points_spent", "status"]

@@ -28,3 +28,7 @@ To install dependencies run: `npm install`
 
 Save into folder. If in frontend, save into local storage API. < yags >
 
+## Testing (Manual)
+### Backend (Django)
+`black .`       # This will reformat all your files
+`flake8 .`      # This will show you any remaining errors

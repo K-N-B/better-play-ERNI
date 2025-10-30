@@ -16,32 +16,104 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Reward',
+            name="Reward",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('description', models.TextField(blank=True)),
-                ('cost', models.PositiveIntegerField(help_text='The price of the reward in spendable points')),
-                ('imageUrl', models.CharField(blank=True, help_text="URL to the reward's image", max_length=512, null=True)),
-                ('stock', models.PositiveIntegerField(blank=True, help_text='How many are available? Null means infinite.', null=True)),
-                ('is_active', models.BooleanField(default=True, help_text='Whether the reward is currently available in the shop')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("description", models.TextField(blank=True)),
+                (
+                    "cost",
+                    models.PositiveIntegerField(
+                        help_text="The price of the reward in spendable points"
+                    ),
+                ),
+                (
+                    "imageUrl",
+                    models.CharField(
+                        blank=True,
+                        help_text="URL to the reward's image",
+                        max_length=512,
+                        null=True,
+                    ),
+                ),
+                (
+                    "stock",
+                    models.PositiveIntegerField(
+                        blank=True,
+                        help_text="How many are available? Null means infinite.",
+                        null=True,
+                    ),
+                ),
+                (
+                    "is_active",
+                    models.BooleanField(
+                        default=True,
+                        help_text="Whether the reward is currently available in the shop",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['cost', 'name'],
+                "ordering": ["cost", "name"],
             },
         ),
         migrations.CreateModel(
-            name='ClaimedReward',
+            name="ClaimedReward",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('claimed_at', models.DateTimeField(default=django.utils.timezone.now)),
-                ('points_spent', models.PositiveIntegerField(help_text='How many points were spent at the time of claim')),
-                ('status', models.CharField(choices=[('PENDING', 'Pending'), ('FULFILLED', 'Fulfilled'), ('CLAIMED', 'Claimed')], default='CLAIMED', max_length=20)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='claimed_rewards', to=settings.AUTH_USER_MODEL)),
-                ('reward', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='claims', to='shop.reward')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("claimed_at", models.DateTimeField(default=django.utils.timezone.now)),
+                (
+                    "points_spent",
+                    models.PositiveIntegerField(
+                        help_text="How many points were spent at the time of claim"
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "Pending"),
+                            ("FULFILLED", "Fulfilled"),
+                            ("CLAIMED", "Claimed"),
+                        ],
+                        default="CLAIMED",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="claimed_rewards",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "reward",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="claims",
+                        to="shop.reward",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-claimed_at'],
+                "ordering": ["-claimed_at"],
             },
         ),
     ]

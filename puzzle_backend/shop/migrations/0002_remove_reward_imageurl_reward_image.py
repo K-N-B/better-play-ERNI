@@ -6,17 +6,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('shop', '0001_initial'),
+        ("shop", "0001_initial"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='reward',
-            name='imageUrl',
+            model_name="reward",
+            name="imageUrl",
         ),
         migrations.AddField(
-            model_name='reward',
-            name='image',
-            field=models.ImageField(blank=True, help_text='Image for the reward (optional)', null=True, upload_to='rewards/'),
+            model_name="reward",
+            name="image",
+            field=models.ImageField(
+                blank=True,
+                help_text="Image for the reward (optional)",
+                null=True,
+                upload_to="rewards/",
+            ),
         ),
     ]

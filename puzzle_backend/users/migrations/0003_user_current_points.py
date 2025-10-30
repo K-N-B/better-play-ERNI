@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0002_user_azure_id_user_updated_at_alter_user_email_and_more'),
+        ("users", "0002_user_azure_id_user_updated_at_alter_user_email_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='current_points',
-            field=models.BigIntegerField(default=0, help_text='Current spendable points balance.'),
+            model_name="user",
+            name="current_points",
+            field=models.BigIntegerField(
+                default=0, help_text="Current spendable points balance."
+            ),
         ),
     ]

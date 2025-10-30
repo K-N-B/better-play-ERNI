@@ -7,19 +7,19 @@ from datetime import date
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('games', '0002_wordlepuzzle_difficulty_and_more'),
+        ("games", "0002_wordlepuzzle_difficulty_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='ernigrampuzzle',
-            name='date_to_be_used',
+            model_name="ernigrampuzzle",
+            name="date_to_be_used",
             field=models.DateField(default=date.today),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='sudokupuzzle',
-            name='date_to_be_used',
+            model_name="sudokupuzzle",
+            name="date_to_be_used",
             field=models.DateField(default=date.today),
             preserve_default=False,
         ),

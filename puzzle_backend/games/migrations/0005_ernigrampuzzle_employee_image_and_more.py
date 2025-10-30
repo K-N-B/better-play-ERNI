@@ -7,33 +7,58 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('games', '0004_alter_ernigrampuzzle_date_to_be_used_and_more'),
+        ("games", "0004_alter_ernigrampuzzle_date_to_be_used_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='ernigrampuzzle',
-            name='employee_image',
-            field=models.ImageField(blank=True, help_text='Upload a picture of the employee. This will be blurred on the frontend.', null=True, upload_to='ernigram_employees/'),
+            model_name="ernigrampuzzle",
+            name="employee_image",
+            field=models.ImageField(
+                blank=True,
+                help_text="Upload a picture of the employee. This will be blurred on the frontend.",
+                null=True,
+                upload_to="ernigram_employees/",
+            ),
         ),
         migrations.AlterField(
-            model_name='dailypuzzle',
-            name='ernigram',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='daily_ernigrams', to='games.ernigrampuzzle'),
+            model_name="dailypuzzle",
+            name="ernigram",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="daily_ernigrams",
+                to="games.ernigrampuzzle",
+            ),
         ),
         migrations.AlterField(
-            model_name='dailypuzzle',
-            name='sudoku',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='daily_sudokus', to='games.sudokupuzzle'),
+            model_name="dailypuzzle",
+            name="sudoku",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="daily_sudokus",
+                to="games.sudokupuzzle",
+            ),
         ),
         migrations.AlterField(
-            model_name='dailypuzzle',
-            name='wordle_easy',
-            field=models.ForeignKey(help_text='The 5-letter Wordle puzzle for the day (Easy difficulty)', limit_choices_to={'solution_word__length': 5}, on_delete=django.db.models.deletion.PROTECT, related_name='daily_wordle_easy', to='games.wordlepuzzle'),
+            model_name="dailypuzzle",
+            name="wordle_easy",
+            field=models.ForeignKey(
+                help_text="The 5-letter Wordle puzzle for the day (Easy difficulty)",
+                limit_choices_to={"solution_word__length": 5},
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="daily_wordle_easy",
+                to="games.wordlepuzzle",
+            ),
         ),
         migrations.AlterField(
-            model_name='dailypuzzle',
-            name='wordle_hard',
-            field=models.ForeignKey(help_text='The 6+ letter Wordle puzzle for the day (Hard difficulty)', limit_choices_to={'solution_word__length__gte': 6}, on_delete=django.db.models.deletion.PROTECT, related_name='daily_wordle_hard', to='games.wordlepuzzle'),
+            model_name="dailypuzzle",
+            name="wordle_hard",
+            field=models.ForeignKey(
+                help_text="The 6+ letter Wordle puzzle for the day (Hard difficulty)",
+                limit_choices_to={"solution_word__length__gte": 6},
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="daily_wordle_hard",
+                to="games.wordlepuzzle",
+            ),
         ),
     ]

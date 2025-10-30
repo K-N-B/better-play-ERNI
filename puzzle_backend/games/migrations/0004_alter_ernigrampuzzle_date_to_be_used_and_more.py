@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('games', '0003_alter_ernigrampuzzle_date_to_be_used_and_more'),
+        ("games", "0003_alter_ernigrampuzzle_date_to_be_used_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='ernigrampuzzle',
-            name='date_to_be_used',
+            model_name="ernigrampuzzle",
+            name="date_to_be_used",
             field=models.DateField(unique=True),
         ),
         migrations.AlterField(
-            model_name='sudokupuzzle',
-            name='date_to_be_used',
+            model_name="sudokupuzzle",
+            name="date_to_be_used",
             field=models.DateField(unique=True),
         ),
     ]

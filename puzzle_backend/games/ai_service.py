@@ -49,12 +49,15 @@ class WordleGeneratorAI:
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=[
-                    {"role": "system", "content": "You are an assistant that generates valid Wordle words in JSON format."},
+                    {
+                        "role": "system",
+                        "content": "You are an assistant that generates valid Wordle words in JSON format.",
+                    },
                     {"role": "user", "content": prompt},
                 ],
                 temperature=0.9,  # High for variety but not chaos
                 max_tokens=100,
-                response_format={"type": "json_object"}
+                response_format={"type": "json_object"},
             )
 
             content = response.choices[0].message.content
