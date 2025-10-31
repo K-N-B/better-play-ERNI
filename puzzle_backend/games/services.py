@@ -172,7 +172,7 @@ def fetch_employee_image_data():
 class ErnigramGeneratorAI:
     def __init__(self):
         self.client = Groq(api_key=os.getenv("GROQ_API_KEY")) 
-        self.model = "meta-llama/llama-4-scout-17b-16e-instruct" 
+        self.model = "llama-3.3-70b-versatile" 
         self.used_titles = set()
         self.FUZZY_THRESHOLD = 80
 
@@ -196,10 +196,21 @@ class ErnigramGeneratorAI:
 
             prompt = f"""
             You are a creative assistant that turns news headlines into puzzles.
-            
+            Given a list of available structured articles, pick one that is most interesting for a puzzle.
             **CRITICAL RULE 1: The generated 'solution_phrase' must be UNIQUE. DO NOT generate any phrase that is an exact match or extremely similar to phrases listed in the EXCLUSION LIST below.**
-            ... (Your full complex prompt here) ...
-            
+            **CRITICAL RULE 2: Choose a headline that offers the best blend of relevance and novelty.**
+            **EXCLUSION LIST (Phrases to avoid):** {exclusion_list or "NONE"}
+            Then respond with:
+            1. Create a short "solution_phrase" — a concise 3–5 word summary inspired by the chosen article/headline, written in UPPERCASE.
+            - Must NOT include punctuation or symbols.
+            2. Create a "clue" — a two-sentence hint that:
+            - Relates to the story naturally.
+            - Does NOT reuse any words from the title or the solution phrase.
+            Return strict JSON format:
+            {{
+                "solution_phrase": "...",
+                "clue": "..."
+            }}
             Here are the *available* articles:
             {json.dumps(available_articles, indent=2)}
             """
