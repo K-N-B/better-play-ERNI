@@ -8,7 +8,9 @@ import type { Department, UserProfile } from "../types/user";
 import { MOCK_MODE, mockApiCall } from "./api";
 import { MOCK_DEPARTMENTS, MOCK_USER_MAIN } from "../data/_mockData";
 
-export const API_URL = "http://localhost:8000"; // Your Django backend
+
+// Ensure this resolves to a string like "http://localhost:8000"
+export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 // This function checks if the user has a valid session cookie
 export const checkAuth = async (): Promise<{

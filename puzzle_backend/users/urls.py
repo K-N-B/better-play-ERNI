@@ -7,18 +7,23 @@ from . import views
 urlpatterns = [
     # --- Authentication Endpoints ---
     # GET /auth/login/ -> Returns Microsoft URL
-    path('login/', views.get_auth_url, name='auth-login-url'),
+    path("login/", views.get_auth_url, name="auth-login-url"),
     # GET /auth/callback/ -> Handles redirect back from Microsoft
-    path('callback/', views.auth_callback, name='auth-callback'), # Must match AZURE_AD_REDIRECT_URI path
+    path(
+        "callback/", views.auth_callback, name="auth-callback"
+    ),  # Must match AZURE_AD_REDIRECT_URI path
     # GET /auth/check/ -> Checks current session status
-    path('check/', views.check_auth, name='auth-check'),
+    path("check/", views.check_auth, name="auth-check"),
     # POST /auth/logout/ -> Logs user out
-    path('logout/', views.logout_view, name='auth-logout'),
-
+    path("logout/", views.logout_view, name="auth-logout"),
     # --- Profile API Endpoints ---
     # GET /api/departments/ -> Lists departments
-    path('api/departments/', views.DepartmentListView.as_view(), name='department-list'),
+    path("api/departments/", views.DepartmentListView.as_view(), name="department-list"),
     # URL for frontend to submit the chosen department for a new user
-    path('api/users/me/complete-profile/', views.CompleteProfileView.as_view(), name='complete-profile'),
+    path(
+        "api/users/me/complete-profile/",
+        views.CompleteProfileView.as_view(),
+        name="complete-profile",
+    ),
     # path('assign-department/', views.AssignDepartmentView.as_view(), name='assign-department'),
 ]
