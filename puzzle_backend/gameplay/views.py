@@ -162,6 +162,72 @@ class SaveProgressView(View):
         )
 
 
+
+@method_decorator(csrf_protect, name="dispatch")
+@method_decorator(login_required, name="get")
+# @method_decorator(csrf_exempt, name='dispatch')
+class GetProgressView(View):
+    """
+    Handles GET requests to retrieve a user's current PuzzleAttempt state for a specific puzzle.
+    """
+
+    def get(self, request, daily_puzzle_id, puzzle_model_name, puzzle_id):
+        user = request.user
+
+        # 1. Setup and Validation (Reuses logic from Save/Submit views)
+        try:
+            daily_puzzle = get_object_or_404(DailyPuzzle, pk=daily_puzzle_id)
+
+            # Dynamically determine the PuzzleModel
+            if puzzle_model_name.lower() == "wordlepuzzle":
+                PuzzleModel = WordlePuzzle
+            elif puzzle_model_name.lower() == "sudokupuzzle":
+                PuzzleModel = SudokuPuzzle
+            elif puzzle_model_name.lower() == "ernigrampuzzle":
+                PuzzleModel = ErnigramPuzzle
+            else:
+                return JsonResponse({"error": "Unknown puzzle type."}, status=400)
+
+            puzzle_instance = get_object_or_404(PuzzleModel, pk=puzzle_id)
+            puzzle_content_type = ContentType.objects.get_for_model(puzzle_instance)
+
+        except Exception:
+            # Catch errors like invalid date format or non-existent puzzle IDs
+            return JsonResponse({"error": "Invalid puzzle reference in URL."}, status=400)
+
+        # 2. Retrieve the Attempt
+        try:
+            # Use the GFK components to uniquely find the attempt
+            attempt = PuzzleAttempt.objects.get(
+                user=user,
+                daily_puzzle=daily_puzzle,
+                content_type=puzzle_content_type,
+                object_id=puzzle_instance.pk,
+            )
+
+            # 3. Success: Return the saved data
+            return JsonResponse(
+                {
+                    "exists": True,
+                    "progress_data": attempt.progress_data,
+                    "time_spent_ms": attempt.time_spent_ms,
+                    "last_saved": attempt.last_saved.isoformat(),
+                },
+                status=200,
+            )
+
+        except PuzzleAttempt.DoesNotExist:
+            # 4. Not Found: Return a clean 'not found' signal (New Game)
+            return JsonResponse(
+                {
+                    "exists": False,
+                    "message": "No active attempt found. Start a new game.",
+                },
+                status=200,
+            )  # Use 200 to signal a successful check, but the attempt doesn't exist
+
+
+
 @method_decorator(csrf_protect, name="dispatch")
 @method_decorator(login_required, name="post")
 # @method_decorator(csrf_exempt, name='dispatch')
@@ -280,71 +346,7 @@ class SubmitPuzzleView(View):
         )
 
 
-@method_decorator(csrf_protect, name="dispatch")
-@method_decorator(login_required, name="get")
-# @method_decorator(csrf_exempt, name='dispatch')
-class GetProgressView(View):
-    """
-    Handles GET requests to retrieve a user's current PuzzleAttempt state for a specific puzzle.
-    """
 
-    def get(self, request, daily_puzzle_id, puzzle_model_name, puzzle_id):
-        user = request.user
-
-        # 1. Setup and Validation (Reuses logic from Save/Submit views)
-        try:
-            daily_puzzle = get_object_or_404(DailyPuzzle, pk=daily_puzzle_id)
-
-            # Dynamically determine the PuzzleModel
-            if puzzle_model_name.lower() == "wordlepuzzle":
-                PuzzleModel = WordlePuzzle
-            elif puzzle_model_name.lower() == "sudokupuzzle":
-                PuzzleModel = SudokuPuzzle
-            elif puzzle_model_name.lower() == "ernigrampuzzle":
-                PuzzleModel = ErnigramPuzzle
-            else:
-                return JsonResponse({"error": "Unknown puzzle type."}, status=400)
-
-            puzzle_instance = get_object_or_404(PuzzleModel, pk=puzzle_id)
-            puzzle_content_type = ContentType.objects.get_for_model(puzzle_instance)
-
-        except Exception:
-            # Catch errors like invalid date format or non-existent puzzle IDs
-            return JsonResponse({"error": "Invalid puzzle reference in URL."}, status=400)
-
-        # 2. Retrieve the Attempt
-        try:
-            # Use the GFK components to uniquely find the attempt
-            attempt = PuzzleAttempt.objects.get(
-                user=user,
-                daily_puzzle=daily_puzzle,
-                content_type=puzzle_content_type,
-                object_id=puzzle_instance.pk,
-            )
-
-            # 3. Success: Return the saved data
-            return JsonResponse(
-                {
-                    "exists": True,
-                    "progress_data": attempt.progress_data,
-                    "time_spent_ms": attempt.time_spent_ms,
-                    "last_saved": attempt.last_saved.isoformat(),
-                },
-                status=200,
-            )
-
-        except PuzzleAttempt.DoesNotExist:
-            # 4. Not Found: Return a clean 'not found' signal (New Game)
-            return JsonResponse(
-                {
-                    "exists": False,
-                    "message": "No active attempt found. Start a new game.",
-                },
-                status=200,
-            )  # Use 200 to signal a successful check, but the attempt doesn't exist
-
-
-@method_decorator(login_required, name="post")
 @method_decorator(login_required, name="post")
 class GetHintView(View):
     def post(self, request, daily_puzzle_id, puzzle_model_name, puzzle_id):

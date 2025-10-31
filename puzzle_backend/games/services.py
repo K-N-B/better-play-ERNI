@@ -172,7 +172,8 @@ def fetch_employee_image_data():
 class ErnigramGeneratorAI:
     def __init__(self):
         self.client = Groq(api_key=os.getenv("GROQ_API_KEY")) 
-        self.model = "llama-3.3-70b-versatile" 
+        # self.model = "llama-3.3-70b-versatile" 
+        self.model = "meta-llama/llama-4-scout-17b-16e-instruct" 
         self.used_titles = set()
         self.FUZZY_THRESHOLD = 80
 
