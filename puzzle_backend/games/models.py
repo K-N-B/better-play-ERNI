@@ -284,27 +284,36 @@ class DailyPuzzle(models.Model):
     """Links a specific date to the puzzles active on that day."""
 
     date = models.DateField(unique=True, primary_key=True, default=timezone.now)
+
     wordle_easy = models.ForeignKey(
         WordlePuzzle,
-        on_delete=models.PROTECT,  # Prevent deleting a Wordle puzzle if it's scheduled
+        on_delete=models.PROTECT,
         related_name="daily_wordle_easy",
-        limit_choices_to={"solution_word__length": 5},
+        limit_choices_to={"difficulty": "EASY"},
         help_text="The 5-letter Wordle puzzle for the day (Easy difficulty)",
     )
     wordle_hard = models.ForeignKey(
         WordlePuzzle,
         on_delete=models.PROTECT,
         related_name="daily_wordle_hard",
-        limit_choices_to={"solution_word__length__gte": 6},
+        limit_choices_to={"difficulty": "HARD"},
         help_text="The 6+ letter Wordle puzzle for the day (Hard difficulty)",
     )
-    sudoku = models.ForeignKey(SudokuPuzzle, on_delete=models.PROTECT, related_name="daily_sudokus")
+
+    sudoku = models.ForeignKey(
+        SudokuPuzzle,
+        on_delete=models.PROTECT,
+        related_name="daily_sudokus",
+    )
+
     ernigram = models.ForeignKey(
-        ErnigramPuzzle, on_delete=models.PROTECT, related_name="daily_ernigrams"
+        ErnigramPuzzle,
+        on_delete=models.PROTECT,
+        related_name="daily_ernigrams",
     )
 
     class Meta:
-        ordering = ["-date"]  # Show most recent dates first
+        ordering = ["-date"]
 
     def __str__(self):
         return f"Puzzles for {self.date.strftime('%Y-%m-%d')}"
