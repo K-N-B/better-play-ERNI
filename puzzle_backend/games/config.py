@@ -37,7 +37,7 @@ ERNIGRAM_HARD_MISTAKE_LIMITS = 4
 # Sudoku API Configuration
 SUDOKU_API_BASE_URL = "https://sudoku-api.vercel.app/api/dosuku"
 DEFAULT_EASY_BLANKS = 40
-DEFAULT_HARD_BLANKS = 55
+DEFAULT_HARD_BLANKS = 50
 
 
 NEWS_API_BASE_URL = "https://api.rss2json.com/v1/api.json"

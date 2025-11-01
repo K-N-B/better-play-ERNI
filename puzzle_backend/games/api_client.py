@@ -115,12 +115,22 @@ def generate_sudoku_puzzle_data(date_to_be_used):
         base_solution = grid.get("solution")
 
         solution_string = _flatten_board(base_solution)
-        base_puzzle_string = _flatten_board(base_puzzle)
+        base_puzzle_string = _flatten_board(base_solution)
 
         puzzle_string_easy = _make_variant_from_base(
             base_puzzle_string, DEFAULT_EASY_BLANKS)
         puzzle_string_hard = _make_variant_from_base(
             base_puzzle_string, DEFAULT_HARD_BLANKS)
+        
+        # print(f"API base blanks: {base_puzzle_string.count('0')}")
+        # print(f"Easy blanks: {puzzle_string_easy.count('0')}")
+        # print(f"Hard blanks: {puzzle_string_hard.count('0')}")
+
+        # print("EASY:", puzzle_string_easy)
+        # print("HARD:",  puzzle_string_hard)
+
+        # print("Same string?", puzzle_string_easy ==  puzzle_string_hard)
+
 
         return {
             "date_to_be_used": date_to_be_used,
