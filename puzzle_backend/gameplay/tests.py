@@ -15,8 +15,6 @@ from .streak_utils import update_daily_activity_streak
 import pytz
 
 User = get_user_model()
-{
-
 # class SaveProgressViewTests(TestCase):
 #     def setUp(self):
 #         # 1. Setup Client and User
@@ -340,6 +338,70 @@ class StreakLogicTests(TestCase):
         self.assertEqual(response.status_code, 302)
         # Verify the redirect points to the login page
         self.assertIn('/login/', response.url)
+
+    def test_update_daily_activity_streak_starts_new_streak_when_no_history(self):
+        """First activity with no prior last_active should start a new streak at 1."""
+        self.user.last_active = None
+        self.user.current_streak_count = 0
+        self.user.max_streak_count = 0
+        self.user.save(update_fields=["last_active", "current_streak_count", "max_streak_count"])
+
+        result = self._mock_time_and_run_update(self.base_time)
+        self.user.refresh_from_db()
+
+        self.assertTrue(result)
+        self.assertEqual(self.user.current_streak_count, 1)
+        self.assertEqual(self.user.max_streak_count, 1)
+        self.assertEqual(self.user.last_active, self.base_time)
+
+    def test_update_daily_activity_streak_increments_for_consecutive_day(self):
+        """Activity on the day after last_active should increment the streak."""
+        prior_day = self.base_time - timedelta(days=1)
+        self.user.last_active = prior_day
+        self.user.current_streak_count = 3
+        self.user.max_streak_count = 4
+        self.user.save(update_fields=["last_active", "current_streak_count", "max_streak_count"])
+
+        result = self._mock_time_and_run_update(self.base_time)
+        self.user.refresh_from_db()
+
+        self.assertTrue(result)
+        self.assertEqual(self.user.current_streak_count, 4)
+        self.assertEqual(self.user.max_streak_count, 4)
+        self.assertEqual(self.user.last_active, self.base_time)
+
+    def test_update_daily_activity_streak_does_not_change_for_same_day(self):
+        """Submitting multiple times in the same day should not change the streak."""
+        same_day_time = self.base_time
+        previous_timestamp = same_day_time - timedelta(hours=2)
+        self.user.last_active = previous_timestamp
+        self.user.current_streak_count = 4
+        self.user.max_streak_count = 6
+        self.user.save(update_fields=["last_active", "current_streak_count", "max_streak_count"])
+
+        result = self._mock_time_and_run_update(same_day_time)
+        self.user.refresh_from_db()
+
+        self.assertFalse(result)
+        self.assertEqual(self.user.current_streak_count, 4)
+        self.assertEqual(self.user.max_streak_count, 6)
+        self.assertEqual(self.user.last_active, previous_timestamp)
+
+    def test_update_daily_activity_streak_resets_after_gap(self):
+        """Missing more than a day should reset the streak back to 1."""
+        gap_day = self.base_time - timedelta(days=3)
+        self.user.last_active = gap_day
+        self.user.current_streak_count = 7
+        self.user.max_streak_count = 9
+        self.user.save(update_fields=["last_active", "current_streak_count", "max_streak_count"])
+
+        result = self._mock_time_and_run_update(self.base_time)
+        self.user.refresh_from_db()
+
+        self.assertTrue(result)
+        self.assertEqual(self.user.current_streak_count, 1)
+        self.assertEqual(self.user.max_streak_count, 9)
+        self.assertEqual(self.user.last_active, self.base_time)
 
 class SaveProgressViewTests(TestCase):
     def setUp(self):

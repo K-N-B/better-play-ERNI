@@ -6,13 +6,27 @@ interface PostGameResultsModalProps {
   score: number;
   onClose: () => void;
   submissionId: number | null; // Accept submissionId (can be null if submission failed)
+  currentStreak?: number;
+  maxStreak?: number;
+  streakUpdatedToday?: boolean;
+  message?: string;
 }
 
-export const PostGameResultsModal = ({ score, onClose, submissionId }: PostGameResultsModalProps) => {
+export const PostGameResultsModal = ({
+  score,
+  onClose,
+  submissionId,
+  currentStreak,
+  maxStreak,
+  streakUpdatedToday,
+  message,
+}: PostGameResultsModalProps) => {
   const [isChallengeModalOpen, setIsChallengeModalOpen] = useState(false);
 
   // Use the passed submissionId if available
   const effectiveSubmissionId = submissionId;
+  const hasStreakData =
+    typeof currentStreak === "number" && typeof maxStreak === "number";
 
   return (
     <> {/* Fragment for multiple root elements */}
@@ -34,6 +48,26 @@ export const PostGameResultsModal = ({ score, onClose, submissionId }: PostGameR
             {score}
             <Star size={30} className="text-yellow-500 fill-current" />
           </div>
+
+          {message && (
+            <p className="text-sm text-gray-500 mb-4">{message}</p>
+          )}
+
+          {hasStreakData && (
+            <div className="mb-4 text-sm text-gray-600 space-y-1">
+              <p>
+                Current streak:&nbsp;
+                <span className="font-semibold text-primary">
+                  {currentStreak}
+                </span>
+                {streakUpdatedToday ? " 🔥" : ""}
+              </p>
+              <p>
+                Max streak:&nbsp;
+                <span className="font-semibold text-primary">{maxStreak}</span>
+              </p>
+            </div>
+          )}
 
           {/* --- Challenge Button --- */}
           <button

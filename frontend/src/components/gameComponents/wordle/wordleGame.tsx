@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { submitPuzzle, getSavedAttempt, saveProgress } from '../../../api/gameService'; // Adjust path if needed
 import { completeChallenge } from '../../../api/challengeService';
-import type { WordlePuzzle, SubmissionData, PuzzleAttemptData, WordleProgress, KeyStatus } from '../../../types/game';
+import type { WordlePuzzle, SubmissionData, PuzzleAttemptData, WordleProgress, KeyStatus, SubmissionResult } from '../../../types/game';
 import { WordleGrid } from './wordleGrid';
 import { Keyboard } from './keyboard';
 import { PostGameResultsModal } from '../../ui/postGameResultsModal';
@@ -16,9 +16,10 @@ interface WordleGameProps {
   puzzle: WordlePuzzle;
   difficulty: Difficulty;
   challengeId: number | null;
+  dailyPuzzleDate: string;
 }
 
-export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps) => {
+export const WordleGame = ({ puzzle, difficulty, challengeId, dailyPuzzleDate }: WordleGameProps) => {
   const [solution] = useState(puzzle.solution_word.toUpperCase());
   const [wordLength] = useState(solution.length);
   const MAX_GUESSES = 6;
@@ -30,10 +31,20 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
   const [currentRow, setCurrentRow] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
   const [letterStatuses, setLetterStatuses] = useState<Record<string, KeyStatus>>({});
-  const [gameResult, setGameResult] = useState<{ score: number; submissionId: number | null } | null>(null);
+  const [gameResult, setGameResult] = useState<{
+    score: number;
+    submissionId: number | null;
+    currentStreak: number;
+    maxStreak: number;
+    streakUpdatedToday: boolean;
+    message: string;
+  } | null>(null);
 
   const { time, startTimer, stopTimer, setSavedTime } = useTimer();
-  const fetchSavedWordle = useCallback(() => getSavedAttempt('wordle'), []);
+  const fetchSavedWordle = useCallback(
+    () => getSavedAttempt('wordle', dailyPuzzleDate, puzzle.id),
+    [dailyPuzzleDate, puzzle.id]
+  );
   const { data: savedGame, loading } = useApi(fetchSavedWordle);
 
 
@@ -61,12 +72,17 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
 
     const saveTimer = setTimeout(() => {
       const progress: WordleProgress = { guesses, currentRow, letterStatuses, isGameOver };
-      saveProgress({
-        puzzle_id: puzzle.id,
-        puzzle_type: 'wordle',
-        progress_data: progress,
-        time_spent_ms: time,
-      });
+      saveProgress(
+        {
+          puzzle_id: puzzle.id,
+          puzzle_type: 'wordle',
+          progress_data: progress,
+          time_spent_ms: time,
+          difficulty,
+        },
+        dailyPuzzleDate,
+        puzzle.id
+      );
     }, 2000);
 
     return () => clearTimeout(saveTimer);
@@ -124,6 +140,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
     const finalTime = time;
     let finalScore = 0;
     let submissionIdForResultModal: number | null = null;
+    let submissionResult: SubmissionResult | null = null;
 
     try {
       const submissionData: SubmissionData = {
@@ -134,7 +151,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
         tries: tries,
       };
 
-      const submissionResult = await submitPuzzle(submissionData);
+      submissionResult = await submitPuzzle(submissionData, dailyPuzzleDate, puzzle.id);
       finalScore = submissionResult.score;
       submissionIdForResultModal = submissionResult.submissionId ?? null;
 
@@ -148,7 +165,14 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
     } catch (err) {
       console.error("Error during game end:", err);
     } finally {
-      setGameResult({ score: finalScore, submissionId: submissionIdForResultModal });
+      setGameResult({
+        score: finalScore,
+        submissionId: submissionIdForResultModal,
+        currentStreak: submissionResult?.currentStreak ?? 0,
+        maxStreak: submissionResult?.maxStreak ?? 0,
+        streakUpdatedToday: submissionResult?.streakUpdatedToday ?? false,
+        message: submissionResult?.message ?? '',
+      });
     }
   };
 
@@ -202,6 +226,10 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
           <PostGameResultsModal
             score={gameResult.score}
             submissionId={gameResult.submissionId}
+            currentStreak={gameResult.currentStreak}
+            maxStreak={gameResult.maxStreak}
+            streakUpdatedToday={gameResult.streakUpdatedToday}
+            message={gameResult.message}
             onClose={() => setGameResult(null)}
           />
         )}

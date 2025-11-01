@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { submitPuzzle, getSavedAttempt, saveProgress } from '../../../api/gameService'; // Adjust path
 import { completeChallenge } from '../../../api/challengeService';
-import type { SudokuPuzzle, SudokuCell, PuzzleAttemptData, SubmissionData } from '../../../types/game';
+import type { SudokuPuzzle, SudokuCell, PuzzleAttemptData, SubmissionData, SubmissionResult } from '../../../types/game';
 import { SudokuGrid } from './sudokuGrid';
 import { NumberPad } from './numberPad';
 import { PostGameResultsModal } from '../../ui/postGameResultsModal';
@@ -38,18 +38,29 @@ interface SudokuGameProps {
   puzzle: SudokuPuzzle;
   difficulty: Difficulty;
   challengeId: number | null;
+  dailyPuzzleDate: string;
 }
 
-export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps) => {
+export const SudokuGame = ({ puzzle, difficulty, challengeId, dailyPuzzleDate }: SudokuGameProps) => {
   const initialPuzzleString = difficulty === 'easy' ? puzzle.puzzle_string_easy : puzzle.puzzle_string_hard;
   const [grid, setGrid] = useState<SudokuCell[][]>(() => parseGrid(initialPuzzleString));
   const [selectedCell, setSelectedCell] = useState<{ row: number, col: number } | null>(null);
   const [isNoteMode, setIsNoteMode] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
-  const [gameResult, setGameResult] = useState<{ score: number; submissionId: number | null } | null>(null);
+  const [gameResult, setGameResult] = useState<{
+    score: number;
+    submissionId: number | null;
+    currentStreak: number;
+    maxStreak: number;
+    streakUpdatedToday: boolean;
+    message: string;
+  } | null>(null);
 
   const { time, startTimer, stopTimer, setSavedTime } = useTimer();
-  const fetchSavedSudoku = useCallback(() => getSavedAttempt('sudoku'), []);
+  const fetchSavedSudoku = useCallback(
+    () => getSavedAttempt('sudoku', dailyPuzzleDate, puzzle.id),
+    [dailyPuzzleDate, puzzle.id]
+  );
   const { data: savedGame, loading } = useApi(fetchSavedSudoku);
 
   // Effect to load data
@@ -73,12 +84,17 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
   useEffect(() => {
     if (loading || isGameOver) return;
     const saveTimer = setTimeout(() => {
-      saveProgress({
-        puzzle_id: puzzle.id,
-        puzzle_type: 'sudoku',
-        progress_data: grid, // Save grid state
-        time_spent_ms: time,
-      });
+      saveProgress(
+        {
+          puzzle_id: puzzle.id,
+          puzzle_type: 'sudoku',
+          progress_data: grid, // Save grid state
+          time_spent_ms: time,
+          difficulty,
+        },
+        dailyPuzzleDate,
+        puzzle.id
+      );
     }, 2000);
     return () => clearTimeout(saveTimer);
   }, [grid, isGameOver, time, loading, puzzle.id]);
@@ -141,6 +157,7 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
     const finalTime = time;
     let finalScore = 0;
     let submissionIdForResultModal: number | null = null;
+    let submissionResult: SubmissionResult | null = null;
 
     const isCorrect = checkSolution(grid, puzzle.solution_string);
 
@@ -154,7 +171,7 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
           time_taken_ms: finalTime,
           tries: 1,
         };
-        const submissionResult = await submitPuzzle(submissionData);
+        submissionResult = await submitPuzzle(submissionData, dailyPuzzleDate, puzzle.id);
         finalScore = submissionResult.score;
         submissionIdForResultModal = submissionResult.submissionId ?? null;
 
@@ -166,7 +183,14 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
       } catch (err) {
         console.error("Error during Sudoku submit/challenge:", err);
       } finally {
-        setGameResult({ score: finalScore, submissionId: submissionIdForResultModal });
+        setGameResult({
+          score: finalScore,
+          submissionId: submissionIdForResultModal,
+          currentStreak: submissionResult?.currentStreak ?? 0,
+          maxStreak: submissionResult?.maxStreak ?? 0,
+          streakUpdatedToday: submissionResult?.streakUpdatedToday ?? false,
+          message: submissionResult?.message ?? '',
+        });
       }
     } else {
       alert("Solution is incorrect. Keep trying or check for errors (in red).");
@@ -227,6 +251,10 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
           <PostGameResultsModal
             score={gameResult.score}
             submissionId={gameResult.submissionId}
+            currentStreak={gameResult.currentStreak}
+            maxStreak={gameResult.maxStreak}
+            streakUpdatedToday={gameResult.streakUpdatedToday}
+            message={gameResult.message}
             onClose={() => setGameResult(null)}
           />
         )}

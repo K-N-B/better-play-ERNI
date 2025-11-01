@@ -18,4 +18,5 @@ export interface UserProfile {
   current_streak_count: number; // Renamed from streak_count
   max_streak_count: number; // New
   challenges_made_count: number; // New
+  profile_picture_url: string | null;
 }

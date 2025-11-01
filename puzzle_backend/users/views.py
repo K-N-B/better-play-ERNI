@@ -1,4 +1,7 @@
 # /users/views.py
+import logging  # For structured logging
+import mimetypes  # For deriving file extensions from content types
+import os  # For working with filesystem paths
 import msal  # For MSAL interaction
 import requests  # For calling Microsoft Graph API
 import urllib.parse  # For constructing redirect URLs with errors
@@ -16,6 +19,9 @@ from users.serializers import (
 )  # Import your serializers
 
 
+logger = logging.getLogger(__name__)
+
+
 # --- MSAL Helper ---
 def get_msal_app():
     """Creates and returns an MSAL Confidential Client Application instance."""
@@ -24,6 +30,60 @@ def get_msal_app():
         authority=f"https://login.microsoftonline.com/{settings.AZURE_AD_TENANT_ID}",
         client_credential=settings.AZURE_AD_CLIENT_SECRET,
     )
+
+
+def fetch_and_store_profile_picture(access_token, azure_object_id, request):
+    """
+    Fetches the user's profile photo from Microsoft Graph and stores it under MEDIA_ROOT/profile_pictures.
+    Returns an absolute URL to the stored image, or None if the photo could not be retrieved.
+    """
+    photo_endpoint = "https://graph.microsoft.com/v1.0/me/photo/$value"
+    try:
+        photo_response = requests.get(
+            photo_endpoint,
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=10,
+        )
+    except requests.RequestException as exc:
+        logger.warning("Failed to reach Microsoft Graph for user %s: %s", azure_object_id, exc)
+        return None
+
+    if photo_response.status_code != 200 or not photo_response.content:
+        # A 404 is common when the user never uploaded a photo; don't treat it as an error.
+        logger.info(
+            "No profile photo available from Graph for user %s (status: %s)",
+            azure_object_id,
+            photo_response.status_code,
+        )
+        return None
+
+    content_type = photo_response.headers.get("Content-Type", "image/jpeg")
+    extension = mimetypes.guess_extension(content_type) or ".jpg"
+    # Normalise common extensions
+    if extension in {".jpeg", ".jpe"}:
+        extension = ".jpg"
+
+    profile_dir = os.path.join(settings.MEDIA_ROOT, "profile_pictures")
+    filename = f"{azure_object_id}{extension}"
+    file_path = os.path.join(profile_dir, filename)
+
+    try:
+        os.makedirs(profile_dir, exist_ok=True)
+        # Remove stale variants with different extensions to avoid orphan files.
+        for alt_extension in (".jpg", ".jpeg", ".png"):
+            alt_path = os.path.join(profile_dir, f"{azure_object_id}{alt_extension}")
+            if alt_path != file_path and os.path.exists(alt_path):
+                os.remove(alt_path)
+
+        with open(file_path, "wb") as target_file:
+            target_file.write(photo_response.content)
+    except OSError as exc:
+        logger.error("Unable to store profile photo for user %s: %s", azure_object_id, exc)
+        return None
+
+    # Build an absolute URL the frontend can consume (e.g. http://host/media/profile_pictures/abc.jpg).
+    relative_media_path = f"{settings.MEDIA_URL.rstrip('/')}/profile_pictures/{filename}"
+    return request.build_absolute_uri(relative_media_path)
 
 
 @api_view(["GET"])
@@ -125,6 +185,14 @@ def auth_callback(request):
                 "is_active": True,
             },
         )
+
+        # Attempt to fetch and cache the user's profile photo the first time they sign in
+        # or whenever no cached URL exists yet.
+        if created or not user.profile_picture_url:
+            profile_picture_url = fetch_and_store_profile_picture(access_token, azure_object_id, request)
+            if profile_picture_url and profile_picture_url != user.profile_picture_url:
+                user.profile_picture_url = profile_picture_url
+                user.save(update_fields=["profile_picture_url"])
 
         # Log the user into Django (creates the session cookie)
         # Use ModelBackend as we are managing the user lookup ourselves here
