@@ -43,9 +43,9 @@ class ErnigramPuzzleSerializer(serializers.ModelSerializer):
             if obj.employee_source.image_file:
                 # The .url property on a Django FileField/ImageField gives the URL
                 return obj.employee_source.image_file.url
-        
+
         # Return None or an empty string if no source or image is available
-        return None
+        return "None"
 
 
 class DailyPuzzleSerializer(serializers.ModelSerializer):

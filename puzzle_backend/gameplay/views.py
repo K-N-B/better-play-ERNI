@@ -152,6 +152,10 @@ class SaveProgressView(View):
         # The server accepts the client's total accumulated time
         attempt.time_spent_ms = new_time_spent
 
+        print(f"✅ Progress Saved for User {user.id} on Puzzle {puzzle_id}:")
+        print(f"   Time: {attempt.time_spent_ms} ms")
+        print(f"   Progress Keys: {list(attempt.progress_data.keys())}")
+        print(f"   Sample Data: {attempt.progress_data.get('last_move')}")
         attempt.save()
 
         return JsonResponse(
@@ -160,7 +164,6 @@ class SaveProgressView(View):
                 "last_saved": attempt.last_saved.isoformat(),
             }
         )
-
 
 
 @method_decorator(csrf_protect, name="dispatch")
@@ -225,7 +228,6 @@ class GetProgressView(View):
                 },
                 status=200,
             )  # Use 200 to signal a successful check, but the attempt doesn't exist
-
 
 
 @method_decorator(csrf_protect, name="dispatch")
@@ -344,7 +346,6 @@ class SubmitPuzzleView(View):
             },
             status=201,
         )
-
 
 
 @method_decorator(login_required, name="post")
