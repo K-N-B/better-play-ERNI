@@ -1,4 +1,5 @@
-# activity/serializers.py
+# activity/serializers.py - FIXED VERSION
+
 from rest_framework import serializers
 from gameplay.models import Submission
 from users.models import User
@@ -21,13 +22,20 @@ class ActivityEventSerializer(serializers.ModelSerializer):
         }
     
     def get_puzzle_name(self, obj):
-        """Convert puzzle_type to proper display name"""
+        """
+        ✅ FIX: Derive puzzle_name from content_type instead of puzzle_type field
+        """
+        # Get the model name from the GenericForeignKey's content_type
+        model_name = obj.content_type.model.lower()
+        
+        # Map model names to display names
         puzzle_names = {
-            'wordle': 'Wordle',
-            'sudoku': 'Sudoku',
-            'ernigram': 'ERNIgram'
+            'wordlepuzzle': 'Wordle',
+            'sudokupuzzle': 'Sudoku',
+            'ernigrampuzzle': 'ERNIgram'
         }
-        return puzzle_names.get(obj.puzzle_type, obj.puzzle_type.title())
+        
+        return puzzle_names.get(model_name, model_name.title())
     
     def get_time_in_minutes(self, obj):
         """Convert milliseconds to MM:SS format"""

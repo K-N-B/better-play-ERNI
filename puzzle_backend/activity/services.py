@@ -1,13 +1,13 @@
-# activity/services.py
+# activity/services.py - FIXED VERSION
+
 from django.utils import timezone
 from datetime import timedelta
+from django.contrib.contenttypes.models import ContentType
 from gameplay.models import Submission
 from users.models import User
 from .models import UserActivity
 
-class ActivityService:
-    ONLINE_THRESHOLD_MINUTES = 2
-    
+
 class ActivityService:
     """Service for managing user activity and online status"""
     
@@ -47,22 +47,21 @@ class ActivityService:
         return online_users
     
     @classmethod
-    def get_recent_activity(cls, puzzle_type='wordle'):
+    def get_recent_activity(cls):
         """
-        Get recent puzzle completions from the last 24 hours.
-        
-        Args:
-            puzzle_type: Filter by puzzle type (default: 'wordle')
-        
-        Returns:
-            QuerySet of recent Submission objects
+        ✅ FIX: Get recent puzzle completions WITHOUT filtering by puzzle_type.
+        Returns submissions from all puzzle types.
         """
         cutoff_time = timezone.now() - timedelta(hours=cls.RECENT_ACTIVITY_HOURS)
         
+        # ✅ REMOVED: puzzle_type filter (field doesn't exist)
+        # Get all recent submissions regardless of puzzle type
         submissions = Submission.objects.filter(
-            puzzle_type=puzzle_type,
             created_at__gte=cutoff_time
-        ).select_related('user').order_by('-created_at')[:cls.RECENT_ACTIVITY_LIMIT]
+        ).select_related(
+            'user',
+            'content_type'  # ✅ Load content_type for efficient puzzle_name derivation
+        ).order_by('-created_at')[:cls.RECENT_ACTIVITY_LIMIT]
         
         return submissions
     
@@ -76,5 +75,3 @@ class ActivityService:
             'recent_activity': list(cls.get_recent_activity()),
             'online_users': cls.get_online_users()
         }
-    
-    
