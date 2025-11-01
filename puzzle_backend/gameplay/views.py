@@ -414,13 +414,17 @@ class UserStatsView(View):
         # request.user is guaranteed to be authenticated due to @login_required
         user = request.user
         
+        # We retrieve the stored URL directly from the new model field
+        picture_url = user.profile_picture_url 
+        
         return JsonResponse({
             "username": user.username,
             "current_points": user.current_points,
             "total_points_alltime": user.total_points_alltime,
             "current_streak_count": user.current_streak_count,
             "max_streak_count": user.max_streak_count,
-            # Use .isoformat() for clean transfer of datetime to frontend
-            "last_active": user.last_active.isoformat() if user.last_active else None
+            "last_active": user.last_active.isoformat() if user.last_active else None,
+            # --- NEW API FIELD ---
+            "profile_picture_url": picture_url  # Expose the URL to the frontend
         }, status=200)
 

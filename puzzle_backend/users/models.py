@@ -40,6 +40,14 @@ class User(AbstractUser):
     # New field for Azure AD specific ID (optional but can be useful)
     azure_id = models.CharField(max_length=255, unique=True, null=True, blank=True, help_text="Azure Active Directory Object ID")
 
+    # --- NEW FIELD FOR PROFILE PICTURE URL (FROM AZURE/GRAPH) ---
+    profile_picture_url = models.URLField(
+        max_length=500,  # Max length for a long URL
+        null=True, 
+        blank=True,
+        help_text="URL of the profile picture retrieved from Azure AD/Microsoft Graph."
+    )
+
     # --- Stats Fields from DBML ---
     total_points_alltime = models.BigIntegerField(default=0)
     current_points = models.BigIntegerField(default=0, help_text="Current spendable points balance.")

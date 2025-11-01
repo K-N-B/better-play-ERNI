@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
     'games.apps.GamesConfig',
     'gameplay.apps.GameplayConfig',  # <-- Ensure this line is present
-    'leaderboards.apps.LeaderboardsConfig',
+    # 'leaderboards.apps.LeaderboardsConfig',
     'shop.apps.ShopConfig'
 ]
 
