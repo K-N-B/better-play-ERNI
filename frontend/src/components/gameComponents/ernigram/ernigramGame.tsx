@@ -69,14 +69,14 @@ export const ErnigramGame = ({
   const puzzleID = puzzle.id;
   const fetchSavedErnigram = useCallback(() => {
     // VITAL: Guard clause to prevent call if IDs are null
-    if (dailyID === null || puzzleID === null) {
+    if (dailyPuzzleDate === null || puzzleID === null) {
       return Promise.resolve(null); // Return early or handle loading state
     }
 
     // VITAL FIX: Use .toString() to convert the number IDs to the required string type
     return getSavedAttempt(
       "ernigram",
-      dailyID.toString(), // Converts number to string (e.g., 100 -> "100")
+      dailyPuzzleDate, // Converts number to string (e.g., 100 -> "100")
       puzzleID.toString() // puzzleID is number, but GSA expects string for the second parameter!
     );
   }, [dailyPuzzleDate, puzzleID]);

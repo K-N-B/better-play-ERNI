@@ -8,17 +8,19 @@ from datetime import timedelta
 from django.utils import timezone
 from django.core.exceptions import ImproperlyConfigured, FieldError
 from rapidfuzz import fuzz
-from groq import Groq 
+from groq import Groq
 from django.db import connection
+from typing import List, Set, Dict, Optional
+import string
 
 # Django Models and External I/O
 from .models import WordlePuzzle, SudokuPuzzle, ErnigramPuzzle, DailyPuzzle, EmployeeImageSource
-from .api_client import generate_sudoku_puzzle_data, fetch_cleaned_news_articles 
+from .api_client import generate_sudoku_puzzle_data, fetch_cleaned_news_articles
 
 
 # --- Configuration ---
-CSV_FILE_PATH = "games/ERNI_Content.csv" 
-RAW_TEXT_COLUMN_INDEX = 0 
+CSV_FILE_PATH = "games/ERNI_Content.csv"
+RAW_TEXT_COLUMN_INDEX = 0
 FUZZY_THRESHOLD = 80
 
 
@@ -34,6 +36,7 @@ class WordleGeneratorAI:
 
         self.client = Groq(api_key=self.api_key)
         self.model_name = "llama-3.3-70b-versatile"
+        # self.model_name = "meta-llama/llama-4-scout-17b-16e-instruct"
 
     def generate_wordle_puzzle_data(self, difficulty, existing_words=None):
         if existing_words is None:
@@ -41,7 +44,8 @@ class WordleGeneratorAI:
 
         if difficulty == "EASY":
             min_length = max_length = 5
-        else: # HARD
+
+        else:  # HARD
             min_length, max_length = 6, 10
 
         prompt = f"""
@@ -79,36 +83,66 @@ class WordleGeneratorAI:
             return None
 
 # --- MODIFIED FUNCTION: Adds client-side duplicate check ---
+
+
+FALLBACK_WORDS_EASY = [
+    "ARRAY", "SCOPE", "FLOAT", "CLASS", "CRYPT", "QUEUE", "QUERY", "TANGO"
+]
+
+FALLBACK_WORDS_HARD = [
+    "DEPLOYMENT", "ALGORITHM", "FRAMEWORK", "RECOMMITS", "INTERFACE", "CONTAINER"
+]
+
+
 def _generate_unique_wordle_data(ai_generator, difficulty, existing_words):
     max_retries = 3
-    
+
+    if difficulty == "EASY":
+        fallback_source = FALLBACK_WORDS_EASY
+    else:
+        fallback_source = FALLBACK_WORDS_HARD
+
     for attempt in range(max_retries):
         print(f"Generating '{difficulty}' Wordle puzzle using AI (Attempt {attempt + 1}/{max_retries})...")
-        
+
         puzzle_data = ai_generator.generate_wordle_puzzle_data(
             difficulty=difficulty, existing_words=existing_words
         )
-        
+
         # 1. Validate data structure and required key
         if puzzle_data and puzzle_data.get('word'):
             word = puzzle_data['word']
-            
+
             # 2. CRITICAL FIX: Reject Duplicates (Addresses Repetition Issue)
             if word in existing_words:
                 print(f"❌ AI returned duplicate word '{word}'. Retrying attempt {attempt + 1}...")
                 continue
-            
+
             print(f"✓ AI generation successful for '{difficulty}' puzzle.")
             return {
-                "solution_word": word, 
+                "solution_word": word,
                 "difficulty": difficulty
             }
-        
+
         print(f"⚠ AI generation failed (invalid data returned) on attempt {attempt + 1}. Retrying...")
-    
-    raise Exception(
-        f"AI failed to generate a valid puzzle for difficulty '{difficulty}' after {max_retries} attempts."
-    )
+        # Filter the fallback words to ensure we don't pick an already used word
+    available_fallbacks = [
+        word for word in fallback_source
+        if word not in existing_words
+    ]
+
+    if available_fallbacks:
+        chosen_fallback = random.choice(available_fallbacks)
+        print(f"♻️ AI failed after {max_retries} attempts. Using unique fallback word: {chosen_fallback}")
+        return {
+            "solution_word": chosen_fallback,
+            "difficulty": difficulty
+        }
+    else:
+        # If the fallback list is also exhausted, raise a total failure error
+        raise Exception(
+            f"AI failed to generate a valid puzzle for difficulty '{difficulty}' after {max_retries} attempts, AND the fallback list is exhausted."
+        )
 
 
 # ----------------------------------------------------------------------
@@ -119,7 +153,7 @@ def fetch_raw_csv_data(file_path=CSV_FILE_PATH, text_column_index=RAW_TEXT_COLUM
     raw_texts = []
     try:
         with open(file_path, mode='r', newline='', encoding='utf-8') as file:
-            reader = csv.reader(file) 
+            reader = csv.reader(file)
             for row in reader:
                 if len(row) > text_column_index:
                     text = row[text_column_index].strip()
@@ -130,68 +164,86 @@ def fetch_raw_csv_data(file_path=CSV_FILE_PATH, text_column_index=RAW_TEXT_COLUM
         print(f"⚠️ Error reading CSV: {e}")
     return raw_texts
 
-def fetch_used_solution_phrases():
-    return set(
+
+def fetch_used_solution_phrases(reference_date, lookback_days=90):
+    """
+    Fetches solution phrases used within the specified lookback period.
+    Phases older than this period are considered available for reuse.
+    """
+    cutoff_date = reference_date - timedelta(days=lookback_days)
+
+    # CRITICAL: Filter based on the date the puzzle was used/created
+    recent_phrases = set(
         ErnigramPuzzle.objects
+        .filter(date_to_be_used__gte=cutoff_date, date_to_be_used__lte=reference_date)
         .values_list("solution_phrase", flat=True)
         .all()
     )
 
+    # We now also filter out puzzles created *after* the reference date
+
+    return recent_phrases
+
+
 def find_dominant_theme(used_phrases):
-    if not used_phrases: return None
+    if not used_phrases:
+        return None
     theme_counts = {}
     for phrase in used_phrases:
-        if "DIGITAL TRANSFORMATION" in phrase.upper(): 
+        if "DIGITAL TRANSFORMATION" in phrase.upper():
             theme_counts["DIGITAL TRANSFORMATION"] = theme_counts.get("DIGITAL TRANSFORMATION", 0) + 1
     if theme_counts.get("DIGITAL TRANSFORMATION", 0) >= 3:
         return "DIGITAL TRANSFORMATION"
     return None
 
 # --- MODIFIED FUNCTION: Now includes the primary key ('id') ---
+
+
 def fetch_employee_image_data():
     print("📸 Fetching employee image metadata from database...")
-    
+
     # CRITICAL: Include 'id' to link the ForeignKey field correctly
     employee_data = EmployeeImageSource.objects.filter(is_available=True).values(
-        'id', 'employee_name', 'clue_context', 'image_file' 
+        'id', 'employee_name', 'clue_context', 'image_file'
     )
-    
+
     formatted_data = []
     for data in employee_data:
         formatted_data.append({
-            "id": data['id'], # The ID of the EmployeeImageSource object
+            "id": data['id'],  # The ID of the EmployeeImageSource object
             "name": data['employee_name'],
             "phrase": data['employee_name'].upper(),
             "clue_context": data['clue_context'],
             "image_filename": data['image_file'],
         })
-        
+
     return formatted_data
 
 
 class ErnigramGeneratorAI:
     def __init__(self):
-        self.client = Groq(api_key=os.getenv("GROQ_API_KEY")) 
-        # self.model = "llama-3.3-70b-versatile" 
-        self.model = "meta-llama/llama-4-scout-17b-16e-instruct" 
+        self.client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+        # self.model = "llama-3.3-70b-versatile"
+        self.model = "meta-llama/llama-4-scout-17b-16e-instruct"
+
         self.used_titles = set()
         self.FUZZY_THRESHOLD = 80
 
     # --- generate_from_articles (RSS Logic) ---
-    def generate_from_articles(self, articles, used_phrases): 
+    def generate_from_articles(self, articles, used_phrases):
         FUZZY_THRESHOLD = 90
         MAX_ATTEMPTS = 5
-        
+
         available_articles = [
             article for article in articles
             if article.get('title', '').upper() not in used_phrases
         ]
-        
+
         if not available_articles:
-            return { "solution_phrase": "NO UNIQUE ARTICLES AVAILABLE", "clue": "All structured article titles have been previously used as solutions.", "employee_image_path": None }
+            return {"solution_phrase": "NO UNIQUE ARTICLES AVAILABLE", "clue": "All structured article titles have been previously used as solutions.", "employee_image_path": None}
 
         exclusion_list = ", ".join(used_phrases)
-        
+
         for attempt in range(1, MAX_ATTEMPTS + 1):
             print(f"🤖 Attempt {attempt}: Selecting from {len(available_articles)} filtered articles.")
 
@@ -224,12 +276,12 @@ class ErnigramGeneratorAI:
                         {"role": "user", "content": prompt},
                     ],
                     temperature=1.2,
-                    max_tokens=500, # CRITICAL FIX: Increased tokens
+                    max_tokens=500,  # CRITICAL FIX: Increased tokens
                     response_format={"type": "json_object"},
                 )
 
                 raw_json = response.choices[0].message.content
-                
+
                 # CRITICAL FIX: Defensive JSON Parsing
                 result = json.loads(raw_json)
                 phrase = result.get("solution_phrase", "").upper().strip()
@@ -244,162 +296,150 @@ class ErnigramGeneratorAI:
                         is_unique_by_fuzzy_check = False
                         print(f"❌ Phrase '{phrase}' (Score: {similarity_score}) is too similar to used phrase '{used_phrase}'.")
                         break
-                
+
                 if is_unique_by_fuzzy_check:
                     print(f"✅ Unique phrase found from RSS source: {phrase}")
-                    return { "solution_phrase": phrase, "clue": result["clue"].strip(), "employee_image_path": None }
+                    return {"solution_phrase": phrase, "clue": result["clue"].strip(), "employee_image_path": "None"}
                 else:
-                    continue 
+                    continue
 
             except (json.JSONDecodeError, ValueError) as e:
                 print(f"⚠️ Data/JSON error on attempt {attempt}: {e}. Retrying...")
-                continue 
+                continue
             except Exception as e:
                 print(f"⚠️ Groq API failure on attempt {attempt}: {e}")
-                continue 
+                continue
 
-        return { "solution_phrase": "RSS UNIQUE GENERATION FAILED", "clue": "The AI could not generate a unique phrase...", "employee_image_path": None }
+        return {"solution_phrase": "RSS UNIQUE GENERATION FAILED", "clue": "The AI could not generate a unique phrase...", "employee_image_path": None}
 
     # --- generate_from_raw_text (CSV Logic) ---
-    def generate_from_raw_text(self, raw_text_list, used_phrases, dominant_theme=None):
+    def generate_from_raw_text(self, raw_text_list: List[str], used_phrases: Set[str], dominant_theme: Optional[str] = None) -> Dict:
         if not raw_text_list:
-            return { "solution_phrase": "NO RAW DATA PROVIDED", "clue": "..." }
+            return {"solution_phrase": "NO RAW DATA PROVIDED", "clue": "...", "employee_source_id": None}
 
-        # Format the text blocks with a persistent index for the AI to reference
-        indexed_texts = [
-            f"--- BLOCK {i+1} ---\n{text}" 
-            for i, text in enumerate(raw_text_list)
-        ]
-        
-        exclusion_list = ", ".join(used_phrases)
+        # 🛑 CRITICAL FIX: RANDOMLY SELECT ONE BLOCK (and its index for the AI to return)
+        selected_index = random.randrange(len(raw_text_list))
+        selected_text = raw_text_list[selected_index]
+        selected_block_num = selected_index + 1  # Block numbers start at 1
+
+        sanitized_text = selected_text.replace('"', "'").replace('\n', ' ')
         MAX_ATTEMPTS = 5
-        FUZZY_THRESHOLD = 80
-        
-        # This set will keep track of the block numbers we've tried that resulted in a non-unique phrase
-        attempted_block_indices = set()
 
-        theme_constraint = ""
-        if dominant_theme:
-            theme_constraint = f"**ULTRA CRITICAL RULE: The dominant theme '{dominant_theme}' has been used too often recently. You MUST select a block of text that is NOT about this theme.**"
-
+        print(f"➡️ Starting CSV generation based on single random block #{selected_block_num} selection.")
+        print(f"DEBUG: Block #{selected_block_num} text: {selected_text[:100]}...")  # Print first 100 chars
+        # The loop is now only for retries due to word count or fuzzy failure
         for attempt in range(1, MAX_ATTEMPTS + 1):
-            
-            # On each attempt, filter out the blocks that have already failed the uniqueness check
-            available_blocks = [
-                block for i, block in enumerate(indexed_texts) 
-                if (i + 1) not in attempted_block_indices
-            ]
-            
-            if not available_blocks:
-                print("🛑 All available raw texts have been exhausted during uniqueness retries.")
-                break # Exit the loop if nothing is left
+            print(f"🤖 CSV Attempt {attempt}: Summarizing block #{selected_block_num}.")
 
-            print(f"🤖 Attempt {attempt}: Selecting from {len(available_blocks)} remaining blocks.")
-            
+            # NOTE: We DO NOT pass the full indexed_texts or available_blocks list anymore.
+
             prompt = f"""
-            You are a puzzle assistant. Your task is to generate a puzzle based *ONLY* on the provided text blocks.
+            You are a puzzle assistant. Your task is to generate a unique puzzle based *ONLY* on the provided text block below.
 
-            **HERE IS YOUR TASK:**
-            1.  **READ ALL** of the following text blocks provided under "AVAILABLE TEXT BLOCKS".
-            2.  **SELECT EXACTLY ONE** block that you will use as the source for your puzzle.
-            3.  **SUMMARIZE** the core idea, action, or outcome of your selected block into a short, 3-5 word "solution_phrase" in UPPERCASE.
-            4.  Create a two-sentence "clue" that hints at the content of your selected block without using any words from the solution phrase.
-            5.  Identify the block number you used (e.g., if you used "--- BLOCK 123 ---", the number is 123).
-
-            **CRITICAL RULES:**
-            -   **RULE 1: YOU MUST BASE YOUR 'solution_phrase' DIRECTLY ON THE CONTENT OF A BLOCK YOU SELECTED.** Do not invent a generic phrase. It must be a specific summary of a single block.
-            -   **RULE 2:** The 'solution_phrase' must NOT be one of the phrases in the EXCLUSION LIST: {exclusion_list or "NONE"}
-            -   **RULE 3: PROMOTE VARIETY.** On each attempt, try to summarize a block with a different core concept than your previous attempt. If you just summarized a block about 'engineering', find a block about 'business', 'design', or 'consulting' for the next attempt.
-            -   {theme_constraint}
-
-            **AVAILABLE TEXT BLOCKS:**
-            {json.dumps(available_blocks, indent=2)}
+            **CRITICAL TASK:**
+            1. **Summarize** the core idea of the text block into a concise, **3-5 word** "solution_phrase" in UPPERCASE. Phrases of only two words are forbidden.
+            2. Create a two-sentence "clue" that hints at the content without using any words from the solution phrase.
+            3. The required 'source_block_number' is **{selected_block_num}**.
             
-            **YOUR RESPONSE FORMAT:**
-            Return a strict JSON object with three keys: "solution_phrase", "clue", and "source_block_number".
+            **TEXT BLOCK TO USE (BLOCK {selected_block_num}):**
+            "{sanitized_text}"
 
-            Example of a perfect response:
+            1. Create a short "solution_phrase" — a concise 3–5 word summary inspired by the chosen block/ Context, written in UPPERCASE.
+            - Must NOT include punctuation or symbols.
+            2. Create a "clue" — a two-sentence hint that:
+            - Relates to the story naturally.
+            - Does NOT reuse any words from the title or the solution phrase.
+            Return strict JSON format:
+            **YOUR ONLY OUTPUT MUST BE THE STRICT JSON OBJECT. DO NOT INCLUDE ANY MARKDOWN, FENCES, OR EXPLANATION.**
             {{
-            "solution_phrase": "TAILORED SOFTWARE SOLUTIONS",
-            "clue": "This service provides custom digital tools for specific business needs. The final product is built to precise client requirements.",
-            "source_block_number": 42
+                "solution_phrase": "...",
+                "clue": "...",
+                "source_block_number": {selected_block_num} 
             }}
+
+
+            
             """
 
             try:
                 response = self.client.chat.completions.create(
                     model=self.model,
-                    messages=[{"role": "system", "content": "You are a puzzle generator that strictly follows instructions. Your only output is the required JSON object."}, {"role": "user", "content": prompt}],
-                    temperature=1.0,
+                    messages=[{"role": "system", "content": "You are a puzzle generator. Your only output is the required JSON object."}, {"role": "user", "content": prompt}],
+                    temperature=1.2,
                     max_tokens=500,
                     response_format={"type": "json_object"},
                 )
-                
+
                 raw_json = response.choices[0].message.content
                 result = json.loads(raw_json)
-                
-                # Use safe .get() to prevent crashes
                 phrase = result.get("solution_phrase", "").upper().strip()
                 clue = result.get("clue", "No clue provided.").strip()
-                source_block_num = result.get("source_block_number")
+                # source_block_num is expected to be {selected_block_num} but we extract it for completeness
 
                 if not phrase:
                     raise ValueError("AI response did not contain a 'solution_phrase' key.")
 
-                print(f"🤖 AI generated phrase '{phrase}' from source block #{source_block_num or 'Unknown'}.")
-                
+                # --- PROGRAMMATIC WORD COUNT CHECK ---
+                # Robust check to handle complex spacing/punctuation
+                cleaned_phrase = phrase.translate(str.maketrans('', '', string.punctuation))
+                normalized_phrase = ' '.join(cleaned_phrase.split())
+                word_count = len(normalized_phrase.split())
+
+                if not (3 <= word_count <= 5):
+                    print(f"❌ Phrase '{phrase}' failed word count check ({word_count} words). Must be 3-5 words. Retrying...")
+                    continue
+                # -------------------------------------
+
+                print(f"🤖 AI generated phrase '{phrase}'.")
+
                 is_unique = True
                 for used_phrase in used_phrases:
                     if fuzz.token_sort_ratio(phrase, used_phrase) >= FUZZY_THRESHOLD:
-                        print(f"❌ Phrase '{phrase}' is too similar to used phrase '{used_phrase}'.")
+                        print(f"❌ Phrase '{phrase}' is too similar to used phrase '{used_phrase}'. Retrying...")
                         is_unique = False
-                        # IMPORTANT: Add the failed block number to our set of attempted blocks
-                        if isinstance(source_block_num, int):
-                            attempted_block_indices.add(source_block_num)
-                        break # No need to check other used phrases
-                
+                        break
+
                 if is_unique:
                     print(f"✅ Unique phrase found: {phrase}")
-                    # We don't need to return the source block number, but it was great for debugging.
-                    return { "solution_phrase": phrase, "clue": clue, "employee_image_path": None }
+                    return {"solution_phrase": phrase, "clue": clue, "employee_source_id": None}
                 else:
-                    # If not unique, the loop will continue to the next attempt with one less block available.
+                    # If non-unique, retry with the same block, asking the AI for a different summary
                     continue
 
             except (json.JSONDecodeError, ValueError) as e:
                 print(f"⚠️ Data/JSON error on attempt {attempt}: {e}. Retrying...")
-                continue 
+                continue
             except Exception as e:
                 print(f"⚠️ Groq API failure on attempt {attempt}: {e}")
-                continue 
+                continue
 
-        # This is the final fallback if the loop finishes without a unique phrase
         return {
             "solution_phrase": "NO UNIQUE PUZZLE AVAILABLE",
-            "clue": "The AI could not generate a unique phrase after multiple attempts from the available text."
+            "clue": f"The AI failed to generate a unique 3-5 word summary after {MAX_ATTEMPTS} attempts on block #{selected_block_num}.",
+            "employee_source_id": None
         }
+        # --- MODIFIED FUNCTION: Returns object ID instead of path ---
 
-
-    # --- MODIFIED FUNCTION: Returns object ID instead of path ---
     def generate_from_employee_data(self, employee_data, used_phrases):
         available = [e for e in employee_data if e['phrase'] not in used_phrases]
         selected = random.choice(available) if available else None
-        
+
         if not selected:
-             raise ValueError("All employee names have been used as Ernigram solutions.")
-            
-        fixed_clue = "Better ask employee" 
-        
+            raise ValueError("All employee names have been used as Ernigram solutions.")
+
+        fixed_clue = "Better ask employee"
+
         # CRITICAL CHANGE: Return the ID of the source object
         return {
             "solution_phrase": selected['phrase'],
-            "clue": fixed_clue, 
-            "employee_source_id": selected['id'] # Returns the ID (PK)
+            "clue": fixed_clue,
+            "employee_source_id": selected['id']  # Returns the ID (PK)
         }
 
 # ----------------------------------------------------------------------
 # C. MAIN SCHEDULER LOGIC
 # ----------------------------------------------------------------------
+
 
 def generate_ernigram_puzzle_data(date_to_be_used):
     """
@@ -413,7 +453,7 @@ def generate_ernigram_puzzle_data(date_to_be_used):
     all_structured_articles = fetch_cleaned_news_articles()
     all_employee_images = fetch_employee_image_data()
     all_raw_csv_texts = fetch_raw_csv_data()
-    used_phrases = fetch_used_solution_phrases()
+    used_phrases = fetch_used_solution_phrases(date_to_be_used)
     dominant_theme = find_dominant_theme(used_phrases)
 
     # 2. BUILD THE LIST OF AVAILABLE SOURCES
@@ -448,7 +488,7 @@ def generate_ernigram_puzzle_data(date_to_be_used):
     for source in available_sources:
         source_name = source["name"]
         source_data = source["data"]  # This is the actual list of articles, employees, etc.
-        
+
         print(f"➡️ Trying randomly selected source: {source_name}...")
         result = {}
         try:
@@ -459,7 +499,7 @@ def generate_ernigram_puzzle_data(date_to_be_used):
                 result = ai.generate_from_articles(source_data, used_phrases)
             elif source_name == "CSV":
                 result = ai.generate_from_raw_text(source_data, used_phrases, dominant_theme)
-            
+
             # --- CRITICAL QUALITY CHECK ---
             # After trying a source, we MUST validate its output before accepting it.
             generated_phrase = result.get('solution_phrase', '').upper()
@@ -477,7 +517,7 @@ def generate_ernigram_puzzle_data(date_to_be_used):
         except Exception as e:
             # This catches any unexpected crashes within a generation method (like a ValueError).
             print(f"❌ Source '{source_name}' crashed with an exception: {e}. Trying next source...")
-            continue # Go to the next source in the shuffled list
+            continue  # Go to the next source in the shuffled list
 
     # 5. FINAL FALLBACK
     # This code is only ever reached if the 'for' loop finishes without a single success.
@@ -485,7 +525,7 @@ def generate_ernigram_puzzle_data(date_to_be_used):
     return {
         "solution_phrase": "ALL SOURCES FAILED",
         "clue": "Every available data source was attempted without success.",
-        "employee_source_id": None
+        "employee_source_id": ""
     }
 
 
@@ -519,20 +559,19 @@ def generate_daily_puzzles(target_date: datetime.date = None) -> DailyPuzzle:
         existing_words.append(wordle_easy_data["solution_word"])
     wordle_hard_data = _generate_unique_wordle_data(ai_generator, "HARD", existing_words)
 
-    sudoku_data = generate_sudoku_puzzle_data(target_date) # From api_client.py
-    ernigram_data = generate_ernigram_puzzle_data(target_date) # From local func above
-
+    sudoku_data = generate_sudoku_puzzle_data(target_date)  # From api_client.py
+    ernigram_data = generate_ernigram_puzzle_data(target_date)  # From local func above
 
     connection.close()
     # 4. Create/Get the puzzle objects in the database
-    
+
     # Wordle Easy/Hard updates
     wordle_easy, _ = WordlePuzzle.objects.update_or_create(
         date_to_be_used=target_date,
         difficulty=wordle_easy_data['difficulty'],
         defaults=wordle_easy_data
     )
-    wordle_hard, _ = WordlePuzzle.objects.update_or_create( 
+    wordle_hard, _ = WordlePuzzle.objects.update_or_create(
         date_to_be_used=target_date,
         difficulty=wordle_hard_data['difficulty'],
         defaults=wordle_hard_data
@@ -545,26 +584,26 @@ def generate_daily_puzzles(target_date: datetime.date = None) -> DailyPuzzle:
     )
 
     # Ernigram (CRITICAL FOREIGN KEY ASSIGNMENT FIX)
-    
+
     # We retrieve the source ID if it was generated (employee puzzle)
-    employee_source_id = ernigram_data.pop("employee_source_id", None) 
-    
+    employee_source_id = ernigram_data.pop("employee_source_id", None)
+
     # The image path is technically still needed for non-employee puzzles if you ever need a file reference
-    employee_image_path = ernigram_data.pop("employee_image_path", None) 
+    employee_image_path = ernigram_data.pop("employee_image_path", None)
 
     # Prepare defaults dictionary
     ernigram_defaults = {
         "solution_phrase": ernigram_data['solution_phrase'],
         "clue": ernigram_data['clue'],
     }
-    
+
     # CRITICAL FIX: Assign the ID to the correct ForeignKey field name
     if employee_source_id is not None:
-        ernigram_defaults['employee_source_id'] = employee_source_id 
+        ernigram_defaults['employee_source_id'] = employee_source_id
 
     # Create the Ernigram puzzle
     ernigram, _ = ErnigramPuzzle.objects.get_or_create(
-        date_to_be_used=target_date, 
+        date_to_be_used=target_date,
         defaults=ernigram_defaults
     )
 
