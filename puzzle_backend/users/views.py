@@ -13,6 +13,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes  # DRF decorators
 from rest_framework.response import Response  # DRF response object
 from users.models import User, Department  # Import your models
+from django.utils import timezone
 from users.serializers import (
     UserProfileSerializer,
     DepartmentSerializer,
@@ -59,21 +60,28 @@ def fetch_and_store_profile_picture(access_token, azure_object_id, request):
 
     content_type = photo_response.headers.get("Content-Type", "image/jpeg")
     extension = mimetypes.guess_extension(content_type) or ".jpg"
-    # Normalise common extensions
     if extension in {".jpeg", ".jpe"}:
         extension = ".jpg"
 
+    timestamp = int(timezone.now().timestamp())
     profile_dir = os.path.join(settings.MEDIA_ROOT, "profile_pictures")
-    filename = f"{azure_object_id}{extension}"
+    filename = f"{azure_object_id}_{timestamp}{extension}"
     file_path = os.path.join(profile_dir, filename)
 
     try:
         os.makedirs(profile_dir, exist_ok=True)
-        # Remove stale variants with different extensions to avoid orphan files.
-        for alt_extension in (".jpg", ".jpeg", ".png"):
-            alt_path = os.path.join(profile_dir, f"{azure_object_id}{alt_extension}")
-            if alt_path != file_path and os.path.exists(alt_path):
-                os.remove(alt_path)
+        # Remove stale cached variants for this user
+        for existing_name in os.listdir(profile_dir):
+            if existing_name.startswith(azure_object_id) and existing_name != filename:
+                try:
+                    os.remove(os.path.join(profile_dir, existing_name))
+                except OSError as cleanup_err:
+                    logger.warning(
+                        "Unable to remove stale profile photo %s for user %s: %s",
+                        existing_name,
+                        azure_object_id,
+                        cleanup_err,
+                    )
 
         with open(file_path, "wb") as target_file:
             target_file.write(photo_response.content)
@@ -188,11 +196,10 @@ def auth_callback(request):
 
         # Attempt to fetch and cache the user's profile photo the first time they sign in
         # or whenever no cached URL exists yet.
-        if created or not user.profile_picture_url:
-            profile_picture_url = fetch_and_store_profile_picture(access_token, azure_object_id, request)
-            if profile_picture_url and profile_picture_url != user.profile_picture_url:
-                user.profile_picture_url = profile_picture_url
-                user.save(update_fields=["profile_picture_url"])
+        profile_picture_url = fetch_and_store_profile_picture(access_token, azure_object_id, request)
+        if profile_picture_url and profile_picture_url != user.profile_picture_url:
+            user.profile_picture_url = profile_picture_url
+            user.save(update_fields=["profile_picture_url"])
 
         # Log the user into Django (creates the session cookie)
         # Use ModelBackend as we are managing the user lookup ourselves here
