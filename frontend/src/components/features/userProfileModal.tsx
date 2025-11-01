@@ -11,6 +11,8 @@ interface UserProfileModalProps {
 
 export default function UserProfileModal({ isOpen, onClose, user }: UserProfileModalProps) {
   const { logout } = useAuth(); // Get the global logout function
+  const profileImageUrl = user?.profile_picture_url ?? null;
+  const userInitial = user?.username.charAt(0).toUpperCase() ?? '?';
 
   if (!isOpen) return null;
 
@@ -36,8 +38,16 @@ export default function UserProfileModal({ isOpen, onClose, user }: UserProfileM
         {/* Body */}
         <div className="pt-4">
           <div className="flex items-center space-x-4 mb-6">
-            <div className="w-16 h-16 bg-sky-400 rounded-full flex items-center justify-center text-white text-3xl font-bold">
-              {user?.username.charAt(0).toUpperCase() || '?'}
+            <div className="w-16 h-16 rounded-full bg-sky-400 text-white text-3xl font-bold overflow-hidden flex items-center justify-center">
+              {profileImageUrl ? (
+                <img
+                  src={profileImageUrl}
+                  alt={`${user?.username || 'User'} profile picture`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                userInitial
+              )}
             </div>
             <div>
               <div className="text-xl font-bold">{user?.username}</div>

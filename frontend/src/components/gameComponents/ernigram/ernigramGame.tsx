@@ -11,6 +11,7 @@ import type {
   PuzzleAttemptData,
   ErnigramProgress,
   KeyStatus,
+  SubmissionResult,
 } from "../../../types/game";
 import { PhraseDisplay } from "./phraseDisplay";
 import { AttemptsTracker } from "./attemptsTracker";
@@ -27,15 +28,8 @@ import clsx from "clsx"; // <-- 2. Import clsx for conditional classes
 interface ErnigramGameProps {
   puzzle: ErnigramPuzzle;
   difficulty: Difficulty;
-  challengeId: number | null; // <-- This is likely your daily_puzzle_id
-
-  // --- ADDITIONS REQUIRED BY YOUR saveProgress FUNCTION ---
-  dailyPuzzleDate: string | null; // We will use challengeId for this, but if your component uses a different variable, add it.
-  saveProgress: (
-    data: PuzzleAttemptData,
-    dailyPuzzleDate: string | null, // The first URL parameter
-    puzzleId: number // The third URL parameter
-  ) => Promise<any>;
+  challengeId: number | null;
+  dailyPuzzleDate: string;
 }
 
 const MAX_ATTEMPTS = (difficulty: Difficulty) =>
@@ -46,7 +40,6 @@ export const ErnigramGame = ({
   difficulty,
   challengeId,
   dailyPuzzleDate,
-  saveProgress,
 }: ErnigramGameProps) => {
   const [solution] = useState(puzzle.solution_phrase.toUpperCase());
   const maxAttemptsForDifficulty = MAX_ATTEMPTS(difficulty);
@@ -62,6 +55,10 @@ export const ErnigramGame = ({
   const [gameResult, setGameResult] = useState<{
     score: number;
     submissionId: number | null;
+    currentStreak: number;
+    maxStreak: number;
+    streakUpdatedToday: boolean;
+    message: string;
   } | null>(null);
 
   const { time, startTimer, stopTimer, setSavedTime } = useTimer();
@@ -115,7 +112,7 @@ export const ErnigramGame = ({
   // Effect to auto-save
   useEffect(() => {
     // 1. Check Guard Clauses: Ensure all necessary data is present before proceeding
-    if (loading || isGameOver || dailyPuzzleDate === null || !difficulty)
+    if (loading || isGameOver || !dailyPuzzleDate || !difficulty)
       return; // Use 'difficulty'
 
     const saveTimer = setTimeout(() => {
@@ -137,7 +134,7 @@ export const ErnigramGame = ({
       // VITAL FIX: Now saveProgress is correctly called with the destructured variables
       saveProgress(
         dataPayload,
-        dailyPuzzleDate!, // Available from props
+        dailyPuzzleDate, // Available from props
         puzzle.id
       );
     }, 2000);
@@ -153,7 +150,6 @@ export const ErnigramGame = ({
     puzzle.id,
     dailyPuzzleDate, // Available from props
     difficulty, // Available from props
-    saveProgress, // Available from props
   ]);
 
   // endGame function
@@ -171,11 +167,7 @@ export const ErnigramGame = ({
       let finalScore = 0;
       let submissionIdForResultModal: number | null = null;
       const triesTaken = maxAttemptsForDifficulty - attemptsLeft;
-
-      if (dailyPuzzleDate === null || puzzle.id === null) {
-        console.error("Submission failed: Missing puzzle IDs.");
-        return;
-      }
+      let submissionResult: SubmissionResult | null = null;
 
       try {
         if (won) {
@@ -186,10 +178,10 @@ export const ErnigramGame = ({
             time_taken_ms: finalTime,
             tries: triesTaken,
           };
-          const submissionResult = await submitPuzzle(
+          submissionResult = await submitPuzzle(
             submissionData,
-            dailyPuzzleDate!,
-            puzzle.id.toString()
+            dailyPuzzleDate,
+            puzzle.id
           );
           finalScore = submissionResult.score;
           submissionIdForResultModal = submissionResult.submissionId ?? null;
@@ -209,6 +201,10 @@ export const ErnigramGame = ({
         setGameResult({
           score: finalScore,
           submissionId: submissionIdForResultModal,
+          currentStreak: submissionResult?.currentStreak ?? 0,
+          maxStreak: submissionResult?.maxStreak ?? 0,
+          streakUpdatedToday: submissionResult?.streakUpdatedToday ?? false,
+          message: submissionResult?.message ?? "",
         });
       }
     },
@@ -352,6 +348,10 @@ export const ErnigramGame = ({
           <PostGameResultsModal
             score={gameResult.score}
             submissionId={gameResult.submissionId}
+            currentStreak={gameResult.currentStreak}
+            maxStreak={gameResult.maxStreak}
+            streakUpdatedToday={gameResult.streakUpdatedToday}
+            message={gameResult.message}
             onClose={() => setGameResult(null)}
           />
         )}

@@ -33,7 +33,8 @@ export const MOCK_USER_MAIN: UserProfile = {
     current_points: 1250,
     current_streak_count: 3,
     max_streak_count: 5,
-    challenges_made_count: 10
+    challenges_made_count: 10,
+    profile_picture_url: null,
 }
 
 // Mock user 2 with no department yet
@@ -47,7 +48,8 @@ export const MOCK_USER_NEW: UserProfile = {
   current_points: 0,
   current_streak_count: 0,
   max_streak_count: 0,
-  challenges_made_count: 0
+  challenges_made_count: 0,
+  profile_picture_url: null,
 };
 
 export const MOCK_PUZZLES: DailyPuzzleResponse = {

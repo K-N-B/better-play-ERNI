@@ -45,11 +45,11 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "corsheaders",  # Add this for Cross-Origin Resource Sharing
     # Your local apps
-    "users.apps.UsersConfig",
-    "games.apps.GamesConfig",
-    "gameplay.apps.GameplayConfig",  # <-- Ensure this line is present
-    "leaderboards.apps.LeaderboardsConfig",
-    "shop.apps.ShopConfig",
+    'users.apps.UsersConfig',
+    'games.apps.GamesConfig',
+    'gameplay.apps.GameplayConfig',  # <-- Ensure this line is present
+    'leaderboards.apps.LeaderboardsConfig',
+    'shop.apps.ShopConfig'
 ]
 
 SITE_ID = 1

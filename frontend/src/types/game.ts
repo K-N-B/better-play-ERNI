@@ -57,6 +57,15 @@ export interface Submission {
   difficulty: Difficulty; // <-- Added difficulty
 }
 
+export interface SubmissionResult {
+  score: number;
+  submissionId: number | null;
+  currentStreak: number;
+  maxStreak: number;
+  streakUpdatedToday: boolean;
+  message: string;
+}
+
 // --- SAVE/RESUME & UI TYPES (Keep as is) ---
 export type KeyStatus = 'correct' | 'present' | 'absent' | 'default';
 
