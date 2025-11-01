@@ -1,6 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.utils import timezone # Import timezone
+from django.utils import timezone  # Import timezone
 
 
 class Department(models.Model):
@@ -9,6 +9,7 @@ class Department(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class User(AbstractUser):
     # Fields inherited from AbstractUser:
@@ -26,23 +27,31 @@ class User(AbstractUser):
     # --- Custom Fields from DBML ---
     department = models.ForeignKey(
         Department,
-        on_delete=models.SET_NULL, # Sets department to NULL if Department is deleted
-        null=True,                # Allows NULL in the database
-        blank=True                # Allows the field to be blank in forms/admin
+        on_delete=models.SET_NULL,  # Sets department to NULL if Department is deleted
+        null=True,  # Allows NULL in the database
+        blank=True,  # Allows the field to be blank in forms/admin
     )
     profile_complete = models.BooleanField(default=False)
     is_admin = models.BooleanField(
         default=False,
-        help_text='Designates whether the user can access custom website admin features.'
+        help_text="Designates whether the user can access custom website admin features.",
     )
     # Use auto_now=True to automatically update on every save
     last_active = models.DateTimeField(default=timezone.now)
     # New field for Azure AD specific ID (optional but can be useful)
-    azure_id = models.CharField(max_length=255, unique=True, null=True, blank=True, help_text="Azure Active Directory Object ID")
+    azure_id = models.CharField(
+        max_length=255,
+        unique=True,
+        null=True,
+        blank=True,
+        help_text="Azure Active Directory Object ID",
+    )
 
     # --- Stats Fields from DBML ---
     total_points_alltime = models.BigIntegerField(default=0)
-    current_points = models.BigIntegerField(default=0, help_text="Current spendable points balance.")
+    current_points = models.BigIntegerField(
+        default=0, help_text="Current spendable points balance."
+    )
     current_streak_count = models.IntegerField(default=0)
     max_streak_count = models.IntegerField(default=0)
     challenges_made_count = models.IntegerField(default=0)
@@ -50,10 +59,10 @@ class User(AbstractUser):
     # --- Timestamps ---
     # Note: 'date_joined' from AbstractUser acts like created_at for the user record itself.
     # If you need a separate updated_at timestamp specifically for your custom fields:
-    updated_at = models.DateTimeField(auto_now=True) # Automatically updates on save()
+    updated_at = models.DateTimeField(auto_now=True)  # Automatically updates on save()
 
     # If you want email to be strictly required (like in DBML), override AbstractUser's default
-    email = models.EmailField(blank=False, unique=True) # Make email required and unique
+    email = models.EmailField(blank=False, unique=True)  # Make email required and unique
 
     def __str__(self):
         return self.username

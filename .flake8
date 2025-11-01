@@ -1,0 +1,13 @@
+[flake8]
+max-line-length = 400
+extend-ignore = E203, W503
+exclude = 
+    venv,
+    __pycache__,
+    migrations,
+    htmlcov,
+    */tests.py,  # Ignores files named tests.py
+    */tests/
+; per-file-ignores =
+;     # Combine all ignores for 'tests/*' onto this one line
+;     */tests: F403, F405, S101, F841, F811

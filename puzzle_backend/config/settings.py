@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+
 import os
 from dotenv import load_dotenv
 from pathlib import Path
@@ -17,34 +18,32 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+load_dotenv(BASE_DIR / '.env')
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # Provide a default for safety
-SECRET_KEY = os.getenv('SECRET_KEY', 'default-insecure-key-for-dev')
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+SECRET_KEY = os.getenv("SECRET_KEY", "default-insecure-key-for-dev")
+DEBUG = os.getenv("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']  # Add your production domain later
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]  # Add your production domain later
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django.contrib.sites',  # Required by social-auth
-
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django.contrib.sites",  # Required by social-auth
     # Third-party apps
-    'rest_framework',
-    'rest_framework.authtoken',
-    'corsheaders',  # Add this for Cross-Origin Resource Sharing
-
+    "rest_framework",
+    "rest_framework.authtoken",
+    "corsheaders",  # Add this for Cross-Origin Resource Sharing
     # Your local apps
     'users.apps.UsersConfig',
     'games.apps.GamesConfig',
@@ -67,14 +66,14 @@ SITE_ID = 1
 
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
 
@@ -83,20 +82,20 @@ ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'config.wsgi.application'
+WSGI_APPLICATION = "config.wsgi.application"
 
 CSRF_USE_SESSIONS = False
 CSRF_COOKIE_SAMESITE = 'Lax'
@@ -106,24 +105,23 @@ CSRF_COOKIE_HTTPONLY = False
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT'),
-
-
-        'TEST': {
-            'NAME': 'test_postgres', # MUST match the name in the error message
-            'OPTIONS': {
-                'init_session': "SELECT pg_terminate_backend(pg_stat_activity.pid) "
-                                "FROM pg_stat_activity "
-                                "WHERE pg_stat_activity.datname = current_database() "
-                                "AND pid <> pg_backend_pid();",
-            },
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("DB_NAME"),
+        "USER": os.getenv("DB_USER"),
+        "PASSWORD": os.getenv("DB_PASSWORD"),
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT"),
+        "TEST": {
+            "NAME": os.getenv("DB_TEST"),  # MUST match the name in the error message
+            # "OPTIONS": {
+            #     "init_session": "SELECT pg_terminate_backend(pg_stat_activity.pid) "
+            #     "FROM pg_stat_activity "
+            #     "WHERE pg_stat_activity.datname = current_database() "
+            #     "AND pid <> pg_backend_pid();",
+            # },
         },
+        'OPTIONS': {             'options': '-c search_path=public' }
         # ----------------------------------------------------
     }
 }
@@ -141,73 +139,72 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
     # Add your production frontend URL here later
 ]
 
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = "users.User"
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
+    "django.contrib.auth.backends.ModelBackend",
 ]
 
 # --- Azure AD Credentials (Loaded from .env) ---
-AZURE_AD_CLIENT_ID = os.getenv('AZURE_AD_CLIENT_ID')
-AZURE_AD_CLIENT_SECRET = os.getenv('AZURE_AD_CLIENT_SECRET')
-AZURE_AD_TENANT_ID = os.getenv('AZURE_AD_TENANT_ID')
+AZURE_AD_CLIENT_ID = os.getenv("AZURE_AD_CLIENT_ID")
+AZURE_AD_CLIENT_SECRET = os.getenv("AZURE_AD_CLIENT_SECRET")
+AZURE_AD_TENANT_ID = os.getenv("AZURE_AD_TENANT_ID")
 # This MUST match the 'Web' redirect URI in Azure App Registration AND users/urls.py path
-AZURE_AD_REDIRECT_URI = os.getenv(
-    'AZURE_AD_REDIRECT_URI', 'http://localhost:8000/auth/callback/')
+AZURE_AD_REDIRECT_URI = os.getenv("AZURE_AD_REDIRECT_URI", "http://localhost:8000/auth/callback/")
 
 # --- Session Settings (Optional but good practice) ---
-SESSION_COOKIE_SAMESITE = 'Lax'  # Helps prevent CSRF
-SESSION_COOKIE_SECURE = False   # Set to True if using HTTPS in production
+SESSION_COOKIE_SAMESITE = "Lax"  # Helps prevent CSRF
+SESSION_COOKIE_SECURE = False  # Set to True if using HTTPS in production
 SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
-SESSION_COOKIE_AGE = 86400      # Session lasts 1 day (optional)
+SESSION_COOKIE_AGE = 86400  # Session lasts 1 day (optional)
 
 # --- DRF Settings (Optional for basic session auth, but good to have) ---
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
+    "DEFAULT_AUTHENTICATION_CLASSES": [
         # Use SessionAuthentication for browser interaction
-        'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ],
-    'DEFAULT_PERMISSION_CLASSES': [
+    "DEFAULT_PERMISSION_CLASSES": [
         # Default to requiring authentication for API views
-        'rest_framework.permissions.IsAuthenticated',
-    ]
+        "rest_framework.permissions.IsAuthenticated",
+    ],
 }
 
-LOGIN_URL = '/auth/login/azuread-oauth2/'
-LOGIN_REDIRECT_URL = 'http://localhost:3000/auth-callback'
-LOGOUT_REDIRECT_URL = 'http://localhost:3000/login'
+LOGIN_URL = "/auth/login/azuread-oauth2/"
+LOGIN_REDIRECT_URL = "http://localhost:3000/auth-callback"
+LOGOUT_REDIRECT_URL = "http://localhost:3000/login"
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
 USE_TZ = True
-TIME_ZONE = 'UTC'
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 
@@ -215,19 +212,19 @@ USE_I18N = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # --- MEDIA FILE CONFIGURATION ---
 # This is the base URL from which media files will be served
 # e.g., http://localhost:8000/media/rewards/my_image.png
-MEDIA_URL = '/media/'
+MEDIA_URL = "/media/"
 
 # This is the absolute path to the folder on your server where
 # uploaded files will be stored.
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # ---
