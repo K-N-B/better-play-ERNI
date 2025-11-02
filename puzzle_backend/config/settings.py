@@ -113,7 +113,7 @@ DATABASES = {
 
 # CORS Settings
 CORS_ALLOWED_ORIGINS = [
-    "http://better-play-erni.onrender.com",
+    "https://better-play-erni.onrender.com",
     "http://localhost:5173",  # Your React frontend development URL
     "http://127.0.0.1:5173",
     # Add your production frontend URL later
