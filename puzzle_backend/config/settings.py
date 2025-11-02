@@ -28,7 +28,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "default-insecure-key-for-dev")
 DEBUG = False
 
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]  # Add your production domain later
+ALLOWED_HOSTS = ["*", "better-play-erni.onrender.com", "localhost", "127.0.0.1"]  # Add your production domain later
 
 
 # Application definition
@@ -121,6 +121,7 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent cross-origin
 
 CSRF_TRUSTED_ORIGINS = [
+    "https://better-play-erni.onrender.com",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     # Add your production frontend URL here later
