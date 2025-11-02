@@ -1,8 +1,8 @@
 # --- Environments ---
 venv/
 env/
-*.pyc
 __pycache__/
+*.pyc
 .env # CRITICAL: Ignore file with secrets (DB password, Azure keys, SECRET_KEY)
 
 # --- Django ---
