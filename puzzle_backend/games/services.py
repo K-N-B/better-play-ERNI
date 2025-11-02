@@ -432,7 +432,7 @@ class ErnigramGeneratorAI:
         if not selected:
             raise ValueError("All employee names have been used as Ernigram solutions.")
 
-        fixed_clue = "Better ask employee"
+        fixed_clue = "Guess the ERNI employee."
 
         # CRITICAL CHANGE: Return the ID of the source object
         return {
