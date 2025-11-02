@@ -1,3 +1,5 @@
+// src/components/gameComponents/wordle/wordleGame.tsx - CRITICAL UPDATES
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { submitPuzzle, getSavedAttempt, saveProgress, checkSubmissionExists } from '../../../api/gameService';
 import { completeChallenge } from '../../../api/challengeService';
@@ -5,12 +7,12 @@ import type { WordlePuzzle, SubmissionData, PuzzleAttemptData, WordleProgress, K
 import { WordleGrid } from './wordleGrid';
 import { Keyboard } from './keyboard';
 import { PostGameResultsModal } from '../../ui/postGameResultsModal';
+import { AlreadyPlayedScreen } from '../shared/alreadyPlayedScreen'; // ✅ NEW IMPORT
 import { useTimer } from '../../../hooks/useTimer';
 import { Timer } from '../../ui/timer';
 import { useApi } from '../../../hooks/useApi';
 import { LoadingSpinner } from '../../ui/loadingSpinner';
 import type { Difficulty } from '../../../pages/gamePage';
-import { Trophy, Star } from 'lucide-react';
 
 interface WordleGameProps {
   puzzle: WordlePuzzle;
@@ -23,93 +25,64 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
   const [wordLength] = useState(solution.length);
   const MAX_GUESSES = 6;
 
-  console.log('[WordleGame] Solution:', solution);
-
   const [guesses, setGuesses] = useState<string[]>([]);
   const [currentGuess, setCurrentGuess] = useState('');
   const [currentRow, setCurrentRow] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
   const [letterStatuses, setLetterStatuses] = useState<Record<string, KeyStatus>>({});
   const [gameResult, setGameResult] = useState<{ score: number; submissionId: number | null } | null>(null);
+  
+  // ✅ NEW: Track if already completed
+  const [alreadyCompleted, setAlreadyCompleted] = useState<{
+    hasSubmitted: boolean;
+    score?: number;
+    submittedAt?: string;
+  } | null>(null);
+  const [checkingSubmission, setCheckingSubmission] = useState(true); // ✅ NEW: Loading state
 
   const { time, startTimer, stopTimer, setSavedTime } = useTimer();
 
-  // ✅ Track guesses in ref
   const guessesRef = useRef<string[]>([]);
   useEffect(() => {
     guessesRef.current = guesses;
   }, [guesses]);
 
-  const fetchSavedWordle = useCallback(() => {
-    if (!puzzle?.date_to_be_used || !puzzle?.id) {
-      console.warn('[WordleGame] Missing puzzle date or ID');
-      return Promise.resolve(null);
-    }
-    return getSavedAttempt('wordle', puzzle.date_to_be_used, puzzle.id.toString());
-  }, [puzzle?.date_to_be_used, puzzle?.id]);
-
-  const { data: savedGame, loading } = useApi(fetchSavedWordle);
-
-  // ✅ NEW: Replay prevention state
-  const [alreadyCompleted, setAlreadyCompleted] = useState<{ hasSubmitted: boolean; score?: number } | null>(null);
-
-  // ✅ Check if already completed on mount
+  // ✅ CRITICAL: Check for existing submission FIRST (before loading saved game)
   useEffect(() => {
-    if (!puzzle?.date_to_be_used || !puzzle?.id) return;
-
+    if (!puzzle?.date_to_be_used || !puzzle?.id) {
+      setCheckingSubmission(false);
+      return;
+    }
+    
+    console.log('[WordleGame] Checking if already submitted...');
+    setCheckingSubmission(true);
+    
     checkSubmissionExists('wordle', puzzle.date_to_be_used, puzzle.id)
       .then(result => {
+        console.log('[WordleGame] Submission check result:', result);
         if (result.hasSubmitted) {
           setAlreadyCompleted(result);
           setIsGameOver(true);
-          console.log('[WordleGame] Already completed with score:', result.score);
         }
       })
-      .catch(err => console.error('[WordleGame] Check failed:', err));
+      .catch(err => console.error('[WordleGame] Check failed:', err))
+      .finally(() => setCheckingSubmission(false));
   }, [puzzle?.date_to_be_used, puzzle?.id]);
 
-  // ✅ If already completed, show locked UI
-  if (alreadyCompleted?.hasSubmitted) {
-    return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
-        <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
-          <WordleGrid
-            guesses={guesses}
-            currentGuess=""
-            solution={solution}
-            currentRow={currentRow}
-            maxGuesses={MAX_GUESSES}
-            wordLength={wordLength}
-          />
-        </div>
-        <div className="place-content-center p-20 text-xl leading-5">
-          <div className="text-center">
-            <Trophy className="mx-auto text-yellow-500 mb-4" size={64} />
-            <h2 className="text-2xl font-bold mb-2">Already Completed!</h2>
-            <p className="text-gray-600 mb-4">
-              You've already finished today's Wordle puzzle.
-            </p>
-            <div className="bg-gray-100 p-4 rounded-lg mb-4">
-              <p className="text-sm text-gray-600">Your Score:</p>
-              <div className="flex items-center justify-center gap-2 text-3xl font-bold text-primary">
-                {alreadyCompleted.score}
-                <Star size={28} className="text-yellow-500 fill-current" />
-              </div>
-            </div>
-            <button
-              onClick={() => (window.location.href = '/')}
-              className="px-6 py-3 bg-primary text-white rounded-lg hover:opacity-90"
-            >
-              Return to Home
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Fetch saved game (only if not already completed)
+  const fetchSavedWordle = useCallback(() => {
+    if (!puzzle?.date_to_be_used || !puzzle?.id || alreadyCompleted?.hasSubmitted) {
+      return Promise.resolve(null);
+    }
+    return getSavedAttempt('wordle', puzzle.date_to_be_used, puzzle.id.toString());
+  }, [puzzle?.date_to_be_used, puzzle?.id, alreadyCompleted]);
 
-  // 🧩 Continue original logic only if puzzle not yet completed
+  const { data: savedGame, loading } = useApi(fetchSavedWordle);
+
+  // Load saved progress
   useEffect(() => {
+    if (alreadyCompleted?.hasSubmitted) return; // Don't load if already completed
+    
     let loadedIsGameOver = false;
     if (savedGame && savedGame.puzzle_type === 'wordle') {
       const progress = savedGame.progress_data as WordleProgress;
@@ -123,10 +96,11 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
     if (!loadedIsGameOver) {
       startTimer();
     }
-  }, [savedGame, startTimer, setSavedTime]);
+  }, [savedGame, startTimer, setSavedTime, alreadyCompleted]);
 
+  // Auto-save progress
   useEffect(() => {
-    if (loading || isGameOver || !puzzle?.date_to_be_used || !puzzle?.id || !difficulty) return;
+    if (loading || isGameOver || alreadyCompleted?.hasSubmitted || !puzzle?.date_to_be_used || !puzzle?.id || !difficulty) return;
 
     const saveTimer = setTimeout(() => {
       const progress: WordleProgress = { 
@@ -150,18 +124,16 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
     }, 2000);
 
     return () => clearTimeout(saveTimer);
-  }, [guesses, currentRow, isGameOver, time, loading, puzzle?.id, puzzle?.date_to_be_used, difficulty, letterStatuses]);
+  }, [guesses, currentRow, isGameOver, time, loading, puzzle?.id, puzzle?.date_to_be_used, difficulty, letterStatuses, alreadyCompleted]);
 
-  // 🧩 endGame (unchanged)
   const endGame = useCallback(async (
     tries: number, 
     won: boolean, 
     currentGuessesArray: string[],
     currentLetterStatuses: Record<string, KeyStatus>
   ) => {
-    console.log('[WordleGame] ========== GAME END START ==========');
-    if (isGameOver) return;
-
+    if (isGameOver || alreadyCompleted?.hasSubmitted) return; // ✅ Block if already completed
+    
     setIsGameOver(true);
     stopTimer();
     const finalTime = time;
@@ -169,7 +141,6 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
     let submissionIdForResultModal: number | null = null;
 
     if (!puzzle?.date_to_be_used || !puzzle?.id) {
-      console.error('[WordleGame] Missing puzzle date or ID');
       setGameResult({ score: 0, submissionId: null });
       return;
     }
@@ -215,7 +186,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
         puzzle.date_to_be_used,
         puzzle.id
       );
-
+      
       finalScore = submissionResult.score;
       submissionIdForResultModal = submissionResult.submissionId ?? null;
 
@@ -223,16 +194,14 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
         await completeChallenge(challengeId, { submission_id: submissionIdForResultModal });
       }
     } catch (err) {
-      console.error("[WordleGame] ❌ Error:", err);
+      console.error("[WordleGame] Error:", err);
     } finally {
       setGameResult({ score: finalScore, submissionId: submissionIdForResultModal });
-      console.log('[WordleGame] ========== GAME END COMPLETE ==========');
     }
-  }, [isGameOver, stopTimer, time, puzzle, difficulty, challengeId]);
+  }, [isGameOver, stopTimer, time, puzzle, difficulty, challengeId, alreadyCompleted]);
 
-  // 🧩 handleKeyPress (unchanged)
   const handleKeyPress = useCallback((key: string) => {
-    if (isGameOver) return;
+    if (isGameOver || alreadyCompleted?.hasSubmitted) return; // ✅ Block input if completed
 
     if (key === 'Enter') {
       if (currentGuess.length === wordLength) {
@@ -262,7 +231,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
     } else if (currentGuess.length < wordLength && /^[a-zA-Z]$/.test(key)) {
       setCurrentGuess(g => g + key.toUpperCase());
     }
-  }, [isGameOver, currentGuess, guesses, currentRow, letterStatuses, solution, wordLength, endGame, MAX_GUESSES]);
+  }, [isGameOver, currentGuess, guesses, currentRow, letterStatuses, solution, wordLength, endGame, MAX_GUESSES, alreadyCompleted]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -276,6 +245,24 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyPress]);
 
+  // ✅ SHOW LOADING STATE WHILE CHECKING
+  if (checkingSubmission || loading) {
+    return <LoadingSpinner fullPage={true} />;
+  }
+
+  // ✅ SHOW "ALREADY PLAYED" SCREEN IF COMPLETED
+  if (alreadyCompleted?.hasSubmitted) {
+    return (
+      <AlreadyPlayedScreen
+        gameType="wordle"
+        score={alreadyCompleted.score || 0}
+        submittedAt={alreadyCompleted.submittedAt || new Date().toISOString()}
+        difficulty={difficulty}
+      />
+    );
+  }
+
+  // ✅ NORMAL GAME RENDER
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
       <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
@@ -297,17 +284,20 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
           <Timer timeMs={time} />
         </div>
         <div className={isGameOver ? 'opacity-50 pointer-events-none' : ''}>
-          <Keyboard onKeyPress={handleKeyPress} letterStatuses={letterStatuses} />
+          <Keyboard
+            onKeyPress={handleKeyPress}
+            letterStatuses={letterStatuses}
+          />
         </div>
 
-{gameResult && (
-  <PostGameResultsModal
-    score={gameResult.score}
-    submissionId={gameResult.submissionId}
-    gameType="wordle" // ✅ ADD THIS
-    onClose={() => setGameResult(null)}
-  />
-)}
+        {gameResult && (
+          <PostGameResultsModal
+            score={gameResult.score}
+            submissionId={gameResult.submissionId}
+            gameType="wordle"
+            onClose={() => setGameResult(null)}
+          />
+        )}
       </div>
     </div>
   );

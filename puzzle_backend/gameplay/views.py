@@ -15,8 +15,6 @@ import random
 from .models import PuzzleAttempt, Submission
 from games.models import DailyPuzzle, WordlePuzzle, SudokuPuzzle, ErnigramPuzzle
 from leaderboards.services import LeaderboardAggregator
-from rest_framework import status, permissions
-from rest_framework.views import APIView
 
 
 
@@ -139,45 +137,54 @@ class SaveProgressView(View):
             }
         )
 
-class CheckSubmissionView(APIView):
+
+@method_decorator(csrf_protect, name="dispatch")
+@method_decorator(login_required, name="get")
+class CheckSubmissionView(View):  # ✅ Use Django's View, not DRF's APIView
     """
     GET /api/gameplay/check-submission/{daily_puzzle_date}/{puzzle_model_name}/{puzzle_id}/
     Check if user has already submitted this puzzle
     """
-    permission_classes = [permissions.IsAuthenticated]
     
     def get(self, request, daily_puzzle_date, puzzle_model_name, puzzle_id):
         user = request.user
         
-        # Determine puzzle model
-        puzzle_model_name_lower = puzzle_model_name.lower()
-        if puzzle_model_name_lower == "wordlepuzzle":
-            PuzzleModel = WordlePuzzle
-        elif puzzle_model_name_lower == "sudokupuzzle":
-            PuzzleModel = SudokuPuzzle
-        elif puzzle_model_name_lower == "ernigrampuzzle":
-            PuzzleModel = ErnigramPuzzle
-        else:
-            return Response({"error": "Unknown puzzle type."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        puzzle_instance = get_object_or_404(PuzzleModel, pk=puzzle_id)
-        puzzle_content_type = ContentType.objects.get_for_model(puzzle_instance)
-        
-        # Check for existing submission
-        submission = Submission.objects.filter(
-            user=user,
-            content_type=puzzle_content_type,
-            object_id=puzzle_instance.pk
-        ).first()
-        
-        if submission:
-            return Response({
-                'hasSubmitted': True,
-                'score': submission.points_awarded,
-                'submittedAt': submission.created_at.isoformat()
-            })
-        
-        return Response({'hasSubmitted': False})
+        try:
+            # Determine puzzle model
+            puzzle_model_name_lower = puzzle_model_name.lower()
+            if puzzle_model_name_lower == "wordlepuzzle":
+                PuzzleModel = WordlePuzzle
+            elif puzzle_model_name_lower == "sudokupuzzle":
+                PuzzleModel = SudokuPuzzle
+            elif puzzle_model_name_lower == "ernigrampuzzle":
+                PuzzleModel = ErnigramPuzzle
+            else:
+                return JsonResponse({"error": "Unknown puzzle type."}, status=400)
+            
+            puzzle_instance = get_object_or_404(PuzzleModel, pk=puzzle_id)
+            puzzle_content_type = ContentType.objects.get_for_model(puzzle_instance)
+            
+            # Check for existing submission
+            submission = Submission.objects.filter(
+                user=user,
+                content_type=puzzle_content_type,
+                object_id=puzzle_instance.pk
+            ).first()
+            
+            if submission:
+                return JsonResponse({
+                    'hasSubmitted': True,
+                    'score': submission.points_awarded,
+                    'submittedAt': submission.created_at.isoformat()
+                })
+            
+            return JsonResponse({'hasSubmitted': False})
+            
+        except Exception as e:
+            print(f"[CheckSubmissionView] Error: {e}")
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({'error': str(e)}, status=500)
 
 # ============================================================================
 # VIEW 2: GetProgressView - Retrieve Saved Game State
