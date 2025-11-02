@@ -212,3 +212,10 @@ MEDIA_URL = "/media/"
 # uploaded files will be stored.
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # ---
+
+
+# 1. Directory where collectstatic will put all files
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# 2. Base URL for serving static files (e.g., in templates)
+STATIC_URL = '/static/'
