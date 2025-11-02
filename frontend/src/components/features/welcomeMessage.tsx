@@ -1,4 +1,4 @@
-// src/components/features/welcomeMessage.tsx - COMPLETE VERSION
+// src/components/features/welcomeMessage.tsx - FIXED VERSION
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/authContext';
@@ -18,6 +18,7 @@ export const WelcomeMessage = () => {
             setLoadingStats(true);
             getTodaySubmissions()
                 .then(data => {
+                    console.log('[WelcomeMessage] Submissions received:', data);
                     setSubmissionsToday(data);
                 })
                 .catch(err => {
@@ -39,10 +40,26 @@ export const WelcomeMessage = () => {
     const puzzlesLeftToday = Math.max(0, TOTAL_DAILY_PUZZLES - puzzlesCompletedToday);
     const dailyScore = submissionsToday.reduce((sum, sub) => sum + sub.points_awarded, 0);
 
-    // ✅ NEW: Determine which games were completed
-    const completedGames = submissionsToday.map(s => s.puzzle_type);
+    // ✅ FIX: Normalize backend puzzle_type to match expected values
+    // Backend returns: 'wordlepuzzle', 'sudokupuzzle', 'ernigrampuzzle' (or variations)
+    const completedGames = submissionsToday.map(s => {
+        const puzzleType = s.puzzle_type.toLowerCase().trim();
+        console.log('[WelcomeMessage] Processing puzzle_type:', puzzleType);
+        
+        // Normalize to base game name - check for multiple variations
+        if (puzzleType.includes('wordle')) return 'wordle';
+        if (puzzleType.includes('sudoku')) return 'sudoku';
+        if (puzzleType.includes('ernigram')) return 'ernigram';
+        
+        // Fallback: return as-is
+        return puzzleType;
+    });
+
+    console.log('[WelcomeMessage] Normalized completed games:', completedGames);
+    console.log('[WelcomeMessage] Raw submissions data:', submissionsToday);
+
     const gameStatus = {
-        wordle: completedGames.includes('wordlepuzzle'),
+        wordle: completedGames.includes('wordle'),
         sudoku: completedGames.includes('sudoku'),
         ernigram: completedGames.includes('ernigram')
     };
@@ -72,7 +89,7 @@ export const WelcomeMessage = () => {
                         You've earned <strong className="text-primary">{dailyScore} pts</strong> today!
                     </p>
 
-                    {/* ✅ NEW: Visual Progress Tracker */}
+                    {/* Visual Progress Tracker */}
                     <div className="mt-4 space-y-2">
                         <p className="text-sm font-medium text-gray-700">Today's Progress:</p>
                         <div className="flex items-center gap-3">

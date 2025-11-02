@@ -11,6 +11,8 @@ from django.db import transaction
 from django.db.models import F
 import json
 import random
+import pytz
+from datetime import datetime
 
 from .models import PuzzleAttempt, Submission
 from games.models import DailyPuzzle, WordlePuzzle, SudokuPuzzle, ErnigramPuzzle
@@ -456,26 +458,31 @@ class GetTodaySubmissionsView(View):
         user = request.user
         
         try:
-            import pytz
-            from datetime import datetime
-            
             # Get today's date in Philippine Time
             pht_tz = pytz.timezone('Asia/Manila')
             now_pht = datetime.now(pht_tz)
             today_pht = now_pht.date()
             
-            print(f"[GetTodaySubmissions] Checking submissions for {user.username} on {today_pht}")
+            # ✅ FIX: Create timezone-aware datetime range for today
+            start_of_day_pht = pht_tz.localize(datetime.combine(today_pht, datetime.min.time()))
+            end_of_day_pht = pht_tz.localize(datetime.combine(today_pht, datetime.max.time()))
             
-            # Get all submissions for today
+            print(f"[GetTodaySubmissions] Checking submissions for {user.username}")
+            print(f"[GetTodaySubmissions] Date range: {start_of_day_pht} to {end_of_day_pht}")
+            
+            # ✅ FIX: Filter using datetime range instead of date comparison
             submissions = Submission.objects.filter(
                 user=user,
-                created_at__date=today_pht
-            ).select_related('content_type')
+                created_at__gte=start_of_day_pht,
+                created_at__lte=end_of_day_pht
+            ).select_related('content_type').order_by('-created_at')
+            
+            print(f"[GetTodaySubmissions] Found {submissions.count()} submissions")
             
             # Serialize the data
             submissions_data = []
             for sub in submissions:
-                submissions_data.append({
+                submission_dict = {
                     'id': sub.id,
                     'puzzle_type': sub.content_type.model,  # e.g. 'wordlepuzzle', 'sudokupuzzle'
                     'puzzle_id': sub.object_id,
@@ -484,9 +491,11 @@ class GetTodaySubmissionsView(View):
                     'tries': sub.tries,
                     'difficulty': sub.difficulty,
                     'created_at': sub.created_at.isoformat()
-                })
+                }
+                print(f"[GetTodaySubmissions] Submission: {submission_dict}")
+                submissions_data.append(submission_dict)
             
-            print(f"[GetTodaySubmissions] Found {len(submissions_data)} submissions")
+            print(f"[GetTodaySubmissions] Returning {len(submissions_data)} submissions")
             return JsonResponse(submissions_data, safe=False)
             
         except Exception as e:
