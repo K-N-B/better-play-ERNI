@@ -28,7 +28,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "default-insecure-key-for-dev")
 DEBUG = False
 
 
-ALLOWED_HOSTS = ["*", "better-play-erni.onrender.com", "localhost", "127.0.0.1"]  # Add your production domain later
+ALLOWED_HOSTS = ["better-play-erni.onrender.com", "localhost", "127.0.0.1"]  # Add your production domain later
 
 
 # Application definition
