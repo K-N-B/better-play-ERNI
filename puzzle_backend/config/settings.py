@@ -24,8 +24,8 @@ load_dotenv(BASE_DIR / '.env')
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # Provide a default for safety
-SECRET_KEY = os.getenv("SECRET_KEY", "default-insecure-key-for-dev")
-DEBUG = os.getenv("DEBUG", "True") == "True"
+SECRET_KEY = os.environ.get("SECRET_KEY", "default-insecure-key-for-dev")
+DEBUG = os.environ.get("DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]  # Add your production domain later
 
@@ -91,13 +91,13 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME"),
-        "USER": os.getenv("DB_USER"),
-        "PASSWORD": os.getenv("DB_PASSWORD"),
-        "HOST": os.getenv("DB_HOST"),
-        "PORT": os.getenv("DB_PORT"),
+        "NAME": os.environ.get("DB_NAME"),
+        "USER": os.environ.get("DB_USER"),
+        "PASSWORD": os.environ.get("DB_PASSWORD"),
+        "HOST": os.environ.get("DB_HOST"),
+        "PORT": os.environ.get("DB_PORT"),
         "TEST": {
-            "NAME": os.getenv("DB_TEST"),  # MUST match the name in the error message
+            "NAME": os.environ.get("DB_TEST"),  # MUST match the name in the error message
             # "OPTIONS": {
             #     "init_session": "SELECT pg_terminate_backend(pg_stat_activity.pid) "
             #     "FROM pg_stat_activity "
@@ -105,7 +105,7 @@ DATABASES = {
             #     "AND pid <> pg_backend_pid();",
             # },
         },
-        'OPTIONS': {             'options': '-c search_path=public' }
+        'OPTIONS': {'options': '-c search_path=public'}
         # ----------------------------------------------------
     }
 }
@@ -149,11 +149,15 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # --- Azure AD Credentials (Loaded from .env) ---
-AZURE_AD_CLIENT_ID = os.getenv("AZURE_AD_CLIENT_ID")
-AZURE_AD_CLIENT_SECRET = os.getenv("AZURE_AD_CLIENT_SECRET")
-AZURE_AD_TENANT_ID = os.getenv("AZURE_AD_TENANT_ID")
+AZURE_AD_CLIENT_ID = os.environ.get("AZURE_AD_CLIENT_ID")
+AZURE_AD_CLIENT_SECRET = os.environ.get("AZURE_AD_CLIENT_SECRET")
+AZURE_AD_TENANT_ID = os.environ.get("AZURE_AD_TENANT_ID")
 # This MUST match the 'Web' redirect URI in Azure App Registration AND users/urls.py path
-AZURE_AD_REDIRECT_URI = os.getenv("AZURE_AD_REDIRECT_URI", "http://localhost:8000/auth/callback/")
+AZURE_AD_REDIRECT_URI = os.environ.get("AZURE_AD_REDIRECT_URI", "http://localhost:8000/auth/callback/")
+
+
+# AI API KEY
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
 
 # --- Session Settings (Optional but good practice) ---
 SESSION_COOKIE_SAMESITE = "Lax"  # Helps prevent CSRF
