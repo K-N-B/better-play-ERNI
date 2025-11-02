@@ -288,18 +288,19 @@ export const ErnigramGame = ({
   //   return <LoadingSpinner fullPage={true} />;
   // }
 
-  console.log(isWon);
 
   const fullImageUrl = puzzle.employee_image_url
     ? API_URL.replace(/\/$/, "") + puzzle.employee_image_url
     : ""; // If the URL is null, return an empty string.
-  console.log(fullImageUrl);
+  // console.log(fullImageUrl);
+  // console.log(puzzle.employee_image_url);
+
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
       <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
         <div className="place-content-center p-4 md:p-20 text-xl leading-6 bg-white h-full rounded-3xl">
-          {puzzle.employee_image_url ? (
+          {puzzle.employee_image_url != "None" ? (
             <div className="w-full max-w-sm mx-auto">
               <img
                 src={fullImageUrl}
