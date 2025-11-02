@@ -13,9 +13,12 @@ from rest_framework.permissions import AllowAny
 from games.utils.timezone_helpers import get_local_today
 
 from .models import DailyPuzzle
+import os
 
 # from .models import DailyPuzzle, WordlePuzzle, SudokuPuzzle, ErnigramPuzzle
 from .serializers import DailyPuzzleSerializer
+
+from django.http import HttpResponse, HttpRequest
 
 # from .serializers import (
 #     DailyPuzzleSerializer,
@@ -110,3 +113,29 @@ class MockDailyPuzzlesGenerateView(APIView):
                 {"detail": f"Error generating puzzles: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+def cron_generate_puzzles_view(request: HttpRequest):
+    # 1. SECURITY CHECK: Validate the secret key
+    expected_secret = os.environ.get('FASTCRON_SECRET')
+    provided_secret = request.GET.get('secret')
+
+    # If the secret is missing or incorrect, deny access.
+    if not provided_secret or provided_secret != expected_secret:
+        return HttpResponse("Unauthorized Access", status=401)
+
+    # 2. METHOD CHECK: Ensure it's a GET request (as FastCron uses GET by default)
+    if request.method != 'GET':
+        return HttpResponse("Method Not Allowed", status=405)
+
+    try:
+        # 3. EXECUTE THE TASK
+        # Call your main puzzle generation function
+        generate_daily_puzzles()
+
+        return HttpResponse("Daily puzzles generated successfully.", status=200)
+
+    except Exception as e:
+        # 4. ERROR HANDLING: Return a server error if the task fails
+        print(f"CRON JOB ERROR: {e}")
+        return HttpResponse(f"Internal Server Error during task execution: {e}", status=500)

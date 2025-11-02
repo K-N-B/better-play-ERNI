@@ -23,6 +23,7 @@ from django.conf.urls.static import static
 
 
 from django.http import JsonResponse
+from games.views import cron_generate_puzzles_view
 
 
 def health_check(request):
@@ -38,6 +39,7 @@ urlpatterns = [
     path("api/games/", include("games.urls")),
     path("api/gameplay/", include("gameplay.urls")),
     path("", include("shop.urls")),  # <-- ADD THIS LINE
+    path('api/v1/cron/generate-puzzles/', cron_generate_puzzles_view, name='cron_task'),
     # games and gameplay API endpoints
     # Add this line to include social-auth URLs under the '/auth/' prefix
     # This provides '/auth/login/azuread-oauth2/' and '/auth/complete/azuread-oauth2/'
