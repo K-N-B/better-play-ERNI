@@ -65,6 +65,7 @@ export interface WordleProgress {
   currentRow: number;
   letterStatuses: Record<string, KeyStatus>;
   isGameOver: boolean;
+  status?: 'ACTIVE' | 'SOLVED';
 }
 
 export interface SudokuCell {
