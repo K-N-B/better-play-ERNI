@@ -25,7 +25,8 @@ load_dotenv(BASE_DIR / '.env')
 # SECURITY WARNING: keep the secret key used in production secret!
 # Provide a default for safety
 SECRET_KEY = os.environ.get("SECRET_KEY", "default-insecure-key-for-dev")
-DEBUG = os.environ.get("DEBUG", "True") == "True"
+DEBUG = False
+
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]  # Add your production domain later
 
