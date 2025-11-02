@@ -12,6 +12,7 @@ import { LoadingSpinner } from '../../ui/loadingSpinner';
 import type { Difficulty } from '../../../pages/gamePage';
 import { Trophy, Star } from 'lucide-react';
 
+
 interface WordleGameProps {
   puzzle: WordlePuzzle;
   difficulty: Difficulty;
@@ -51,12 +52,15 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
   const { data: savedGame, loading } = useApi(fetchSavedWordle);
 
   // ✅ NEW: Replay prevention state
-  const [alreadyCompleted, setAlreadyCompleted] = useState<{ hasSubmitted: boolean; score?: number } | null>(null);
+   const [alreadyCompleted, setAlreadyCompleted] = useState<{
+    hasSubmitted: boolean;
+    score?: number;
+  } | null>(null);
 
   // ✅ Check if already completed on mount
   useEffect(() => {
     if (!puzzle?.date_to_be_used || !puzzle?.id) return;
-
+    
     checkSubmissionExists('wordle', puzzle.date_to_be_used, puzzle.id)
       .then(result => {
         if (result.hasSubmitted) {
@@ -97,7 +101,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
               </div>
             </div>
             <button
-              onClick={() => (window.location.href = '/')}
+              onClick={() => window.location.href = '/'}
               className="px-6 py-3 bg-primary text-white rounded-lg hover:opacity-90"
             >
               Return to Home
@@ -300,13 +304,13 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
           <Keyboard onKeyPress={handleKeyPress} letterStatuses={letterStatuses} />
         </div>
 
-{gameResult && (
-  <PostGameResultsModal
-    score={gameResult.score}
-    submissionId={gameResult.submissionId}
-    gameType="wordle" // ✅ ADD THIS
-    onClose={() => setGameResult(null)}
-  />
+      {gameResult && (
+        <PostGameResultsModal
+          score={gameResult.score}
+          submissionId={gameResult.submissionId}
+          gameType="wordle" // ✅ ADD THIS LINE
+          onClose={() => setGameResult(null)}
+        />
 )}
       </div>
     </div>

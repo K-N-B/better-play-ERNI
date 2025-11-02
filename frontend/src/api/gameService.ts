@@ -190,7 +190,7 @@ export const checkSubmissionExists = async (
   puzzleType: string,
   dailyPuzzleDate: string,
   puzzleId: number
-): Promise<{ hasSubmitted: boolean, score?: number }> => {
+): Promise<{ hasSubmitted: boolean, score?: number, submittedAt?: string }> => {
   try {
     const url = `${API_BASE_URL}/gameplay/check-submission/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/`;
     console.log('[checkSubmissionExists] Checking:', url);
@@ -210,7 +210,9 @@ export const checkSubmissionExists = async (
       throw new Error(`Failed to check submission: ${response.statusText}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    console.log('[checkSubmissionExists] Result:', data);
+    return data;
   } catch (error) {
     console.error('[checkSubmissionExists] Error:', error);
     return { hasSubmitted: false };

@@ -1,4 +1,4 @@
-// src/components/features/welcomeMessage.tsx - COMPLETE VERSION
+// src/components/features/welcomeMessage.tsx - COMPLETE REPLACEMENT
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/authContext';
@@ -39,7 +39,6 @@ export const WelcomeMessage = () => {
     const puzzlesLeftToday = Math.max(0, TOTAL_DAILY_PUZZLES - puzzlesCompletedToday);
     const dailyScore = submissionsToday.reduce((sum, sub) => sum + sub.points_awarded, 0);
 
-    // ✅ NEW: Determine which games were completed
     const completedGames = submissionsToday.map(s => s.puzzle_type);
     const gameStatus = {
         wordle: completedGames.includes('wordlepuzzle'),
@@ -72,7 +71,6 @@ export const WelcomeMessage = () => {
                         You've earned <strong className="text-primary">{dailyScore} pts</strong> today!
                     </p>
 
-                    {/* ✅ NEW: Visual Progress Tracker */}
                     <div className="mt-4 space-y-2">
                         <p className="text-sm font-medium text-gray-700">Today's Progress:</p>
                         <div className="flex items-center gap-3">

@@ -178,6 +178,9 @@ class CheckSubmissionView(APIView):
             })
         
         return Response({'hasSubmitted': False})
+    
+
+    
 
 # ============================================================================
 # VIEW 2: GetProgressView - Retrieve Saved Game State
@@ -432,3 +435,56 @@ class GetHintView(View):
             },
             status=200,
         )
+    
+    # gameplay/views.py - ADD THIS NEW VIEW
+
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(login_required, name='get')
+class GetTodaySubmissionsView(View):
+    """
+    GET /api/gameplay/submissions/today/
+    Returns all submissions by the current user for today's date
+    """
+    
+    def get(self, request):
+        user = request.user
+        
+        try:
+            import pytz
+            from datetime import datetime
+            
+            # Get today's date in Philippine Time
+            pht_tz = pytz.timezone('Asia/Manila')
+            now_pht = datetime.now(pht_tz)
+            today_pht = now_pht.date()
+            
+            print(f"[GetTodaySubmissions] Checking submissions for {user.username} on {today_pht}")
+            
+            # Get all submissions for today
+            submissions = Submission.objects.filter(
+                user=user,
+                created_at__date=today_pht
+            ).select_related('content_type')
+            
+            # Serialize the data
+            submissions_data = []
+            for sub in submissions:
+                submissions_data.append({
+                    'id': sub.id,
+                    'puzzle_type': sub.content_type.model,  # 'wordlepuzzle', 'sudokupuzzle', etc.
+                    'puzzle_id': sub.object_id,
+                    'points_awarded': sub.points_awarded,
+                    'time_taken_ms': sub.time_taken_ms,
+                    'tries': sub.tries,
+                    'difficulty': sub.difficulty,
+                    'created_at': sub.created_at.isoformat()
+                })
+            
+            print(f"[GetTodaySubmissions] Found {len(submissions_data)} submissions")
+            return JsonResponse(submissions_data, safe=False)
+            
+        except Exception as e:
+            print(f"[GetTodaySubmissions] Error: {e}")
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({'error': str(e)}, status=500)

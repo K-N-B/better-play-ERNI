@@ -1,4 +1,5 @@
-// src/components/ui/postGameResultsModal.tsx - COMPLETE VERSION
+// src/components/ui/postGameResultsModal.tsx - COMPLETE REPLACEMENT
+
 import React, { useState } from 'react';
 import { X, Trophy, Star, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -8,7 +9,7 @@ interface PostGameResultsModalProps {
   score: number;
   onClose: () => void;
   submissionId: number | null;
-  gameType: 'wordle' | 'sudoku' | 'ernigram'; // ✅ NEW: Track which game
+  gameType: 'wordle' | 'sudoku' | 'ernigram';
 }
 
 export const PostGameResultsModal = ({ 
@@ -21,10 +22,15 @@ export const PostGameResultsModal = ({
   const navigate = useNavigate();
   const effectiveSubmissionId = submissionId;
 
-  // ✅ NEW: Handler to return home
   const handleReturnHome = () => {
-    onClose(); // Close modal first
-    navigate('/'); // Then navigate
+    onClose();
+    navigate('/');
+  };
+
+  const gameNames = {
+    wordle: 'Wordle',
+    sudoku: 'Sudoku',
+    ernigram: 'ERNIgram'
   };
 
   return (
@@ -42,9 +48,8 @@ export const PostGameResultsModal = ({
           <Trophy className="mx-auto text-yellow-500 mb-3" size={48} />
           <h2 className="text-xl font-bold mb-3 text-gray-800">Puzzle Complete!</h2>
           
-          {/* ✅ ENHANCED: Show game type */}
           <p className="text-sm text-gray-600 mb-1">
-            {gameType.charAt(0).toUpperCase() + gameType.slice(1)} • Completed
+            {gameNames[gameType]} • Completed
           </p>
           
           <p className="text-lg text-gray-700 mb-1">You earned</p>
@@ -53,7 +58,6 @@ export const PostGameResultsModal = ({
             <Star size={30} className="text-yellow-500 fill-current" />
           </div>
 
-          {/* ✅ Challenge Button */}
           <button
             onClick={() => setIsChallengeModalOpen(true)}
             disabled={!effectiveSubmissionId}
@@ -63,7 +67,6 @@ export const PostGameResultsModal = ({
             Challenge a Colleague!
           </button>
 
-          {/* ✅ NEW: Return Home Button */}
           <button
             onClick={handleReturnHome}
             className="w-full px-6 py-3 text-base text-primary bg-white border-2 border-primary rounded-lg shadow hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
