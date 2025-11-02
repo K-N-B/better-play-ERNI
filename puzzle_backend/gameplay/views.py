@@ -22,9 +22,12 @@ from django.contrib.auth.decorators import login_required
 # from django.db import transaction
 import random
 
+# --- NEW REQUIRED IMPORT ---
+from .streak_utils import update_daily_activity_streak
+# --------------------------
 
-@method_decorator(csrf_protect, name="dispatch")
-@method_decorator(login_required, name="post")
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(login_required, name='post')
 # @method_decorator(csrf_exempt, name='dispatch')
 class SaveProgressView(View):
     """
@@ -336,16 +339,83 @@ class SubmitPuzzleView(View):
         )
 
         # 5. Clean up the PuzzleAttempt
-        attempt.delete()
+        attempt.delete() 
+        
+        # --- NEW STREAK LOGIC INTEGRATION ---
+        # Call the helper function to update the user's streak status.
+        # (Ensure update_daily_activity_streak is imported at the top of the file)
+        streak_updated = update_daily_activity_streak(request.user)
+        # ------------------------------------
 
-        return JsonResponse(
-            {
-                "message": "Puzzle submitted successfully.",
-                "points_awarded": points_awarded,
-                "submission_id": submission.pk,
-            },
-            status=201,
-        )
+        # 6. Return the final JSON response with the streak data
+
+        return JsonResponse({
+            "message": "Puzzle submitted successfully.",
+            "points_awarded": points_awarded,
+            "submission_id": submission.pk,
+            # --- NEW STREAK DATA FOR FRONTEND ---
+            "current_streak": request.user.current_streak_count,
+            "max_streak": request.user.max_streak_count,
+            "streak_updated_today": streak_updated # True if streak was incremented/reset today
+        }, status=201)
+
+
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(login_required, name='get')
+# @method_decorator(csrf_exempt, name='dispatch')
+class GetProgressView(View):
+    """
+    Handles GET requests to retrieve a user's current PuzzleAttempt state for a specific puzzle.
+    """
+    def get(self, request, daily_puzzle_id, puzzle_model_name, puzzle_id):
+        user = request.user
+
+        # 1. Setup and Validation (Reuses logic from Save/Submit views)
+        try:
+            daily_puzzle = get_object_or_404(DailyPuzzle, pk=daily_puzzle_id)
+            
+            # Dynamically determine the PuzzleModel
+            if puzzle_model_name.lower() == 'wordlepuzzle':
+                PuzzleModel = WordlePuzzle
+            elif puzzle_model_name.lower() == 'sudokupuzzle':
+                PuzzleModel = SudokuPuzzle
+            elif puzzle_model_name.lower() == 'ernigrampuzzle':
+                PuzzleModel = ErnigramPuzzle
+            else:
+                return JsonResponse({"error": "Unknown puzzle type."}, status=400)
+            
+            puzzle_instance = get_object_or_404(PuzzleModel, pk=puzzle_id)
+            puzzle_content_type = ContentType.objects.get_for_model(puzzle_instance)
+
+        except Exception:
+            # Catch errors like invalid date format or non-existent puzzle IDs
+            return JsonResponse({"error": "Invalid puzzle reference in URL."}, status=400)
+
+        # 2. Retrieve the Attempt
+        try:
+            # Use the GFK components to uniquely find the attempt
+            attempt = PuzzleAttempt.objects.get(
+                user=user,
+                daily_puzzle=daily_puzzle,
+                content_type=puzzle_content_type,
+                object_id=puzzle_instance.pk,
+            )
+            
+            # 3. Success: Return the saved data
+            return JsonResponse({
+                "exists": True,
+                "progress_data": attempt.progress_data,
+                "time_spent_ms": attempt.time_spent_ms,
+                "last_saved": attempt.last_saved.isoformat()
+            }, status=200)
+
+        except PuzzleAttempt.DoesNotExist:
+            # 4. Not Found: Return a clean 'not found' signal (New Game)
+            return JsonResponse({
+                "exists": False,
+                "message": "No active attempt found. Start a new game."
+            }, status=200) # Use 200 to signal a successful check, but the attempt doesn't exist
+
 
 
 @method_decorator(login_required, name="post")
@@ -422,12 +492,34 @@ class GetHintView(View):
         # The view does NOT save the new state; the frontend must do that via /save/
         hints_used_new = hints_used + 1
 
-        return JsonResponse(
-            {
-                "message": "Hint granted.",
-                "hint_index": hint_index,
-                "hint_value": hint_value,
-                "hints_used_new": hints_used_new,  # New count for the frontend to save
-            },
-            status=200,
-        )
+        return JsonResponse({
+            "message": "Hint granted.",
+            "hint_index": hint_index,
+            "hint_value": hint_value,
+            "hints_used_new": hints_used_new, # New count for the frontend to save
+        }, status=200)
+
+@method_decorator(login_required, name='dispatch')
+class UserStatsView(View):
+    """
+    Dedicated endpoint to fetch the user's current streak and points balance.
+    This is used for dashboard/profile displays without requiring a submission.
+    """
+    def get(self, request):
+        # request.user is guaranteed to be authenticated due to @login_required
+        user = request.user
+        
+        # We retrieve the stored URL directly from the new model field
+        picture_url = user.profile_picture_url 
+        
+        return JsonResponse({
+            "username": user.username,
+            "current_points": user.current_points,
+            "total_points_alltime": user.total_points_alltime,
+            "current_streak_count": user.current_streak_count,
+            "max_streak_count": user.max_streak_count,
+            "last_active": user.last_active.isoformat() if user.last_active else None,
+            # --- NEW API FIELD ---
+            "profile_picture_url": picture_url  # Expose the URL to the frontend
+        }, status=200)
+

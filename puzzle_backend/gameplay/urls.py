@@ -1,9 +1,18 @@
 from django.urls import path
 from .views import SaveProgressView, SubmitPuzzleView, GetProgressView, GetHintView
+from django.urls import path
+from .views import SaveProgressView, SubmitPuzzleView, GetProgressView, GetHintView, UserStatsView
 
 urlpatterns = [
     # URL for saving intermediate game state
-    # Example: POST /api/gameplay/save/1/wordlepuzzle/42/
+    # Example: POST /api/gameplay/save/1/wordlepuzzle/42/ 
+    # --- NEW URL FOR STREAK STATUS ---
+    path(
+        'stats/user/', 
+        UserStatsView.as_view(), 
+        name='user_stats'
+    ),
+
     path(
         "save/<str:daily_puzzle_id>/<str:puzzle_model_name>/<int:puzzle_id>/",
         SaveProgressView.as_view(),

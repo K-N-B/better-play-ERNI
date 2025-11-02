@@ -1,7 +1,14 @@
 import { mockApiCall } from "./api";
 import { API_URL } from "./authService";
 import { MOCK_PUZZLES, MOCK_TODAY_SUBMISSIONS } from "../data/_mockData";
-import type { DailyPuzzleResponse, SubmissionData, PuzzleAttemptData, PuzzleAttemptResponse, Submission } from "../types/game";
+import type {
+  DailyPuzzleResponse,
+  SubmissionData,
+  PuzzleAttemptData,
+  PuzzleAttemptResponse,
+  Submission,
+  SubmissionResult,
+} from "../types/game";
 import { getCookie } from './authService';
 
 // --- THIS IS THE FIX ---
@@ -19,9 +26,9 @@ const MOCK_MODE=false
 
 // Saves the user's progress *to the correct slot*
 export const saveProgress = (
-  data: PuzzleAttemptData, 
-  dailyPuzzleDate: string, 
-  puzzleId: string
+  data: PuzzleAttemptData,
+  dailyPuzzleDate: string,
+  puzzleId: string | number
 ): Promise<PuzzleAttemptResponse> => {
   if (MOCK_MODE) {
     // console.log(`%c[saveProgress] Saving progress for ${data.puzzle_type}...`, 'color: purple', data);
@@ -39,7 +46,9 @@ export const saveProgress = (
   }
 
   const modelName = `${data.puzzle_type}puzzle`;
-  const url = `${API_URL}/api/gameplay/save/${dailyPuzzleDate}/${modelName}/${puzzleId}/`;
+  const dailyPuzzleKey = String(dailyPuzzleDate);
+  const puzzlePk = String(puzzleId);
+  const url = `${API_URL}/api/gameplay/save/${dailyPuzzleKey}/${modelName}/${puzzlePk}/`;
   const csrfToken = getCookie("csrftoken");
 
   if (!csrfToken) {
@@ -87,9 +96,9 @@ export const saveProgress = (
 
 // Gets the user's saved game *for the specific type*
 export const getSavedAttempt = (
-  currentGameType: PuzzleAttemptData["puzzle_type"], 
-  dailyPuzzleDate: string | null, 
-  puzzleId: string
+  currentGameType: PuzzleAttemptData["puzzle_type"],
+  dailyPuzzleDate: string,
+  puzzleId: string | number
 ): Promise<PuzzleAttemptResponse | null> => {
   if (MOCK_MODE) {
     // console.log(`%c[getSavedAttempt] Fetching for ${currentGameType}...`, 'color: blue');
@@ -107,7 +116,9 @@ export const getSavedAttempt = (
   }
   // --- REAL API CALL (Connects to GetProgressView) ---
     const modelName = `${currentGameType}puzzle`; // e.g., 'ernigrampuzzle'
-    const url = `${API_URL}/api/gameplay/progress/${dailyPuzzleDate}/${modelName}/${puzzleId}/`;
+    const dailyPuzzleKey = String(dailyPuzzleDate);
+    const puzzlePk = String(puzzleId);
+    const url = `${API_URL}/api/gameplay/progress/${dailyPuzzleKey}/${modelName}/${puzzlePk}/`;
 
     return fetch(url, {
         method: 'GET',
@@ -148,10 +159,10 @@ export const getSavedAttempt = (
 
 // Submits a completed puzzle and clears the *correct* slot
 export const submitPuzzle = async (
-    data: SubmissionData, 
-    dailyPuzzleDate: string, // <-- Needed for URL
-    puzzleId: string       // <-- Needed for URL
-): Promise<{ score: number; submissionId: number | null }> => {
+  data: SubmissionData,
+  dailyPuzzleDate: string,
+  puzzleId: string | number
+): Promise<SubmissionResult> => {
   if (MOCK_MODE) {
     // ... (mock logic remains the same, ensure it returns submissionId) ...
     const mockSubmissionId = Math.floor(Math.random() * 1000) + 500;
@@ -168,7 +179,9 @@ export const submitPuzzle = async (
 
     // This endpoint must be created on your backend (e.g., gameplay/urls.py)
     const modelName = `${data.puzzle_type}puzzle`;
-    const url = `${API_URL}/api/gameplay/submit/${dailyPuzzleDate}/${modelName}/${puzzleId}/`;
+    const dailyPuzzleKey = String(dailyPuzzleDate);
+    const puzzlePk = String(puzzleId);
+    const url = `${API_URL}/api/gameplay/submit/${dailyPuzzleKey}/${modelName}/${puzzlePk}/`;
 
 
     const response = await fetch(url, {
@@ -188,8 +201,16 @@ export const submitPuzzle = async (
       throw new Error(errorData.message || `Failed to submit puzzle: ${response.statusText}`);
     }
 
-    // Expect backend to return { score: number, submissionId: number }
-    return await response.json();
+    const payload = await response.json();
+
+    return {
+      score: payload.points_awarded ?? 0,
+      submissionId: payload.submission_id ?? null,
+      currentStreak: payload.current_streak ?? 0,
+      maxStreak: payload.max_streak ?? 0,
+      streakUpdatedToday: Boolean(payload.streak_updated_today),
+      message: payload.message ?? "Puzzle submitted successfully.",
+    };
   } catch (error) {
     console.error("[submitPuzzle] Fetch error:", error);
     throw error;

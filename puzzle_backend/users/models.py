@@ -37,7 +37,7 @@ class User(AbstractUser):
         help_text="Designates whether the user can access custom website admin features.",
     )
     # Use auto_now=True to automatically update on every save
-    last_active = models.DateTimeField(default=timezone.now)
+    last_active = models.DateTimeField(default=timezone.now, null=True)
     # New field for Azure AD specific ID (optional but can be useful)
     azure_id = models.CharField(
         max_length=255,
@@ -45,6 +45,14 @@ class User(AbstractUser):
         null=True,
         blank=True,
         help_text="Azure Active Directory Object ID",
+    )
+
+    # --- NEW FIELD FOR PROFILE PICTURE URL (FROM AZURE/GRAPH) ---
+    profile_picture_url = models.URLField(
+        max_length=500,  # Max length for a long URL
+        null=True, 
+        blank=True,
+        help_text="URL of the profile picture retrieved from Azure AD/Microsoft Graph."
     )
 
     # --- Stats Fields from DBML ---
