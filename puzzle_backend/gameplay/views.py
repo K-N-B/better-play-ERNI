@@ -1,4 +1,4 @@
-# gameplay/views.py - COMPLETE VERSION WITH ALL 4 VIEWS
+# gameplay/views.py - COMPLETE VERSION WITH ALL VIEWS
 
 from django.views import View
 from django.http import JsonResponse
@@ -11,13 +11,12 @@ from django.db import transaction
 from django.db.models import F
 import json
 import random
-import pytz
 from datetime import datetime
+import pytz
 
 from .models import PuzzleAttempt, Submission
 from games.models import DailyPuzzle, WordlePuzzle, SudokuPuzzle, ErnigramPuzzle
 from leaderboards.services import LeaderboardAggregator
-
 
 
 # ============================================================================
@@ -31,7 +30,7 @@ class SaveProgressView(View):
     Also handles validation for time limits and game-specific move/hint/mistake limits.
     """
 
-    def post(self, request, daily_puzzle_id, puzzle_model_name, puzzle_id):
+    def post(self, request, daily_puzzle_date, puzzle_model_name, puzzle_id):
         user = request.user
 
         # 1. Input Validation and Setup
@@ -44,7 +43,13 @@ class SaveProgressView(View):
             if not isinstance(new_progress_data, dict) or new_time_spent is None:
                 return JsonResponse({"error": "Invalid data format."}, status=400)
 
-            daily_puzzle = get_object_or_404(DailyPuzzle, pk=daily_puzzle_id)
+            # ✅ Parse date string to date object
+            try:
+                puzzle_date = datetime.strptime(daily_puzzle_date, '%Y-%m-%d').date()
+            except ValueError:
+                return JsonResponse({"error": "Invalid date format. Use YYYY-MM-DD."}, status=400)
+            
+            daily_puzzle = get_object_or_404(DailyPuzzle, date=puzzle_date)
 
             # Dynamically get the puzzle model
             puzzle_model_name_lower = puzzle_model_name.lower()
@@ -62,6 +67,9 @@ class SaveProgressView(View):
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON."}, status=400)
         except Exception as e:
+            print(f"[SaveProgressView] Error: {e}")
+            import traceback
+            traceback.print_exc()
             return JsonResponse({"error": f"Invalid puzzle reference: {e}"}, status=400)
 
         # 2. TIME LIMIT ENFORCEMENT
@@ -69,18 +77,10 @@ class SaveProgressView(View):
             time_limits = PuzzleModel.TIME_LIMITS_MS
             max_time_ms = time_limits.get(difficulty)
 
-            if max_time_ms is None:
-                return JsonResponse(
-                    {"error": f"Invalid difficulty '{difficulty}' for time limit check."},
-                    status=400,
-                )
-
-            if new_time_spent > max_time_ms:
+            if max_time_ms is not None and new_time_spent > max_time_ms:
                 max_time_minutes = max_time_ms / 60000
                 return JsonResponse(
-                    {
-                        "error": f"Time limit of {int(max_time_minutes)} minutes for '{difficulty}' difficulty exceeded."
-                    },
+                    {"error": f"Time limit of {int(max_time_minutes)} minutes for '{difficulty}' difficulty exceeded."},
                     status=403,
                 )
 
@@ -93,12 +93,10 @@ class SaveProgressView(View):
             limit_config = PuzzleModel.GUESS_LIMITS
             current_count = len(new_progress_data.get("guesses", []))
             limit_type = "guesses"
-
         elif hasattr(PuzzleModel, "HINT_LIMITS"):
             limit_config = PuzzleModel.HINT_LIMITS
             current_count = new_progress_data.get("hints_used", 0)
             limit_type = "hints"
-
         elif hasattr(PuzzleModel, "MISTAKE_LIMITS"):
             limit_config = PuzzleModel.MISTAKE_LIMITS
             current_count = new_progress_data.get("misses", 0)
@@ -106,21 +104,11 @@ class SaveProgressView(View):
 
         if limit_config is not None and current_count is not None:
             max_limit = limit_config.get(difficulty)
-
-            if max_limit is None:
-                return JsonResponse(
-                    {"error": f"Invalid difficulty '{difficulty}' for move limit check."},
-                    status=400,
-                )
-
-            if current_count > max_limit:
+            if max_limit is not None and current_count > max_limit:
                 return JsonResponse(
                     {"error": f"Maximum of {max_limit} {limit_type} for '{difficulty}' difficulty exceeded."},
                     status=403,
                 )
-            
-
-        
 
         # 4. Get or Start the Attempt (UPSERT)
         attempt, created = PuzzleAttempt.objects.get_or_start_attempt(
@@ -132,17 +120,88 @@ class SaveProgressView(View):
         attempt.time_spent_ms = new_time_spent
         attempt.save()
 
-        return JsonResponse(
-            {
-                "message": "Progress saved successfully.",
-                "last_saved": attempt.last_saved.isoformat(),
-            }
-        )
+        print(f"[SaveProgressView] ✅ Saved progress for {user.username}, puzzle {puzzle_id}")
+
+        return JsonResponse({
+            "message": "Progress saved successfully.",
+            "last_saved": attempt.last_saved.isoformat(),
+        })
 
 
+# ============================================================================
+# VIEW 2: GetProgressView - Retrieve Saved Game State
+# ============================================================================
 @method_decorator(csrf_protect, name="dispatch")
 @method_decorator(login_required, name="get")
-class CheckSubmissionView(View):  # ✅ Use Django's View, not DRF's APIView
+class GetProgressView(View):
+    """
+    Handles GET requests to retrieve a user's current PuzzleAttempt state.
+    """
+
+    def get(self, request, daily_puzzle_date, puzzle_model_name, puzzle_id):
+        user = request.user
+
+        try:
+            # ✅ Parse date string to date object
+            try:
+                puzzle_date = datetime.strptime(daily_puzzle_date, '%Y-%m-%d').date()
+            except ValueError:
+                return JsonResponse({"error": "Invalid date format. Use YYYY-MM-DD."}, status=400)
+            
+            daily_puzzle = get_object_or_404(DailyPuzzle, date=puzzle_date)
+
+            # Dynamically determine the PuzzleModel
+            if puzzle_model_name.lower() == "wordlepuzzle":
+                PuzzleModel = WordlePuzzle
+            elif puzzle_model_name.lower() == "sudokupuzzle":
+                PuzzleModel = SudokuPuzzle
+            elif puzzle_model_name.lower() == "ernigrampuzzle":
+                PuzzleModel = ErnigramPuzzle
+            else:
+                return JsonResponse({"error": "Unknown puzzle type."}, status=400)
+
+            puzzle_instance = get_object_or_404(PuzzleModel, pk=puzzle_id)
+            puzzle_content_type = ContentType.objects.get_for_model(puzzle_instance)
+
+        except Exception as e:
+            print(f"[GetProgressView] Error: {e}")
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({"error": f"Invalid puzzle reference: {str(e)}"}, status=400)
+
+        # Retrieve the Attempt
+        try:
+            attempt = PuzzleAttempt.objects.get(
+                user=user,
+                daily_puzzle=daily_puzzle,
+                content_type=puzzle_content_type,
+                object_id=puzzle_instance.pk,
+            )
+
+            print(f"[GetProgressView] ✅ Found attempt for {user.username}, puzzle {puzzle_id}")
+
+            return JsonResponse({
+                "exists": True,
+                "progress_data": attempt.progress_data,
+                "time_spent_ms": attempt.time_spent_ms,
+                "last_saved": attempt.last_saved.isoformat(),
+                "puzzle_type": puzzle_model_name.lower().replace('puzzle', ''),
+            }, status=200)
+
+        except PuzzleAttempt.DoesNotExist:
+            print(f"[GetProgressView] ℹ️ No attempt found for {user.username}, puzzle {puzzle_id}")
+            return JsonResponse({
+                "exists": False,
+                "message": "No active attempt found. Start a new game.",
+            }, status=200)
+
+
+# ============================================================================
+# VIEW 3: CheckSubmissionView - Check if Already Submitted
+# ============================================================================
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(login_required, name='get')
+class CheckSubmissionView(View):
     """
     GET /api/gameplay/check-submission/{daily_puzzle_date}/{puzzle_model_name}/{puzzle_id}/
     Check if user has already submitted this puzzle
@@ -174,12 +233,14 @@ class CheckSubmissionView(View):  # ✅ Use Django's View, not DRF's APIView
             ).first()
             
             if submission:
+                print(f"[CheckSubmissionView] ✅ Found submission for {user.username}, puzzle {puzzle_id}")
                 return JsonResponse({
                     'hasSubmitted': True,
                     'score': submission.points_awarded,
                     'submittedAt': submission.created_at.isoformat()
                 })
             
+            print(f"[CheckSubmissionView] ℹ️ No submission for {user.username}, puzzle {puzzle_id}")
             return JsonResponse({'hasSubmitted': False})
             
         except Exception as e:
@@ -188,80 +249,26 @@ class CheckSubmissionView(View):  # ✅ Use Django's View, not DRF's APIView
             traceback.print_exc()
             return JsonResponse({'error': str(e)}, status=500)
 
-# ============================================================================
-# VIEW 2: GetProgressView - Retrieve Saved Game State
-# ============================================================================
-@method_decorator(csrf_protect, name="dispatch")
-@method_decorator(login_required, name="get")
-class GetProgressView(View):
-    """
-    Handles GET requests to retrieve a user's current PuzzleAttempt state.
-    """
-
-    def get(self, request, daily_puzzle_id, puzzle_model_name, puzzle_id):
-        user = request.user
-
-        try:
-            daily_puzzle = get_object_or_404(DailyPuzzle, pk=daily_puzzle_id)
-
-            # Dynamically determine the PuzzleModel
-            if puzzle_model_name.lower() == "wordlepuzzle":
-                PuzzleModel = WordlePuzzle
-            elif puzzle_model_name.lower() == "sudokupuzzle":
-                PuzzleModel = SudokuPuzzle
-            elif puzzle_model_name.lower() == "ernigrampuzzle":
-                PuzzleModel = ErnigramPuzzle
-            else:
-                return JsonResponse({"error": "Unknown puzzle type."}, status=400)
-
-            puzzle_instance = get_object_or_404(PuzzleModel, pk=puzzle_id)
-            puzzle_content_type = ContentType.objects.get_for_model(puzzle_instance)
-
-        except Exception:
-            return JsonResponse({"error": "Invalid puzzle reference."}, status=400)
-
-        # Retrieve the Attempt
-        try:
-            attempt = PuzzleAttempt.objects.get(
-                user=user,
-                daily_puzzle=daily_puzzle,
-                content_type=puzzle_content_type,
-                object_id=puzzle_instance.pk,
-            )
-
-            return JsonResponse(
-                {
-                    "exists": True,
-                    "progress_data": attempt.progress_data,
-                    "time_spent_ms": attempt.time_spent_ms,
-                    "last_saved": attempt.last_saved.isoformat(),
-                },
-                status=200,
-            )
-
-        except PuzzleAttempt.DoesNotExist:
-            return JsonResponse(
-                {
-                    "exists": False,
-                    "message": "No active attempt found. Start a new game.",
-                },
-                status=200,
-            )
-
 
 # ============================================================================
-# VIEW 3: SubmitPuzzleView - Submit Completed Puzzle (WITH LEADERBOARD UPDATE)
+# VIEW 4: SubmitPuzzleView - Submit Completed Puzzle
 # ============================================================================
 @method_decorator(csrf_protect, name="dispatch")
 @method_decorator(login_required, name="post")
 class SubmitPuzzleView(View):
     @transaction.atomic
-    def post(self, request, daily_puzzle_id, puzzle_model_name, puzzle_id):
+    def post(self, request, daily_puzzle_date, puzzle_model_name, puzzle_id):
         user = request.user
 
         # 1. Setup and Validation
         try:
-            daily_puzzle = get_object_or_404(DailyPuzzle, pk=daily_puzzle_id)
+            # ✅ Parse date string to date object
+            try:
+                puzzle_date = datetime.strptime(daily_puzzle_date, '%Y-%m-%d').date()
+            except ValueError:
+                return JsonResponse({"error": "Invalid date format. Use YYYY-MM-DD."}, status=400)
+            
+            daily_puzzle = get_object_or_404(DailyPuzzle, date=puzzle_date)
 
             puzzle_model_name_lower = puzzle_model_name.lower()
             if puzzle_model_name_lower == "wordlepuzzle":
@@ -276,7 +283,10 @@ class SubmitPuzzleView(View):
             puzzle_instance = get_object_or_404(PuzzleModel, pk=puzzle_id)
             puzzle_content_type = ContentType.objects.get_for_model(puzzle_instance)
 
-        except Exception:
+        except Exception as e:
+            print(f"[SubmitPuzzleView] Error: {e}")
+            import traceback
+            traceback.print_exc()
             return JsonResponse({"error": "Invalid puzzle reference."}, status=400)
 
         # 2. Retrieve Attempt
@@ -306,9 +316,7 @@ class SubmitPuzzleView(View):
             if max_time_ms is not None and time_taken > max_time_ms:
                 max_time_minutes = max_time_ms / 60000
                 return JsonResponse(
-                    {
-                        "error": f"Time limit of {int(max_time_minutes)} minutes for '{difficulty}' difficulty was exceeded."
-                    },
+                    {"error": f"Time limit of {int(max_time_minutes)} minutes for '{difficulty}' difficulty was exceeded."},
                     status=403,
                 )
 
@@ -323,6 +331,9 @@ class SubmitPuzzleView(View):
                 status=500,
             )
         except Exception as e:
+            print(f"[SubmitPuzzleView] Scoring error: {e}")
+            import traceback
+            traceback.print_exc()
             return JsonResponse({"error": f"Scoring failed: {str(e)}"}, status=400)
 
         if points_awarded <= 0:
@@ -331,7 +342,7 @@ class SubmitPuzzleView(View):
                 status=400,
             )
 
-        # 5. CREATE SUBMISSION RECORD (WITH puzzle_date)
+        # 5. CREATE SUBMISSION RECORD
         submission = Submission.objects.create(
             user=user,
             puzzle=puzzle_instance,
@@ -341,7 +352,7 @@ class SubmitPuzzleView(View):
             points_awarded=points_awarded,
             time_taken_ms=time_taken,
             tries=tries,
-            puzzle_date=daily_puzzle.date,  # ✅ CRITICAL FIX
+            puzzle_date=daily_puzzle.date,
         )
 
         # 6. UPDATE USER STATS
@@ -360,23 +371,22 @@ class SubmitPuzzleView(View):
         # 8. Clean up the PuzzleAttempt
         attempt.delete()
 
-        return JsonResponse(
-            {
-                "message": "Puzzle submitted successfully.",
-                "points_awarded": points_awarded,
-                "submission_id": submission.pk,
-            },
-            status=201,
-        )
+        print(f"[SubmitPuzzleView] ✅ Submitted successfully: {points_awarded} points for {user.username}")
+
+        return JsonResponse({
+            "message": "Puzzle submitted successfully.",
+            "points_awarded": points_awarded,
+            "submission_id": submission.pk,
+        }, status=201)
 
 
 # ============================================================================
-# VIEW 4: GetHintView - Request Sudoku Hints
+# VIEW 5: GetHintView - Request Sudoku Hints
 # ============================================================================
 @method_decorator(csrf_protect, name="dispatch")
 @method_decorator(login_required, name="post")
 class GetHintView(View):
-    def post(self, request, daily_puzzle_id, puzzle_model_name, puzzle_id):
+    def post(self, request, daily_puzzle_date, puzzle_model_name, puzzle_id):
         user = request.user
 
         # 1. Validation and Data Retrieval
@@ -384,7 +394,13 @@ class GetHintView(View):
             data = json.loads(request.body)
             difficulty = data.get("difficulty", "EASY").upper()
 
-            daily_puzzle = get_object_or_404(DailyPuzzle, pk=daily_puzzle_id)
+            # ✅ Parse date string to date object
+            try:
+                puzzle_date = datetime.strptime(daily_puzzle_date, '%Y-%m-%d').date()
+            except ValueError:
+                return JsonResponse({"error": "Invalid date format."}, status=400)
+            
+            daily_puzzle = get_object_or_404(DailyPuzzle, date=puzzle_date)
 
             if puzzle_model_name.lower() == "sudokupuzzle":
                 PuzzleModel = SudokuPuzzle
@@ -404,7 +420,8 @@ class GetHintView(View):
                 object_id=puzzle_instance.pk,
             )
 
-        except (SudokuPuzzle.DoesNotExist, PuzzleAttempt.DoesNotExist, json.JSONDecodeError):
+        except (SudokuPuzzle.DoesNotExist, PuzzleAttempt.DoesNotExist, json.JSONDecodeError) as e:
+            print(f"[GetHintView] Error: {e}")
             return JsonResponse({"error": "Invalid game state or puzzle reference."}, status=400)
 
         # 2. Hint Limit Check
@@ -432,19 +449,18 @@ class GetHintView(View):
         # 4. Prepare Response
         hints_used_new = hints_used + 1
 
-        return JsonResponse(
-            {
-                "message": "Hint granted.",
-                "hint_index": hint_index,
-                "hint_value": hint_value,
-                "hints_used_new": hints_used_new,
-            },
-            status=200,
-        )
-    
+        print(f"[GetHintView] ✅ Hint granted to {user.username}: index {hint_index}, value {hint_value}")
 
-    # ============================================================================
-# VIEW 5: GetTodaySubmissionsView - Retrieve Today's Submissions
+        return JsonResponse({
+            "message": "Hint granted.",
+            "hint_index": hint_index,
+            "hint_value": hint_value,
+            "hints_used_new": hints_used_new,
+        }, status=200)
+
+
+# ============================================================================
+# VIEW 6: GetTodaySubmissionsView - Retrieve Today's Submissions
 # ============================================================================
 @method_decorator(csrf_protect, name='dispatch')
 @method_decorator(login_required, name='get')
@@ -463,14 +479,14 @@ class GetTodaySubmissionsView(View):
             now_pht = datetime.now(pht_tz)
             today_pht = now_pht.date()
             
-            # ✅ FIX: Create timezone-aware datetime range for today
+            # ✅ Create timezone-aware datetime range for today
             start_of_day_pht = pht_tz.localize(datetime.combine(today_pht, datetime.min.time()))
             end_of_day_pht = pht_tz.localize(datetime.combine(today_pht, datetime.max.time()))
             
             print(f"[GetTodaySubmissions] Checking submissions for {user.username}")
             print(f"[GetTodaySubmissions] Date range: {start_of_day_pht} to {end_of_day_pht}")
             
-            # ✅ FIX: Filter using datetime range instead of date comparison
+            # ✅ Filter using datetime range instead of date comparison
             submissions = Submission.objects.filter(
                 user=user,
                 created_at__gte=start_of_day_pht,
@@ -492,10 +508,9 @@ class GetTodaySubmissionsView(View):
                     'difficulty': sub.difficulty,
                     'created_at': sub.created_at.isoformat()
                 }
-                print(f"[GetTodaySubmissions] Submission: {submission_dict}")
                 submissions_data.append(submission_dict)
             
-            print(f"[GetTodaySubmissions] Returning {len(submissions_data)} submissions")
+            print(f"[GetTodaySubmissions] ✅ Returning {len(submissions_data)} submissions")
             return JsonResponse(submissions_data, safe=False)
             
         except Exception as e:
