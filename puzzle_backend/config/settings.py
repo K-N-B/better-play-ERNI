@@ -29,10 +29,10 @@ DEBUG = True
 
 
 ALLOWED_HOSTS = [
-    "https://better-play-erni.onrender.com",
+    "better-play-erni.onrender.com",
+    "better-play-erni.vercel.app",
     "localhost",
-    "https://better-play-erni.vercel.app" 
-    "127.0.0.1"
+    "127.0.0.1",
     ]  # Add your production domain later
 
 
