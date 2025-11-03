@@ -30,7 +30,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "https://better-play-erni.onrender.com",
-    
     "localhost",
     "https://better-play-erni.vercel.app" 
     "127.0.0.1"
