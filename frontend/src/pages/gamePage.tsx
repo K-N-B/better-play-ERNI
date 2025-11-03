@@ -1,8 +1,7 @@
 // /src/pages/GamePage.tsx
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect, useMemo} from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
-import { getDailyPuzzles } from '../api/gameService';
 import { LoadingSpinner } from '../components/ui/loadingSpinner';
 import GameIntro from '../components/features/games/gameIntro'; // Keep this import
 
@@ -11,7 +10,8 @@ import { WordleGame } from '../components/gameComponents/wordle/wordleGame';
 import { SudokuGame } from '../components/gameComponents/sudoku/sudokuGame';
 import { ErnigramGame } from '../components/gameComponents/ernigram/ernigramGame';
 
-import type { DailyPuzzleResponse } from '../types';
+import { getDailyPuzzles, checkSubmissionExists } from '../api/gameService'; 
+import { AlreadyPlayedScreen } from '../components/gameComponents/shared/alreadyPlayedScreen';
 
 // Define game intro content (move this to a separate data file later if desired)
 const introContent = {
@@ -61,17 +61,91 @@ export const GamePage = () => {
   // console.log(puzzles)
   // console.log(loadingPuzzles)
 
+  // Checking for submission
+  const [submissionStatus, setSubmissionStatus] = useState<null | { hasSubmitted: boolean; score?: number; submittedAt?: string; }>(null);
+  const [isCheckingSubmission, setIsCheckingSubmission] = useState(true); // Start true
+
   // Reset hasStarted and difficulty when the gameType (URL) changes
   useEffect(() => {
     setHasStarted(false);
     setDifficulty('easy');
+    setSubmissionStatus(null);
+    setIsCheckingSubmission(true); // Re-check when game changes
   }, [gameType]);
 
   // Validate gameType and get introData
   const isValidGameType = gameType && gameType in introContent;
   const introData = isValidGameType ? introContent[gameType as keyof typeof introContent] : null;
 
-  const isLoading = loadingPuzzles;
+  // ✅ NEW: Use useMemo to calculate puzzleData.
+  // This lets us use puzzleData for the submission check BEFORE rendering.
+  const { puzzleData, GameComponent } = useMemo(() => {
+    if (!puzzles || !isValidGameType) {
+      return { puzzleData: null, GameComponent: null };
+    }
+    let pd: any = null;
+    let gc: React.ComponentType<any> | null = null;
+    
+    switch (gameType) {
+      case 'wordle':
+        gc = WordleGame;
+        pd = difficulty === 'easy' ? puzzles.wordle_easy : puzzles.wordle_hard;
+        break;
+      case 'sudoku':
+        gc = SudokuGame;
+        pd = puzzles.sudoku;
+        break;
+      case 'ernigram':
+        gc = ErnigramGame;
+        pd = puzzles.ernigram;
+        break;
+      default:
+        return { puzzleData: null, GameComponent: null };
+    }
+    return { puzzleData: pd, GameComponent: gc };
+  }, [puzzles, isValidGameType, gameType, difficulty]);
+
+
+  // ✅ NEW: useEffect to check for an existing submission
+  useEffect(() => {
+    // ✅ FIX: Add guard clauses for all potentially null/undefined values
+    if (loadingPuzzles || !puzzles || !puzzleData || !isValidGameType || !gameType) {
+      // If we're not loading, it means one of the other values is missing,
+      // so we can stop the submission check.
+      if (!loadingPuzzles) {
+        setIsCheckingSubmission(false); 
+      }
+      return; // Wait for all data to be ready
+    }
+
+    // Reset and start checking
+    setSubmissionStatus(null); 
+    setIsCheckingSubmission(true);
+    
+    console.log(`[GamePage] Checking submission for: ${gameType}, puzzleId: ${puzzleData.id}, difficulty: ${difficulty}`);
+
+    checkSubmissionExists(gameType, puzzles.date, puzzleData.id)
+      .then(result => {
+        if (result.hasSubmitted) {
+          console.log('[GamePage] Submission found:', result);
+          setSubmissionStatus(result);
+        } else {
+          setSubmissionStatus(null); // Explicitly set to null if no submission
+        }
+      })
+      .catch(err => {
+        console.error('[GamePage] Submission check failed:', err);
+        setSubmissionStatus(null);
+      })
+      .finally(() => {
+        setIsCheckingSubmission(false);
+      });
+      
+  }, [loadingPuzzles, puzzles?.date, puzzleData, gameType, difficulty]); // Rerun when these change
+
+
+  // ✅ NEW: Main loading state now includes submission check
+  const isLoading = loadingPuzzles || isCheckingSubmission;
   if (isLoading) {
     return <LoadingSpinner fullPage={true} />;
   }
@@ -92,28 +166,17 @@ export const GamePage = () => {
   }
 
   // Determine GameComponent and puzzleData
-  let GameComponent: React.ComponentType<any> | null = null;
-  let puzzleData: any = null; // Will remain null if data is missing
-
-  switch (gameType) {
-    case 'wordle':
-      GameComponent = WordleGame;
-      // Select the easy or hard puzzle based on difficulty state
-      puzzleData = difficulty === 'easy' ? puzzles.wordle_easy : puzzles.wordle_hard;
-      break;
-    case 'sudoku':
-      GameComponent = SudokuGame;
-      // Pass the whole sudoku object; the component will choose the string
-      puzzleData = puzzles.sudoku;
-      break;
-    case 'ernigram':
-      GameComponent = ErnigramGame;
-      // Pass the single ernigram puzzle
-      puzzleData = puzzles.ernigram;
-      break;
-    default:
-      // This case is covered by isValidGameType check, but good practice
-      return <Navigate to="/" replace />;
+  if (submissionStatus?.hasSubmitted) {
+    return (
+      <div className={`container mx-auto h-full w-full shadow-md rounded-4xl p-4 sm:p-8 md:p-12 ${introData.bgColor}`}>
+        <AlreadyPlayedScreen
+          gameType={gameType as 'wordle' | 'sudoku' | 'ernigram'}
+          score={submissionStatus.score || 0}
+          submittedAt={submissionStatus.submittedAt || new Date().toISOString()}
+          difficulty={difficulty}
+        />
+      </div>
+    );
   }
 
   // --- RENDER LOGIC ---
