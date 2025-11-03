@@ -44,7 +44,7 @@ class SaveProgressView(View):
             if not isinstance(new_progress_data, dict) or new_time_spent is None:
                 return JsonResponse({"error": "Invalid data format."}, status=400)
 
-            daily_puzzle = get_object_or_404(DailyPuzzle, date=daily_puzzle_date)
+            daily_puzzle = get_object_or_404(DailyPuzzle, pk=daily_puzzle_id)
 
             # Dynamically get the puzzle model
             puzzle_model_name_lower = puzzle_model_name.lower()
@@ -202,7 +202,7 @@ class GetProgressView(View):
         user = request.user
 
         try:
-            daily_puzzle = get_object_or_404(DailyPuzzle, date=daily_puzzle_date)
+            daily_puzzle = get_object_or_404(DailyPuzzle, pk=daily_puzzle_id)
 
             # Dynamically determine the PuzzleModel
             if puzzle_model_name.lower() == "wordlepuzzle":
@@ -261,7 +261,7 @@ class SubmitPuzzleView(View):
 
         # 1. Setup and Validation
         try:
-            daily_puzzle = get_object_or_404(DailyPuzzle, date=daily_puzzle_date)
+            daily_puzzle = get_object_or_404(DailyPuzzle, pk=daily_puzzle_id)
 
             puzzle_model_name_lower = puzzle_model_name.lower()
             if puzzle_model_name_lower == "wordlepuzzle":
@@ -384,7 +384,7 @@ class GetHintView(View):
             data = json.loads(request.body)
             difficulty = data.get("difficulty", "EASY").upper()
 
-            daily_puzzle = get_object_or_404(DailyPuzzle, date=daily_puzzle_date)
+            daily_puzzle = get_object_or_404(DailyPuzzle, pk=daily_puzzle_id)
 
             if puzzle_model_name.lower() == "sudokupuzzle":
                 PuzzleModel = SudokuPuzzle
