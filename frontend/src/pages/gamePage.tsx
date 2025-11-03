@@ -242,14 +242,15 @@ export const GamePage = () => {
       // ✅ 2. RENDER THE NEW RESUME SCREEN
       content = (
         <ResumeGameScreen
+          gameType={gameType as any}
           guessCount={gameType === 'wordle' ? (foundAttempt.progress_data as WordleProgress)?.guesses?.length || 0 : 0}
           maxGuesses={6} // TODO: make dynamic
           puzzleDate={puzzles!.date} // We know puzzles exists here
           puzzleNumber={puzzleData.id} 
-          editor="ERNI Team"
           onContinue={() => {
             setHasStarted(true); // Go to game
           }}
+          difficulty={activeDifficulty}
         />
       );
     } else {
