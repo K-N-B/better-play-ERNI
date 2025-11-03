@@ -67,6 +67,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "current_streak_count",
             "max_streak_count",
             "challenges_made_count",
+            "profile_picture_url",
         ]
         read_only_fields = [
             "department",
@@ -74,4 +75,5 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "current_streak_count",
             "max_streak_count",
             "challenges_made_count",
+            "profile_picture_url",
         ]

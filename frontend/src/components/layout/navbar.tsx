@@ -17,6 +17,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, isLoading: authLoading } = useAuth();
   const location = useLocation();
+  const profileImageUrl = user?.profile_picture_url ?? null;
 
   const getUserInitial = () => {
     if (!user) return '?';
@@ -123,10 +124,23 @@ export default function Navbar() {
               ) : (
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="w-10 h-10 bg-sky-400 rounded-full flex items-center justify-center text-white font-bold hover:bg-sky-500 transition"
+                  className={clsx(
+                    "w-10 h-10 rounded-full flex items-center justify-center font-bold transition overflow-hidden",
+                    profileImageUrl
+                      ? "bg-gray-200 hover:bg-gray-300 text-transparent"
+                      : "bg-sky-400 hover:bg-sky-500 text-white"
+                  )}
                   title={user?.username || 'Profile'}
                 >
-                  {getUserInitial()}
+                  {profileImageUrl ? (
+                    <img
+                      src={profileImageUrl}
+                      alt={`${user?.username || 'User'} profile picture`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    getUserInitial()
+                  )}
                 </button>
               )}
 

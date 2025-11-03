@@ -159,6 +159,7 @@ export const GamePage = () => {
           puzzle={puzzleData}
           difficulty={difficulty} // Pass the selected difficulty
           challengeId={null} // TODO: Add challengeId logic back later
+          dailyPuzzleDate={puzzles.date}
         />
       );
     }
