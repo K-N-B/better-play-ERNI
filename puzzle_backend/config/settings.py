@@ -30,8 +30,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "https://better-play-erni.onrender.com",
+    
+    "localhost",
     "https://better-play-erni.vercel.app" 
-    "localhost", 
     "127.0.0.1"
     ]  # Add your production domain later
 
@@ -56,7 +57,8 @@ INSTALLED_APPS = [
     'gameplay.apps.GameplayConfig',  # <-- Ensure this line is present
     'leaderboards.apps.LeaderboardsConfig',
     'shop.apps.ShopConfig',
-    'django_cron',
+    #'django_cron',
+    'django_crontab',
     'activity',
 ]
 
