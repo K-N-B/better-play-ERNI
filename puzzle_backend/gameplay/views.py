@@ -33,17 +33,27 @@ class SaveProgressView(View):
     def post(self, request, daily_puzzle_date, puzzle_model_name, puzzle_id):
         user = request.user
 
-        # 1. Input Validation and Setup
         try:
+            # 1. Parse and validate input data
             data = json.loads(request.body)
             new_progress_data = data.get("progress_data")
             new_time_spent = data.get("time_spent_ms")
             difficulty = data.get("difficulty", "EASY").upper()
 
-            if not isinstance(new_progress_data, dict) or new_time_spent is None:
-                return JsonResponse({"error": "Invalid data format."}, status=400)
+            print(f"[SaveProgressView] Received data for user {user.username}")
+            print(f"[SaveProgressView] Puzzle: {puzzle_model_name} #{puzzle_id}")
+            print(f"[SaveProgressView] Time: {new_time_spent}ms")
+            print(f"[SaveProgressView] Difficulty: {difficulty}")
 
-            # ✅ Parse date string to date object
+            # Validate required fields
+            if new_progress_data is None or new_time_spent is None:
+                return JsonResponse({"error": "Missing progress_data or time_spent_ms."}, status=400)
+            
+            # Allow both dict (Wordle/ERNIgram) and list (Sudoku grid)
+            if not isinstance(new_progress_data, (dict, list)):
+                return JsonResponse({"error": "progress_data must be an object or array."}, status=400)
+
+            # 2. Parse date and get DailyPuzzle
             try:
                 puzzle_date = datetime.strptime(daily_puzzle_date, '%Y-%m-%d').date()
             except ValueError:
@@ -51,7 +61,7 @@ class SaveProgressView(View):
             
             daily_puzzle = get_object_or_404(DailyPuzzle, date=puzzle_date)
 
-            # Dynamically get the puzzle model
+            # 3. Get the puzzle model
             puzzle_model_name_lower = puzzle_model_name.lower()
             if puzzle_model_name_lower == "wordlepuzzle":
                 PuzzleModel = WordlePuzzle
@@ -63,16 +73,18 @@ class SaveProgressView(View):
                 return JsonResponse({"error": "Unknown puzzle type."}, status=400)
 
             puzzle_instance = get_object_or_404(PuzzleModel, pk=puzzle_id)
+            print(f"[SaveProgressView] Found puzzle instance: {puzzle_instance}")
 
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
+            print(f"[SaveProgressView] JSON decode error: {e}")
             return JsonResponse({"error": "Invalid JSON."}, status=400)
         except Exception as e:
-            print(f"[SaveProgressView] Error: {e}")
+            print(f"[SaveProgressView] Setup error: {e}")
             import traceback
             traceback.print_exc()
-            return JsonResponse({"error": f"Invalid puzzle reference: {e}"}, status=400)
+            return JsonResponse({"error": f"Invalid puzzle reference: {str(e)}"}, status=400)
 
-        # 2. TIME LIMIT ENFORCEMENT
+        # 4. TIME LIMIT ENFORCEMENT
         if hasattr(PuzzleModel, "TIME_LIMITS_MS"):
             time_limits = PuzzleModel.TIME_LIMITS_MS
             max_time_ms = time_limits.get(difficulty)
@@ -84,22 +96,25 @@ class SaveProgressView(View):
                     status=403,
                 )
 
-        # 3. GUESS/HINT/MISTAKE LIMIT ENFORCEMENT
+        # 5. GUESS/HINT/MISTAKE LIMIT ENFORCEMENT
         limit_config = None
         current_count = None
         limit_type = None
 
         if hasattr(PuzzleModel, "GUESS_LIMITS"):
             limit_config = PuzzleModel.GUESS_LIMITS
-            current_count = len(new_progress_data.get("guesses", []))
+            if isinstance(new_progress_data, dict):
+                current_count = len(new_progress_data.get("guesses", []))
             limit_type = "guesses"
         elif hasattr(PuzzleModel, "HINT_LIMITS"):
             limit_config = PuzzleModel.HINT_LIMITS
-            current_count = new_progress_data.get("hints_used", 0)
+            if isinstance(new_progress_data, dict):
+                current_count = new_progress_data.get("hints_used", 0)
             limit_type = "hints"
         elif hasattr(PuzzleModel, "MISTAKE_LIMITS"):
             limit_config = PuzzleModel.MISTAKE_LIMITS
-            current_count = new_progress_data.get("misses", 0)
+            if isinstance(new_progress_data, dict):
+                current_count = new_progress_data.get("misses", 0)
             limit_type = "mistakes"
 
         if limit_config is not None and current_count is not None:
@@ -110,22 +125,53 @@ class SaveProgressView(View):
                     status=403,
                 )
 
-        # 4. Get or Start the Attempt (UPSERT)
-        attempt, created = PuzzleAttempt.objects.get_or_start_attempt(
-            user=user, daily_puzzle=daily_puzzle, puzzle_instance=puzzle_instance
-        )
+        # 6. Get or create the PuzzleAttempt
+        try:
+            attempt, created = PuzzleAttempt.objects.get_or_start_attempt(
+                user=user,
+                daily_puzzle=daily_puzzle,
+                puzzle_instance=puzzle_instance
+            )
+            
+            if created:
+                print(f"[SaveProgressView] Created new attempt for {user.username}")
+            else:
+                print(f"[SaveProgressView] Found existing attempt for {user.username}")
 
-        # 5. Update the Attempt's state
-        attempt.progress_data.update(new_progress_data)
-        attempt.time_spent_ms = new_time_spent
-        attempt.save()
+        except Exception as e:
+            print(f"[SaveProgressView] Error getting/creating attempt: {e}")
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({"error": f"Failed to get or create attempt: {str(e)}"}, status=500)
 
-        print(f"[SaveProgressView] ✅ Saved progress for {user.username}, puzzle {puzzle_id}")
+        # 7. Update the attempt's state
+        try:
+            # ✅ Handle different progress_data formats
+            if isinstance(new_progress_data, list):
+                # For Sudoku grid - wrap it and ensure it's properly serializable
+                attempt.progress_data = {"grid": new_progress_data}
+            elif isinstance(new_progress_data, dict):
+                # For dict data (Wordle/ERNIgram or Sudoku with validation fields)
+                # Merge with existing data to preserve fields
+                attempt.progress_data.update(new_progress_data)
+            else:
+                return JsonResponse({"error": "Invalid progress_data format."}, status=400)
+            
+            attempt.time_spent_ms = new_time_spent
+            attempt.save()
 
-        return JsonResponse({
-            "message": "Progress saved successfully.",
-            "last_saved": attempt.last_saved.isoformat(),
-        })
+            print(f"[SaveProgressView] ✅ Successfully saved progress for {user.username}")
+
+            return JsonResponse({
+                "message": "Progress saved successfully.",
+                "last_saved": attempt.last_saved.isoformat(),
+            }, status=200)
+
+        except Exception as e:
+            print(f"[SaveProgressView] Error saving attempt: {e}")
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({"error": f"Failed to save progress: {str(e)}"}, status=500)
 
 
 # ============================================================================
@@ -142,7 +188,7 @@ class GetProgressView(View):
         user = request.user
 
         try:
-            # ✅ Parse date string to date object
+            # Parse date string to date object
             try:
                 puzzle_date = datetime.strptime(daily_puzzle_date, '%Y-%m-%d').date()
             except ValueError:
@@ -151,11 +197,12 @@ class GetProgressView(View):
             daily_puzzle = get_object_or_404(DailyPuzzle, date=puzzle_date)
 
             # Dynamically determine the PuzzleModel
-            if puzzle_model_name.lower() == "wordlepuzzle":
+            puzzle_model_name_lower = puzzle_model_name.lower()
+            if puzzle_model_name_lower == "wordlepuzzle":
                 PuzzleModel = WordlePuzzle
-            elif puzzle_model_name.lower() == "sudokupuzzle":
+            elif puzzle_model_name_lower == "sudokupuzzle":
                 PuzzleModel = SudokuPuzzle
-            elif puzzle_model_name.lower() == "ernigrampuzzle":
+            elif puzzle_model_name_lower == "ernigrampuzzle":
                 PuzzleModel = ErnigramPuzzle
             else:
                 return JsonResponse({"error": "Unknown puzzle type."}, status=400)
@@ -185,7 +232,7 @@ class GetProgressView(View):
                 "progress_data": attempt.progress_data,
                 "time_spent_ms": attempt.time_spent_ms,
                 "last_saved": attempt.last_saved.isoformat(),
-                "puzzle_type": puzzle_model_name.lower().replace('puzzle', ''),
+                "puzzle_type": puzzle_model_name_lower.replace('puzzle', ''),
             }, status=200)
 
         except PuzzleAttempt.DoesNotExist:
@@ -193,7 +240,7 @@ class GetProgressView(View):
             return JsonResponse({
                 "exists": False,
                 "message": "No active attempt found. Start a new game.",
-            }, status=200)
+            }, status=404)
 
 
 # ============================================================================
@@ -262,7 +309,7 @@ class SubmitPuzzleView(View):
 
         # 1. Setup and Validation
         try:
-            # ✅ Parse date string to date object
+            # Parse date string to date object
             try:
                 puzzle_date = datetime.strptime(daily_puzzle_date, '%Y-%m-%d').date()
             except ValueError:
@@ -322,9 +369,30 @@ class SubmitPuzzleView(View):
 
         # 4. SCORING
         try:
+            # ✅ Handle Sudoku grid format (wrapped in {"grid": ...})
+            progress_data = attempt.progress_data
+            
+            # For Sudoku, extract the grid array from the wrapper
+            if puzzle_model_name_lower == "sudokupuzzle":
+                if "grid" in progress_data:
+                    validation_data = progress_data["grid"]
+                    print(f"[SubmitPuzzleView] Extracted grid from wrapper")
+                else:
+                    # Backward compatibility: progress_data might already be the grid
+                    validation_data = progress_data
+                    print(f"[SubmitPuzzleView] Using progress_data directly as grid")
+            else:
+                validation_data = progress_data
+            
+            print(f"[SubmitPuzzleView] Data type: {type(validation_data)}")
+            if isinstance(validation_data, list):
+                print(f"[SubmitPuzzleView] Grid dimensions: {len(validation_data)}x{len(validation_data[0]) if validation_data else 0}")
+            
             points_awarded, tries = puzzle_instance.validate_and_score(
-                attempt.progress_data, difficulty
+                validation_data, difficulty
             )
+            
+            print(f"[SubmitPuzzleView] Validation result: {points_awarded} points, {tries} tries")
         except AttributeError:
             return JsonResponse(
                 {"error": f"Scoring method missing for {puzzle_model_name}."},
@@ -394,7 +462,7 @@ class GetHintView(View):
             data = json.loads(request.body)
             difficulty = data.get("difficulty", "EASY").upper()
 
-            # ✅ Parse date string to date object
+            # Parse date string to date object
             try:
                 puzzle_date = datetime.strptime(daily_puzzle_date, '%Y-%m-%d').date()
             except ValueError:
@@ -436,7 +504,18 @@ class GetHintView(View):
 
         # 3. Find Available Hint (RANDOMIZED)
         solution_string = puzzle_instance.solution_string
-        current_grid = attempt.progress_data.get("final_grid", "0" * 81)
+        
+        # ✅ Handle grid format (wrapped in {"grid": ...})
+        progress_data = attempt.progress_data
+        if "grid" in progress_data:
+            # Convert grid to string format
+            grid = progress_data["grid"]
+            current_grid = ""
+            for row in grid:
+                for cell in row:
+                    current_grid += str(cell.get("value", 0) or 0)
+        else:
+            current_grid = progress_data.get("final_grid", "0" * 81)
 
         empty_indices = [i for i, char in enumerate(current_grid) if char == "0"]
 
@@ -479,14 +558,14 @@ class GetTodaySubmissionsView(View):
             now_pht = datetime.now(pht_tz)
             today_pht = now_pht.date()
             
-            # ✅ Create timezone-aware datetime range for today
+            # Create timezone-aware datetime range for today
             start_of_day_pht = pht_tz.localize(datetime.combine(today_pht, datetime.min.time()))
             end_of_day_pht = pht_tz.localize(datetime.combine(today_pht, datetime.max.time()))
             
             print(f"[GetTodaySubmissions] Checking submissions for {user.username}")
             print(f"[GetTodaySubmissions] Date range: {start_of_day_pht} to {end_of_day_pht}")
             
-            # ✅ Filter using datetime range instead of date comparison
+            # Filter using datetime range instead of date comparison
             submissions = Submission.objects.filter(
                 user=user,
                 created_at__gte=start_of_day_pht,
@@ -500,7 +579,7 @@ class GetTodaySubmissionsView(View):
             for sub in submissions:
                 submission_dict = {
                     'id': sub.id,
-                    'puzzle_type': sub.content_type.model,  # e.g. 'wordlepuzzle', 'sudokupuzzle'
+                    'puzzle_type': sub.content_type.model,
                     'puzzle_id': sub.object_id,
                     'points_awarded': sub.points_awarded,
                     'time_taken_ms': sub.time_taken_ms,

@@ -1,10 +1,11 @@
-// /src/pages/GamePage.tsx
+// /src/pages/GamePage.tsx - UPDATED
+
 import React, { useState, useEffect} from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
 import { getDailyPuzzles } from '../api/gameService';
 import { LoadingSpinner } from '../components/ui/loadingSpinner';
-import GameIntro from '../components/features/games/gameIntro'; // Keep this import
+import GameIntro from '../components/features/games/gameIntro';
 
 // Import your game components
 import { WordleGame } from '../components/gameComponents/wordle/wordleGame';
@@ -13,7 +14,7 @@ import { ErnigramGame } from '../components/gameComponents/ernigram/ernigramGame
 
 import type { DailyPuzzleResponse } from '../types';
 
-// Define game intro content (move this to a separate data file later if desired)
+// Define game intro content
 const introContent = {
   wordle: {
     title: 'Wordle',
@@ -51,15 +52,10 @@ export type Difficulty = "easy" | "hard";
 
 export const GamePage = () => {
   const { gameType } = useParams<{ gameType: string }>();
-  const [difficulty, setDifficulty] = useState<Difficulty>('easy'); // Single difficulty state
-  const [hasStarted, setHasStarted] = useState(false); // State to track if intro is passed
-  // This hook now calls the REAL API via gameService
-  // const { data: puzzles, loading: loadingPuzzles, error } = useApi(getDailyPuzzles);
+  const [difficulty, setDifficulty] = useState<Difficulty>('easy');
+  const [hasStarted, setHasStarted] = useState(false);
   
-  // Print puzzle data
   const { data: puzzles, loading: loadingPuzzles, error: error } = useApi(getDailyPuzzles);
-  // console.log(puzzles)
-  // console.log(loadingPuzzles)
 
   // Reset hasStarted and difficulty when the gameType (URL) changes
   useEffect(() => {
@@ -87,32 +83,27 @@ export const GamePage = () => {
         </div>
       );
     }
-    // Navigate home if game type is invalid
     return <Navigate to="/" replace />;
   }
 
   // Determine GameComponent and puzzleData
   let GameComponent: React.ComponentType<any> | null = null;
-  let puzzleData: any = null; // Will remain null if data is missing
+  let puzzleData: any = null;
 
   switch (gameType) {
     case 'wordle':
       GameComponent = WordleGame;
-      // Select the easy or hard puzzle based on difficulty state
       puzzleData = difficulty === 'easy' ? puzzles.wordle_easy : puzzles.wordle_hard;
       break;
     case 'sudoku':
       GameComponent = SudokuGame;
-      // Pass the whole sudoku object; the component will choose the string
       puzzleData = puzzles.sudoku;
       break;
     case 'ernigram':
       GameComponent = ErnigramGame;
-      // Pass the single ernigram puzzle
       puzzleData = puzzles.ernigram;
       break;
     default:
-      // This case is covered by isValidGameType check, but good practice
       return <Navigate to="/" replace />;
   }
 
@@ -127,9 +118,9 @@ export const GamePage = () => {
         howToPlay={introData.howToPlay}
         pointsInfo={introData.pointsInfo}
         hintInfo={introData.hintInfo}
-        onStart={() => setHasStarted(true)} // Just set started to true
-        onDifficultyChange={setDifficulty} // Update the shared difficulty state
-        initialDifficulty={difficulty} // Pass the current shared state
+        onStart={() => setHasStarted(true)}
+        onDifficultyChange={setDifficulty}
+        initialDifficulty={difficulty}
         color={introData.color}
         darkColor={introData.darkColor}
       />
@@ -137,7 +128,6 @@ export const GamePage = () => {
   } else {
     // Show Game
     if (!puzzleData || !GameComponent) {
-      // This happens if admin forgot to link a puzzle for this difficulty
       content = (
         <div className="text-center p-8 bg-white/50 rounded-lg">
           <h2 className="text-2xl font-bold text-red-600">Puzzle Not Available</h2>
@@ -145,7 +135,7 @@ export const GamePage = () => {
             The {introData.title} puzzle for '{difficulty}' mode has not been set by the admin for today.
           </p>
           <button
-            onClick={() => setHasStarted(false)} // Go back to intro
+            onClick={() => setHasStarted(false)}
             className="mt-6 px-6 py-2 bg-primary text-white font-semibold rounded-lg shadow"
           >
             Go Back
@@ -157,9 +147,8 @@ export const GamePage = () => {
       content = (
         <GameComponent
           puzzle={puzzleData}
-          difficulty={difficulty} // Pass the selected difficulty
-          challengeId={null} // TODO: Add challengeId logic back later
-          dailyPuzzleDate={puzzles.date}
+          difficulty={difficulty}
+          challengeId={null}
         />
       );
     }
@@ -170,4 +159,4 @@ export const GamePage = () => {
       {content}
     </div>
   );
-}
+};

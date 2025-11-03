@@ -27,12 +27,20 @@ export const ResumeGameModal = ({
         
         {/* Progress Message */}
         <p className="text-xl text-gray-700 mb-8 leading-relaxed">
-          {guessCount > 0 ? (
+          {guessCount > 0 && maxGuesses <= 10 ? (
+            // Wordle/ERNIgram style (guesses out of max)
             <>
               You've made <strong className="text-emerald-600">{guessCount}</strong> of{' '}
               <strong>{maxGuesses}</strong> guesses. Keep it up!
             </>
+          ) : guessCount > 0 && maxGuesses > 10 ? (
+            // Sudoku style (cells filled)
+            <>
+              You've filled <strong className="text-pink-500">{guessCount}</strong> of{' '}
+              <strong>{maxGuesses}</strong> cells. Keep it up!
+            </>
           ) : (
+            // No progress yet
             <>
               You started this puzzle earlier.
               <br />
