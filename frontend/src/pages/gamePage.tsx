@@ -87,6 +87,7 @@ export const GamePage = () => {
   
   // Single loading state for both checks
   const [isChecking, setIsChecking] = useState(true);
+  const [checkError, setCheckError] = useState<string | null>(null);
 
   // Reset states when the gameType (URL) changes
   useEffect(() => {
@@ -96,6 +97,7 @@ export const GamePage = () => {
     setFoundSubmission(null);
     setFoundAttempt(null);
     setIsChecking(true);
+    setCheckError(null);
   }, [gameType]);
 
 
@@ -131,33 +133,65 @@ export const GamePage = () => {
       let attempt = null;
       let diffLock: Difficulty | null = null;
 
-      for (const { diff, puzzle } of puzzlesToCheck) {
-        if (!puzzle) continue;
+      try {
+        for (const { diff, puzzle } of puzzlesToCheck) {
+          if (!puzzle) continue;
 
-        // 1. Check for submission
-        const subResult = await checkSubmissionExists(gameType, puzzles.date, puzzle.id);
-        if (subResult.hasSubmitted) {
-          submission = subResult;
-          diffLock = diff;
-          break; // Found a submission, stop
+          console.log(`[GamePage] Checking ${diff} difficulty for ${gameType}`);
+
+          // 1. Check for submission
+          try {
+            const subResult = await checkSubmissionExists(gameType, puzzles.date, puzzle.id);
+            console.log(`[GamePage] Submission check result for ${diff}:`, subResult);
+            
+            if (subResult && subResult.hasSubmitted) {
+              submission = subResult;
+              diffLock = diff;
+              console.log(`[GamePage] ✅ Found submission for ${diff}`);
+              break; // Found a submission, stop
+            }
+          } catch (err) {
+            console.warn(`[GamePage] Submission check failed for ${diff}:`, err);
+          }
+
+          // 2. Check for resumable attempt
+          try {
+            const attemptResult = await getSavedAttempt(gameType, puzzles.date, puzzle.id);
+            console.log(`[GamePage] Attempt check result for ${diff}:`, attemptResult);
+            
+            if (attemptResult && hasResumableProgress(attemptResult, gameType)) {
+              attempt = attemptResult;
+              diffLock = diff;
+              console.log(`[GamePage] ✅ Found resumable attempt for ${diff}`);
+              break; // Found an attempt, stop
+            }
+          } catch (err) {
+            // 404 is expected when no attempt exists - this is not an error
+            console.log(`[GamePage] No attempt found for ${diff} (expected)`);
+          }
         }
 
-        // 2. Check for resumable attempt
-        const attemptResult = await getSavedAttempt(gameType, puzzles.date, puzzle.id);
-        if (hasResumableProgress(attemptResult, gameType)) {
-          attempt = attemptResult;
-          diffLock = diff;
-          break; // Found an attempt, stop
-        }
+        // Set results
+        setFoundSubmission(submission);
+        setFoundAttempt(attempt);
+        setLockedDifficulty(diffLock);
+        setCheckError(null);
+        
+        console.log('[GamePage] ✅ Check complete:', {
+          foundSubmission: !!submission,
+          foundAttempt: !!attempt,
+          lockedDifficulty: diffLock
+        });
+      } catch (err) {
+        console.error('[GamePage] Critical error during checks:', err);
+        setCheckError(err instanceof Error ? err.message : 'Failed to check game status');
       }
-
-      // Set results
-      setFoundSubmission(submission);
-      setFoundAttempt(attempt);
-      setLockedDifficulty(diffLock);
     };
     
-    checkAll().finally(() => setIsChecking(false));
+    checkAll().finally(() => {
+      setIsChecking(false);
+      console.log('[GamePage] isChecking set to false');
+    });
 
   }, [loadingPuzzles, puzzles, gameType, hasStarted]); // Re-run if user goes "Back"
 
@@ -221,8 +255,12 @@ export const GamePage = () => {
     return <Navigate to="/" replace />;
   }
 
+  // Handle check errors (but allow continuing with no saved game)
+  if (checkError) {
+    console.error("[GamePage] Check error (non-fatal):", checkError);
+  }
 
-// We now render content into a variable, which is cleaner
+  // We now render content into a variable, which is cleaner
   let content;
 
   // RENDER PRIORITY 1: SUBMISSION FOUND
@@ -245,8 +283,8 @@ export const GamePage = () => {
           gameType={gameType as any}
           guessCount={gameType === 'wordle' ? (foundAttempt.progress_data as WordleProgress)?.guesses?.length || 0 : 0}
           maxGuesses={6} // TODO: make dynamic
-          puzzleDate={puzzles!.date} // We know puzzles exists here
-          puzzleNumber={puzzleData.id} 
+          puzzleDate={puzzles.date} 
+          puzzleNumber={puzzleData?.id || 0} 
           onContinue={() => {
             setHasStarted(true); // Go to game
           }}
@@ -257,15 +295,14 @@ export const GamePage = () => {
       // No attempt found, show the intro
       content = (
         <GameIntro
-          title={introData!.title}
-          description={introData!.description}
-          howToPlay={introData!.howToPlay}
-          pointsInfo={introData!.pointsInfo}
-          hintInfo={introData!.hintInfo}
+          title={introData.title}
+          description={introData.description}
+          howToPlay={introData.howToPlay}
+          pointsInfo={introData.pointsInfo}
+          hintInfo={introData.hintInfo}
           onStart={() => setHasStarted(true)}
           onDifficultyChange={setSelectedDifficulty}
           initialDifficulty={activeDifficulty} 
-          // disableDifficulty={lockedDifficulty !== null} 
           color={introData.color}
           darkColor={introData.darkColor}
         />
@@ -280,7 +317,7 @@ export const GamePage = () => {
         <div className="text-center p-8 bg-white/50 rounded-lg">
           <h2 className="text-2xl font-bold text-red-600">Puzzle Not Available</h2>
           <p className="text-gray-700 mt-2">
-            The {introData!.title} puzzle for '{activeDifficulty}' mode has not been set by the admin for today.
+            The {introData.title} puzzle for '{activeDifficulty}' mode has not been set by the admin for today.
           </p>
           <button
             onClick={() => setHasStarted(false)} // Go back to intro
@@ -297,7 +334,7 @@ export const GamePage = () => {
           puzzle={puzzleData}
           difficulty={activeDifficulty}
           challengeId={null}
-          dailyPuzzleDate={puzzles!.date}
+          dailyPuzzleDate={puzzles.date}
         />
       );
     }
@@ -305,7 +342,7 @@ export const GamePage = () => {
 
   // The final render is now just this one container
   return (
-    <div className={`container mx-auto h-full w-full shadow-md rounded-4xl p-4 sm:p-8 md:p-12 ${introData!.bgColor}`}>
+    <div className={`container mx-auto h-full w-full shadow-md rounded-4xl p-4 sm:p-8 md:p-12 ${introData.bgColor}`}>
       {content}
     </div>
   );
