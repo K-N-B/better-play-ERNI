@@ -1,19 +1,21 @@
-// /src/pages/GamePage.tsx
-import React, { useState, useEffect, useMemo} from 'react';
+// /src/pages/gamePage.tsx
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
+import { getDailyPuzzles, checkSubmissionExists, getSavedAttempt } from '../api/gameService';
+import { AlreadyPlayedScreen } from '../components/gameComponents/shared/alreadyPlayedScreen';
+import { ResumeGameScreen } from '../components/gameComponents/shared/resumeGameScreen';
 import { LoadingSpinner } from '../components/ui/loadingSpinner';
-import GameIntro from '../components/features/games/gameIntro'; // Keep this import
+import GameIntro from '../components/features/games/gameIntro';
 
 // Import your game components
 import { WordleGame } from '../components/gameComponents/wordle/wordleGame';
 import { SudokuGame } from '../components/gameComponents/sudoku/sudokuGame';
 import { ErnigramGame } from '../components/gameComponents/ernigram/ernigramGame';
 
-import { getDailyPuzzles, checkSubmissionExists } from '../api/gameService'; 
-import { AlreadyPlayedScreen } from '../components/gameComponents/shared/alreadyPlayedScreen';
+import type { PuzzleAttemptData, WordleProgress } from '../types';
 
-// Define game intro content (move this to a separate data file later if desired)
+// Define game intro content
 const introContent = {
   wordle: {
     title: 'Wordle',
@@ -49,36 +51,129 @@ const introContent = {
 
 export type Difficulty = "easy" | "hard";
 
+// --- Helper Function ---
+// This checks if an attempt has actual progress
+const hasResumableProgress = (attempt: PuzzleAttemptData | null, gameType: string) => {
+  if (!attempt) return false;
+  
+  let hasProgress = attempt.time_spent_ms > 5000; // 5 seconds
+  
+  if (gameType === 'wordle') {
+    const wordleProgress = attempt.progress_data as WordleProgress;
+    hasProgress = hasProgress || (wordleProgress?.guesses?.length > 0 && !wordleProgress?.isGameOver);
+  }
+  // TODO: Add similar progress checks for Sudoku and Ernigram here
+  
+  return hasProgress;
+};
+// -----------------------
+
+
 export const GamePage = () => {
   const { gameType } = useParams<{ gameType: string }>();
-  const [difficulty, setDifficulty] = useState<Difficulty>('easy'); // Single difficulty state
-  const [hasStarted, setHasStarted] = useState(false); // State to track if intro is passed
-  // This hook now calls the REAL API via gameService
-  // const { data: puzzles, loading: loadingPuzzles, error } = useApi(getDailyPuzzles);
   
-  // Print puzzle data
+  // This is the user's *selected* difficulty, defaults to 'easy'
+  const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>('easy');
+  
+  // This locks the difficulty if a game is found
+  const [lockedDifficulty, setLockedDifficulty] = useState<Difficulty | null>(null);
+  
+  const [hasStarted, setHasStarted] = useState(false); 
   const { data: puzzles, loading: loadingPuzzles, error: error } = useApi(getDailyPuzzles);
-  // console.log(puzzles)
-  // console.log(loadingPuzzles)
+  
+  // State for the *found* submission or attempt
+  const [foundSubmission, setFoundSubmission] = useState<any>(null);
+  const [foundAttempt, setFoundAttempt] = useState<PuzzleAttemptData | null>(null);
+  
+  // Single loading state for both checks
+  const [isChecking, setIsChecking] = useState(true);
 
-  // Checking for submission
-  const [submissionStatus, setSubmissionStatus] = useState<null | { hasSubmitted: boolean; score?: number; submittedAt?: string; }>(null);
-  const [isCheckingSubmission, setIsCheckingSubmission] = useState(true); // Start true
-
-  // Reset hasStarted and difficulty when the gameType (URL) changes
+  // Reset states when the gameType (URL) changes
   useEffect(() => {
     setHasStarted(false);
-    setDifficulty('easy');
-    setSubmissionStatus(null);
-    setIsCheckingSubmission(true); // Re-check when game changes
+    setSelectedDifficulty('easy');
+    setLockedDifficulty(null);
+    setFoundSubmission(null);
+    setFoundAttempt(null);
+    setIsChecking(true);
   }, [gameType]);
 
-  // Validate gameType and get introData
+
+  // --- Combined Check Effect ---
+  // This runs on load and checks both difficulties
+  useEffect(() => {
+    // Wait for puzzles to be loaded
+    if (loadingPuzzles || !puzzles || !gameType) {
+      return;
+    }
+
+    // Don't re-check if user is playing
+    if (hasStarted) {
+      return;
+    }
+
+    setIsChecking(true);
+    
+    // Define the puzzles to check
+    const puzzlesToCheck: { diff: Difficulty; puzzle: any }[] = [
+      { diff: 'easy', puzzle: (puzzles as any)[`${gameType}_easy`] },
+      { diff: 'hard', puzzle: (puzzles as any)[`${gameType}_hard`] },
+    ];
+    
+    // Special case for Sudoku/Ernigram if they share one puzzle object
+    if (gameType === 'sudoku' || gameType === 'ernigram') {
+      puzzlesToCheck[0].puzzle = (puzzles as any)[gameType];
+      puzzlesToCheck[1].puzzle = null; // Only check one
+    }
+
+    const checkAll = async () => {
+      let submission = null;
+      let attempt = null;
+      let diffLock: Difficulty | null = null;
+
+      for (const { diff, puzzle } of puzzlesToCheck) {
+        if (!puzzle) continue;
+
+        // 1. Check for submission
+        const subResult = await checkSubmissionExists(gameType, puzzles.date, puzzle.id);
+        if (subResult.hasSubmitted) {
+          submission = subResult;
+          diffLock = diff;
+          break; // Found a submission, stop
+        }
+
+        // 2. Check for resumable attempt
+        const attemptResult = await getSavedAttempt(gameType, puzzles.date, puzzle.id);
+        if (hasResumableProgress(attemptResult, gameType)) {
+          attempt = attemptResult;
+          diffLock = diff;
+          break; // Found an attempt, stop
+        }
+      }
+
+      // Set results
+      setFoundSubmission(submission);
+      setFoundAttempt(attempt);
+      setLockedDifficulty(diffLock);
+    };
+    
+    checkAll().finally(() => setIsChecking(false));
+
+  }, [loadingPuzzles, puzzles, gameType, hasStarted]); // Re-run if user goes "Back"
+
+  
+  // --- RENDER LOGIC ---
+
+  const isLoading = loadingPuzzles || isChecking;
+  
+  // Get intro data (needed for colors, etc.)
   const isValidGameType = gameType && gameType in introContent;
   const introData = isValidGameType ? introContent[gameType as keyof typeof introContent] : null;
 
-  // ✅ NEW: Use useMemo to calculate puzzleData.
-  // This lets us use puzzleData for the submission check BEFORE rendering.
+  // The *active* difficulty is the one we locked, or the one the user selected
+  const activeDifficulty = lockedDifficulty || selectedDifficulty;
+  
+  // Get the puzzle data for the *active* difficulty
   const { puzzleData, GameComponent } = useMemo(() => {
     if (!puzzles || !isValidGameType) {
       return { puzzleData: null, GameComponent: null };
@@ -89,7 +184,7 @@ export const GamePage = () => {
     switch (gameType) {
       case 'wordle':
         gc = WordleGame;
-        pd = difficulty === 'easy' ? puzzles.wordle_easy : puzzles.wordle_hard;
+        pd = activeDifficulty === 'easy' ? puzzles.wordle_easy : puzzles.wordle_hard;
         break;
       case 'sudoku':
         gc = SudokuGame;
@@ -103,49 +198,10 @@ export const GamePage = () => {
         return { puzzleData: null, GameComponent: null };
     }
     return { puzzleData: pd, GameComponent: gc };
-  }, [puzzles, isValidGameType, gameType, difficulty]);
+  }, [puzzles, isValidGameType, gameType, activeDifficulty]);
 
+  // --- Render ---
 
-  // ✅ NEW: useEffect to check for an existing submission
-  useEffect(() => {
-    // ✅ FIX: Add guard clauses for all potentially null/undefined values
-    if (loadingPuzzles || !puzzles || !puzzleData || !isValidGameType || !gameType) {
-      // If we're not loading, it means one of the other values is missing,
-      // so we can stop the submission check.
-      if (!loadingPuzzles) {
-        setIsCheckingSubmission(false); 
-      }
-      return; // Wait for all data to be ready
-    }
-
-    // Reset and start checking
-    setSubmissionStatus(null); 
-    setIsCheckingSubmission(true);
-    
-    console.log(`[GamePage] Checking submission for: ${gameType}, puzzleId: ${puzzleData.id}, difficulty: ${difficulty}`);
-
-    checkSubmissionExists(gameType, puzzles.date, puzzleData.id)
-      .then(result => {
-        if (result.hasSubmitted) {
-          console.log('[GamePage] Submission found:', result);
-          setSubmissionStatus(result);
-        } else {
-          setSubmissionStatus(null); // Explicitly set to null if no submission
-        }
-      })
-      .catch(err => {
-        console.error('[GamePage] Submission check failed:', err);
-        setSubmissionStatus(null);
-      })
-      .finally(() => {
-        setIsCheckingSubmission(false);
-      });
-      
-  }, [loadingPuzzles, puzzles?.date, puzzleData, gameType, difficulty]); // Rerun when these change
-
-
-  // ✅ NEW: Main loading state now includes submission check
-  const isLoading = loadingPuzzles || isCheckingSubmission;
   if (isLoading) {
     return <LoadingSpinner fullPage={true} />;
   }
@@ -165,47 +221,65 @@ export const GamePage = () => {
     return <Navigate to="/" replace />;
   }
 
-  // Determine GameComponent and puzzleData
-  if (submissionStatus?.hasSubmitted) {
-    return (
-      <div className={`container mx-auto h-full w-full shadow-md rounded-4xl p-4 sm:p-8 md:p-12 ${introData.bgColor}`}>
-        <AlreadyPlayedScreen
-          gameType={gameType as 'wordle' | 'sudoku' | 'ernigram'}
-          score={submissionStatus.score || 0}
-          submittedAt={submissionStatus.submittedAt || new Date().toISOString()}
-          difficulty={difficulty}
-        />
-      </div>
-    );
-  }
 
-  // --- RENDER LOGIC ---
+// We now render content into a variable, which is cleaner
   let content;
-  if (!hasStarted) {
-    // Show Intro
+
+  // RENDER PRIORITY 1: SUBMISSION FOUND
+  if (foundSubmission) {
     content = (
-      <GameIntro
-        title={introData.title}
-        description={introData.description}
-        howToPlay={introData.howToPlay}
-        pointsInfo={introData.pointsInfo}
-        hintInfo={introData.hintInfo}
-        onStart={() => setHasStarted(true)} // Just set started to true
-        onDifficultyChange={setDifficulty} // Update the shared difficulty state
-        initialDifficulty={difficulty} // Pass the current shared state
-        color={introData.color}
-        darkColor={introData.darkColor}
+      <AlreadyPlayedScreen
+        gameType={gameType as any}
+        score={foundSubmission.score || 0}
+        submittedAt={foundSubmission.submittedAt || new Date().toISOString()}
+        difficulty={lockedDifficulty!} 
       />
     );
-  } else {
-    // Show Game
+  }
+  // RENDER PRIORITY 2 OR 3: INTRO / RESUME
+  else if (!hasStarted) {
+    if (foundAttempt) {
+      // ✅ 2. RENDER THE NEW RESUME SCREEN
+      content = (
+        <ResumeGameScreen
+          guessCount={gameType === 'wordle' ? (foundAttempt.progress_data as WordleProgress)?.guesses?.length || 0 : 0}
+          maxGuesses={6} // TODO: make dynamic
+          puzzleDate={puzzles!.date} // We know puzzles exists here
+          puzzleNumber={puzzleData.id} 
+          editor="ERNI Team"
+          onContinue={() => {
+            setHasStarted(true); // Go to game
+          }}
+        />
+      );
+    } else {
+      // No attempt found, show the intro
+      content = (
+        <GameIntro
+          title={introData!.title}
+          description={introData!.description}
+          howToPlay={introData!.howToPlay}
+          pointsInfo={introData!.pointsInfo}
+          hintInfo={introData!.hintInfo}
+          onStart={() => setHasStarted(true)}
+          onDifficultyChange={setSelectedDifficulty}
+          initialDifficulty={activeDifficulty} 
+          // disableDifficulty={lockedDifficulty !== null} 
+          color={introData.color}
+          darkColor={introData.darkColor}
+        />
+      );
+    }
+  }
+  // RENDER PRIORITY 4: PLAYING GAME
+  else {
     if (!puzzleData || !GameComponent) {
-      // This happens if admin forgot to link a puzzle for this difficulty
+      // "Puzzle Not Available" logic
       content = (
         <div className="text-center p-8 bg-white/50 rounded-lg">
           <h2 className="text-2xl font-bold text-red-600">Puzzle Not Available</h2>
           <p className="text-gray-700 mt-2">
-            The {introData.title} puzzle for '{difficulty}' mode has not been set by the admin for today.
+            The {introData!.title} puzzle for '{activeDifficulty}' mode has not been set by the admin for today.
           </p>
           <button
             onClick={() => setHasStarted(false)} // Go back to intro
@@ -216,20 +290,21 @@ export const GamePage = () => {
         </div>
       );
     } else {
-      // Show Game
+      // All checks passed, show the game
       content = (
         <GameComponent
           puzzle={puzzleData}
-          difficulty={difficulty} // Pass the selected difficulty
-          challengeId={null} // TODO: Add challengeId logic back later
-          dailyPuzzleDate={puzzles.date}
+          difficulty={activeDifficulty}
+          challengeId={null}
+          dailyPuzzleDate={puzzles!.date}
         />
       );
     }
   }
 
+  // The final render is now just this one container
   return (
-    <div className={`container mx-auto h-full w-full shadow-md rounded-4xl p-4 sm:p-8 md:p-12 ${introData.bgColor}`}>
+    <div className={`container mx-auto h-full w-full shadow-md rounded-4xl p-4 sm:p-8 md:p-12 ${introData!.bgColor}`}>
       {content}
     </div>
   );
