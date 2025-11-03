@@ -1,9 +1,11 @@
 import { mockApiCall } from "./api"; // Import helpers
-import { getCookie, API_URL } from "./authService";
+import { getCookie } from "./authService";
 import { MOCK_REWARDS, MOCK_CLAIMED_REWARDS } from "../data/_mockData"; // Adjust path
 import type { RewardItem, ClaimResponse, ClaimedReward } from "../types";
+import { API_BASE_URL } from "../config";
 
 const MOCK_MODE = false;
+
 /**
  * Fetches the list of available rewards from the real backend.
  */
@@ -15,7 +17,7 @@ export const getRewards = async (): Promise<RewardItem[]> => {
 
   // --- REAL API CALL ---
   try {
-    const response = await fetch(`${API_URL}/api/shop/rewards/`, {
+    const response = await fetch(`${API_BASE_URL}/api/shop/rewards/`, {
       method: "GET",
       credentials: "include", // Send session cookie
       headers: {
@@ -45,13 +47,15 @@ export const getClaimedRewards = async (): Promise<ClaimedReward[]> => {
   // --- REAL API CALL ---
   try {
     // This assumes your backend endpoint is /api/shop/claims/
-    const response = await fetch(`${API_URL}/api/shop/claims/`, {
+    const response = await fetch(`${API_BASE_URL}/api/shop/claims/`, {
       method: "GET",
       credentials: "include", // Send session cookie
       headers: { "Content-Type": "application/json" },
     });
     if (!response.ok) {
-      throw new Error(`Failed to fetch claimed rewards: ${response.statusText}`);
+      throw new Error(
+        `Failed to fetch claimed rewards: ${response.statusText}`
+      );
     }
     return await response.json();
   } catch (error) {
@@ -66,7 +70,9 @@ export const getClaimedRewards = async (): Promise<ClaimedReward[]> => {
  * @param {string | number} rewardId - The ID of the reward to claim.
  * @returns {Promise<ClaimResponse>} - Response indicating success/failure.
  */
-export const claimReward = async (rewardId: string | number): Promise<ClaimResponse> => {
+export const claimReward = async (
+  rewardId: string | number
+): Promise<ClaimResponse> => {
   // We no longer pass currentUserPoints; the backend handles this.
   if (MOCK_MODE) {
     // ... (Mock logic can stay for fallback testing) ...
@@ -74,7 +80,11 @@ export const claimReward = async (rewardId: string | number): Promise<ClaimRespo
     const reward = MOCK_REWARDS.find((r) => r.id === rewardId);
     if (reward && 1000 >= reward.cost) {
       // Hardcoded 1000 points for mock
-      return mockApiCall({ success: true, message: `Mock claimed ${reward.name}!`, remainingPoints: 1000 - reward.cost });
+      return mockApiCall({
+        success: true,
+        message: `Mock claimed ${reward.name}!`,
+        remainingPoints: 1000 - reward.cost,
+      });
     }
     return mockApiCall({ success: false, message: "Mock: Not enough points." });
   }
@@ -86,23 +96,28 @@ export const claimReward = async (rewardId: string | number): Promise<ClaimRespo
       throw new Error("CSRF token not found. Cannot claim reward.");
     }
 
-    const response = await fetch(`${API_URL}/api/shop/claim/${rewardId}/`, {
-      // Use correct URL
-      method: "POST",
-      credentials: "include", // Send session cookie
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrfToken, // <-- Include CSRF token
-      },
-      // No body is needed unless your view requires one
-      // body: JSON.stringify({}),
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/api/shop/claim/${rewardId}/`,
+      {
+        // Use correct URL
+        method: "POST",
+        credentials: "include", // Send session cookie
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken, // <-- Include CSRF token
+        },
+        // No body is needed unless your view requires one
+        // body: JSON.stringify({}),
+      }
+    );
 
     const data: ClaimResponse = await response.json(); // Get response from backend
 
     if (!response.ok) {
       // Throw an error with the message from the backend
-      throw new Error(data.message || `Failed to claim reward: ${response.statusText}`);
+      throw new Error(
+        data.message || `Failed to claim reward: ${response.statusText}`
+      );
     }
 
     // Backend should return { success: true, message: "...", remainingPoints: ... }

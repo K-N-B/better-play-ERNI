@@ -1,4 +1,5 @@
 // src/api/gameService.ts (COMPLETE FIX)
+import { Import } from "lucide-react";
 import type {
   DailyPuzzleResponse,
   SubmissionData,
@@ -7,8 +8,8 @@ import type {
   Submission,
 } from "../types/game";
 
+import { API_BASE_URL } from "../config";
 // const API_BASE_URL = 'http://localhost:8000';
-const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 function getCookie(name: string): string | null {
   let cookieValue = null;
