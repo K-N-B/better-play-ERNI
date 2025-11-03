@@ -1,59 +1,94 @@
-import axios from "axios";
-// /src/api/leaderboardService.ts
-import { MOCK_MODE, mockApiCall } from './api'; // Assuming MOCK_MODE is in api.ts
-// --- UPDATE THIS IMPORT ---
-// Import the specific leaderboard mock arrays
+// frontend/src/api/leaderboardService.ts
+import { MOCK_MODE, mockApiCall } from './api';
 import {
     MOCK_LEADERBOARD_INDIVIDUAL_WEEKLY,
     MOCK_LEADERBOARD_DEPARTMENT_WEEKLY
-} from '../data/_mockData'; // Adjust the path ('../data/_mockData') if your file structure is different
-// --- END UPDATE ---
-import type { LeaderboardData, LeaderboardPeriod, LeaderboardType } from '../types'; // Ensure types import is correct
+} from '../data/_mockData';
+import type { LeaderboardData, LeaderboardPeriod, LeaderboardType } from '../types';
 
-const API_BASE_URL = "http://127.0.0.1:8000/api/leaderboards"; // Keep this if using Option B backend structure
+const API_BASE_URL = "http://localhost:8000/api";
 
+/**
+ * Fetches leaderboard data for a specific period and type
+ * GET /api/leaderboard/?period={period}&type={type}&date={date}
+ */
 export const getLeaderboard = async (
     period: LeaderboardPeriod,
     type: LeaderboardType,
-    date?: string // Keep date for future archive use
+    date?: string
 ): Promise<LeaderboardData> => {
     if (MOCK_MODE) {
         console.log(`Mock: Fetching leaderboard - Period: ${period}, Type: ${type}, Date: ${date}`);
-        // Simple mock: return weekly data regardless of period for now
-        // You can add more complex logic here later to return different mock
-        // data based on 'period' if needed for testing.
+        
+        // Return mock data based on type
         if (type === 'individual') {
             return mockApiCall(MOCK_LEADERBOARD_INDIVIDUAL_WEEKLY);
         } else if (type === 'department') {
             return mockApiCall(MOCK_LEADERBOARD_DEPARTMENT_WEEKLY);
         } else {
             console.warn(`Mock: Unknown leaderboard type requested: ${type}`);
-            return mockApiCall([]); // Return empty array for unknown types
+            return mockApiCall([]);
         }
     }
 
-    // --- Real API Call (Using Axios based on your previous version) ---
+    // Real API call
     try {
-        console.log(`Real API: Fetching ${period} ${type} leaderboard...`);
-        // Use the URL structure from your file: /api/leaderboards/{period}/?type={type}
-        const response = await axios.get(`${API_BASE_URL}/${period}/`, {
-          params: { type },
-          // Add headers/credentials as needed based on your backend auth
-          // headers: token ? { Authorization: `Bearer ${token}` } : {},
-          // withCredentials: true, // If using session cookies
+        console.log(`[getLeaderboard] Fetching: period=${period}, type=${type}, date=${date}`);
+        
+        // Build query parameters
+        const params = new URLSearchParams({
+            period: period,
+            type: type, // ✅ Use 'type' to match backend parameter name
         });
-        return response.data; // Assuming backend returns data in correct format
-      } catch (error: any) {
-        console.error(
-          `[getLeaderboard] Failed to fetch ${period} ${type} data:`,
-          error.response?.data || error.message || error // Log specific Axios error if available
-        );
-        // Throw a new error or return empty array based on how you want components to handle it
-        throw new Error(`Failed to fetch ${type} leaderboard for ${period}`);
-        // return []; // Alternative: return empty array on error
-      }
-    // --- End Real API Call ---
-};
 
-// Assuming axios is imported if you uncomment the real call later
-// import axios from 'axios';
+        if (date) {
+            params.append('date', date);
+        }
+
+        const url = `${API_BASE_URL}/leaderboard/?${params.toString()}`;
+        console.log(`[getLeaderboard] Request URL: ${url}`);
+
+        const response = await fetch(url, {
+            method: 'GET',
+            credentials: 'include', // Include session cookies
+            headers: {
+                'Accept': 'application/json',
+            }
+        });
+
+        console.log(`[getLeaderboard] Response status: ${response.status}`);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`[getLeaderboard] Error response:`, errorText);
+            throw new Error(`Failed to fetch leaderboard: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log(`[getLeaderboard] Response data:`, data);
+        console.log(`[getLeaderboard] Response type:`, typeof data, 'IsArray:', Array.isArray(data));
+        
+        // ✅ Handle multiple possible response formats robustly
+        if (Array.isArray(data)) {
+            // Backend returned plain array directly
+            console.log(`[getLeaderboard] ✅ Returning array directly, length:`, data.length);
+            return data;
+        } else if (data && Array.isArray(data.leaderboard)) {
+            // Backend returned object with 'leaderboard' property
+            console.log(`[getLeaderboard] ✅ Extracting leaderboard array, length:`, data.leaderboard.length);
+            return data.leaderboard;
+        } else if (data && Array.isArray(data.results)) {
+            // Backend returned object with 'results' property (DRF pagination format)
+            console.log(`[getLeaderboard] ✅ Extracting results array, length:`, data.results.length);
+            return data.results;
+        } else {
+            // Unexpected format - return empty array and log warning
+            console.warn(`[getLeaderboard] ⚠️ Unexpected response format:`, data);
+            return [];
+        }
+        
+    } catch (error) {
+        console.error('[getLeaderboard] ❌ Error:', error);
+        throw error;
+    }
+};

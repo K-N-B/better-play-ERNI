@@ -1,4 +1,4 @@
-# /games/models.py
+# games/models.py
 from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
@@ -43,8 +43,8 @@ class WordlePuzzle(models.Model):
         ("HARD", "Hard"),
     ]
     difficulty = models.CharField(max_length=4, choices=DIFFICULTY_CHOICES, default="EASY")
+    
     BASE_POINTS = {
-        # Assuming imported values are 100 and 200
         "EASY": WORDLE_EASY_BASE_POINT,
         "HARD": WORDLE_HARD_BASE_POINT,
     }
@@ -53,8 +53,8 @@ class WordlePuzzle(models.Model):
         "HARD": WORDLE_HARD_TRY_LIMITS,
     }
     TIME_LIMITS_MS = {
-        "EASY": WORDLE_EASY_TIME_LIMIT,  # 5 minutes * 60 seconds/min * 1000 ms/second
-        "HARD": WORDLE_HARD_TIME_LIMIT,  # 7 minutes * 60 seconds/min * 1000 ms/second
+        "EASY": WORDLE_EASY_TIME_LIMIT,
+        "HARD": WORDLE_HARD_TIME_LIMIT,
     }
 
     @property
@@ -62,8 +62,6 @@ class WordlePuzzle(models.Model):
         return len(self.solution_word)
 
     class Meta:
-        # ADD THIS NEW, SMARTER RULE:
-        # The combination of date and difficulty must be unique.
         constraints = [
             models.UniqueConstraint(
                 fields=["date_to_be_used", "difficulty"],
@@ -71,8 +69,6 @@ class WordlePuzzle(models.Model):
             )
         ]
 
-    # --- UPDATED: validate_and_score method ---
-    # NOTE: The difficulty argument is now required to look up the base score.
     def validate_and_score(self, progress_data, difficulty="EASY"):
         """
         Calculates the score and verifies the final Wordle puzzle against the solution.
@@ -82,21 +78,36 @@ class WordlePuzzle(models.Model):
         tries = len(guesses)
         difficulty_upper = difficulty.upper()
 
-        # --- NEW: Check for the explicit API status sent by the client ---
+        # Debug logging
+        print(f"[WordlePuzzle.validate_and_score] Called")
+        print(f"  Difficulty: {difficulty_upper}")
+        print(f"  Guesses: {guesses}")
+        print(f"  Tries: {tries}")
+        print(f"  Solution: {self.solution_word}")
+        print(f"  Progress Data: {progress_data}")
+        
+        # Check for the explicit API status sent by the client
         status = progress_data.get("status", "ACTIVE").upper()
+        print(f"  Status: {status}")
+        
         client_claims_solved = status == "SOLVED"
 
-        # 1. Verification: Check if the last guess is the solution AND client submitted a SOLVED status
+        # Verification: Check if the last guess is the solution
         is_correct_guess = tries > 0 and guesses[-1].upper() == self.solution_word.upper()
+        
+        if tries > 0:
+            print(f"  Last guess: '{guesses[-1]}' vs Solution: '{self.solution_word}'")
+            print(f"  Match: {is_correct_guess}")
 
-        # The submission is only valid if BOTH the client claims success AND the guess is correct
+        # The submission is only valid if BOTH conditions are true
         if not is_correct_guess or not client_claims_solved:
+            print(f"[WordlePuzzle.validate_and_score] ❌ VALIDATION FAILED")
             return 0, tries
 
-        # 2. Scoring: Award full base points based on difficulty.
+        # Scoring: Award full base points based on difficulty
         points = self.BASE_POINTS.get(difficulty_upper, 0)
+        print(f"[WordlePuzzle.validate_and_score] ✅ SUCCESS - Awarding {points} points")
 
-        # Returns (points_awarded, tries_taken)
         return points, tries
 
     def save(self, *args, **kwargs):
@@ -108,10 +119,7 @@ class WordlePuzzle(models.Model):
 
 
 class SudokuPuzzle(models.Model):
-    """
-    A single Sudoku puzzle with defined easy and hard starting grids
-    derived from the same solution.
-    """
+    """A single Sudoku puzzle with defined easy and hard starting grids"""
 
     solution_string = models.CharField(
         max_length=81, help_text="81 chars (1-9), the complete solution grid."
@@ -131,56 +139,42 @@ class SudokuPuzzle(models.Model):
         "HARD": SUDOKU_HARD_TIME_LIMIT,
     }
 
-    # Base Points and Penalties
     BASE_POINTS = {
         "EASY": SUDOKU_EASY_BASE_POINT,
         "HARD": SUDOKU_HARD_BASE_POINT,
     }
-    HINT_PENALTY_POINTS = SUDOKU_HINT_PENALTY  # 20 pts subtraction for each hint used
+    HINT_PENALTY_POINTS = SUDOKU_HINT_PENALTY
     HINT_LIMITS = {
-        "EASY": SUDOKU_EASY_HINT_LIMIT,  # 5 hints max
+        "EASY": SUDOKU_EASY_HINT_LIMIT,
         "HARD": SUDOKU_HARD_HINT_LIMIT,
     }
 
     def clean(self):
-        # Basic validation for string lengths
         if len(self.solution_string) != 81:
             raise ValidationError({"solution_string": "Solution string must be 81 characters."})
         if len(self.puzzle_string_easy) != 81:
-            raise ValidationError(
-                {"puzzle_string_easy": "Easy puzzle string must be 81 characters."}
-            )
+            raise ValidationError({"puzzle_string_easy": "Easy puzzle string must be 81 characters."})
         if len(self.puzzle_string_hard) != 81:
-            raise ValidationError(
-                {"puzzle_string_hard": "Hard puzzle string must be 81 characters."}
-            )
-        # Add more validation if needed (e.g., check characters are digits)
+            raise ValidationError({"puzzle_string_hard": "Hard puzzle string must be 81 characters."})
 
     def validate_and_score(self, progress_data, difficulty="EASY"):
         """
         Calculates the score and verifies the final Sudoku grid against the solution.
-        Requires: 'status' to be 'SOLVED' and 'final_grid' to match the solution.
         """
         final_grid = progress_data.get("final_grid", "")
         hints_used = progress_data.get("hints_used", 0)
         difficulty = difficulty.upper()
 
-        # --- NEW: Check for the explicit API status sent by the client ---
         status = progress_data.get("status", "ACTIVE").upper()
         client_claims_solved = status == "SOLVED"
 
-        # 1. Verification: Grid must match the solution AND client must claim success
         is_correct_grid = final_grid == self.solution_string
 
-        # The server confirms the grid is correct, but only proceeds if the client submitted a 'SOLVED' status.
         if not client_claims_solved or not is_correct_grid or len(final_grid) != 81:
             return 0, hints_used
 
-        # 2. Scoring Calculation
         base_points = self.BASE_POINTS.get(difficulty, 0)
         penalty = hints_used * self.HINT_PENALTY_POINTS
-
-        # Final Score: Ensures points do not drop below zero
         points = max(0, base_points - penalty)
 
         return points, hints_used
@@ -204,8 +198,6 @@ class EmployeeImageSource(models.Model):
         help_text="Role or project context for the AI clue."
     )
     
-    # --- THE FIX: The ImageField now lives here. ---
-    # We will consistently use the name 'image_file' everywhere.
     image_file = models.ImageField(
         upload_to='ernigram_employees/',
         help_text="Upload a picture of the employee."
@@ -221,7 +213,6 @@ class EmployeeImageSource(models.Model):
         verbose_name_plural = "Employee Image Sources"
 
 
-
 class ErnigramPuzzle(models.Model):
     """A single Hangman (ERNIgram) puzzle."""
 
@@ -233,7 +224,7 @@ class ErnigramPuzzle(models.Model):
 
     employee_source = models.ForeignKey(
         EmployeeImageSource,
-        on_delete=models.SET_NULL, # If the source is deleted, keep the puzzle record
+        on_delete=models.SET_NULL,
         blank=True,
         null=True,
         help_text="A link to the employee source if this is an employee puzzle."
@@ -244,36 +235,31 @@ class ErnigramPuzzle(models.Model):
         "HARD": ERNIGRAM_HARD_TIME_LIMIT,
     }
 
-    # Mistake Limits (Used for the 'tries' field in Submission)
     MISTAKE_LIMITS = {
-        "EASY": ERNIGRAM_EASY_MISTAKE_LIMITS,  # 6 mistake letters max
-        "HARD": ERNIGRAM_HARD_MISTAKE_LIMITS,  # 4 mistake letters max
+        "EASY": ERNIGRAM_EASY_MISTAKE_LIMITS,
+        "HARD": ERNIGRAM_HARD_MISTAKE_LIMITS,
     }
 
-    # Base Points (Fixed score if solved)
     BASE_POINTS = {
         "EASY": ERNIGRAM_EASY_BASE_POINT,
         "HARD": ERNIGRAM_HARD_BASE_POINT,
     }
 
     def validate_and_score(self, progress_data, difficulty="EASY"):
-        # FIX: Ensure 'misses' has a default value if not present in progress_data
         misses = progress_data.get("misses", 0)
         difficulty = difficulty.upper()
 
         status = progress_data.get("status", "ACTIVE").upper()
         is_solved = status == "SOLVED"
 
-        # 1. Verification: Must be explicitly marked as solved
         if not is_solved:
-            # FIX: Return tries/misses count even if not solved (for stat tracking)
             return 0, misses
 
         points = self.BASE_POINTS.get(difficulty, 0)
         return points, misses
 
     def save(self, *args, **kwargs):
-        self.solution_phrase = self.solution_phrase.upper()  # Ensure uppercase on save
+        self.solution_phrase = self.solution_phrase.upper()
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -284,27 +270,36 @@ class DailyPuzzle(models.Model):
     """Links a specific date to the puzzles active on that day."""
 
     date = models.DateField(unique=True, primary_key=True, default=timezone.now)
+
     wordle_easy = models.ForeignKey(
         WordlePuzzle,
-        on_delete=models.PROTECT,  # Prevent deleting a Wordle puzzle if it's scheduled
+        on_delete=models.PROTECT,
         related_name="daily_wordle_easy",
-        limit_choices_to={"solution_word__length": 5},
+        limit_choices_to={"difficulty": "EASY"},
         help_text="The 5-letter Wordle puzzle for the day (Easy difficulty)",
     )
     wordle_hard = models.ForeignKey(
         WordlePuzzle,
         on_delete=models.PROTECT,
         related_name="daily_wordle_hard",
-        limit_choices_to={"solution_word__length__gte": 6},
+        limit_choices_to={"difficulty": "HARD"},
         help_text="The 6+ letter Wordle puzzle for the day (Hard difficulty)",
     )
-    sudoku = models.ForeignKey(SudokuPuzzle, on_delete=models.PROTECT, related_name="daily_sudokus")
+
+    sudoku = models.ForeignKey(
+        SudokuPuzzle,
+        on_delete=models.PROTECT,
+        related_name="daily_sudokus",
+    )
+
     ernigram = models.ForeignKey(
-        ErnigramPuzzle, on_delete=models.PROTECT, related_name="daily_ernigrams"
+        ErnigramPuzzle,
+        on_delete=models.PROTECT,
+        related_name="daily_ernigrams",
     )
 
     class Meta:
-        ordering = ["-date"]  # Show most recent dates first
+        ordering = ["-date"]
 
     def __str__(self):
         return f"Puzzles for {self.date.strftime('%Y-%m-%d')}"

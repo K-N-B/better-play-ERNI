@@ -9,16 +9,15 @@ Welcome to the ERNI Puzzle Platform, a full-stack web application designed to fo
 * **Daily Games:** A set of daily puzzles that refresh automatically.
     * **Wordle:** Guess the daily word. Supports "Easy" (5-letter) and "Hard" (6+ letter) modes.
     * **Sudoku:** A classic logic puzzle. Supports "Easy" and "Hard" modes with different numbers of given cells.
-    * **ERNIgram:** A "Hangman-style" game with a blurred employee photo as the clue. Supports "Easy" (6 mistakes) and "Hard" (3 mistakes) modes.
+    * **ERNIgram:** A "Hangman-style" game with where you'd have to guess either something about ERNI, some recent country news, or guess who?
 * **Game Intro Screen:** A "How to Play" screen before each game, which allows for difficulty selection.
 * **Scoring & Points:** Users earn points (`current_points`) for completing puzzles, which they can spend in the shop. A separate `total_points_alltime` is tracked for leaderboards.
 * **Leaderboards:** View rankings by Individual or Department.
     * Filterable by `daily`, `weekly`, `monthly`, and `alltime`.
     * Features a responsive podium view for the top 3 players.
-* **Challenges:** Players can challenge colleagues to beat their score on a specific puzzle.
-* **Notifications:** A navbar bell icon shows pending challenges.
+* **Challenges:** Players can challenge colleagues to beat their score on a specific puzzle. You can check your past and pending challenges on its dedicated page!
 * **Community Hub:** The homepage features:
-    * **Activity Feed:** A live feed of recent player achievements.
+    * **Activity Feed:** A live feed of recent player puzzle completions.
     * **Who's Online:** A list of currently active users.
 * **Reward Shop:** A shop where users can spend their `current_points` to claim rewards.
     * Supports item stock and claim limits per user.
@@ -31,8 +30,9 @@ Welcome to the ERNI Puzzle Platform, a full-stack web application designed to fo
 
 * **Frontend:** React, TypeScript, Vite, Tailwind CSS
 * **Backend:** Django, Django REST Framework, Python
-* **Database:** PostgreSQL (Hosted on Supabase)
+* **Database:** PostgreSQL 
 * **Authentication:** Custom Microsoft Azure AD (MSAL) flow with Django sessions.
+* **Hosting:** Supabase (Database), Vercel (Frontend), Render (Database)
 
 ---
 
@@ -44,11 +44,6 @@ Welcome to the ERNI Puzzle Platform, a full-stack web application designed to fo
     * Python (3.10+ recommended)
     * PostgreSQL (a running instance, e.g., on Supabase)
     * `pip` and `venv`
-
-2.  **Navigate to the backend folder:**
-    ```bash
-    cd puzzle_backend
-    ```
 
 3.  **Create and activate a virtual environment:**
     ```bash
@@ -66,7 +61,6 @@ Welcome to the ERNI Puzzle Platform, a full-stack web application designed to fo
 
 5.  **Set up the Database:**
     * Create a PostgreSQL database (e.g., on Supabase).
-    * Create a `.env` file in the `puzzle_backend` root. Copy the contents from `.env.example` (if one exists) or use the template below.
 
 6.  **Configure `.env` File:**
     * Create a `.env` file in the `puzzle_backend` root and add the following, filling in your credentials:
@@ -92,6 +86,7 @@ Welcome to the ERNI Puzzle Platform, a full-stack web application designed to fo
 7.  **Run Migrations:**
     * This will create all the tables in your Supabase database.
     ```bash
+    python manage.py makemigrations
     python manage.py migrate
     ```
 
@@ -109,6 +104,8 @@ Welcome to the ERNI Puzzle Platform, a full-stack web application designed to fo
     * Go to "Wordle Puzzles", "Sudoku Puzzles", etc. and add at least one of each.
     * Go to "Daily Puzzles" and create an entry for today, linking the puzzles you just created.
     * Go to "Rewards" and add items to the shop.
+    * (Replace with instructions for running seeder)
+      
 
 10. **Run the Backend Server:**
     ```bash

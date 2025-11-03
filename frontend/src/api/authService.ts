@@ -1,126 +1,131 @@
-// What it is: Functions related to users, teams, and authentication.
-// What you need to do:
-// getUserProfile(): Calls GET /api/users/me/.
-// getTeams(): Calls GET /api/teams/.
-// completeProfile(teamId: number): Calls POST /api/users/me/complete-profile/.
-
+// frontend/src/api/authService.ts
 import type { Department, UserProfile } from "../types/user";
-import { MOCK_MODE, mockApiCall } from "./api";
-import { MOCK_DEPARTMENTS, MOCK_USER_MAIN } from "../data/_mockData";
 
+export const API_URL = "http://localhost:8000";
 
-// Ensure this resolves to a string like "http://localhost:8000"
-export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-
-// This function checks if the user has a valid session cookie
+/**
+ * Check if user has a valid session cookie
+ * GET /auth/check/
+ */
 export const checkAuth = async (): Promise<{
   authenticated: boolean;
   user: UserProfile | null;
 }> => {
-  // We NEVER mock this. This is the core of your auth.
   try {
     const response = await fetch(`${API_URL}/auth/check/`, {
       credentials: "include", // This sends the session cookie
     });
+
     if (!response.ok) {
       return { authenticated: false, user: null };
     }
+
     const data = await response.json();
-    // Assumes your /auth/check/ returns { authenticated: true, user: {...} }
     return data;
   } catch (err) {
+    console.error('[checkAuth] Error:', err);
     return { authenticated: false, user: null };
   }
 };
 
-// This gets the Microsoft redirect URL from your backend
+/**
+ * Get the Microsoft redirect URL from backend
+ * GET /auth/login/
+ */
 export const getLoginRedirectUrl = async (): Promise<{ auth_url: string }> => {
   const response = await fetch(`${API_URL}/auth/login/`, {
     credentials: "include",
   });
+
   if (!response.ok) {
     throw new Error("Failed to get auth URL");
   }
+
   return response.json();
 };
 
-// This tells the backend to destroy the session cookie
+/**
+ * Tell backend to destroy the session cookie
+ * POST /auth/logout/
+ * * FIX: Added CSRF token to headers to prevent 403 Forbidden error.
+ */
 export const logoutUser = async (): Promise<void> => {
-  await fetch(`${API_URL}/auth/logout/`, {
+  const csrfToken = getCookie('csrftoken');
+  if (!csrfToken) {
+    console.warn("[logoutUser] CSRF token not found. Logout may fail.");
+  }
+  
+  const response = await fetch(`${API_URL}/auth/logout/`, {
     method: "POST",
     credentials: "include",
+    headers: {
+      'Content-Type': 'application/json',
+      // CRUCIAL ADDITION: Send the CSRF token
+      'X-CSRFToken': csrfToken || '', 
+    },
+    body: JSON.stringify({}), // Include a body for fetch consistency with POST
   });
+  
+  if (!response.ok) {
+      // Throw an error if the backend request failed (e.g., 403, 500)
+      const errorText = await response.text();
+      console.error(`[logoutUser] API request failed (${response.status}):`, errorText);
+      throw new Error(`Failed to log out: ${response.statusText}`);
+  }
 };
 
-// --- This part can still be mocked ---
-// Gets the list of departments for the "FirstTimeSetupModal"
+/**
+ * Fetch list of all departments
+ * GET /api/departments/
+ */
 export const getDepartments = async (): Promise<Department[]> => {
-  // if (MOCK_MODE) {
-  //   return mockApiCall(MOCK_DEPARTMENTS);
-  // }
-  // Real call will go here
-  // --- START REAL API CALL ---
   try {
     console.log('[getDepartments] Fetching real data...');
-    const response = await fetch(`${API_URL}/api/departments/`, { // <-- Use correct endpoint URL
-      credentials: 'include', // <-- Include cookies for authentication
+    const response = await fetch(`${API_URL}/api/departments/`, {
+      credentials: 'include', // Include cookies for authentication
       headers: {
-        'Accept': 'application/json', // Optional: Specify expected content type
+        'Accept': 'application/json',
       }
     });
 
     if (!response.ok) {
-      // Handle non-2xx responses (like 403 Forbidden if not authenticated)
       console.error(`[getDepartments] API request failed with status ${response.status}`);
       throw new Error(`Failed to fetch departments: ${response.statusText}`);
     }
 
-    const data: Department[] = await response.json(); // Parse the JSON response
-    console.log('[getDepartments] Fetched real data:', data);
+    const data: Department[] = await response.json();
+    console.log('[getDepartments] Fetched departments:', data);
     return data;
 
   } catch (error) {
     console.error('[getDepartments] Fetch error:', error);
-    // Re-throw the error or return an empty array, depending on how you want to handle errors
-    throw error; // Let the calling component handle the error state
-    // Or return [];
+    throw error;
   }
-  // --- END REAL API CALL ---
-}
-  
+};
 
-// This is still needed for the modal
+/**
+ * Complete user profile by selecting a department
+ * POST /api/users/me/complete-profile/
+ */
 export const completeProfile = async (departmentId: number): Promise<UserProfile> => {
-  // if (MOCK_MODE) {
-  //   // TODO: Replace with a real API call later
-  //   // Real call: return api.post('/api/users/me/complete-profile/', { departmentId });
-  //   return mockApiCall({
-  //     ...MOCK_USER_MAIN,
-  //     profile_complete: true,
-  //     department: MOCK_DEPARTMENTS[1],
-  //   });
-  // }
-
   try {
-    console.log(`[completeProfile] Sending real request... Dept ID: ${departmentId}`);
-    // --- Get CSRF Token ---
-    const csrfToken = getCookie('csrftoken'); // Default Django CSRF cookie name
+    console.log(`[completeProfile] Sending request... Dept ID: ${departmentId}`);
+
+    // Get CSRF Token
+    const csrfToken = getCookie('csrftoken');
     if (!csrfToken) {
-       console.error("[completeProfile] CSRF token not found. Ensure backend sends 'csrftoken' cookie.");
-       throw new Error("CSRF token missing. Cannot complete profile.");
+      console.error("[completeProfile] CSRF token not found.");
+      throw new Error("CSRF token missing. Cannot complete profile.");
     }
-    // ---
 
     const response = await fetch(`${API_URL}/api/users/me/complete-profile/`, {
-       method: 'POST',
-       credentials: 'include',
-       headers: {
-         'Content-Type': 'application/json',
-         // --- Add CSRF Token Header ---
-         'X-CSRFToken': csrfToken,
-         // ---
-       },
-       body: JSON.stringify({ department_id: departmentId }),
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken,
+      },
+      body: JSON.stringify({ department_id: departmentId }),
     });
 
     if (!response.ok) {
@@ -139,13 +144,15 @@ export const completeProfile = async (departmentId: number): Promise<UserProfile
   }
 };
 
+/**
+ * Helper function to get CSRF token from cookies
+ */
 export function getCookie(name: string): string | null {
   let cookieValue = null;
   if (document.cookie && document.cookie !== '') {
     const cookies = document.cookie.split(';');
     for (let i = 0; i < cookies.length; i++) {
       const cookie = cookies[i].trim();
-      // Does this cookie string begin with the name we want?
       if (cookie.substring(0, name.length + 1) === (name + '=')) {
         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
         break;

@@ -1,106 +1,223 @@
-import { useState, useEffect, useCallback } from 'react';
-import { submitPuzzle, getSavedAttempt, saveProgress } from '../../../api/gameService'; // Adjust path if needed
+// src/components/gameComponents/wordle/wordleGame.tsx - WITH RESUME MODAL
+
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { submitPuzzle, getSavedAttempt, saveProgress, checkSubmissionExists } from '../../../api/gameService';
 import { completeChallenge } from '../../../api/challengeService';
-import type { WordlePuzzle, SubmissionData, PuzzleAttemptData, WordleProgress, KeyStatus, SubmissionResult } from '../../../types/game';
+import type { WordlePuzzle, SubmissionData, PuzzleAttemptData, WordleProgress, KeyStatus } from '../../../types/game';
 import { WordleGrid } from './wordleGrid';
 import { Keyboard } from './keyboard';
 import { PostGameResultsModal } from '../../ui/postGameResultsModal';
+import { AlreadyPlayedScreen } from '../shared/alreadyPlayedScreen';
+import { ResumeGameModal } from '../../ui/resumeGameModal'; // ✅ NEW IMPORT
 import { useTimer } from '../../../hooks/useTimer';
 import { Timer } from '../../ui/timer';
 import { useApi } from '../../../hooks/useApi';
 import { LoadingSpinner } from '../../ui/loadingSpinner';
 import type { Difficulty } from '../../../pages/gamePage';
 
-
 interface WordleGameProps {
   puzzle: WordlePuzzle;
   difficulty: Difficulty;
   challengeId: number | null;
-  dailyPuzzleDate: string;
 }
 
-export const WordleGame = ({ puzzle, difficulty, challengeId, dailyPuzzleDate }: WordleGameProps) => {
+export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps) => {
   const [solution] = useState(puzzle.solution_word.toUpperCase());
   const [wordLength] = useState(solution.length);
   const MAX_GUESSES = 6;
-  console.log(solution);
-  console.log(wordLength);
 
   const [guesses, setGuesses] = useState<string[]>([]);
   const [currentGuess, setCurrentGuess] = useState('');
   const [currentRow, setCurrentRow] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
   const [letterStatuses, setLetterStatuses] = useState<Record<string, KeyStatus>>({});
-  const [gameResult, setGameResult] = useState<{
-    score: number;
-    submissionId: number | null;
-    currentStreak: number;
-    maxStreak: number;
-    streakUpdatedToday: boolean;
-    message: string;
+  const [gameResult, setGameResult] = useState<{ score: number; submissionId: number | null } | null>(null);
+  
+  // ✅ NEW: Resume modal state
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  
+  const [alreadyCompleted, setAlreadyCompleted] = useState<{
+    hasSubmitted: boolean;
+    score?: number;
+    submittedAt?: string;
   } | null>(null);
+  const [checkingSubmission, setCheckingSubmission] = useState(true);
 
   const { time, startTimer, stopTimer, setSavedTime } = useTimer();
-  const fetchSavedWordle = useCallback(
-    () => getSavedAttempt('wordle', dailyPuzzleDate, puzzle.id),
-    [dailyPuzzleDate, puzzle.id]
-  );
+
+  const guessesRef = useRef<string[]>([]);
+  useEffect(() => {
+    guessesRef.current = guesses;
+  }, [guesses]);
+
+  // Check for existing submission FIRST
+  useEffect(() => {
+    if (!puzzle?.date_to_be_used || !puzzle?.id) {
+      setCheckingSubmission(false);
+      return;
+    }
+    
+    console.log('[WordleGame] Checking if already submitted...');
+    setCheckingSubmission(true);
+    
+    checkSubmissionExists('wordle', puzzle.date_to_be_used, puzzle.id)
+      .then(result => {
+        console.log('[WordleGame] Submission check result:', result);
+        if (result.hasSubmitted) {
+          setAlreadyCompleted(result);
+          setIsGameOver(true);
+        }
+      })
+      .catch(err => console.error('[WordleGame] Check failed:', err))
+      .finally(() => setCheckingSubmission(false));
+  }, [puzzle?.date_to_be_used, puzzle?.id]);
+
+  // Fetch saved game
+  const fetchSavedWordle = useCallback(() => {
+    if (!puzzle?.date_to_be_used || !puzzle?.id || alreadyCompleted?.hasSubmitted) {
+      return Promise.resolve(null);
+    }
+    return getSavedAttempt('wordle', puzzle.date_to_be_used, puzzle.id.toString());
+  }, [puzzle?.date_to_be_used, puzzle?.id, alreadyCompleted]);
+
   const { data: savedGame, loading } = useApi(fetchSavedWordle);
 
-
-
-  // Effect to load data
+  // ✅ NEW: Load saved progress and show resume modal
   useEffect(() => {
+    if (alreadyCompleted?.hasSubmitted) return;
+    
     let loadedIsGameOver = false;
     if (savedGame && savedGame.puzzle_type === 'wordle') {
       const progress = savedGame.progress_data as WordleProgress;
-      setGuesses(progress.guesses);
-      setCurrentRow(progress.currentRow);
-      setLetterStatuses(progress.letterStatuses);
-      setIsGameOver(progress.isGameOver);
+      setGuesses(progress.guesses || []);
+      setCurrentRow(progress.currentRow || 0);
+      setLetterStatuses(progress.letterStatuses || {});
+      setIsGameOver(progress.isGameOver || false);
       setSavedTime(savedGame.time_spent_ms);
       loadedIsGameOver = progress.isGameOver;
-    }
-    if (!loadedIsGameOver) {
+      
+      // ✅ Show resume modal if user has made guesses OR spent significant time (>5 seconds)
+      const hasProgress = (progress.guesses?.length > 0) || (savedGame.time_spent_ms > 5000);
+      
+      if (hasProgress && !progress.isGameOver) {
+        console.log('[WordleGame] Showing resume modal - guesses:', progress.guesses?.length, 'time:', savedGame.time_spent_ms);
+        setShowResumeModal(true);
+      } else if (!loadedIsGameOver) {
+        console.log('[WordleGame] Starting timer - no resume needed');
+        startTimer();
+      }
+    } else if (!loadedIsGameOver) {
       startTimer();
     }
-  }, [savedGame, startTimer, setSavedTime]);
+  }, [savedGame, startTimer, setSavedTime, alreadyCompleted]);
 
-  // Effect to auto-save
+  // Auto-save progress
   useEffect(() => {
-    if (loading || isGameOver) return;
+    if (loading || isGameOver || alreadyCompleted?.hasSubmitted || !puzzle?.date_to_be_used || !puzzle?.id || !difficulty) return;
 
     const saveTimer = setTimeout(() => {
-      const progress: WordleProgress = { guesses, currentRow, letterStatuses, isGameOver };
-      saveProgress(
-        {
-          puzzle_id: puzzle.id,
-          puzzle_type: 'wordle',
-          progress_data: progress,
-          time_spent_ms: time,
-          difficulty,
-        },
-        dailyPuzzleDate,
-        puzzle.id
-      );
+      const progress: WordleProgress = { 
+        guesses, 
+        currentRow, 
+        letterStatuses, 
+        isGameOver, 
+        status: isGameOver ? 'SOLVED' : 'ACTIVE' 
+      };
+      
+      const dataPayload: PuzzleAttemptData = {
+        puzzle_id: puzzle.id,
+        puzzle_type: 'wordle',
+        progress_data: progress,
+        time_spent_ms: time,
+        difficulty: difficulty,
+      };
+
+      saveProgress(dataPayload, puzzle.date_to_be_used, puzzle.id)
+        .catch(err => console.error('[WordleGame] Save failed:', err));
     }, 2000);
 
     return () => clearTimeout(saveTimer);
-  }, [guesses, currentRow, /*letterStatuses,*/ isGameOver, time, loading, puzzle.id]); // Removed letterStatuses & gameResult
+  }, [guesses, currentRow, isGameOver, time, loading, puzzle?.id, puzzle?.date_to_be_used, difficulty, letterStatuses, alreadyCompleted]);
 
-  // handleKeyPress callback
+  const endGame = useCallback(async (
+    tries: number, 
+    won: boolean, 
+    currentGuessesArray: string[],
+    currentLetterStatuses: Record<string, KeyStatus>
+  ) => {
+    if (isGameOver || alreadyCompleted?.hasSubmitted) return;
+    
+    setIsGameOver(true);
+    stopTimer();
+    const finalTime = time;
+    let finalScore = 0;
+    let submissionIdForResultModal: number | null = null;
+
+    if (!puzzle?.date_to_be_used || !puzzle?.id) {
+      setGameResult({ score: 0, submissionId: null });
+      return;
+    }
+
+    if (!won) {
+      setGameResult({ score: 0, submissionId: null });
+      return;
+    }
+
+    try {
+      const finalProgress: WordleProgress = {
+        guesses: currentGuessesArray,
+        currentRow: tries,
+        letterStatuses: currentLetterStatuses,
+        isGameOver: true,
+        status: 'SOLVED'
+      };
+
+      await saveProgress(
+        {
+          puzzle_id: puzzle.id,
+          puzzle_type: 'wordle',
+          progress_data: finalProgress,
+          time_spent_ms: finalTime,
+          difficulty: difficulty,
+        },
+        puzzle.date_to_be_used,
+        puzzle.id
+      );
+
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const submissionData: SubmissionData = {
+        puzzle_id: puzzle.id,
+        puzzle_type: 'wordle',
+        difficulty: difficulty,
+        time_taken_ms: finalTime,
+        tries: tries,
+      };
+
+      const submissionResult = await submitPuzzle(
+        submissionData,
+        puzzle.date_to_be_used,
+        puzzle.id
+      );
+      
+      finalScore = submissionResult.score;
+      submissionIdForResultModal = submissionResult.submissionId ?? null;
+
+      if (challengeId && submissionIdForResultModal) {
+        await completeChallenge(challengeId, { submission_id: submissionIdForResultModal });
+      }
+    } catch (err) {
+      console.error("[WordleGame] Error:", err);
+    } finally {
+      setGameResult({ score: finalScore, submissionId: submissionIdForResultModal });
+    }
+  }, [isGameOver, stopTimer, time, puzzle, difficulty, challengeId, alreadyCompleted]);
+
   const handleKeyPress = useCallback((key: string) => {
-    if (isGameOver) return;
+    if (isGameOver || alreadyCompleted?.hasSubmitted) return;
 
     if (key === 'Enter') {
-      // --- Check against dynamic wordLength ---
       if (currentGuess.length === wordLength) {
-        // Basic check if word is valid (replace with real dictionary check later)
-        if (currentGuess.length !== wordLength) {
-          console.warn("Invalid guess length"); // Add user feedback later
-          return;
-        }
-
         const newGuesses = [...guesses, currentGuess];
         const newRow = currentRow + 1;
 
@@ -116,70 +233,45 @@ export const WordleGame = ({ puzzle, difficulty, challengeId, dailyPuzzleDate }:
         setLetterStatuses(newStatuses);
         setCurrentGuess('');
 
-        if (currentGuess === solution) {
-          endGame(newRow, true);
-        } else if (newRow >= MAX_GUESSES) {
-          endGame(MAX_GUESSES, false);
+        // ✅ CRITICAL FIX: Save immediately after guess is made
+        if (puzzle?.date_to_be_used && puzzle?.id && difficulty) {
+          const progress: WordleProgress = { 
+            guesses: newGuesses, 
+            currentRow: newRow, 
+            letterStatuses: newStatuses, 
+            isGameOver: false, 
+            status: 'ACTIVE' 
+          };
+          
+          const dataPayload: PuzzleAttemptData = {
+            puzzle_id: puzzle.id,
+            puzzle_type: 'wordle',
+            progress_data: progress,
+            time_spent_ms: time,
+            difficulty: difficulty,
+          };
+
+          console.log('[WordleGame] Saving guess immediately:', newGuesses);
+          saveProgress(dataPayload, puzzle.date_to_be_used, puzzle.id)
+            .then(() => console.log('[WordleGame] Guess saved successfully'))
+            .catch(err => console.error('[WordleGame] Failed to save guess:', err));
         }
-      } else {
-        console.warn(`Guess must be ${wordLength} letters`); // Use dynamic length
+
+        if (currentGuess === solution) {
+          setTimeout(() => endGame(newRow, true, newGuesses, newStatuses), 100);
+        } else if (newRow >= MAX_GUESSES) {
+          setTimeout(() => endGame(MAX_GUESSES, false, newGuesses, newStatuses), 100);
+        }
       }
     } else if (key === 'Backspace') {
       setCurrentGuess(g => g.slice(0, -1));
-    } else if (currentGuess.length < wordLength && /^[a-zA-Z]$/.test(key)) { // Check against dynamic length
+    } else if (currentGuess.length < wordLength && /^[a-zA-Z]$/.test(key)) {
       setCurrentGuess(g => g + key.toUpperCase());
     }
-  }, [isGameOver, currentGuess, guesses, currentRow, letterStatuses, solution, puzzle.id, MAX_GUESSES, wordLength]); // <-- Add wordLength
-  // ---
+  }, [isGameOver, currentGuess, guesses, currentRow, letterStatuses, solution, wordLength, endGame, MAX_GUESSES, alreadyCompleted, puzzle, difficulty, time]);
 
-  // endGame function
-  const endGame = async (tries: number, won: boolean) => {
-    if (isGameOver) return;
-    setIsGameOver(true);
-    stopTimer();
-    const finalTime = time;
-    let finalScore = 0;
-    let submissionIdForResultModal: number | null = null;
-    let submissionResult: SubmissionResult | null = null;
-
-    try {
-      const submissionData: SubmissionData = {
-        puzzle_id: puzzle.id,
-        puzzle_type: 'wordle',
-        difficulty: difficulty, // <-- Pass difficulty
-        time_taken_ms: finalTime,
-        tries: tries,
-      };
-
-      submissionResult = await submitPuzzle(submissionData, dailyPuzzleDate, puzzle.id);
-      finalScore = submissionResult.score;
-      submissionIdForResultModal = submissionResult.submissionId ?? null;
-
-      if (challengeId && submissionIdForResultModal) {
-        console.log(`[WordleGame] Completing challenge ${challengeId} with submission ${submissionIdForResultModal}`);
-        await completeChallenge(challengeId, { submission_id: submissionIdForResultModal });
-        console.log(`[WordleGame] Challenge ${challengeId} marked as complete.`);
-      } else if (challengeId) {
-        console.error("[WordleGame] Challenge ID present but failed to get submission ID.");
-      }
-    } catch (err) {
-      console.error("Error during game end:", err);
-    } finally {
-      setGameResult({
-        score: finalScore,
-        submissionId: submissionIdForResultModal,
-        currentStreak: submissionResult?.currentStreak ?? 0,
-        maxStreak: submissionResult?.maxStreak ?? 0,
-        streakUpdatedToday: submissionResult?.streakUpdatedToday ?? false,
-        message: submissionResult?.message ?? '',
-      });
-    }
-  };
-
-  // Keyboard Event Listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Map Backspace and Enter keys
       if (e.key === 'Enter' || e.key === 'Backspace') {
         handleKeyPress(e.key);
       } else if (/^[a-zA-Z]$/.test(e.key)) {
@@ -190,51 +282,77 @@ export const WordleGame = ({ puzzle, difficulty, challengeId, dailyPuzzleDate }:
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyPress]);
 
-  // if (loading) {
-  //   return <LoadingSpinner fullPage={true} />;
-  // }
+  // ✅ NEW: Handle resume modal continue
+  const handleContinue = () => {
+    setShowResumeModal(false);
+    startTimer(); // Start timer when user continues
+  };
+
+  if (checkingSubmission || loading) {
+    return <LoadingSpinner fullPage={true} />;
+  }
+
+  if (alreadyCompleted?.hasSubmitted) {
+    return (
+      <AlreadyPlayedScreen
+        gameType="wordle"
+        score={alreadyCompleted.score || 0}
+        submittedAt={alreadyCompleted.submittedAt || new Date().toISOString()}
+        difficulty={difficulty}
+      />
+    );
+  }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
-      <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
-        <WordleGrid
-          guesses={guesses}
-          currentGuess={currentGuess}
-          solution={solution}
-          currentRow={currentRow}
+    <>
+      {/* ✅ NEW: Resume Modal */}
+      {showResumeModal && (
+        <ResumeGameModal
+          guessCount={guesses.length}
           maxGuesses={MAX_GUESSES}
-          wordLength={wordLength} // <-- Pass dynamic length
+          puzzleDate={puzzle.date_to_be_used}
+          puzzleNumber={puzzle.id}
+          editor="ERNI Team"
+          onContinue={handleContinue}
         />
-      </div>
-      <div className="place-content-center p-20 text-xl leading-5">
-        <div className="flex justify-between mb-10">
-          <div className="">
-            <h1 className="text-4xl font-bold">Wordle</h1>
-            <p>on {difficulty} difficulty</p>
+      )}
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
+        <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
+          <WordleGrid
+            guesses={guesses}
+            currentGuess={currentGuess}
+            solution={solution}
+            currentRow={currentRow}
+            maxGuesses={MAX_GUESSES}
+            wordLength={wordLength}
+          />
+        </div>
+        <div className="place-content-center p-20 text-xl leading-5">
+          <div className="flex justify-between mb-10">
+            <div>
+              <h1 className="text-4xl font-bold">Wordle</h1>
+              <p>on {difficulty} difficulty</p>
+            </div>
+            <Timer timeMs={time} />
           </div>
-          <Timer timeMs={time} />
-        </div>
-        <div className={isGameOver ? 'opacity-50 pointer-events-none' : ''}>
-          <Keyboard
-            onKeyPress={handleKeyPress}
-            letterStatuses={letterStatuses}
-          />
-        </div>
+          <div className={isGameOver ? 'opacity-50 pointer-events-none' : ''}>
+            <Keyboard
+              onKeyPress={handleKeyPress}
+              letterStatuses={letterStatuses}
+            />
+          </div>
 
-        {gameResult && (
-          <PostGameResultsModal
-            score={gameResult.score}
-            submissionId={gameResult.submissionId}
-            currentStreak={gameResult.currentStreak}
-            maxStreak={gameResult.maxStreak}
-            streakUpdatedToday={gameResult.streakUpdatedToday}
-            message={gameResult.message}
-            onClose={() => setGameResult(null)}
-          />
-        )}
+          {gameResult && (
+            <PostGameResultsModal
+              score={gameResult.score}
+              submissionId={gameResult.submissionId}
+              gameType="wordle"
+              onClose={() => setGameResult(null)}
+            />
+          )}
+        </div>
       </div>
-    </div>
-
+    </>
   );
 };
