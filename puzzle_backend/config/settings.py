@@ -25,7 +25,7 @@ load_dotenv(BASE_DIR / '.env')
 # SECURITY WARNING: keep the secret key used in production secret!
 # Provide a default for safety
 SECRET_KEY = os.environ.get("SECRET_KEY", "default-insecure-key-for-dev")
-DEBUG = True
+DEBUG = False
 
 
 ALLOWED_HOSTS = [
