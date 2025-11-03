@@ -1,262 +1,226 @@
-import { mockApiCall } from "./api";
-import { API_URL } from "./authService";
-import { MOCK_PUZZLES, MOCK_TODAY_SUBMISSIONS } from "../data/_mockData";
+// src/api/gameService.ts (COMPLETE FIX)
 import type {
   DailyPuzzleResponse,
   SubmissionData,
   PuzzleAttemptData,
   PuzzleAttemptResponse,
   Submission,
-  SubmissionResult,
 } from "../types/game";
-import { getCookie } from './authService';
 
-// --- THIS IS THE FIX ---
-// Use an object to store separate save slots for each game type
-const MOCK_SAVE_SLOTS: {
-  wordle?: PuzzleAttemptResponse;
-  sudoku?: PuzzleAttemptResponse;
-  ernigram?: PuzzleAttemptResponse;
-} = {};
-// --- END FIX ---
+// const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-const MOCK_MODE=false
-// console.log('[gameService] Module loaded. Initial MOCK_SAVE_SLOTS:', JSON.stringify(MOCK_SAVE_SLOTS));
+function getCookie(name: string): string | null {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== "") {
+    const cookies = document.cookie.split(";");
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === name + "=") {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
 
+export const getDailyPuzzles = async (): Promise<DailyPuzzleResponse> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/games/daily/`, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+      },
+    });
 
-// Saves the user's progress *to the correct slot*
-export const saveProgress = (
+    if (!response.ok) {
+      throw new Error(`Failed to fetch daily puzzles: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("[getDailyPuzzles] Error:", error);
+    throw error;
+  }
+};
+
+export const getSavedAttempt = async (
+  puzzleType: string,
+  dailyPuzzleDate: string,
+  puzzleId: string
+): Promise<PuzzleAttemptResponse | null> => {
+  try {
+    // ✅ FIX: Construct URL correctly (no trailing slash issues)
+    const url = `${API_BASE_URL}/api/gameplay/progress/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/`;
+    console.log("[getSavedAttempt] Fetching:", url);
+
+    const response = await fetch(url, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        console.log("[getSavedAttempt] No saved attempt found (404)");
+        return null;
+      }
+      throw new Error(`Failed to fetch saved attempt: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log("[getSavedAttempt] Found saved attempt:", data);
+    return data;
+  } catch (error) {
+    console.error("[getSavedAttempt] Error:", error);
+    return null;
+  }
+};
+
+export const saveProgress = async (
   data: PuzzleAttemptData,
   dailyPuzzleDate: string,
-  puzzleId: string | number
+  puzzleId: number
 ): Promise<PuzzleAttemptResponse> => {
-  if (MOCK_MODE) {
-    // console.log(`%c[saveProgress] Saving progress for ${data.puzzle_type}...`, 'color: purple', data);
-    const savedGame: PuzzleAttemptResponse = {
-      ...data,
-      id: Math.floor(Math.random() * 1000),
-      user_id: 1,
-      last_saved: new Date().toISOString(),
-    };
-    MOCK_SAVE_SLOTS[data.puzzle_type] = savedGame;
-    // --- DEBUG LOGGING ---
-    // console.log(`%c[saveProgress] MOCK_SAVE_SLOTS updated: ${JSON.stringify(MOCK_SAVE_SLOTS)}`, 'color: purple; font-weight: bold');
-    // --- END DEBUG ---
-    return mockApiCall(savedGame);
-  }
-
-  const modelName = `${data.puzzle_type}puzzle`;
-  const dailyPuzzleKey = String(dailyPuzzleDate);
-  const puzzlePk = String(puzzleId);
-  const url = `${API_URL}/api/gameplay/save/${dailyPuzzleKey}/${modelName}/${puzzlePk}/`;
-  const csrfToken = getCookie("csrftoken");
-
-  if (!csrfToken) {
-        return Promise.reject(new Error("CSRF token not found. Cannot save progress."));
-  }
-
-  const payload = {
-        progress_data: data.progress_data,
-        time_spent_ms: data.time_spent_ms,
-        difficulty: data.difficulty || "EASY", // Ensure difficulty is sent
-  };
-
-  return fetch(url, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": csrfToken,
-        },
-        body: JSON.stringify(payload),
-    })
-    .then(async response => {
-        const responseData = await response.json();
-        if (response.status === 403) {
-            // Handle Forbidden limits exceeded response
-            throw new Error(responseData.error || "Game limits exceeded.");
-        }
-        if (!response.ok) {
-            throw new Error(responseData.error || `Failed to save progress: ${response.statusText}`);
-        }
-        
-        // Success: Return a structured response (must match the expected type)
-        return {
-            ...data, // Include incoming data
-            id: null, // Placeholder since ID isn't returned from your view
-            user_id: null, // Placeholder
-            last_saved: responseData.last_saved, // Get the fresh timestamp
-        } as PuzzleAttemptResponse;
-    })
-    .catch(error => {
-        console.error("[saveProgress] Fetch error:", error);
-        throw error;
-    });
-};
-
-// Gets the user's saved game *for the specific type*
-export const getSavedAttempt = (
-  currentGameType: PuzzleAttemptData["puzzle_type"],
-  dailyPuzzleDate: string,
-  puzzleId: string | number
-): Promise<PuzzleAttemptResponse | null> => {
-  if (MOCK_MODE) {
-    // console.log(`%c[getSavedAttempt] Fetching for ${currentGameType}...`, 'color: blue');
-    // --- DEBUG LOGGING ---
-    // console.log(`%c[getSavedAttempt] Current MOCK_SAVE_SLOTS state: ${JSON.stringify(MOCK_SAVE_SLOTS)}`, 'color: blue');
-    // --- END DEBUG ---
-    const savedGame = MOCK_SAVE_SLOTS[currentGameType];
-    if (savedGame) {
-      // console.log(`%c[getSavedAttempt] Found saved ${currentGameType}`, 'color: green');
-      return mockApiCall(savedGame);
-    } else {
-      // console.log(`%c[getSavedAttempt] No saved game found for ${currentGameType}`, 'color: orange');
-      return mockApiCall(null);
-    }
-  }
-  // --- REAL API CALL (Connects to GetProgressView) ---
-    const modelName = `${currentGameType}puzzle`; // e.g., 'ernigrampuzzle'
-    const dailyPuzzleKey = String(dailyPuzzleDate);
-    const puzzlePk = String(puzzleId);
-    const url = `${API_URL}/api/gameplay/progress/${dailyPuzzleKey}/${modelName}/${puzzlePk}/`;
-
-    return fetch(url, {
-        method: 'GET',
-        credentials: 'include', // Ensures session cookie is sent for @login_required
-    })
-    .then(async response => {
-        const data = await response.json();
-
-        // 400s or other errors should be caught
-        if (!response.ok && response.status !== 200) { 
-            throw new Error(data.error || `Failed to retrieve progress: ${response.statusText}`);
-        }
-        
-        // Handle the case where the backend returns 200 with "exists: false" (New Game)
-        if (!data.exists) {
-            return null;
-        }
-
-        // Map the successful backend response to the frontend's expected type
-        return {
-            // Note: If your PuzzleAttemptResponse requires 'id' or 'user_id', 
-            // you may need to adjust the backend response in GetProgressView.
-            puzzle_type: currentGameType,
-            progress_data: data.progress_data,
-            time_spent_ms: data.time_spent_ms,
-            last_saved: data.last_saved,
-            id: null, user_id: null // Placeholder/dummy data if required by type
-        } as PuzzleAttemptResponse; 
-    })
-    .catch(error => {
-        console.error("[getSavedAttempt] Fetch error:", error);
-        // On error, treat it as a new game state to prevent app crash
-        return null; 
-    });
-};
-
-
-
-// Submits a completed puzzle and clears the *correct* slot
-export const submitPuzzle = async (
-  data: SubmissionData,
-  dailyPuzzleDate: string,
-  puzzleId: string | number
-): Promise<SubmissionResult> => {
-  if (MOCK_MODE) {
-    // ... (mock logic remains the same, ensure it returns submissionId) ...
-    const mockSubmissionId = Math.floor(Math.random() * 1000) + 500;
-    let score = 500; // Mock score
-    return mockApiCall({ score: score, submissionId: mockSubmissionId });
-  }
-
-  // --- REAL API CALL ---
   try {
     const csrfToken = getCookie("csrftoken");
-    if (!csrfToken) {
-      throw new Error("CSRF token not found. Cannot submit puzzle.");
-    }
 
-    // This endpoint must be created on your backend (e.g., gameplay/urls.py)
-    const modelName = `${data.puzzle_type}puzzle`;
-    const dailyPuzzleKey = String(dailyPuzzleDate);
-    const puzzlePk = String(puzzleId);
-    const url = `${API_URL}/api/gameplay/submit/${dailyPuzzleKey}/${modelName}/${puzzlePk}/`;
-
+    // ✅ FIX: Construct URL correctly - puzzleId should be a number, convert to string here
+    const url = `${API_BASE_URL}/api/gameplay/save/${dailyPuzzleDate}/${data.puzzle_type}puzzle/${puzzleId}/`;
+    console.log("[saveProgress] Saving to:", url);
 
     const response = await fetch(url, {
       method: "POST",
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRFToken": csrfToken,
+        "X-CSRFToken": csrfToken || "",
       },
-      // Send the full SubmissionData object, including difficulty
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        progress_data: data.progress_data,
+        time_spent_ms: data.time_spent_ms,
+        difficulty: data.difficulty,
+      }),
     });
-
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Failed to submit puzzle: ${response.statusText}`);
+      console.error("[saveProgress] Error response:", errorData);
+      throw new Error(
+        errorData.error || `Failed to save progress: ${response.statusText}`
+      );
     }
 
-    const payload = await response.json();
+    const result = await response.json();
+    console.log("[saveProgress] Success:", result);
+    return result;
+  } catch (error) {
+    console.error("[saveProgress] Error:", error);
+    throw error;
+  }
+};
+
+export const submitPuzzle = async (
+  data: SubmissionData,
+  dailyPuzzleDate: string,
+  puzzleId: number
+): Promise<{ score: number; submissionId: number | null }> => {
+  try {
+    const csrfToken = getCookie("csrftoken");
+
+    // ✅ FIX: Construct URL correctly
+    const url = `${API_BASE_URL}/api/gameplay/submit/${dailyPuzzleDate}/${data.puzzle_type}puzzle/${puzzleId}/`;
+    console.log("[submitPuzzle] Submitting to:", url);
+    console.log("[submitPuzzle] Data:", { difficulty: data.difficulty });
+
+    const response = await fetch(url, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken || "",
+      },
+      body: JSON.stringify({
+        difficulty: data.difficulty,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error("[submitPuzzle] Error response:", errorData);
+      throw new Error(
+        errorData.error || `Failed to submit puzzle: ${response.statusText}`
+      );
+    }
+
+    const result = await response.json();
+    console.log("[submitPuzzle] Success:", result);
 
     return {
-      score: payload.points_awarded ?? 0,
-      submissionId: payload.submission_id ?? null,
-      currentStreak: payload.current_streak ?? 0,
-      maxStreak: payload.max_streak ?? 0,
-      streakUpdatedToday: Boolean(payload.streak_updated_today),
-      message: payload.message ?? "Puzzle submitted successfully.",
+      score: result.points_awarded || 0,
+      submissionId: result.submission_id || null,
     };
   } catch (error) {
-    console.error("[submitPuzzle] Fetch error:", error);
+    console.error("[submitPuzzle] Error:", error);
     throw error;
   }
-  // ---
 };
 
-// --- Daily Puzzles (Unchanged) ---
-export const getDailyPuzzles = async (): Promise<DailyPuzzleResponse> => {
-  if (MOCK_MODE) {
-    console.log("Mock: Fetching daily puzzles...");
-    return mockApiCall(MOCK_PUZZLES);
-  }
-
-  // --- REAL API CALL ---
+export const getTodaySubmissions = async (): Promise<Submission[]> => {
   try {
-    const response = await fetch(`${API_URL}/api/games/daily/`, { // Matches backend games/urls.py
-      method: 'GET',
-      credentials: 'include', // Send session cookie
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/api/gameplay/submissions/today/`,
+      {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          Accept: "application/json",
+        },
+      }
+    );
+
     if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      console.error(`[getDailyPuzzles] API request failed with status ${response.status}:`, errData);
-      throw new Error(`Failed to fetch daily puzzles: ${errData.detail || response.statusText}`);
+      throw new Error(`Failed to fetch submissions: ${response.statusText}`);
     }
+
     return await response.json();
   } catch (error) {
-    console.error('[getDailyPuzzles] Fetch error:', error);
-    throw error;
+    console.error("[getTodaySubmissions] Error:", error);
+    return [];
   }
-  // ---
 };
 
-// Assuming MAX_ATTEMPTS is defined somewhere, if not add:
-const MAX_ATTEMPTS = 6;
+export const checkSubmissionExists = async (
+  puzzleType: string,
+  dailyPuzzleDate: string,
+  puzzleId: number
+): Promise<{ hasSubmitted: boolean; score?: number }> => {
+  try {
+    const url = `${API_BASE_URL}/api/gameplay/check-submission/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/`;
+    console.log("[checkSubmissionExists] Checking:", url);
 
-export const getTodaySubmissions = (): Promise<Submission[]> => {
-  if (MOCK_MODE) {
-    console.log("Mock: Fetching today's submissions...");
-    // In a real app, this would filter by user and date on the backend
-    // For mock, just return the predefined list for the mock user
-    return mockApiCall(MOCK_TODAY_SUBMISSIONS);
+    const response = await fetch(url, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return { hasSubmitted: false };
+      }
+      throw new Error(`Failed to check submission: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("[checkSubmissionExists] Error:", error);
+    return { hasSubmitted: false };
   }
-  // Real call: return api.get('/api/submissions/today/'); // Example real endpoint
-  return new Promise(() => {});
 };

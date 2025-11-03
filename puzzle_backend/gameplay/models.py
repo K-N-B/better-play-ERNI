@@ -85,6 +85,11 @@ class Submission(models.Model):
     puzzle = GenericForeignKey("content_type", "object_id")
     # ------------------------------------------------------------------
 
+    puzzle_date = models.DateField(
+        db_index=True,
+        help_text="The date of the puzzle being submitted (from DailyPuzzle.date)"
+    )
+
     # Difficulty played
     difficulty = models.CharField(
         max_length=10,
