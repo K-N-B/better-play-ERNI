@@ -8,7 +8,7 @@ import { PostGameResultsModal } from '../../ui/postGameResultsModal';
 import { useTimer } from '../../../hooks/useTimer';
 import { Timer } from '../../ui/timer';
 import { useApi } from '../../../hooks/useApi';
-import { LoadingSpinner } from '../../ui/loadingSpinner';
+// import { LoadingSpinner } from '../../ui/loadingSpinner';
 import type { Difficulty } from '../../../pages/gamePage';
 
 
@@ -116,10 +116,15 @@ export const WordleGame = ({ puzzle, difficulty, challengeId, dailyPuzzleDate }:
         setLetterStatuses(newStatuses);
         setCurrentGuess('');
 
+        // if (currentGuess === solution) {
+        //   endGame(newRow, true);
+        // } else if (newRow >= MAX_GUESSES) {
+        //   endGame(MAX_GUESSES, false);
+        // }
         if (currentGuess === solution) {
-          endGame(newRow, true);
+          endGame(newRow);
         } else if (newRow >= MAX_GUESSES) {
-          endGame(MAX_GUESSES, false);
+          endGame(MAX_GUESSES);
         }
       } else {
         console.warn(`Guess must be ${wordLength} letters`); // Use dynamic length
@@ -133,7 +138,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId, dailyPuzzleDate }:
   // ---
 
   // endGame function
-  const endGame = async (tries: number, won: boolean) => {
+  const endGame = async (tries: number) => {
     if (isGameOver) return;
     setIsGameOver(true);
     stopTimer();
