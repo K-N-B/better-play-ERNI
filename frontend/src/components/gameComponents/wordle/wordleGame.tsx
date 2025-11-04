@@ -1,4 +1,4 @@
-// src/components/gameComponents/wordle/wordleGame.tsx - WITH RESUME MODAL
+// src/components/gameComponents/wordle/wordleGame.tsx - WITHOUT RESUME MODAL
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { submitPuzzle, getSavedAttempt, saveProgress, checkSubmissionExists } from '../../../api/gameService';
@@ -8,7 +8,7 @@ import { WordleGrid } from './wordleGrid';
 import { Keyboard } from './keyboard';
 import { PostGameResultsModal } from '../../ui/postGameResultsModal';
 import { AlreadyPlayedScreen } from '../shared/alreadyPlayedScreen';
-import { ResumeGameModal } from '../../ui/resumeGameModal'; // ✅ NEW IMPORT
+// ❌ REMOVED: ResumeGameModal import
 import { useTimer } from '../../../hooks/useTimer';
 import { Timer } from '../../ui/timer';
 import { useApi } from '../../../hooks/useApi';
@@ -33,8 +33,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
   const [letterStatuses, setLetterStatuses] = useState<Record<string, KeyStatus>>({});
   const [gameResult, setGameResult] = useState<{ score: number; submissionId: number | null } | null>(null);
   
-  // ✅ NEW: Resume modal state
-  const [showResumeModal, setShowResumeModal] = useState(false);
+  // ❌ REMOVED: showResumeModal state
   
   const [alreadyCompleted, setAlreadyCompleted] = useState<{
     hasSubmitted: boolean;
@@ -82,7 +81,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
 
   const { data: savedGame, loading } = useApi(fetchSavedWordle);
 
-  // ✅ NEW: Load saved progress and show resume modal
+  // ✅ UPDATED: Load saved progress and START timer
   useEffect(() => {
     if (alreadyCompleted?.hasSubmitted) return;
     
@@ -95,23 +94,17 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
       setIsGameOver(progress.isGameOver || false);
       setSavedTime(savedGame.time_spent_ms);
       loadedIsGameOver = progress.isGameOver;
-      
-      // ✅ Show resume modal if user has made guesses OR spent significant time (>5 seconds)
-      const hasProgress = (progress.guesses?.length > 0) || (savedGame.time_spent_ms > 5000);
-      
-      if (hasProgress && !progress.isGameOver) {
-        console.log('[WordleGame] Showing resume modal - guesses:', progress.guesses?.length, 'time:', savedGame.time_spent_ms);
-        setShowResumeModal(true);
-      } else if (!loadedIsGameOver) {
-        console.log('[WordleGame] Starting timer - no resume needed');
-        startTimer();
-      }
-    } else if (!loadedIsGameOver) {
+      console.log('[WordleGame] Saved data loaded.');
+    }
+    
+    // Start the timer *unless* the loaded game was already over
+    if (!loadedIsGameOver) {
+      console.log('[WordleGame] Starting timer.');
       startTimer();
     }
   }, [savedGame, startTimer, setSavedTime, alreadyCompleted]);
 
-  // Auto-save progress
+  // Auto-save progress (no changes here)
   useEffect(() => {
     if (loading || isGameOver || alreadyCompleted?.hasSubmitted || !puzzle?.date_to_be_used || !puzzle?.id || !difficulty) return;
 
@@ -139,6 +132,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
     return () => clearTimeout(saveTimer);
   }, [guesses, currentRow, isGameOver, time, loading, puzzle?.id, puzzle?.date_to_be_used, difficulty, letterStatuses, alreadyCompleted]);
 
+  // endGame function (no changes here)
   const endGame = useCallback(async (
     tries: number, 
     won: boolean, 
@@ -213,6 +207,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
     }
   }, [isGameOver, stopTimer, time, puzzle, difficulty, challengeId, alreadyCompleted]);
 
+  // handleKeyPress function (no changes here)
   const handleKeyPress = useCallback((key: string) => {
     if (isGameOver || alreadyCompleted?.hasSubmitted) return;
 
@@ -233,7 +228,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
         setLetterStatuses(newStatuses);
         setCurrentGuess('');
 
-        // ✅ CRITICAL FIX: Save immediately after guess is made
+        // CRITICAL FIX: Save immediately after guess is made
         if (puzzle?.date_to_be_used && puzzle?.id && difficulty) {
           const progress: WordleProgress = { 
             guesses: newGuesses, 
@@ -270,6 +265,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
     }
   }, [isGameOver, currentGuess, guesses, currentRow, letterStatuses, solution, wordLength, endGame, MAX_GUESSES, alreadyCompleted, puzzle, difficulty, time]);
 
+  // keydown listener (no changes here)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Enter' || e.key === 'Backspace') {
@@ -282,16 +278,14 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyPress]);
 
-  // ✅ NEW: Handle resume modal continue
-  const handleContinue = () => {
-    setShowResumeModal(false);
-    startTimer(); // Start timer when user continues
-  };
+  // ❌ REMOVED: handleContinue function
 
+  // Loading spinner (no changes here)
   if (checkingSubmission || loading) {
     return <LoadingSpinner fullPage={true} />;
   }
 
+  // Already played screen (no changes here)
   if (alreadyCompleted?.hasSubmitted) {
     return (
       <AlreadyPlayedScreen
@@ -303,19 +297,10 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
     );
   }
 
+  // --- Render ---
   return (
     <>
-      {/* ✅ NEW: Resume Modal */}
-      {showResumeModal && (
-        <ResumeGameModal
-          guessCount={guesses.length}
-          maxGuesses={MAX_GUESSES}
-          puzzleDate={puzzle.date_to_be_used}
-          puzzleNumber={puzzle.id}
-          editor="ERNI Team"
-          onContinue={handleContinue}
-        />
-      )}
+      {/* ❌ REMOVED: Resume Modal JSX */}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
         <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
