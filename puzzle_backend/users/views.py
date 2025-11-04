@@ -123,7 +123,7 @@ def auth_callback(request):
     error = request.GET.get("error")
     error_description = request.GET.get("error_description", "Unknown error")
 
-    frontend_base_url = "https://better-play-erni.vercel.app"  # Your React app's base URL
+    frontend_base_url = os.environ.get("FRONTEND_BASE_URL")  # Your React app's base URL
     frontend_login_url = f"{frontend_base_url}/login"
     frontend_callback_url = f"{frontend_base_url}/auth-callback"  # Frontend's own callback
 
