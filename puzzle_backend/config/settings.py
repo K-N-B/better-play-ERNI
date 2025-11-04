@@ -104,9 +104,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-CSRF_USE_SESSIONS = False
-CSRF_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_HTTPONLY = False
+
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -186,7 +184,14 @@ AZURE_AD_TENANT_ID =  os.environ.get("AZURE_AD_TENANT_ID")
 # This MUST match the 'Web' redirect URI in Azure App Registration AND users/urls.py path
 AZURE_AD_REDIRECT_URI =  os.environ.get("AZURE_AD_REDIRECT_URI", "http://localhost:8000/auth/callback/")
 
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # --- Session Settings (Optional but good practice) ---
+CSRF_USE_SESSIONS = False
+CSRF_COOKIE_HTTPONLY = False
+SESSION_COOKIE_DOMAIN = None
+
+
 SESSION_COOKIE_SECURE = True   # Set to True if using HTTPS in production
 CSRF_COOKIE_SECURE = True      # Set to True if using HTTPS in production
 
