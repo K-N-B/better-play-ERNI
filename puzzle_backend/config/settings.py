@@ -26,15 +26,17 @@ load_dotenv(BASE_DIR / '.env')
 # Provide a default for safety
 SECRET_KEY = os.environ.get("SECRET_KEY", "default-insecure-key-for-dev")
 DEBUG = False
+ENVIRONMENT = os.environ.get("ENVIRONMENT", "local")
 
-
-ALLOWED_HOSTS = [
-    "better-play-erni.onrender.com",
-    "better-play-erni.vercel.app",
-    "localhost",
-    "127.0.0.1",
-    ]  # Add your production domain later
-
+if ENVIRONMENT == "production":
+    DEBUG = False
+    ALLOWED_HOSTS = [
+        "better-play-erni.onrender.com",
+        "better-play-erni.vercel.app",
+    ]
+else:
+    DEBUG = True
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 # Application definition
 
@@ -56,8 +58,6 @@ INSTALLED_APPS = [
     'gameplay.apps.GameplayConfig',  # <-- Ensure this line is present
     'leaderboards.apps.LeaderboardsConfig',
     'shop.apps.ShopConfig',
-    #'django_cron',
-    'django_crontab',
     'activity',
 ]
 
@@ -130,28 +130,34 @@ DATABASES = {
         # ----------------------------------------------------
     }
 }
+CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent cross-origin
+
 
 # CORS Settings
-CORS_ALLOWED_ORIGINS = [
-    "https://better-play-erni.onrender.com",
-    "https://better-play-erni.vercel.app",
-    "http://localhost:5173",  # Your React frontend development URL
-    "http://127.0.0.1:5173",
-    # Add your production frontend URL later
-]
-CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent cross-origin
+if ENVIRONMENT == "production":
+    CORS_ALLOWED_ORIGINS = [
+        "https://better-play-erni.onrender.com",
+        "https://better-play-erni.vercel.app",
+    ]
+    CSRF_TRUSTED_ORIGINS = [
+        "https://better-play-erni.onrender.com",
+        "https://better-play-erni.vercel.app",
+    ]
+else:
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
+    CSRF_TRUSTED_ORIGINS = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
+
+
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-
-CSRF_TRUSTED_ORIGINS = [
-    "https://better-play-erni.onrender.com",
-    "https://better-play-erni.vercel.app",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    # Add your production frontend URL here later
-]
 
 AUTH_USER_MODEL = "users.User"
 
@@ -187,21 +193,25 @@ AZURE_AD_REDIRECT_URI =  os.environ.get("AZURE_AD_REDIRECT_URI", "http://localho
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# --- Session Settings (Optional but good practice) ---
-CSRF_USE_SESSIONS = False
-CSRF_COOKIE_HTTPONLY = False
+
+if ENVIRONMENT == "production":
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SAMESITE = None
+    CSRF_COOKIE_SAMESITE = None
+    CSRF_USE_SESSIONS = True        # ✅ store CSRF in session (safer for production)
+    CSRF_COOKIE_HTTPONLY = True     # ✅ prevent JS access to CSRF cookie
+    SESSION_COOKIE_HTTPONLY = True  # ✅ prevent JS access to session cookie
+else:
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SAMESITE = "Lax"
+    CSRF_COOKIE_SAMESITE = "Lax"
+    CSRF_USE_SESSIONS = False       # ✅ local dev convenience
+    CSRF_COOKIE_HTTPONLY = False    # ✅ easier debugging
+    SESSION_COOKIE_HTTPONLY = True  # still good practice even locally
 
 
-
-SESSION_COOKIE_SECURE = True   # Set to True if using HTTPS in production
-CSRF_COOKIE_SECURE = True      # Set to True if using HTTPS in production
-
-
-#SESSION_COOKIE_SAMESITE = 'Lax'  # Helps prevent CSRF
-SESSION_COOKIE_SAMESITE = None  # Helps prevent CSRF
-CSRF_COOKIE_SAMESITE = None     # Helps prevent CSRF
-
-SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
 SESSION_COOKIE_AGE = 86400      # Session lasts 1 day (optional)
 
 
@@ -220,8 +230,14 @@ REST_FRAMEWORK = {
 }
 
 LOGIN_URL = "/auth/login/azuread-oauth2/"
-LOGIN_REDIRECT_URL = "http://localhost:3000/auth-callback"
-LOGOUT_REDIRECT_URL = "http://localhost:3000/login"
+
+if ENVIRONMENT == "production":
+    LOGIN_REDIRECT_URL = "https://better-play-erni.vercel.app/auth-callback"
+    LOGOUT_REDIRECT_URL = "https://better-play-erni.vercel.app/login"
+else:
+    LOGIN_REDIRECT_URL = "http://localhost:5173/auth-callback"
+    LOGOUT_REDIRECT_URL = "http://localhost:5173/login"
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -260,3 +276,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # 2. Base URL for serving static files (e.g., in templates)
 STATIC_URL = '/static/'
+
+
+print(f"⚙️ Running in {ENVIRONMENT.upper()} mode | DEBUG={DEBUG}")
