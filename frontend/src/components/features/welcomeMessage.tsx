@@ -1,4 +1,4 @@
-// src/components/features/welcomeMessage.tsx - FIXED VERSION
+// src/components/features/welcomeMessage.tsx - FIXED VERSION WITH LOST GAMES
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/authContext';
@@ -8,56 +8,82 @@ import { CheckCircle2, Circle } from 'lucide-react';
 
 const TOTAL_DAILY_PUZZLES = 3;
 
+// Add this type for completed puzzles response
+interface CompletedPuzzlesResponse {
+    completed: string[];
+    date: string;
+}
+
+// Add this API call function (or add to gameService.ts)
+const getTodayCompletedPuzzles = async (): Promise<CompletedPuzzlesResponse> => {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    
+    const response = await fetch(`${API_URL}/api/gameplay/completed/today/`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch completed puzzles');
+    }
+
+    return response.json();
+};
+
 export const WelcomeMessage = () => {
     const { user } = useAuth();
     const [submissionsToday, setSubmissionsToday] = useState<Submission[]>([]);
+    const [completedGames, setCompletedGames] = useState<string[]>([]);
     const [loadingStats, setLoadingStats] = useState(false);
 
     useEffect(() => {
         if (user) {
             setLoadingStats(true);
-            getTodaySubmissions()
-                .then(data => {
-                    console.log('[WelcomeMessage] Submissions received:', data);
-                    setSubmissionsToday(data);
+            
+            // Fetch both submissions (won games) and completed puzzles (won + lost)
+            Promise.all([
+                getTodaySubmissions().catch(() => []),
+                getTodayCompletedPuzzles().catch(() => ({ completed: [], date: '' }))
+            ])
+                .then(([submissions, completedData]) => {
+                    console.log('[WelcomeMessage] Submissions received:', submissions);
+                    console.log('[WelcomeMessage] Completed puzzles received:', completedData);
+                    
+                    setSubmissionsToday(submissions);
+                    setCompletedGames(completedData.completed);
                 })
                 .catch(err => {
-                    console.error("Failed to fetch today's submissions:", err);
+                    console.error("Failed to fetch today's data:", err);
                     setSubmissionsToday([]);
+                    setCompletedGames([]);
                 })
                 .finally(() => {
                     setLoadingStats(false);
                 });
         } else {
             setSubmissionsToday([]);
+            setCompletedGames([]);
             setLoadingStats(false);
         }
     }, [user]);
 
     if (!user) return null;
 
-    const puzzlesCompletedToday = submissionsToday.length;
+    // Use completedGames length for puzzles completed (includes won + lost)
+    const puzzlesCompletedToday = completedGames.length;
     const puzzlesLeftToday = Math.max(0, TOTAL_DAILY_PUZZLES - puzzlesCompletedToday);
+    
+    // Only sum points from actual submissions (won games)
     const dailyScore = submissionsToday.reduce((sum, sub) => sum + sub.points_awarded, 0);
 
-    // ✅ FIX: Normalize backend puzzle_type to match expected values
-    // Backend returns: 'wordlepuzzle', 'sudokupuzzle', 'ernigrampuzzle' (or variations)
-    const completedGames = submissionsToday.map(s => {
-        const puzzleType = s.puzzle_type.toLowerCase().trim();
-        console.log('[WelcomeMessage] Processing puzzle_type:', puzzleType);
-        
-        // Normalize to base game name - check for multiple variations
-        if (puzzleType.includes('wordle')) return 'wordle';
-        if (puzzleType.includes('sudoku')) return 'sudoku';
-        if (puzzleType.includes('ernigram')) return 'ernigram';
-        
-        // Fallback: return as-is
-        return puzzleType;
-    });
+    console.log('[WelcomeMessage] Completed games:', completedGames);
+    console.log('[WelcomeMessage] Puzzles completed:', puzzlesCompletedToday);
+    console.log('[WelcomeMessage] Daily score:', dailyScore);
 
-    console.log('[WelcomeMessage] Normalized completed games:', completedGames);
-    console.log('[WelcomeMessage] Raw submissions data:', submissionsToday);
-
+    // Check game status based on completed array from backend
     const gameStatus = {
         wordle: completedGames.includes('wordle'),
         sudoku: completedGames.includes('sudoku'),

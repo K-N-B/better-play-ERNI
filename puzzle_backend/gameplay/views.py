@@ -597,3 +597,83 @@ class GetTodaySubmissionsView(View):
             import traceback
             traceback.print_exc()
             return JsonResponse({'error': str(e)}, status=500)
+        
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(login_required, name='get')
+class GetTodayCompletedPuzzlesView(View):
+    """
+    GET /api/gameplay/completed/today/
+    Returns all completed puzzles (both submissions and lost attempts) for today
+    """
+    
+    def get(self, request):
+        user = request.user
+        
+        try:
+            # Get today's date in Philippine Time
+            pht_tz = pytz.timezone('Asia/Manila')
+            now_pht = datetime.now(pht_tz)
+            today_pht = now_pht.date()
+            
+            # Create timezone-aware datetime range for today
+            start_of_day_pht = pht_tz.localize(datetime.combine(today_pht, datetime.min.time()))
+            end_of_day_pht = pht_tz.localize(datetime.combine(today_pht, datetime.max.time()))
+            
+            print(f"[GetTodayCompleted] Checking for {user.username}")
+            
+            # Get all submissions (won games)
+            submissions = Submission.objects.filter(
+                user=user,
+                created_at__gte=start_of_day_pht,
+                created_at__lte=end_of_day_pht
+            ).values_list('content_type__model', flat=True)
+            
+            # Get all attempts for today
+            daily_puzzle = DailyPuzzle.objects.filter(date=today_pht).first()
+            if not daily_puzzle:
+                return JsonResponse({'completed': [], 'date': today_pht.isoformat()})
+            
+            lost_attempts = PuzzleAttempt.objects.filter(
+                user=user,
+                daily_puzzle=daily_puzzle
+            )
+            
+            completed_games = set(submissions)
+            
+            # Check each attempt to see if it's a completed (lost) game
+            for attempt in lost_attempts:
+                progress = attempt.progress_data
+                
+                # Check if game is over
+                is_game_over = progress.get('isGameOver', False)
+                
+                # Also check status field
+                if not is_game_over and 'status' in progress:
+                    is_game_over = progress.get('status') in ['LOST', 'SOLVED']
+                
+                if is_game_over:
+                    # Get the puzzle type from content_type
+                    puzzle_type = attempt.content_type.model
+                    completed_games.add(puzzle_type)
+            
+            # Return list of completed puzzle types (normalized)
+            completed = []
+            if 'wordlepuzzle' in completed_games:
+                completed.append('wordle')
+            if 'sudokupuzzle' in completed_games:
+                completed.append('sudoku')
+            if 'ernigrampuzzle' in completed_games:
+                completed.append('ernigram')
+            
+            print(f"[GetTodayCompleted] ✅ Completed games: {completed}")
+            
+            return JsonResponse({
+                'completed': completed,
+                'date': today_pht.isoformat()
+            })
+            
+        except Exception as e:
+            print(f"[GetTodayCompleted] Error: {e}")
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({'error': str(e)}, status=500)

@@ -186,6 +186,8 @@ export const getTodaySubmissions = async (): Promise<Submission[]> => {
   }
 };
 
+
+
 export const checkSubmissionExists = async (
   puzzleType: string,
   dailyPuzzleDate: string,
@@ -215,4 +217,7 @@ export const checkSubmissionExists = async (
     console.error('[checkSubmissionExists] Error:', error);
     return { hasSubmitted: false };
   }
+
+
+  
 };
