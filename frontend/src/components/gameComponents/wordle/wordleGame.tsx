@@ -1,4 +1,4 @@
-// src/components/gameComponents/wordle/wordleGame.tsx - WITHOUT RESUME MODAL
+// src/components/gameComponents/wordle/wordleGame.tsx - FIXED LOST GAMES
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { submitPuzzle, getSavedAttempt, saveProgress, checkSubmissionExists } from '../../../api/gameService';
@@ -8,7 +8,6 @@ import { WordleGrid } from './wordleGrid';
 import { Keyboard } from './keyboard';
 import { PostGameResultsModal } from '../../ui/postGameResultsModal';
 import { AlreadyPlayedScreen } from '../shared/alreadyPlayedScreen';
-// ❌ REMOVED: ResumeGameModal import
 import { useTimer } from '../../../hooks/useTimer';
 import { Timer } from '../../ui/timer';
 import { useApi } from '../../../hooks/useApi';
@@ -32,8 +31,6 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
   const [isGameOver, setIsGameOver] = useState(false);
   const [letterStatuses, setLetterStatuses] = useState<Record<string, KeyStatus>>({});
   const [gameResult, setGameResult] = useState<{ score: number; submissionId: number | null } | null>(null);
-  
-  // ❌ REMOVED: showResumeModal state
   
   const [alreadyCompleted, setAlreadyCompleted] = useState<{
     hasSubmitted: boolean;
@@ -81,7 +78,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
 
   const { data: savedGame, loading } = useApi(fetchSavedWordle);
 
-  // ✅ UPDATED: Load saved progress and START timer
+  // Load saved progress and START timer
   useEffect(() => {
     if (alreadyCompleted?.hasSubmitted) return;
     
@@ -97,14 +94,13 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
       console.log('[WordleGame] Saved data loaded.');
     }
     
-    // Start the timer *unless* the loaded game was already over
     if (!loadedIsGameOver) {
       console.log('[WordleGame] Starting timer.');
       startTimer();
     }
   }, [savedGame, startTimer, setSavedTime, alreadyCompleted]);
 
-  // Auto-save progress (no changes here)
+  // Auto-save progress
   useEffect(() => {
     if (loading || isGameOver || alreadyCompleted?.hasSubmitted || !puzzle?.date_to_be_used || !puzzle?.id || !difficulty) return;
 
@@ -132,7 +128,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
     return () => clearTimeout(saveTimer);
   }, [guesses, currentRow, isGameOver, time, loading, puzzle?.id, puzzle?.date_to_be_used, difficulty, letterStatuses, alreadyCompleted]);
 
-  // endGame function (no changes here)
+  // ✅ FIXED: endGame function - Submit even when lost
   const endGame = useCallback(async (
     tries: number, 
     won: boolean, 
@@ -152,18 +148,14 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
       return;
     }
 
-    if (!won) {
-      setGameResult({ score: 0, submissionId: null });
-      return;
-    }
-
     try {
+      // ✅ Save final state with correct status (SOLVED or LOST)
       const finalProgress: WordleProgress = {
         guesses: currentGuessesArray,
         currentRow: tries,
         letterStatuses: currentLetterStatuses,
         isGameOver: true,
-        status: 'SOLVED'
+        status: won ? 'SOLVED' : 'LOST'  // ✅ Mark as LOST if not won
       };
 
       await saveProgress(
@@ -180,6 +172,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
 
       await new Promise(resolve => setTimeout(resolve, 500));
 
+      // ✅ Submit even if lost (backend will award 0 points)
       const submissionData: SubmissionData = {
         puzzle_id: puzzle.id,
         puzzle_type: 'wordle',
@@ -197,7 +190,8 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
       finalScore = submissionResult.score;
       submissionIdForResultModal = submissionResult.submissionId ?? null;
 
-      if (challengeId && submissionIdForResultModal) {
+      // ✅ Only complete challenge if won
+      if (challengeId && submissionIdForResultModal && won) {
         await completeChallenge(challengeId, { submission_id: submissionIdForResultModal });
       }
     } catch (err) {
@@ -207,7 +201,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
     }
   }, [isGameOver, stopTimer, time, puzzle, difficulty, challengeId, alreadyCompleted]);
 
-  // handleKeyPress function (no changes here)
+  // handleKeyPress function
   const handleKeyPress = useCallback((key: string) => {
     if (isGameOver || alreadyCompleted?.hasSubmitted) return;
 
@@ -228,7 +222,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
         setLetterStatuses(newStatuses);
         setCurrentGuess('');
 
-        // CRITICAL FIX: Save immediately after guess is made
+        // Save immediately after guess
         if (puzzle?.date_to_be_used && puzzle?.id && difficulty) {
           const progress: WordleProgress = { 
             guesses: newGuesses, 
@@ -265,7 +259,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
     }
   }, [isGameOver, currentGuess, guesses, currentRow, letterStatuses, solution, wordLength, endGame, MAX_GUESSES, alreadyCompleted, puzzle, difficulty, time]);
 
-  // keydown listener (no changes here)
+  // keydown listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Enter' || e.key === 'Backspace') {
@@ -278,14 +272,12 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyPress]);
 
-  // ❌ REMOVED: handleContinue function
-
-  // Loading spinner (no changes here)
+  // Loading spinner
   if (checkingSubmission || loading) {
     return <LoadingSpinner fullPage={true} />;
   }
 
-  // Already played screen (no changes here)
+  // Already played screen
   if (alreadyCompleted?.hasSubmitted) {
     return (
       <AlreadyPlayedScreen
@@ -297,47 +289,42 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
     );
   }
 
-  // --- Render ---
   return (
-    <>
-      {/* ❌ REMOVED: Resume Modal JSX */}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
-        <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
-          <WordleGrid
-            guesses={guesses}
-            currentGuess={currentGuess}
-            solution={solution}
-            currentRow={currentRow}
-            maxGuesses={MAX_GUESSES}
-            wordLength={wordLength}
+    <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
+      <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
+        <WordleGrid
+          guesses={guesses}
+          currentGuess={currentGuess}
+          solution={solution}
+          currentRow={currentRow}
+          maxGuesses={MAX_GUESSES}
+          wordLength={wordLength}
+        />
+      </div>
+      <div className="place-content-center p-20 text-xl leading-5">
+        <div className="flex justify-between mb-10">
+          <div>
+            <h1 className="text-4xl font-bold">Wordle</h1>
+            <p>on {difficulty} difficulty</p>
+          </div>
+          <Timer timeMs={time} />
+        </div>
+        <div className={isGameOver ? 'opacity-50 pointer-events-none' : ''}>
+          <Keyboard
+            onKeyPress={handleKeyPress}
+            letterStatuses={letterStatuses}
           />
         </div>
-        <div className="place-content-center p-20 text-xl leading-5">
-          <div className="flex justify-between mb-10">
-            <div>
-              <h1 className="text-4xl font-bold">Wordle</h1>
-              <p>on {difficulty} difficulty</p>
-            </div>
-            <Timer timeMs={time} />
-          </div>
-          <div className={isGameOver ? 'opacity-50 pointer-events-none' : ''}>
-            <Keyboard
-              onKeyPress={handleKeyPress}
-              letterStatuses={letterStatuses}
-            />
-          </div>
 
-          {gameResult && (
-            <PostGameResultsModal
-              score={gameResult.score}
-              submissionId={gameResult.submissionId}
-              gameType="wordle"
-              onClose={() => setGameResult(null)}
-            />
-          )}
-        </div>
+        {gameResult && (
+          <PostGameResultsModal
+            score={gameResult.score}
+            submissionId={gameResult.submissionId}
+            gameType="wordle"
+            onClose={() => setGameResult(null)}
+          />
+        )}
       </div>
-    </>
+    </div>
   );
 };

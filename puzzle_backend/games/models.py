@@ -72,40 +72,40 @@ class WordlePuzzle(models.Model):
 
     def validate_and_score(self, progress_data, difficulty="EASY"):
         """
-        Calculates the score and verifies the final Wordle puzzle against the solution.
-        Requires: 'status' to be 'SOLVED' AND the last guess to be the solution.
+        Calculates the score for Wordle puzzle.
+        - Returns full points if status='SOLVED' and last guess is correct
+        - Returns 0 points if status='LOST' (allows submission for completion tracking)
         """
         guesses = progress_data.get("guesses", [])
         tries = len(guesses)
         difficulty_upper = difficulty.upper()
 
-        # Debug logging
-        print("[WordlePuzzle.validate_and_score] Called")
+        print(f"[WordlePuzzle.validate_and_score] Called")
         print(f"  Difficulty: {difficulty_upper}")
         print(f"  Guesses: {guesses}")
         print(f"  Tries: {tries}")
-        print(f"  Solution: {self.solution_word}")
-        print(f"  Progress Data: {progress_data}")
-
-        # Check for the explicit API status sent by the client
+        
         status = progress_data.get("status", "ACTIVE").upper()
         print(f"  Status: {status}")
-
+        
+        # ✅ Allow LOST games to submit with 0 points
+        if status == "LOST":
+            print(f"[WordlePuzzle.validate_and_score] ✅ LOST game - Awarding 0 points")
+            return 0, tries
+        
+        # For SOLVED games, verify the solution
         client_claims_solved = status == "SOLVED"
-
-        # Verification: Check if the last guess is the solution
         is_correct_guess = tries > 0 and guesses[-1].upper() == self.solution_word.upper()
 
         if tries > 0:
             print(f"  Last guess: '{guesses[-1]}' vs Solution: '{self.solution_word}'")
             print(f"  Match: {is_correct_guess}")
 
-        # The submission is only valid if BOTH conditions are true
         if not is_correct_guess or not client_claims_solved:
             print("[WordlePuzzle.validate_and_score] ❌ VALIDATION FAILED")
             return 0, tries
 
-        # Scoring: Award full base points based on difficulty
+        # Award full points for won games
         points = self.BASE_POINTS.get(difficulty_upper, 0)
         print(f"[WordlePuzzle.validate_and_score] ✅ SUCCESS - Awarding {points} points")
 
