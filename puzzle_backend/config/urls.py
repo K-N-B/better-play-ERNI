@@ -37,6 +37,7 @@ urlpatterns = [
     path("api/gameplay/", include("gameplay.urls")),
 
     path('api/v1/cron/generate-puzzles/', cron_generate_puzzles_view, name='cron_task'),
+    path('healthz/', health_check, name='health-check') /
 ]
 
 if settings.DEBUG:
