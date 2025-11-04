@@ -1,6 +1,7 @@
 # /users/serializers.py
 from rest_framework import serializers
-from .models import User, Department  # Import your models
+
+from .models import Department, User  # Import your models
 
 
 class DepartmentSerializer(serializers.ModelSerializer):

@@ -2,23 +2,20 @@
 import logging  # For structured logging
 import mimetypes  # For deriving file extensions from content types
 import os  # For working with filesystem paths
+import urllib.parse  # For constructing redirect URLs with errors
+
 import msal  # For MSAL interaction
 import requests  # For calling Microsoft Graph API
-import urllib.parse  # For constructing redirect URLs with errors
 from django.conf import settings  # To access settings like AZURE_AD_CLIENT_ID
 from django.contrib.auth import login, logout  # For Django session management
 from django.shortcuts import redirect  # For redirecting the browser
-from rest_framework import generics, status  # Import permissions module
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.decorators import api_view, permission_classes  # DRF decorators
-from rest_framework.response import Response  # DRF response object
-from users.models import User, Department  # Import your models
 from django.utils import timezone
-from users.serializers import (
-    UserProfileSerializer,
-    DepartmentSerializer,
-)  # Import your serializers
-
+from rest_framework import generics, status  # Import permissions module
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response  # DRF response object
+from users.models import Department, User  # Import your models
+from users.serializers import DepartmentSerializer, UserProfileSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -196,7 +193,9 @@ def auth_callback(request):
 
         # Attempt to fetch and cache the user's profile photo the first time they sign in
         # or whenever no cached URL exists yet.
-        profile_picture_url = fetch_and_store_profile_picture(access_token, azure_object_id, request)
+        profile_picture_url = fetch_and_store_profile_picture(
+            access_token, azure_object_id, request
+        )
         if profile_picture_url and profile_picture_url != user.profile_picture_url:
             user.profile_picture_url = profile_picture_url
             user.save(update_fields=["profile_picture_url"])

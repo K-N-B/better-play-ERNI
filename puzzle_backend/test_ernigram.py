@@ -1,11 +1,11 @@
 import json
-import os
 import random
-from rapidfuzz import fuzz
-from unittest.mock import MagicMock
-from typing import List, Dict, Set, Optional
-import re  # Add this to your imports at the top of the file
 import string  # Add this to your imports at the top of the file
+from typing import Dict, List, Optional, Set
+from unittest.mock import MagicMock
+
+from rapidfuzz import fuzz
+
 # --- MOCK & UTILITY SETUP ---
 
 # Mock the Groq client for isolated testing (no API key needed)
@@ -31,6 +31,7 @@ class MockGroqClient:
         mock_response.choices = [mock_choice]
         return mock_response
 
+
 # --- GENERATOR CLASS ---
 
 
@@ -48,17 +49,22 @@ class ErnigramGeneratorAI:
         MAX_ATTEMPTS = 5
 
         available_articles = [
-            article for article in articles
-            if article.get('title', '').upper() not in used_phrases
+            article for article in articles if article.get('title', '').upper() not in used_phrases
         ]
 
         if not available_articles:
-            return {"solution_phrase": "NO UNIQUE ARTICLES AVAILABLE", "clue": "...", "employee_source_id": None}
+            return {
+                "solution_phrase": "NO UNIQUE ARTICLES AVAILABLE",
+                "clue": "...",
+                "employee_source_id": None,
+            }
 
         exclusion_list = ", ".join(used_phrases)
 
         for attempt in range(1, MAX_ATTEMPTS + 1):
-            print(f"🤖 RSS Attempt {attempt}: Selecting from {len(available_articles)} filtered articles.")
+            print(
+                f"🤖 RSS Attempt {attempt}: Selecting from {len(available_articles)} filtered articles."
+            )
 
             # --- PROMPT (Ensures 3-5 words for consistency) ---
             prompt = f"""
@@ -68,10 +74,10 @@ class ErnigramGeneratorAI:
             **CRITICAL RULE 1: The generated 'solution_phrase' must be UNIQUE. DO NOT generate any phrase that is an exact match or extremely similar to phrases listed in the EXCLUSION LIST below.**
             **CRITICAL RULE 2: Create a short "solution_phrase" that is a concise 3–5 word summary written in UPPERCASE. Phrases of only two words are forbidden.**
             **EXCLUSION LIST (Phrases to avoid):** {exclusion_list or "NONE"}
-            
+
             Here are the *available* articles:
             {json.dumps(available_articles, indent=2)}
-            
+
             Return strict JSON format: {{"solution_phrase": "...", "clue": "..."}}
             """
             # --- END PROMPT ---
@@ -80,7 +86,10 @@ class ErnigramGeneratorAI:
                 response = self.client.chat.completions.create(
                     model=self.model,
                     messages=[
-                        {"role": "system", "content": "You generate subtle clues for puzzle headlines. Respond only with the required JSON object."},
+                        {
+                            "role": "system",
+                            "content": "You generate subtle clues for puzzle headlines. Respond only with the required JSON object.",
+                        },
                         {"role": "user", "content": prompt},
                     ],
                     temperature=1.2,
@@ -91,7 +100,6 @@ class ErnigramGeneratorAI:
                 raw_json = response.choices[0].message.content
                 result = json.loads(raw_json)
                 phrase = result.get("solution_phrase", "").upper().strip()
-                clue = result.get("clue", "No clue provided.").strip()
                 source_block_num = result.get("source_block_number")
 
                 if not phrase:
@@ -109,23 +117,33 @@ class ErnigramGeneratorAI:
                 # --- PROGRAMMATIC WORD COUNT CHECK ---
                 # word_count = len(phrase.split())
                 if not (3 <= word_count <= 5):
-                    print(f"❌ Phrase '{phrase}' failed word count check ({word_count} words). Must be 3-5 words. Retrying...")
+                    print(
+                        f"❌ Phrase '{phrase}' failed word count check ({word_count} words). Must be 3-5 words. Retrying..."
+                    )
                     continue
                 # -------------------------------------
-                print(f"🤖 AI generated phrase '{phrase}' from source block #{source_block_num or 'Unknown'}.")
+                print(
+                    f"🤖 AI generated phrase '{phrase}' from source block #{source_block_num or 'Unknown'}."
+                )
 
                 is_unique_by_fuzzy_check = True
                 for used_phrase in used_phrases:
                     similarity_score = fuzz.token_sort_ratio(phrase, used_phrase)
                     if similarity_score >= FUZZY_THRESHOLD:
                         is_unique_by_fuzzy_check = False
-                        print(f"❌ Phrase '{phrase}' (Score: {similarity_score}) is too similar to used phrase '{used_phrase}'.")
+                        print(
+                            f"❌ Phrase '{phrase}' (Score: {similarity_score}) is too similar to used phrase '{used_phrase}'."
+                        )
                         break
 
                 if is_unique_by_fuzzy_check:
                     print(f"✅ Unique phrase found from RSS source: {phrase}")
                     # Use 'None' for the ID key to be consistent with the main scheduler's return structure
-                    return {"solution_phrase": phrase, "clue": result["clue"].strip(), "employee_source_id": None}
+                    return {
+                        "solution_phrase": phrase,
+                        "clue": result["clue"].strip(),
+                        "employee_source_id": None,
+                    }
                 else:
                     continue
 
@@ -136,17 +154,24 @@ class ErnigramGeneratorAI:
                 print(f"⚠️ Groq API failure on attempt {attempt}: {e}")
                 continue
 
-        return {"solution_phrase": "RSS UNIQUE GENERATION FAILED", "clue": "The AI could not generate a unique phrase...", "employee_source_id": None}
+        return {
+            "solution_phrase": "RSS UNIQUE GENERATION FAILED",
+            "clue": "The AI could not generate a unique phrase...",
+            "employee_source_id": None,
+        }
 
     # --- generate_from_raw_text (CSV Logic - FINAL VERSION) ---
-    def generate_from_raw_text(self, raw_text_list: List[str], used_phrases: Set[str], dominant_theme: Optional[str] = None) -> Dict:
+    def generate_from_raw_text(
+        self, raw_text_list: List[str], used_phrases: Set[str], dominant_theme: Optional[str] = None
+    ) -> Dict:
         if not raw_text_list:
-            return {"solution_phrase": "NO RAW DATA PROVIDED", "clue": "...", "employee_source_id": None}
+            return {
+                "solution_phrase": "NO RAW DATA PROVIDED",
+                "clue": "...",
+                "employee_source_id": None,
+            }
 
-        indexed_texts = [
-            f"--- BLOCK {i+1} ---\n{text}"
-            for i, text in enumerate(raw_text_list)
-        ]
+        indexed_texts = [f"--- BLOCK {i+1} ---\n{text}" for i, text in enumerate(raw_text_list)]
 
         exclusion_list = ", ".join(used_phrases)
         MAX_ATTEMPTS = 5
@@ -161,7 +186,9 @@ class ErnigramGeneratorAI:
         for attempt in range(1, MAX_ATTEMPTS + 1):
 
             available_blocks = indexed_texts  # Use the full list for every attempt
-            print(f"🤖 CSV Attempt {attempt}: Selecting from {len(available_blocks)} remaining blocks.")
+            print(
+                f"🤖 CSV Attempt {attempt}: Selecting from {len(available_blocks)} remaining blocks."
+            )
 
             prompt = f"""
             You are a puzzle assistant. Your task is to generate a puzzle based *ONLY* on the provided text blocks.
@@ -188,14 +215,14 @@ class ErnigramGeneratorAI:
 
            **CRITICAL RULES:**
             - **RULE 1: Strict Adherence to Word Count is MANDATORY.** The 'solution_phrase' MUST be composed of **EXACTLY 3, 4, or 5 words**. Phrases with fewer than 3 words or more than 5 words are absolutely forbidden. For example, "EXAMPLE THREE WORD" is acceptable, but "EXAMPLE" or "EXAMPLE FOUR WORD PHRASE" are not.
-            - **RULE 2: ABSOLUTE UNIQUENESS REQUIRED.** The generated 'solution_phrase' MUST NOT be an exact match or be highly similar (e.g., sharing key concepts or more than 70% token overlap) to ANY phrase provided in the EXCLUSION LIST below. If a phrase from the input text block closely matches an exclusion list item, you MUST select a different block or a different phrase from the same block that avoids the match.
+            - **RULE 2: ABSOLUTE UNIQUENESS REQUIRED.** The generated 'solution_phrase' MUST NOT be an exact match or be highly similar (e.g., sharing key concepts or more than 70% token overlap) to ANY phrase provided in the EXCLUSION LIST below.
+               **If a phrase from the input text block closely matches an exclusion list item, you MUST select a different block or a different phrase from the same block that avoids the match.
             **EXCLUSION LIST:** {exclusion_list or "NONE"}
             - **RULE 3: Source Relevance.** YOU MUST BASE YOUR 'solution_phrase' DIRECTLY ON THE CONTENT OF THE SELECTED BLOCK.
             - {theme_constraint}
 
             **AVAILABLE TEXT BLOCKS:**
             {json.dumps(available_blocks, indent=2)}
-            
             **YOUR RESPONSE FORMAT:**
             Return a strict JSON object with three keys: "solution_phrase", "clue", and "source_block_number".
             **YOUR RESPONSE MUST BE IN THE FOLLOWING STRICT JSON FORMAT:**
@@ -210,7 +237,13 @@ class ErnigramGeneratorAI:
             try:
                 response = self.client.chat.completions.create(
                     model=self.model,
-                    messages=[{"role": "system", "content": "You are a puzzle generator that strictly follows instructions. Your only output is the required JSON object."}, {"role": "user", "content": prompt}],
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "You are a puzzle generator that strictly follows instructions. Your only output is the required JSON object.",
+                        },
+                        {"role": "user", "content": prompt},
+                    ],
                     temperature=1.2,
                     max_tokens=500,
                     response_format={"type": "json_object"},
@@ -228,16 +261,22 @@ class ErnigramGeneratorAI:
                 # --- PROGRAMMATIC WORD COUNT CHECK ---
                 word_count = len(phrase.split())
                 if not (3 <= word_count <= 5):
-                    print(f"❌ Phrase '{phrase}' failed word count check ({word_count} words). Must be 3-5 words.")
+                    print(
+                        f"❌ Phrase '{phrase}' failed word count check ({word_count} words). Must be 3-5 words."
+                    )
                     continue
                 # -------------------------------------
 
-                print(f"🤖 AI generated phrase '{phrase}' from source block #{source_block_num or 'Unknown'}.")
+                print(
+                    f"🤖 AI generated phrase '{phrase}' from source block #{source_block_num or 'Unknown'}."
+                )
 
                 is_unique = True
                 for used_phrase in used_phrases:
                     if fuzz.token_sort_ratio(phrase, used_phrase) >= FUZZY_THRESHOLD:
-                        print(f"❌ Phrase '{phrase}' is too similar to used phrase '{used_phrase}'.")
+                        print(
+                            f"❌ Phrase '{phrase}' is too similar to used phrase '{used_phrase}'."
+                        )
                         is_unique = False
                         break
 
@@ -258,11 +297,13 @@ class ErnigramGeneratorAI:
         return {
             "solution_phrase": "NO UNIQUE PUZZLE AVAILABLE",
             "clue": "The AI could not generate a unique phrase after multiple attempts from the available text.",
-            "employee_source_id": None
+            "employee_source_id": None,
         }
 
     # --- generate_from_employee_data ---
-    def generate_from_employee_data(self, employee_data: List[Dict], used_phrases: Set[str]) -> Dict:
+    def generate_from_employee_data(
+        self, employee_data: List[Dict], used_phrases: Set[str]
+    ) -> Dict:
         available = [e for e in employee_data if e['phrase'] not in used_phrases]
         selected = random.choice(available) if available else None
 
@@ -275,8 +316,9 @@ class ErnigramGeneratorAI:
         return {
             "solution_phrase": selected['phrase'],
             "clue": fixed_clue,
-            "employee_source_id": selected['id']
+            "employee_source_id": selected['id'],
         }
+
 
 # --- TEST DATA AND EXECUTION ---
 
@@ -301,16 +343,12 @@ MOCK_USED_PHRASES = {
 MOCK_GROQ_RESPONSES = [
     # Attempt 1: Fails Word Count (2 words) -> CLOUD SOLUTIONS
     '{"solution_phrase": "CLOUD SOLUTIONS", "clue": "This is about remote computing power. It handles all the information storage and processing.", "source_block_number": 1}',
-
     # Attempt 2: Passes Word Count (3 words), Fails Fuzzy Check (similar to 'SECURITY PROTOCOL REVIEWS')
     '{"solution_phrase": "SECURITY PROTOCOL REVIEWS", "clue": "This new policy reduces digital risk across all platforms.", "source_block_number": 4}',
-
     # Attempt 3: Fails Word Count (6 words) -> MIGRATING LEGACY...
     '{"solution_phrase": "MIGRATING LEGACY APPLICATIONS TO MICROSERVICES", "clue": "The team changed how older software was deployed.", "source_block_number": 3}',
-
     # Attempt 4: SUCCESS! (Passes all checks: 4 words and unique)
     '{"solution_phrase": "PERSONALISED MARKETING CONTENT GENERATOR", "clue": "This new tool uses artificial intelligence to make targeted ads.", "source_block_number": 2}',
-
     # Fallback response (should not be reached)
     '{"solution_phrase": "FALLBACK SUCCESS", "clue": "...", "source_block_number": 5}',
 ]
@@ -327,7 +365,7 @@ def run_mock_test():
     result = ai_generator.generate_from_raw_text(
         raw_text_list=MOCK_RAW_TEXTS,
         used_phrases=MOCK_USED_PHRASES,
-        dominant_theme="DIGITAL TRANSFORMATION"
+        dominant_theme="DIGITAL TRANSFORMATION",
     )
 
     print("\n--- Test Complete ---")

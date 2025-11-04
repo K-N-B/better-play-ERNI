@@ -1,9 +1,10 @@
-import os
-import json
-from groq import Groq
 import csv
-from rapidfuzz import fuzz
+import json
+import os
 from random import random
+
+from groq import Groq
+from rapidfuzz import fuzz
 
 # Assuming you have imported your CSV helper function and the main logic:
 # from your_other_file import fetch_raw_csv_data, generate_ernigram_puzzle_data
@@ -59,9 +60,9 @@ class ErnigramGeneratorAI:
         self.used_titles = set()
 
         # The key is read from the environment variables (e.g., .env file or shell export)
-        self.client = Groq(api_key=os.getenv("GROQ_API_KEY")) 
+        self.client = Groq(api_key=os.getenv("GROQ_API_KEY"))
         # Using a model with a larger context window and better reasoning
-        self.model = "meta-llama/llama-4-scout-17b-16e-instruct" 
+        self.model = "meta-llama/llama-4-scout-17b-16e-instruct"
         # New: A set to store the titles of articles already used.
         self.used_titles = set()
 
@@ -286,23 +287,25 @@ class ErnigramGeneratorAI:
         Generates an Ernigram puzzle based on an employee image source.
         Returns: solution_phrase (Name), clue (Fixed), and employee_image_path.
         """
-        
+
         # 1. Select a random employee whose name hasn't been used (based on 'phrase')
         available = [e for e in employee_data if e['phrase'] not in used_phrases]
-        
+
         if not available:
             # Fallback if all employee names have been used
             raise ValueError("All employee names have been used as Ernigram solutions.")
-            
+
         selected = random.choice(available)
-        
+
         # 2. Define the fixed clue as per the requirement
-        fixed_clue = "Better ask employee" # Matches your sample output!
-        
+        fixed_clue = "Better ask employee"  # Matches your sample output!
+
         return {
             "solution_phrase": selected['phrase'],
-            "clue": fixed_clue, 
+            "clue": fixed_clue,
             # The image path/reference stored in the database's ImageField
-            "employee_image_path": selected['image_filename']
+            "employee_image_path": selected['image_filename'],
         }
+
+
 # --- END OF CLASS ---

@@ -1,6 +1,8 @@
 from django.contrib import admin
-from .models import WordlePuzzle, SudokuPuzzle, ErnigramPuzzle, DailyPuzzle, EmployeeImageSource
 from django.utils.html import format_html
+
+from .models import DailyPuzzle, EmployeeImageSource, ErnigramPuzzle, SudokuPuzzle, WordlePuzzle
+
 
 @admin.register(WordlePuzzle)
 class WordlePuzzleAdmin(admin.ModelAdmin):
@@ -43,6 +45,7 @@ class EmployeeImageSourceAdmin(admin.ModelAdmin):
         if obj.image_file:
             return format_html('<img src="{}" width="100" />', obj.image_file.url)
         return "No Image"
+
     display_image.short_description = 'Image Preview'
 
     list_display = ('id', 'employee_name', 'display_image', 'is_available')

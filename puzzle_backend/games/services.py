@@ -1,22 +1,23 @@
 # /games/services.py
-import datetime
-import os
-import json
 import csv
+import datetime
+import json
+import os
 import random
-from datetime import timedelta
-from django.utils import timezone
-from django.core.exceptions import ImproperlyConfigured, FieldError
-from rapidfuzz import fuzz
-from groq import Groq
-from django.db import connection
-from typing import List, Set, Dict, Optional
 import string
+from datetime import timedelta
+from typing import Dict, List, Optional, Set
+
+from django.core.exceptions import ImproperlyConfigured
+from django.db import connection
+from django.utils import timezone
+from groq import Groq
+from rapidfuzz import fuzz
+
+from .api_client import fetch_cleaned_news_articles, generate_sudoku_puzzle_data
 
 # Django Models and External I/O
-from .models import WordlePuzzle, SudokuPuzzle, ErnigramPuzzle, DailyPuzzle, EmployeeImageSource
-from .api_client import generate_sudoku_puzzle_data, fetch_cleaned_news_articles
-
+from .models import DailyPuzzle, EmployeeImageSource, ErnigramPuzzle, SudokuPuzzle, WordlePuzzle
 
 # --- Configuration ---
 CSV_FILE_PATH = "games/ERNI_Content.csv"
@@ -27,6 +28,7 @@ FUZZY_THRESHOLD = 80
 # ----------------------------------------------------------------------
 # A. WORDLE GENERATOR AI
 # ----------------------------------------------------------------------
+
 
 class WordleGeneratorAI:
     def __init__(self):
@@ -63,34 +65,43 @@ class WordleGeneratorAI:
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=[
-                    {"role": "system", "content": "You are an assistant that generates valid Wordle words in JSON format."},
+                    {
+                        "role": "system",
+                        "content": "You are an assistant that generates valid Wordle words in JSON format.",
+                    },
                     {"role": "user", "content": prompt},
                 ],
                 temperature=0.9,
                 max_tokens=100,
-                response_format={"type": "json_object"}
+                response_format={"type": "json_object"},
             )
             content = response.choices[0].message.content
             puzzle_data = json.loads(content)
             word = puzzle_data.get("word", "").strip().upper()
 
             if not (min_length <= len(word) <= max_length):
-                raise ValueError(f"Generated word length {len(word)} not within range {min_length}-{max_length}")
+                raise ValueError(
+                    f"Generated word length {len(word)} not within range {min_length}-{max_length}"
+                )
 
             return {"word": word}
 
         except Exception as e:
-            return None
+            return e
+
 
 # --- MODIFIED FUNCTION: Adds client-side duplicate check ---
 
 
-FALLBACK_WORDS_EASY = [
-    "ARRAY", "SCOPE", "FLOAT", "CLASS", "CRYPT", "QUEUE", "QUERY", "TANGO"
-]
+FALLBACK_WORDS_EASY = ["ARRAY", "SCOPE", "FLOAT", "CLASS", "CRYPT", "QUEUE", "QUERY", "TANGO"]
 
 FALLBACK_WORDS_HARD = [
-    "DEPLOYMENT", "ALGORITHM", "FRAMEWORK", "RECOMMITS", "INTERFACE", "CONTAINER"
+    "DEPLOYMENT",
+    "ALGORITHM",
+    "FRAMEWORK",
+    "RECOMMITS",
+    "INTERFACE",
+    "CONTAINER",
 ]
 
 
@@ -103,7 +114,9 @@ def _generate_unique_wordle_data(ai_generator, difficulty, existing_words):
         fallback_source = FALLBACK_WORDS_HARD
 
     for attempt in range(max_retries):
-        print(f"Generating '{difficulty}' Wordle puzzle using AI (Attempt {attempt + 1}/{max_retries})...")
+        print(
+            f"Generating '{difficulty}' Wordle puzzle using AI (Attempt {attempt + 1}/{max_retries})..."
+        )
 
         puzzle_data = ai_generator.generate_wordle_puzzle_data(
             difficulty=difficulty, existing_words=existing_words
@@ -119,25 +132,20 @@ def _generate_unique_wordle_data(ai_generator, difficulty, existing_words):
                 continue
 
             print(f"✓ AI generation successful for '{difficulty}' puzzle.")
-            return {
-                "solution_word": word,
-                "difficulty": difficulty
-            }
+            return {"solution_word": word, "difficulty": difficulty}
 
-        print(f"⚠ AI generation failed (invalid data returned) on attempt {attempt + 1}. Retrying...")
+        print(
+            f"⚠ AI generation failed (invalid data returned) on attempt {attempt + 1}. Retrying..."
+        )
         # Filter the fallback words to ensure we don't pick an already used word
-    available_fallbacks = [
-        word for word in fallback_source
-        if word not in existing_words
-    ]
+    available_fallbacks = [word for word in fallback_source if word not in existing_words]
 
     if available_fallbacks:
         chosen_fallback = random.choice(available_fallbacks)
-        print(f"♻️ AI failed after {max_retries} attempts. Using unique fallback word: {chosen_fallback}")
-        return {
-            "solution_word": chosen_fallback,
-            "difficulty": difficulty
-        }
+        print(
+            f"♻️ AI failed after {max_retries} attempts. Using unique fallback word: {chosen_fallback}"
+        )
+        return {"solution_word": chosen_fallback, "difficulty": difficulty}
     else:
         # If the fallback list is also exhausted, raise a total failure error
         raise Exception(
@@ -148,6 +156,7 @@ def _generate_unique_wordle_data(ai_generator, difficulty, existing_words):
 # ----------------------------------------------------------------------
 # B. ERNIGRAM GENERATOR AI AND HELPERS
 # ----------------------------------------------------------------------
+
 
 def fetch_raw_csv_data(file_path=CSV_FILE_PATH, text_column_index=RAW_TEXT_COLUMN_INDEX):
     raw_texts = []
@@ -174,8 +183,9 @@ def fetch_used_solution_phrases(reference_date, lookback_days=90):
 
     # CRITICAL: Filter based on the date the puzzle was used/created
     recent_phrases = set(
-        ErnigramPuzzle.objects
-        .filter(date_to_be_used__gte=cutoff_date, date_to_be_used__lte=reference_date)
+        ErnigramPuzzle.objects.filter(
+            date_to_be_used__gte=cutoff_date, date_to_be_used__lte=reference_date
+        )
         .values_list("solution_phrase", flat=True)
         .all()
     )
@@ -191,10 +201,13 @@ def find_dominant_theme(used_phrases):
     theme_counts = {}
     for phrase in used_phrases:
         if "DIGITAL TRANSFORMATION" in phrase.upper():
-            theme_counts["DIGITAL TRANSFORMATION"] = theme_counts.get("DIGITAL TRANSFORMATION", 0) + 1
+            theme_counts["DIGITAL TRANSFORMATION"] = (
+                theme_counts.get("DIGITAL TRANSFORMATION", 0) + 1
+            )
     if theme_counts.get("DIGITAL TRANSFORMATION", 0) >= 3:
         return "DIGITAL TRANSFORMATION"
     return None
+
 
 # --- MODIFIED FUNCTION: Now includes the primary key ('id') ---
 
@@ -209,13 +222,15 @@ def fetch_employee_image_data():
 
     formatted_data = []
     for data in employee_data:
-        formatted_data.append({
-            "id": data['id'],  # The ID of the EmployeeImageSource object
-            "name": data['employee_name'],
-            "phrase": data['employee_name'].upper(),
-            "clue_context": data['clue_context'],
-            "image_filename": data['image_file'],
-        })
+        formatted_data.append(
+            {
+                "id": data['id'],  # The ID of the EmployeeImageSource object
+                "name": data['employee_name'],
+                "phrase": data['employee_name'].upper(),
+                "clue_context": data['clue_context'],
+                "image_filename": data['image_file'],
+            }
+        )
 
     return formatted_data
 
@@ -235,17 +250,22 @@ class ErnigramGeneratorAI:
         MAX_ATTEMPTS = 5
 
         available_articles = [
-            article for article in articles
-            if article.get('title', '').upper() not in used_phrases
+            article for article in articles if article.get('title', '').upper() not in used_phrases
         ]
 
         if not available_articles:
-            return {"solution_phrase": "NO UNIQUE ARTICLES AVAILABLE", "clue": "All structured article titles have been previously used as solutions.", "employee_image_path": None}
+            return {
+                "solution_phrase": "NO UNIQUE ARTICLES AVAILABLE",
+                "clue": "All structured article titles have been previously used as solutions.",
+                "employee_image_path": None,
+            }
 
         exclusion_list = ", ".join(used_phrases)
 
         for attempt in range(1, MAX_ATTEMPTS + 1):
-            print(f"🤖 Attempt {attempt}: Selecting from {len(available_articles)} filtered articles.")
+            print(
+                f"🤖 Attempt {attempt}: Selecting from {len(available_articles)} filtered articles."
+            )
 
             prompt = f"""
             You are a creative assistant that turns news headlines into puzzles.
@@ -272,7 +292,10 @@ class ErnigramGeneratorAI:
                 response = self.client.chat.completions.create(
                     model=self.model,
                     messages=[
-                        {"role": "system", "content": "You generate subtle clues for puzzle headlines. Respond only with the required JSON object."},
+                        {
+                            "role": "system",
+                            "content": "You generate subtle clues for puzzle headlines. Respond only with the required JSON object.",
+                        },
                         {"role": "user", "content": prompt},
                     ],
                     temperature=1.2,
@@ -294,12 +317,18 @@ class ErnigramGeneratorAI:
                     similarity_score = fuzz.token_sort_ratio(phrase, used_phrase)
                     if similarity_score >= FUZZY_THRESHOLD:
                         is_unique_by_fuzzy_check = False
-                        print(f"❌ Phrase '{phrase}' (Score: {similarity_score}) is too similar to used phrase '{used_phrase}'.")
+                        print(
+                            f"❌ Phrase '{phrase}' (Score: {similarity_score}) is too similar to used phrase '{used_phrase}'."
+                        )
                         break
 
                 if is_unique_by_fuzzy_check:
                     print(f"✅ Unique phrase found from RSS source: {phrase}")
-                    return {"solution_phrase": phrase, "clue": result["clue"].strip(), "employee_image_path": "None"}
+                    return {
+                        "solution_phrase": phrase,
+                        "clue": result["clue"].strip(),
+                        "employee_image_path": "None",
+                    }
                 else:
                     continue
 
@@ -310,12 +339,22 @@ class ErnigramGeneratorAI:
                 print(f"⚠️ Groq API failure on attempt {attempt}: {e}")
                 continue
 
-        return {"solution_phrase": "RSS UNIQUE GENERATION FAILED", "clue": "The AI could not generate a unique phrase...", "employee_image_path": None}
+        return {
+            "solution_phrase": "RSS UNIQUE GENERATION FAILED",
+            "clue": "The AI could not generate a unique phrase...",
+            "employee_image_path": None,
+        }
 
     # --- generate_from_raw_text (CSV Logic) ---
-    def generate_from_raw_text(self, raw_text_list: List[str], used_phrases: Set[str], dominant_theme: Optional[str] = None) -> Dict:
+    def generate_from_raw_text(
+        self, raw_text_list: List[str], used_phrases: Set[str], dominant_theme: Optional[str] = None
+    ) -> Dict:
         if not raw_text_list:
-            return {"solution_phrase": "NO RAW DATA PROVIDED", "clue": "...", "employee_source_id": None}
+            return {
+                "solution_phrase": "NO RAW DATA PROVIDED",
+                "clue": "...",
+                "employee_source_id": None,
+            }
 
         # 🛑 CRITICAL FIX: RANDOMLY SELECT ONE BLOCK (and its index for the AI to return)
         selected_index = random.randrange(len(raw_text_list))
@@ -325,8 +364,12 @@ class ErnigramGeneratorAI:
         sanitized_text = selected_text.replace('"', "'").replace('\n', ' ')
         MAX_ATTEMPTS = 5
 
-        print(f"➡️ Starting CSV generation based on single random block #{selected_block_num} selection.")
-        print(f"DEBUG: Block #{selected_block_num} text: {selected_text[:100]}...")  # Print first 100 chars
+        print(
+            f"➡️ Starting CSV generation based on single random block #{selected_block_num} selection."
+        )
+        print(
+            f"DEBUG: Block #{selected_block_num} text: {selected_text[:100]}..."
+        )  # Print first 100 chars
         # The loop is now only for retries due to word count or fuzzy failure
         for attempt in range(1, MAX_ATTEMPTS + 1):
             print(f"🤖 CSV Attempt {attempt}: Summarizing block #{selected_block_num}.")
@@ -340,7 +383,7 @@ class ErnigramGeneratorAI:
             1. **Summarize** the core idea of the text block into a concise, **3-5 word** "solution_phrase" in UPPERCASE. Phrases of only two words are forbidden.
             2. Create a two-sentence "clue" that hints at the content without using any words from the solution phrase.
             3. The required 'source_block_number' is **{selected_block_num}**.
-            
+
             **TEXT BLOCK TO USE (BLOCK {selected_block_num}):**
             "{sanitized_text}"
 
@@ -354,17 +397,21 @@ class ErnigramGeneratorAI:
             {{
                 "solution_phrase": "...",
                 "clue": "...",
-                "source_block_number": {selected_block_num} 
+                "source_block_number": {selected_block_num}
             }}
 
-
-            
             """
 
             try:
                 response = self.client.chat.completions.create(
                     model=self.model,
-                    messages=[{"role": "system", "content": "You are a puzzle generator. Your only output is the required JSON object."}, {"role": "user", "content": prompt}],
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "You are a puzzle generator. Your only output is the required JSON object.",
+                        },
+                        {"role": "user", "content": prompt},
+                    ],
                     temperature=1.2,
                     max_tokens=500,
                     response_format={"type": "json_object"},
@@ -386,7 +433,9 @@ class ErnigramGeneratorAI:
                 word_count = len(normalized_phrase.split())
 
                 if not (3 <= word_count <= 5):
-                    print(f"❌ Phrase '{phrase}' failed word count check ({word_count} words). Must be 3-5 words. Retrying...")
+                    print(
+                        f"❌ Phrase '{phrase}' failed word count check ({word_count} words). Must be 3-5 words. Retrying..."
+                    )
                     continue
                 # -------------------------------------
 
@@ -395,7 +444,9 @@ class ErnigramGeneratorAI:
                 is_unique = True
                 for used_phrase in used_phrases:
                     if fuzz.token_sort_ratio(phrase, used_phrase) >= FUZZY_THRESHOLD:
-                        print(f"❌ Phrase '{phrase}' is too similar to used phrase '{used_phrase}'. Retrying...")
+                        print(
+                            f"❌ Phrase '{phrase}' is too similar to used phrase '{used_phrase}'. Retrying..."
+                        )
                         is_unique = False
                         break
 
@@ -416,7 +467,7 @@ class ErnigramGeneratorAI:
         return {
             "solution_phrase": "NO UNIQUE PUZZLE AVAILABLE",
             "clue": f"The AI failed to generate a unique 3-5 word summary after {MAX_ATTEMPTS} attempts on block #{selected_block_num}.",
-            "employee_source_id": None
+            "employee_source_id": None,
         }
         # --- MODIFIED FUNCTION: Returns object ID instead of path ---
 
@@ -433,8 +484,9 @@ class ErnigramGeneratorAI:
         return {
             "solution_phrase": selected['phrase'],
             "clue": fixed_clue,
-            "employee_source_id": selected['id']  # Returns the ID (PK)
+            "employee_source_id": selected['id'],  # Returns the ID (PK)
         }
+
 
 # ----------------------------------------------------------------------
 # C. MAIN SCHEDULER LOGIC
@@ -473,7 +525,7 @@ def generate_ernigram_puzzle_data(date_to_be_used):
         return {
             "solution_phrase": "NO DATA SOURCES",
             "clue": "All potential data sources (RSS, CSV, Employee) are empty.",
-            "employee_source_id": None
+            "employee_source_id": None,
         }
 
     # 3. SHUFFLE THE SOURCES FOR RANDOMNESS
@@ -505,18 +557,24 @@ def generate_ernigram_puzzle_data(date_to_be_used):
             generated_phrase = result.get('solution_phrase', '').upper()
             failure_keywords = ["NO UNIQUE", "FAILED", "NO DATA", "NOT IMPLEMENTED"]
 
-            if generated_phrase and not any(keyword in generated_phrase for keyword in failure_keywords):
+            if generated_phrase and not any(
+                keyword in generated_phrase for keyword in failure_keywords
+            ):
                 print(f"✅ Success! Generated puzzle from '{source_name}': '{generated_phrase}'")
                 # A valid puzzle was generated. Return it immediately and exit the function.
                 return result
             else:
                 # This source FAILED to produce a valid phrase.
                 # Log it and let the loop continue to the next available source.
-                print(f"❌ Source '{source_name}' failed. Reason: '{generated_phrase}'. Trying next source...")
+                print(
+                    f"❌ Source '{source_name}' failed. Reason: '{generated_phrase}'. Trying next source..."
+                )
 
         except Exception as e:
             # This catches any unexpected crashes within a generation method (like a ValueError).
-            print(f"❌ Source '{source_name}' crashed with an exception: {e}. Trying next source...")
+            print(
+                f"❌ Source '{source_name}' crashed with an exception: {e}. Trying next source..."
+            )
             continue  # Go to the next source in the shuffled list
 
     # 5. FINAL FALLBACK
@@ -525,7 +583,7 @@ def generate_ernigram_puzzle_data(date_to_be_used):
     return {
         "solution_phrase": "ALL SOURCES FAILED",
         "clue": "Every available data source was attempted without success.",
-        "employee_source_id": ""
+        "employee_source_id": "",
     }
 
 
@@ -569,12 +627,12 @@ def generate_daily_puzzles(target_date: datetime.date = None) -> DailyPuzzle:
     wordle_easy, _ = WordlePuzzle.objects.update_or_create(
         date_to_be_used=target_date,
         difficulty=wordle_easy_data['difficulty'],
-        defaults=wordle_easy_data
+        defaults=wordle_easy_data,
     )
     wordle_hard, _ = WordlePuzzle.objects.update_or_create(
         date_to_be_used=target_date,
         difficulty=wordle_hard_data['difficulty'],
-        defaults=wordle_hard_data
+        defaults=wordle_hard_data,
     )
 
     # Sudoku
@@ -588,9 +646,6 @@ def generate_daily_puzzles(target_date: datetime.date = None) -> DailyPuzzle:
     # We retrieve the source ID if it was generated (employee puzzle)
     employee_source_id = ernigram_data.pop("employee_source_id", None)
 
-    # The image path is technically still needed for non-employee puzzles if you ever need a file reference
-    employee_image_path = ernigram_data.pop("employee_image_path", None)
-
     # Prepare defaults dictionary
     ernigram_defaults = {
         "solution_phrase": ernigram_data['solution_phrase'],
@@ -603,8 +658,7 @@ def generate_daily_puzzles(target_date: datetime.date = None) -> DailyPuzzle:
 
     # Create the Ernigram puzzle
     ernigram, _ = ErnigramPuzzle.objects.get_or_create(
-        date_to_be_used=target_date,
-        defaults=ernigram_defaults
+        date_to_be_used=target_date, defaults=ernigram_defaults
     )
 
     # 5. Link them all in the DailyPuzzle object

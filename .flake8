@@ -7,7 +7,8 @@ exclude =
     migrations,
     htmlcov,
     */tests.py,  # Ignores files named tests.py
-    */tests/
+    */tests/,
+    frontend/
 ; per-file-ignores =
 ;     # Combine all ignores for 'tests/*' onto this one line
 ;     */tests: F403, F405, S101, F841, F811

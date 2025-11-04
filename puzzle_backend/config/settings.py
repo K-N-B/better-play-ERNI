@@ -11,8 +11,9 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
-from dotenv import load_dotenv
 from pathlib import Path
+
+from dotenv import load_dotenv
 
 load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -64,7 +65,6 @@ DJANGO_CRON_LOCK_BACKEND = 'django_cron.backends.lock.database.DatabaseLock'
 SITE_ID = 1
 
 
-
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -75,7 +75,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-
 
 
 ROOT_URLCONF = 'config.urls'
@@ -121,7 +120,7 @@ DATABASES = {
             #     "AND pid <> pg_backend_pid();",
             # },
         },
-        'OPTIONS': {             'options': '-c search_path=public' }
+        'OPTIONS': {'options': '-c search_path=public'},
         # ----------------------------------------------------
     }
 }

@@ -7,14 +7,18 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
             name='DailyDepartmentScore',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name='ID'
+                    ),
+                ),
                 ('score', models.IntegerField(db_index=True, default=0)),
                 ('date', models.DateField(db_index=True)),
             ],
@@ -27,7 +31,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='DailyIndividualScore',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name='ID'
+                    ),
+                ),
                 ('score', models.IntegerField(db_index=True, default=0)),
                 ('date', models.DateField(db_index=True)),
             ],
@@ -40,7 +49,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='MonthlyDepartmentScore',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name='ID'
+                    ),
+                ),
                 ('score', models.IntegerField(db_index=True, default=0)),
                 ('month_start_date', models.DateField(db_index=True)),
             ],
@@ -53,9 +67,17 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='MonthlyIndividualScore',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name='ID'
+                    ),
+                ),
                 ('score', models.IntegerField(db_index=True, default=0)),
-                ('month_start_date', models.DateField(db_index=True, help_text='Date of the 1st of that month')),
+                (
+                    'month_start_date',
+                    models.DateField(db_index=True, help_text='Date of the 1st of that month'),
+                ),
             ],
             options={
                 'verbose_name': 'Monthly Individual Score',
@@ -66,7 +88,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='WeeklyDepartmentScore',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name='ID'
+                    ),
+                ),
                 ('score', models.IntegerField(db_index=True, default=0)),
                 ('week_start_date', models.DateField(db_index=True)),
             ],
@@ -79,9 +106,17 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='WeeklyIndividualScore',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name='ID'
+                    ),
+                ),
                 ('score', models.IntegerField(db_index=True, default=0)),
-                ('week_start_date', models.DateField(db_index=True, help_text='Date of the Monday for that week')),
+                (
+                    'week_start_date',
+                    models.DateField(db_index=True, help_text='Date of the Monday for that week'),
+                ),
             ],
             options={
                 'verbose_name': 'Weekly Individual Score',

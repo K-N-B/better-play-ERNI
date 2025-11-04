@@ -1,8 +1,8 @@
 # games/urls.py
 from django.urls import path
-from .views import DailyPuzzlesView, MockDailyPuzzlesGenerateView
-from . import views
 
+from . import views
+from .views import DailyPuzzlesView, MockDailyPuzzlesGenerateView
 
 urlpatterns = [
     # Endpoint to get daily puzzles for a specific date (or today if none specified)
