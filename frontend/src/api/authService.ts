@@ -23,7 +23,7 @@ export const checkAuth = async (): Promise<{
     const data = await response.json();
     return data;
   } catch (err) {
-    console.error('[checkAuth] Error:', err);
+    console.error("[checkAuth] Error:", err);
     return { authenticated: false, user: null };
   }
 };
@@ -50,27 +50,30 @@ export const getLoginRedirectUrl = async (): Promise<{ auth_url: string }> => {
  * * FIX: Added CSRF token to headers to prevent 403 Forbidden error.
  */
 export const logoutUser = async (): Promise<void> => {
-  const csrfToken = getCookie('csrftoken');
+  const csrfToken = getCookie("csrftoken");
   if (!csrfToken) {
     console.warn("[logoutUser] CSRF token not found. Logout may fail.");
   }
-  
+
   const response = await fetch(`${API_URL}/auth/logout/`, {
     method: "POST",
     credentials: "include",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       // CRUCIAL ADDITION: Send the CSRF token
-      'X-CSRFToken': csrfToken || '', 
+      "X-CSRFToken": csrfToken || "",
     },
     body: JSON.stringify({}), // Include a body for fetch consistency with POST
   });
-  
+
   if (!response.ok) {
-      // Throw an error if the backend request failed (e.g., 403, 500)
-      const errorText = await response.text();
-      console.error(`[logoutUser] API request failed (${response.status}):`, errorText);
-      throw new Error(`Failed to log out: ${response.statusText}`);
+    // Throw an error if the backend request failed (e.g., 403, 500)
+    const errorText = await response.text();
+    console.error(
+      `[logoutUser] API request failed (${response.status}):`,
+      errorText
+    );
+    throw new Error(`Failed to log out: ${response.statusText}`);
   }
 };
 
@@ -80,25 +83,26 @@ export const logoutUser = async (): Promise<void> => {
  */
 export const getDepartments = async (): Promise<Department[]> => {
   try {
-    console.log('[getDepartments] Fetching real data...');
+    console.log("[getDepartments] Fetching real data...");
     const response = await fetch(`${API_URL}/api/departments/`, {
-      credentials: 'include', // Include cookies for authentication
+      credentials: "include", // Include cookies for authentication
       headers: {
-        'Accept': 'application/json',
-      }
+        Accept: "application/json",
+      },
     });
 
     if (!response.ok) {
-      console.error(`[getDepartments] API request failed with status ${response.status}`);
+      console.error(
+        `[getDepartments] API request failed with status ${response.status}`
+      );
       throw new Error(`Failed to fetch departments: ${response.statusText}`);
     }
 
     const data: Department[] = await response.json();
-    console.log('[getDepartments] Fetched departments:', data);
+    console.log("[getDepartments] Fetched departments:", data);
     return data;
-
   } catch (error) {
-    console.error('[getDepartments] Fetch error:', error);
+    console.error("[getDepartments] Fetch error:", error);
     throw error;
   }
 };
@@ -107,39 +111,50 @@ export const getDepartments = async (): Promise<Department[]> => {
  * Complete user profile by selecting a department
  * POST /api/users/me/complete-profile/
  */
-export const completeProfile = async (departmentId: number): Promise<UserProfile> => {
+export const completeProfile = async (
+  departmentId: number
+): Promise<UserProfile> => {
   try {
-    console.log(`[completeProfile] Sending request... Dept ID: ${departmentId}`);
+    console.log(
+      `[completeProfile] Sending request... Dept ID: ${departmentId}`
+    );
 
     // Get CSRF Token
-    const csrfToken = getCookie('csrftoken');
+    const csrfToken = getCookie("csrftoken");
     if (!csrfToken) {
       console.error("[completeProfile] CSRF token not found.");
       throw new Error("CSRF token missing. Cannot complete profile.");
     }
 
     const response = await fetch(`${API_URL}/api/users/me/complete-profile/`, {
-      method: 'POST',
-      credentials: 'include',
+      method: "POST",
+      credentials: "include",
       headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrfToken,
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
       },
       body: JSON.stringify({ department_id: departmentId }),
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error(`[completeProfile] API request failed (${response.status}):`, errorData);
-      throw new Error(`Failed to complete profile: ${errorData.detail || response.statusText}`);
+      console.error(
+        `[completeProfile] API request failed (${response.status}):`,
+        errorData
+      );
+      throw new Error(
+        `Failed to complete profile: ${errorData.detail || response.statusText}`
+      );
     }
 
     const updatedUserProfile: UserProfile = await response.json();
-    console.log('[completeProfile] Profile updated successfully:', updatedUserProfile);
+    console.log(
+      "[completeProfile] Profile updated successfully:",
+      updatedUserProfile
+    );
     return updatedUserProfile;
-
   } catch (error) {
-    console.error('[completeProfile] Fetch error:', error);
+    console.error("[completeProfile] Fetch error:", error);
     throw error;
   }
 };
@@ -149,11 +164,11 @@ export const completeProfile = async (departmentId: number): Promise<UserProfile
  */
 export function getCookie(name: string): string | null {
   let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
+  if (document.cookie && document.cookie !== "") {
+    const cookies = document.cookie.split(";");
     for (let i = 0; i < cookies.length; i++) {
       const cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+      if (cookie.substring(0, name.length + 1) === name + "=") {
         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
         break;
       }

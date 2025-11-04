@@ -3,8 +3,8 @@ import { MOCK_MODE, mockApiCall } from "./api";
 import { MOCK_ACTIVITY_HUB } from "../data/_mockData";
 import type { ActivityHubResponse } from "../types/activity";
 
-// const API_BASE_URL = 'http://localhost:8000';
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = "http://localhost:8000";
+// const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 /**
  * Helper function to get CSRF token from cookies

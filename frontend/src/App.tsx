@@ -6,19 +6,17 @@
 // Define all your routes (e.g., /, /login, /game/:gameType).
 // Wrap all authenticated pages inside the <Layout> component and the <ProtectedRoute> component.
 
-import { Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './hooks/authContext';
-import LoginPage from './pages/loginPage';
-import AuthCallback from './pages/AuthCallback'
-import { HomePage } from './pages/homePage';
-import { LeaderboardPage } from './pages/leaderboardPage';
-import { ProtectedRoute } from './components/ui/protectedRoute';
-import { Layout } from './components/layout/layout';
-import { GamePage } from './pages/gamePage';
-import { ChallengePage } from './pages/challengePage';
-import { ShopPage } from './pages/shopPage';
-
-
+import { Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./hooks/authContext";
+import LoginPage from "./pages/loginPage";
+import AuthCallback from "./pages/AuthCallback";
+import { HomePage } from "./pages/homePage";
+import { LeaderboardPage } from "./pages/leaderboardPage";
+import { ProtectedRoute } from "./components/ui/protectedRoute";
+import { Layout } from "./components/layout/layout";
+import { GamePage } from "./pages/gamePage";
+import { ChallengePage } from "./pages/challengePage";
+import { ShopPage } from "./pages/shopPage";
 
 function App() {
   return (
@@ -27,7 +25,6 @@ function App() {
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} /> {/* <-- ADD THIS */}
         <Route path="/auth-callback" element={<AuthCallback />} />
-
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
@@ -38,7 +35,6 @@ function App() {
             <Route path="/shop" element={<ShopPage />} />
           </Route>
         </Route>
-        
       </Routes>
     </AuthProvider>
   );
