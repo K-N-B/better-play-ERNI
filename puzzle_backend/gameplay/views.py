@@ -309,7 +309,6 @@ class SubmitPuzzleView(View):
 
         # 1. Setup and Validation
         try:
-            # Parse date string to date object
             try:
                 puzzle_date = datetime.strptime(daily_puzzle_date, '%Y-%m-%d').date()
             except ValueError:
@@ -336,7 +335,21 @@ class SubmitPuzzleView(View):
             traceback.print_exc()
             return JsonResponse({"error": "Invalid puzzle reference."}, status=400)
 
-        # 2. Retrieve Attempt
+        # 2. Check for duplicate submission
+        existing_submission = Submission.objects.filter(
+            user=user,
+            content_type=puzzle_content_type,
+            object_id=puzzle_instance.pk
+        ).first()
+        
+        if existing_submission:
+            return JsonResponse({
+                "error": "You have already submitted this puzzle.",
+                "points_awarded": existing_submission.points_awarded,
+                "submission_id": existing_submission.pk
+            }, status=400)
+
+        # 3. Retrieve Attempt
         try:
             attempt = PuzzleAttempt.objects.get(
                 user=user,
@@ -355,7 +368,7 @@ class SubmitPuzzleView(View):
         except json.JSONDecodeError:
             difficulty = "EASY"
 
-        # 3. TIME LIMIT ENFORCEMENT
+        # 4. TIME LIMIT ENFORCEMENT
         if hasattr(PuzzleModel, "TIME_LIMITS_MS"):
             time_limits = PuzzleModel.TIME_LIMITS_MS
             max_time_ms = time_limits.get(difficulty)
@@ -367,26 +380,17 @@ class SubmitPuzzleView(View):
                     status=403,
                 )
 
-        # 4. SCORING
+        # 5. SCORING
         try:
-            # ✅ Handle Sudoku grid format (wrapped in {"grid": ...})
             progress_data = attempt.progress_data
             
-            # For Sudoku, extract the grid array from the wrapper
             if puzzle_model_name_lower == "sudokupuzzle":
                 if "grid" in progress_data:
                     validation_data = progress_data["grid"]
-                    print(f"[SubmitPuzzleView] Extracted grid from wrapper")
                 else:
-                    # Backward compatibility: progress_data might already be the grid
                     validation_data = progress_data
-                    print(f"[SubmitPuzzleView] Using progress_data directly as grid")
             else:
                 validation_data = progress_data
-            
-            print(f"[SubmitPuzzleView] Data type: {type(validation_data)}")
-            if isinstance(validation_data, list):
-                print(f"[SubmitPuzzleView] Grid dimensions: {len(validation_data)}x{len(validation_data[0]) if validation_data else 0}")
             
             points_awarded, tries = puzzle_instance.validate_and_score(
                 validation_data, difficulty
@@ -404,13 +408,7 @@ class SubmitPuzzleView(View):
             traceback.print_exc()
             return JsonResponse({"error": f"Scoring failed: {str(e)}"}, status=400)
 
-        if points_awarded <= 0:
-            return JsonResponse(
-                {"error": "Puzzle was not successfully solved or achieved zero points."},
-                status=400,
-            )
-
-        # 5. CREATE SUBMISSION RECORD
+        # 6. CREATE SUBMISSION RECORD (even for 0 points)
         submission = Submission.objects.create(
             user=user,
             puzzle=puzzle_instance,
@@ -423,28 +421,37 @@ class SubmitPuzzleView(View):
             puzzle_date=daily_puzzle.date,
         )
 
-        # 6. UPDATE USER STATS
-        user.total_points_alltime = F('total_points_alltime') + points_awarded
-        user.current_points = F('current_points') + points_awarded
-        user.save(update_fields=['total_points_alltime', 'current_points'])
-        user.refresh_from_db()
+        # 7. UPDATE USER STATS (only if points > 0)
+        if points_awarded > 0:
+            user.total_points_alltime = F('total_points_alltime') + points_awarded
+            user.current_points = F('current_points') + points_awarded
+            user.save(update_fields=['total_points_alltime', 'current_points'])
+            user.refresh_from_db()
 
-        # 7. UPDATE LEADERBOARDS IN REAL-TIME
-        try:
-            LeaderboardAggregator.update_all_for_date(daily_puzzle.date)
-            print(f"✅ Leaderboards updated for {daily_puzzle.date}")
-        except Exception as e:
-            print(f"⚠️ Leaderboard update failed: {e}")
+        # 8. UPDATE LEADERBOARDS (only if points > 0)
+        if points_awarded > 0:
+            try:
+                LeaderboardAggregator.update_all_for_date(daily_puzzle.date)
+                print(f"✅ Leaderboards updated for {daily_puzzle.date}")
+            except Exception as e:
+                print(f"⚠️ Leaderboard update failed: {e}")
 
-        # 8. Clean up the PuzzleAttempt
+        # 9. Clean up the PuzzleAttempt
         attempt.delete()
 
         print(f"[SubmitPuzzleView] ✅ Submitted successfully: {points_awarded} points for {user.username}")
 
+        # ✅ Return complete response with all streak fields
+        response_message = "Puzzle submitted successfully." if points_awarded > 0 else "Puzzle submitted (no points awarded)."
+        
         return JsonResponse({
-            "message": "Puzzle submitted successfully.",
+            "message": response_message,
             "points_awarded": points_awarded,
             "submission_id": submission.pk,
+            # ✅ Add streak information (set to 0 for now, you can implement proper streak logic later)
+            "current_streak": 0,
+            "max_streak": 0,
+            "streak_updated_today": False,
         }, status=201)
 
 
@@ -594,6 +601,86 @@ class GetTodaySubmissionsView(View):
             
         except Exception as e:
             print(f"[GetTodaySubmissions] Error: {e}")
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({'error': str(e)}, status=500)
+        
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(login_required, name='get')
+class GetTodayCompletedPuzzlesView(View):
+    """
+    GET /api/gameplay/completed/today/
+    Returns all completed puzzles (both submissions and lost attempts) for today
+    """
+    
+    def get(self, request):
+        user = request.user
+        
+        try:
+            # Get today's date in Philippine Time
+            pht_tz = pytz.timezone('Asia/Manila')
+            now_pht = datetime.now(pht_tz)
+            today_pht = now_pht.date()
+            
+            # Create timezone-aware datetime range for today
+            start_of_day_pht = pht_tz.localize(datetime.combine(today_pht, datetime.min.time()))
+            end_of_day_pht = pht_tz.localize(datetime.combine(today_pht, datetime.max.time()))
+            
+            print(f"[GetTodayCompleted] Checking for {user.username}")
+            
+            # Get all submissions (won games)
+            submissions = Submission.objects.filter(
+                user=user,
+                created_at__gte=start_of_day_pht,
+                created_at__lte=end_of_day_pht
+            ).values_list('content_type__model', flat=True)
+            
+            # Get all attempts for today
+            daily_puzzle = DailyPuzzle.objects.filter(date=today_pht).first()
+            if not daily_puzzle:
+                return JsonResponse({'completed': [], 'date': today_pht.isoformat()})
+            
+            lost_attempts = PuzzleAttempt.objects.filter(
+                user=user,
+                daily_puzzle=daily_puzzle
+            )
+            
+            completed_games = set(submissions)
+            
+            # Check each attempt to see if it's a completed (lost) game
+            for attempt in lost_attempts:
+                progress = attempt.progress_data
+                
+                # Check if game is over
+                is_game_over = progress.get('isGameOver', False)
+                
+                # Also check status field
+                if not is_game_over and 'status' in progress:
+                    is_game_over = progress.get('status') in ['LOST', 'SOLVED']
+                
+                if is_game_over:
+                    # Get the puzzle type from content_type
+                    puzzle_type = attempt.content_type.model
+                    completed_games.add(puzzle_type)
+            
+            # Return list of completed puzzle types (normalized)
+            completed = []
+            if 'wordlepuzzle' in completed_games:
+                completed.append('wordle')
+            if 'sudokupuzzle' in completed_games:
+                completed.append('sudoku')
+            if 'ernigrampuzzle' in completed_games:
+                completed.append('ernigram')
+            
+            print(f"[GetTodayCompleted] ✅ Completed games: {completed}")
+            
+            return JsonResponse({
+                'completed': completed,
+                'date': today_pht.isoformat()
+            })
+            
+        except Exception as e:
+            print(f"[GetTodayCompleted] Error: {e}")
             import traceback
             traceback.print_exc()
             return JsonResponse({'error': str(e)}, status=500)

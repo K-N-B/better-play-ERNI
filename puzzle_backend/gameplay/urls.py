@@ -8,6 +8,7 @@ from .views import (
     GetHintView,
     CheckSubmissionView,
     GetTodaySubmissionsView,
+    GetTodayCompletedPuzzlesView,
 )
 
 urlpatterns = [
@@ -50,7 +51,12 @@ urlpatterns = [
         CheckSubmissionView.as_view(),
         name="check_submission",
     ),
-
+    
+    path(
+        "completed/today/",
+        GetTodayCompletedPuzzlesView.as_view(),
+        name="today_completed",
+    ),
     # Get all submissions by the current user for today's date (Asia/Manila)
     # Example: GET /api/gameplay/submissions/today/
     path(
@@ -58,4 +64,6 @@ urlpatterns = [
         GetTodaySubmissionsView.as_view(),
         name="today_submissions",
     ),
+
+    
 ]
