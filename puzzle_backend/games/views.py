@@ -17,7 +17,7 @@ from .models import DailyPuzzle
 from .serializers import DailyPuzzleSerializer
 
 # Import your new service function
-from .services import generate_daily_puzzles
+# from .services import generate_daily_puzzles
 
 
 class DailyPuzzlesView(APIView):
@@ -61,44 +61,27 @@ class DailyPuzzlesView(APIView):
 # --- Mock Data Generation Endpoint (FOR DEVELOPMENT ONLY) ---
 
 
-class MockDailyPuzzlesGenerateView(APIView):
-    """
-    Mocks the creation of a daily puzzle set for a specific date.
-    Uses dedicated service functions for generation logic.
-    """
+# class MockDailyPuzzlesGenerateView(APIView):
 
-    permission_classes = [AllowAny]  # For dev convenience, remove/change for production
+#     def post(self, request, *args, **kwargs):
+#         try:
+#             target_date_str = request.data.get("date")
+#             if not target_date_str:
+#                 return Response({"detail": "Date is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request, format=None):
-        date_param = request.data.get("date", None)
-        if not date_param:
-            return Response(
-                {"detail": "Date is required (YYYY-MM-DD)."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+#             target_date = date.fromisoformat(target_date_str)
 
-        try:
-            target_date = datetime.datetime.strptime(date_param, "%Y-%m-%d").date()
-        except ValueError:
-            return Response(
-                {"detail": "Invalid date format. Use YYYY-MM-DD."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+#             # ✅ Check existence BEFORE calling generator
+#             if DailyPuzzle.objects.filter(date=target_date).exists():
+#                 return Response(
+#                     {"detail": f"Daily puzzles for {target_date} already exist."},
+#                     status=status.HTTP_409_CONFLICT
+#                 )
 
-        if DailyPuzzle.objects.filter(date=target_date).exists():
-            return Response(
-                {"detail": f"Daily puzzles for {target_date} already exist."},
-                status=status.HTTP_409_CONFLICT,
-            )
+#             # Only call generator if not existing
+#             daily_puzzle_set = generate_daily_puzzles(target_date)
+#             serializer = DailyPuzzleSerializer(daily_puzzle_set)
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        try:
-            # Call the service function to generate all puzzles for the date
-            daily_puzzle_set = generate_daily_puzzles(target_date)
-            serializer = DailyPuzzleSerializer(daily_puzzle_set)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            # Catch any error during generation and return a 500
-            return Response(
-                {"detail": f"Error generating puzzles: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+#         except Exception as e:
+#             return Response({"detail": f"Error generating puzzles: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

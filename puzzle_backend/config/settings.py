@@ -47,11 +47,11 @@ INSTALLED_APPS = [
     "corsheaders",  # Add this for Cross-Origin Resource Sharing
     # Your local apps
     'users.apps.UsersConfig',
+    # 'games.apps.GamesConfig',
     'games.apps.GamesConfig',
     'gameplay.apps.GameplayConfig',  # <-- Ensure this line is present
     'leaderboards.apps.LeaderboardsConfig',
     'shop.apps.ShopConfig',
-    'django_cron',
     'activity',
 ]
 
