@@ -250,132 +250,109 @@ export const ErnigramGame = ({
 
   // ✅ 5. endGame function - Fixed to include status in progress_data
   const endGame = useCallback(
-    async (won: boolean) => {
-      setIsGameOver(true);
-      if (won) {
-        setIsWon(true);
-      }
-      stopTimer();
-      const finalTime = time;
-      let finalScore = 0;
-      let submissionIdForResultModal: number | null = null;
-      const triesTaken = maxAttemptsForDifficulty - attemptsLeft;
-      let submissionResult: SubmissionResult | null = null;
+  async (won: boolean) => {
+    setIsGameOver(true);
+    if (won) {
+      setIsWon(true);
+    }
+    stopTimer();
+    const finalTime = time;
+    let finalScore = 0;
+    let submissionIdForResultModal: number | null = null;
+    const triesTaken = maxAttemptsForDifficulty - attemptsLeft;
+    let submissionResult: SubmissionResult | null = null;
 
-      if (!dailyPuzzleDate || !puzzle.id) {
-        setGameResult({
-          score: 0,
-          submissionId: null,
-          currentStreak: 0,
-          maxStreak: 0,
-          streakUpdatedToday: false,
-          message: "",
-        });
-        return;
-      }
+    if (!dailyPuzzleDate || !puzzle.id) {
+      setGameResult({
+        score: 0,
+        submissionId: null,
+        currentStreak: 0,
+        maxStreak: 0,
+        streakUpdatedToday: false,
+        message: "",
+      });
+      return;
+    }
 
-      try {
-        if (won) {
-          // ✅ Calculate misses (incorrect guesses)
-          const misses = guessedLetters.filter(
-            (letter) => !solution.includes(letter)
-          ).length;
+    try {
+      // ✅ Calculate misses
+      const misses = guessedLetters.filter(
+        (letter) => !solution.includes(letter)
+      ).length;
 
-          // ✅ Save final state with status
-          const finalProgressData = {
-            guessedLetters,
-            attemptsLeft,
-            isGameOver: true,
-            misses: misses,
-            status: "SOLVED", // ✅ Add status for backend validation
-          };
+      // ✅ Save final state with appropriate status
+      const finalProgressData = {
+        guessedLetters,
+        attemptsLeft: won ? attemptsLeft : 0,
+        isGameOver: true,
+        misses: misses,
+        status: won ? "SOLVED" : "LOST",
+      };
 
-          await saveProgress(
-            {
-              puzzle_id: puzzle.id,
-              puzzle_type: "ernigram",
-              progress_data: finalProgressData,
-              time_spent_ms: finalTime,
-              difficulty: difficulty,
-            },
-            dailyPuzzleDate,
-            puzzle.id
-          );
+      await saveProgress(
+        {
+          puzzle_id: puzzle.id,
+          puzzle_type: "ernigram",
+          progress_data: finalProgressData,
+          time_spent_ms: finalTime,
+          difficulty: difficulty,
+        },
+        dailyPuzzleDate,
+        puzzle.id
+      );
 
-          // ✅ Wait a moment for save to complete
-          await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-          const submissionData: SubmissionData = {
-            puzzle_id: puzzle.id,
-            puzzle_type: "ernigram",
-            difficulty: difficulty,
-            time_taken_ms: finalTime,
-            tries: triesTaken,
-          };
+      // ✅ CHANGED: Always submit, even if lost
+      const submissionData: SubmissionData = {
+        puzzle_id: puzzle.id,
+        puzzle_type: "ernigram",
+        difficulty: difficulty,
+        time_taken_ms: finalTime,
+        tries: triesTaken,
+      };
 
-          submissionResult = await submitPuzzle(
-            submissionData,
-            dailyPuzzleDate,
-            puzzle.id
-          );
-          finalScore = submissionResult.score;
-          submissionIdForResultModal = submissionResult.submissionId ?? null;
+      submissionResult = await submitPuzzle(
+        submissionData,
+        dailyPuzzleDate,
+        puzzle.id
+      );
+      
+      finalScore = submissionResult.score;
+      submissionIdForResultModal = submissionResult.submissionId ?? null;
 
-          if (challengeId && submissionIdForResultModal) {
-            await completeChallenge(challengeId, {
-              submission_id: submissionIdForResultModal,
-            });
-          }
-        } else {
-          // ✅ Save the lost game state (don't submit, just save progress)
-          const finalProgressData = {
-            guessedLetters,
-            attemptsLeft: 0,
-            isGameOver: true,
-            status: "LOST",
-          };
-
-          await saveProgress(
-            {
-              puzzle_id: puzzle.id,
-              puzzle_type: "ernigram",
-              progress_data: finalProgressData,
-              time_spent_ms: finalTime,
-              difficulty: difficulty,
-            },
-            dailyPuzzleDate,
-            puzzle.id
-          );
-
-          finalScore = 0;
-          submissionIdForResultModal = null;
-        }
-      } catch (err) {
-        console.error("[ErnigramGame] Error during end:", err);
-      } finally {
-        setGameResult({
-          score: finalScore,
-          submissionId: submissionIdForResultModal,
-          currentStreak: submissionResult?.currentStreak ?? 0,
-          maxStreak: submissionResult?.maxStreak ?? 0,
-          streakUpdatedToday: submissionResult?.streakUpdatedToday ?? false,
-          message: submissionResult?.message ?? "",
+      // ✅ Only complete challenge if won
+      if (challengeId && submissionIdForResultModal && won) {
+        await completeChallenge(challengeId, {
+          submission_id: submissionIdForResultModal,
         });
       }
-    },
-    [
-      stopTimer,
-      time,
-      maxAttemptsForDifficulty,
-      attemptsLeft,
-      puzzle.id,
-      difficulty,
-      challengeId,
-      dailyPuzzleDate,
-      guessedLetters,
-      solution,
-    ]
-  );
+    } catch (err) {
+      console.error("[ErnigramGame] Error during end:", err);
+    } finally {
+      setGameResult({
+        score: finalScore,
+        submissionId: submissionIdForResultModal,
+        currentStreak: submissionResult?.currentStreak ?? 0,
+        maxStreak: submissionResult?.maxStreak ?? 0,
+        streakUpdatedToday: submissionResult?.streakUpdatedToday ?? false,
+        message: submissionResult?.message ?? "",
+      });
+    }
+  },
+  [
+    stopTimer,
+    time,
+    maxAttemptsForDifficulty,
+    attemptsLeft,
+    puzzle.id,
+    difficulty,
+    challengeId,
+    dailyPuzzleDate,
+    guessedLetters,
+    solution,
+  ]
+);
 
   // checkGameState callback
   const checkGameState = useCallback(
