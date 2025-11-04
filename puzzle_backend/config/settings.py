@@ -187,10 +187,18 @@ AZURE_AD_TENANT_ID =  os.environ.get("AZURE_AD_TENANT_ID")
 AZURE_AD_REDIRECT_URI =  os.environ.get("AZURE_AD_REDIRECT_URI", "http://localhost:8000/auth/callback/")
 
 # --- Session Settings (Optional but good practice) ---
-SESSION_COOKIE_SAMESITE = "Lax"  # Helps prevent CSRF
-SESSION_COOKIE_SECURE = False  # Set to True if using HTTPS in production
+SESSION_COOKIE_SECURE = True   # Set to True if using HTTPS in production
+CSRF_COOKIE_SECURE = True      # Set to True if using HTTPS in production
+
+
+#SESSION_COOKIE_SAMESITE = 'Lax'  # Helps prevent CSRF
+SESSION_COOKIE_SAMESITE = None  # Helps prevent CSRF
+CSRF_COOKIE_SAMESITE = None     # Helps prevent CSRF
+
 SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
-SESSION_COOKIE_AGE = 86400  # Session lasts 1 day (optional)
+SESSION_COOKIE_AGE = 86400      # Session lasts 1 day (optional)
+
+
 
 # --- DRF Settings (Optional for basic session auth, but good to have) ---
 REST_FRAMEWORK = {
