@@ -50,7 +50,6 @@ INSTALLED_APPS = [
     'gameplay.apps.GameplayConfig',  # <-- Ensure this line is present
     'leaderboards.apps.LeaderboardsConfig',
     'shop.apps.ShopConfig',
-    'django_cron',
     'activity',
 ]
 
