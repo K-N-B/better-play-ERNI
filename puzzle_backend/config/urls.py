@@ -26,6 +26,7 @@ urlpatterns = [
     path("", include("users.urls")),
     path("auth/", include("users.urls")),
     path("api/gameplay/", include("gameplay.urls")),
+    path('api/challenges/', include('gameplay.challenge_urls')),
 ]
 
 if settings.DEBUG:

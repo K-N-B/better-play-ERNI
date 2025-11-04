@@ -74,6 +74,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 
@@ -100,6 +102,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 CSRF_USE_SESSIONS = False
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SECURE = False
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases

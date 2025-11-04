@@ -14,9 +14,22 @@ import random
 from datetime import datetime
 import pytz
 
+from django.views.decorators.csrf import csrf_exempt
+
 from .models import PuzzleAttempt, Submission
 from games.models import DailyPuzzle, WordlePuzzle, SudokuPuzzle, ErnigramPuzzle
 from leaderboards.services import LeaderboardAggregator
+from .models import Challenge
+from django.db.models import Q
+from users.models import User
+from .serializers import (
+    ChallengeSerializer,
+    CreateChallengeSerializer,
+    CompleteChallengeSerializer,
+
+
+)
+
 
 
 # ============================================================================
@@ -681,6 +694,309 @@ class GetTodayCompletedPuzzlesView(View):
             
         except Exception as e:
             print(f"[GetTodayCompleted] Error: {e}")
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({'error': str(e)}, status=500)
+        
+
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(login_required, name='get')
+class SearchUsersView(View):
+    """
+    GET /api/challenges/search-users/?q=<query>
+    Search for users to challenge by username or email
+    """
+    
+    def get(self, request):
+        query = request.GET.get('q', '').strip()
+        
+        if len(query) < 2:
+            return JsonResponse({
+                'error': 'Search query must be at least 2 characters.'
+            }, status=400)
+        
+        try:
+            # Search by username or email (case-insensitive)
+            users = User.objects.filter(
+                Q(username__icontains=query) | Q(email__icontains=query)
+            ).exclude(
+                id=request.user.id  # Exclude current user
+            ).values('id', 'username', 'email')[:10]  # Limit to 10 results
+            
+            users_list = list(users)
+            print(f"[SearchUsers] Found {len(users_list)} users for query '{query}'")
+            
+            return JsonResponse(users_list, safe=False)
+            
+        except Exception as e:
+            print(f"[SearchUsers] Error: {e}")
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({'error': str(e)}, status=500)
+        
+
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(login_required, name='get')
+class PendingChallengesView(View):
+    """
+    GET /api/challenges/pending/
+    Get all pending challenges where the current user is the recipient
+    """
+    
+    def get(self, request):
+        user = request.user
+        
+        try:
+            # Get challenges where user is recipient and status is PENDING
+            challenges = Challenge.objects.filter(
+                recipient=user,
+                status=Challenge.Status.PENDING
+            ).select_related(
+                'challenger',
+                'recipient',
+                'challenger_submission',
+                'challenger_submission__content_type'
+            ).order_by('-created_at')
+            
+            # Serialize using DRF serializer
+            from rest_framework.renderers import JSONRenderer
+            serializer = ChallengeSerializer(challenges, many=True)
+            
+            print(f"[PendingChallenges] Found {challenges.count()} pending for {user.username}")
+            
+            # Return as JSON
+            json_data = JSONRenderer().render(serializer.data)
+            return JsonResponse(serializer.data, safe=False)
+            
+        except Exception as e:
+            print(f"[PendingChallenges] Error: {e}")
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({'error': str(e)}, status=500)
+        
+
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(login_required, name='get')
+class CompletedChallengesView(View):
+    """
+    GET /api/challenges/completed/
+    Get all completed challenges involving the current user
+    """
+    
+    def get(self, request):
+        user = request.user
+        
+        try:
+            # Get completed challenges where user is either challenger or recipient
+            challenges = Challenge.objects.filter(
+                Q(challenger=user) | Q(recipient=user),
+                status=Challenge.Status.COMPLETED
+            ).select_related(
+                'challenger',
+                'recipient',
+                'challenger_submission',
+                'recipient_submission',
+                'winner',
+                'challenger_submission__content_type'
+            ).order_by('-created_at')
+            
+            serializer = ChallengeSerializer(challenges, many=True)
+            
+            print(f"[CompletedChallenges] Found {challenges.count()} completed for {user.username}")
+            
+            return JsonResponse(serializer.data, safe=False)
+            
+        except Exception as e:
+            print(f"[CompletedChallenges] Error: {e}")
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({'error': str(e)}, status=500)
+
+
+@method_decorator(login_required, name='post')
+class SendChallengeView(View):
+    """
+    POST /api/challenges/send/
+    Create a new challenge
+    Body: {"recipient_id": <int>, "submission_id": <int>}
+    """
+    
+    # ✅ Exempt this view from CSRF for API calls
+    @method_decorator(csrf_exempt)
+    @transaction.atomic
+    def post(self, request):
+        user = request.user
+        
+        try:
+            data = json.loads(request.body)
+            
+            print(f"[SendChallenge] ========== START ==========")
+            print(f"[SendChallenge] Received data: {data}")
+            print(f"[SendChallenge] User: {user.username} (ID: {user.id})")
+            print(f"[SendChallenge] User authenticated: {user.is_authenticated}")
+            
+            # ✅ Simplified: Pass the Django request directly
+            serializer = CreateChallengeSerializer(
+                data=data,
+                context={'request': request}
+            )
+            
+            print(f"[SendChallenge] About to validate...")
+            is_valid = serializer.is_valid()
+            print(f"[SendChallenge] Validation result: {is_valid}")
+            print(f"[SendChallenge] Validation errors: {serializer.errors}")
+            
+            if not is_valid:
+                print(f"[SendChallenge] ❌ Validation FAILED")
+                return JsonResponse({
+                    'error': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=400)
+            
+            print(f"[SendChallenge] ✅ Validation PASSED, continuing...")
+            
+            recipient_id = serializer.validated_data['recipient_id']
+            submission_id = serializer.validated_data['submission_id']
+            
+            # Get objects
+            recipient = User.objects.get(pk=recipient_id)
+            submission = Submission.objects.get(pk=submission_id)
+            
+            # ✅ NEW: Check if recipient has already submitted this puzzle
+            recipient_submission = Submission.objects.filter(
+                user=recipient,
+                content_type=submission.content_type,
+                object_id=submission.object_id
+            ).first()
+            
+            if recipient_submission:
+                return JsonResponse({
+                    'error': f'{recipient.username} has already completed this puzzle. You cannot challenge them on it.'
+                }, status=400)
+            
+            # Create the challenge
+            challenge = Challenge.objects.create(
+                challenger=user,
+                recipient=recipient,
+                challenger_submission=submission,
+                status=Challenge.Status.PENDING
+            )
+            
+            # Increment challenges_made_count
+            user.challenges_made_count = F('challenges_made_count') + 1
+            user.save(update_fields=['challenges_made_count'])
+            user.refresh_from_db()
+            
+            # Serialize response
+            response_serializer = ChallengeSerializer(challenge)
+            
+            print(f"[SendChallenge] ✅ Challenge created: {user.username} -> {recipient.username}")
+            
+            return JsonResponse(response_serializer.data, status=201)
+            
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'Recipient not found.'}, status=404)
+        except Submission.DoesNotExist:
+            return JsonResponse({'error': 'Submission not found.'}, status=404)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON.'}, status=400)
+        except Exception as e:
+            print(f"[SendChallenge] Error: {e}")
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({'error': str(e)}, status=500)
+
+
+@method_decorator(login_required, name='post')
+class CompleteChallengeView(View):
+    """
+    POST /api/challenges/<challenge_id>/complete/
+    Complete a challenge as the recipient
+    Body: {"submission_id": <int>}
+    """
+    
+    # ✅ Exempt this view from CSRF for API calls
+    @method_decorator(csrf_exempt)
+    @transaction.atomic
+    def post(self, request, challenge_id):
+        user = request.user
+        
+        try:
+            data = json.loads(request.body)
+            
+            # Get the challenge
+            challenge = Challenge.objects.select_related(
+                'challenger',
+                'recipient',
+                'challenger_submission'
+            ).get(pk=challenge_id)
+            
+            # Verify user is the recipient
+            if challenge.recipient != user:
+                return JsonResponse({
+                    'error': 'You are not the recipient of this challenge.'
+                }, status=403)
+            
+            # Verify challenge is still pending
+            if challenge.status != Challenge.Status.PENDING:
+                return JsonResponse({
+                    'error': 'This challenge is no longer pending.'
+                }, status=400)
+            
+            # ✅ Simplified: Pass the Django request directly
+            serializer = CompleteChallengeSerializer(
+                data=data,
+                context={'request': request}  # Pass Django request, not DRF
+            )
+            
+            if not serializer.is_valid():
+                return JsonResponse({'errors': serializer.errors}, status=400)
+            
+            submission_id = serializer.validated_data['submission_id']
+            submission = Submission.objects.get(pk=submission_id)
+            
+            # Verify the submission is for the same puzzle
+            if (submission.content_type != challenge.challenger_submission.content_type or
+                submission.object_id != challenge.challenger_submission.object_id):
+                return JsonResponse({
+                    'error': 'Submission must be for the same puzzle as the challenge.'
+                }, status=400)
+            
+            # Update challenge
+            challenge.recipient_submission = submission
+            challenge.status = Challenge.Status.COMPLETED
+            
+            # Determine winner based on points_awarded
+            challenger_points = challenge.challenger_submission.points_awarded
+            recipient_points = submission.points_awarded
+            
+            if recipient_points > challenger_points:
+                challenge.winner = challenge.recipient
+                print(f"[CompleteChallenge] Recipient won: {recipient_points} > {challenger_points}")
+            elif recipient_points < challenger_points:
+                challenge.winner = challenge.challenger
+                print(f"[CompleteChallenge] Challenger won: {challenger_points} > {recipient_points}")
+            else:
+                challenge.winner = None  # Tie
+                print(f"[CompleteChallenge] Tie: {recipient_points} == {challenger_points}")
+            
+            challenge.save()
+            
+            # Serialize response
+            response_serializer = ChallengeSerializer(challenge)
+            
+            print(f"[CompleteChallenge] ✅ Challenge completed: #{challenge_id}")
+            
+            return JsonResponse(response_serializer.data, status=200)
+            
+        except Challenge.DoesNotExist:
+            return JsonResponse({'error': 'Challenge not found.'}, status=404)
+        except Submission.DoesNotExist:
+            return JsonResponse({'error': 'Submission not found.'}, status=404)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON.'}, status=400)
+        except Exception as e:
+            print(f"[CompleteChallenge] Error: {e}")
             import traceback
             traceback.print_exc()
             return JsonResponse({'error': str(e)}, status=500)
