@@ -1,11 +1,13 @@
 import json
 import pytz
 from datetime import date, timedelta
+from datetime import datetime as real_datetime
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
+from unittest import mock
 
 # Import all the models we need to create
 from users.models import Department
@@ -14,6 +16,21 @@ from .models import PuzzleAttempt, Submission
 
 # Get the custom User model
 User = get_user_model()
+
+MOCK_DATETIME = timezone.datetime(2025, 10, 25, 14, 0, 0, tzinfo=pytz.timezone("Asia/Manila"))
+
+
+# ✅ 3. DEFINE THE MOCK CLASS
+class MockDateTime(real_datetime):
+    """
+    A mock datetime class that inherits from the real datetime,
+    but overrides .now() to return our fixed MOCK_DATETIME.
+    This allows other datetime methods like .combine() and .min to work.
+    """
+
+    @classmethod
+    def now(cls, tz=None):
+        return MOCK_DATETIME
 
 
 class BaseGameDataTestCase(TestCase):
@@ -108,6 +125,7 @@ class BaseGameDataTestCase(TestCase):
                 "guesses": ["WRONG", "GUESS", "FAILS", "AGAIN", "LATER", "SIXTH"],
                 "currentRow": 6,
                 "status": "LOST",  # This is critical
+                "isGameOver": True,  #
             },
             "time_spent_ms": 60000,
             "difficulty": "EASY",
@@ -165,7 +183,8 @@ class SaveProgressViewTests(BaseGameDataTestCase):
         response = self.client.post(
             url, data=json.dumps(self.progress_data_wordle_ongoing), content_type='application/json'
         )
-        self.assertIn(response.status_code, [401, 403])
+        # ✅ FIX: @login_required decorator returns 302 (redirect) not 401/403
+        self.assertEqual(response.status_code, 302)
 
     def test_save_progress_creates_new_attempt(self):
         """GATE: Does the first save create a PuzzleAttempt object?"""
@@ -242,7 +261,8 @@ class GetProgressViewTests(BaseGameDataTestCase):
         self.client.logout()
         url = reverse('get_progress', kwargs=self.url_kwargs_wordle)
         response = self.client.get(url)
-        self.assertIn(response.status_code, [401, 403])
+        # ✅ FIX: @login_required decorator returns 302 (redirect)
+        self.assertEqual(response.status_code, 302)
 
     def test_get_progress_404_if_no_attempt_exists(self):
         """GATE: Does it return 404 if no save exists?"""
@@ -283,7 +303,8 @@ class CheckSubmissionViewTests(BaseGameDataTestCase):
         self.client.logout()
         url = reverse('check_submission', kwargs=self.url_kwargs_wordle)
         response = self.client.get(url)
-        self.assertIn(response.status_code, [401, 403])
+        # ✅ FIX: @login_required decorator returns 302 (redirect)
+        self.assertEqual(response.status_code, 302)
 
     def test_check_submission_returns_false_when_no_submission(self):
         """GATE: Does it return hasSubmitted: false correctly?"""
@@ -329,7 +350,8 @@ class SubmitPuzzleViewTests(BaseGameDataTestCase):
         response = self.client.post(
             url, data=json.dumps(self.submit_payload), content_type='application/json'
         )
-        self.assertIn(response.status_code, [401, 403])
+        # ✅ FIX: @login_required decorator returns 302 (redirect)
+        self.assertEqual(response.status_code, 302)
 
     def test_submit_fails_if_no_attempt_saved(self):
         """GATE: Does submit fail if no progress was ever saved?"""
@@ -423,9 +445,9 @@ class SubmitPuzzleViewTests(BaseGameDataTestCase):
             submit_url, data=json.dumps(self.submit_payload), content_type='application/json'
         )
 
-        # 3. Check for failure
         self.assertEqual(response.status_code, 400)  # Bad Request
-        self.assertIn("not successfully solved", response.json()['error'])
+        # ✅ FIX: Check for the new, correct error message from the "ACTIVE" check
+        self.assertIn("Puzzle is not yet complete", response.json()['error'])
         self.assertEqual(Submission.objects.count(), 0)  # No submission created
         self.assertEqual(PuzzleAttempt.objects.count(), 1)  # Attempt is NOT deleted
 
@@ -463,7 +485,8 @@ class GetHintViewTests(BaseGameDataTestCase):
         response = self.client.post(
             self.hint_url, data=json.dumps({"difficulty": "EASY"}), content_type='application/json'
         )
-        self.assertIn(response.status_code, [401, 403])
+        # ✅ FIX: @login_required decorator returns 302 (redirect)
+        self.assertEqual(response.status_code, 302)
 
     def test_get_hint_success(self):
         """GATE: Does requesting a hint work correctly?"""
@@ -503,7 +526,10 @@ class GetHintViewTests(BaseGameDataTestCase):
         )
 
         self.assertEqual(response.status_code, 403)
-        self.assertIn("Maximum of 3 hints exceeded", response.json()['error'])
+        self.assertIn(
+            f"Maximum of {SudokuPuzzle.HINT_LIMITS['EASY']} hints exceeded",
+            response.json()['error'],
+        )
 
     def test_get_hint_fails_for_wrong_game_type(self):
         """GATE: Does it fail if we ask for a Wordle hint?"""
@@ -525,7 +551,8 @@ class TodayViewsTests(BaseGameDataTestCase):
         self.client.logout()
         url = reverse('today_submissions')
         response = self.client.get(url)
-        self.assertIn(response.status_code, [401, 403])
+        # ✅ FIX: @login_required decorator returns 302 (redirect)
+        self.assertEqual(response.status_code, 302)
 
     def test_get_today_submissions_empty(self):
         """GATE: Does it return an empty list when no submissions exist?"""
@@ -534,6 +561,7 @@ class TodayViewsTests(BaseGameDataTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), [])
 
+    @mock.patch('gameplay.views.datetime', MockDateTime)
     def test_get_today_submissions_success(self):
         """GATE: Does it return submissions created today?"""
         # 1. Create a submission
@@ -558,6 +586,14 @@ class TodayViewsTests(BaseGameDataTestCase):
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['points_awarded'], 100)
 
+    def test_get_today_completed_puzzles_unauthenticated_fails(self):
+        """GATE: Is the completed/today/ endpoint protected?"""
+        self.client.logout()
+        url = reverse('today_completed')
+        response = self.client.get(url)
+        # ✅ FIX: @login_required decorator returns 302 (redirect)
+        self.assertEqual(response.status_code, 302)
+
     def test_get_today_completed_puzzles_empty(self):
         """GATE: Does it return an empty list when no games are completed?"""
         url = reverse('today_completed')
@@ -565,6 +601,7 @@ class TodayViewsTests(BaseGameDataTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['completed'], [])
 
+    @mock.patch('gameplay.views.datetime', MockDateTime)
     def test_get_today_completed_puzzles_with_submission(self):
         """GATE: Does it return 'wordle' after a submission?"""
         # 1. Create a submission
@@ -587,6 +624,7 @@ class TodayViewsTests(BaseGameDataTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['completed'], ['wordle'])
 
+    @mock.patch('gameplay.views.datetime', MockDateTime)
     def test_get_today_completed_puzzles_with_lost_attempt(self):
         """GATE: Does it return 'wordle' after a lost game?"""
         # 1. Save a *lost* state

@@ -361,17 +361,18 @@ class SubmitPuzzleView(View):
 
         # 2. Check for duplicate submission
         existing_submission = Submission.objects.filter(
-            user=user,
-            content_type=puzzle_content_type,
-            object_id=puzzle_instance.pk
+            user=user, content_type=puzzle_content_type, object_id=puzzle_instance.pk
         ).first()
-        
+
         if existing_submission:
-            return JsonResponse({
-                "error": "You have already submitted this puzzle.",
-                "points_awarded": existing_submission.points_awarded,
-                "submission_id": existing_submission.pk
-            }, status=400)
+            return JsonResponse(
+                {
+                    "error": "You have already submitted this puzzle.",
+                    "points_awarded": existing_submission.points_awarded,
+                    "submission_id": existing_submission.pk,
+                },
+                status=400,
+            )
 
         # 3. Retrieve Attempt
         try:
@@ -382,6 +383,8 @@ class SubmitPuzzleView(View):
                 object_id=puzzle_instance.pk,
             )
             time_taken = attempt.time_spent_ms
+            progress_data = attempt.progress_data
+
         except PuzzleAttempt.DoesNotExist:
             return JsonResponse({"error": "No active attempt found to submit."}, status=404)
 
@@ -406,10 +409,21 @@ class SubmitPuzzleView(View):
                     status=403,
                 )
 
+        # 5. CHECK GAME STATUS
+        # We must ensure the game is actually over ('SOLVED' or 'LOST')
+        # before we try to score it.
+        status = progress_data.get("status", "ACTIVE").upper()
+        if status == "ACTIVE":
+            print("[SubmitPuzzleView] ❌ Submission rejected. Game is still in 'ACTIVE' state.")
+            return JsonResponse(
+                {"error": "Puzzle is not yet complete. Save progress instead."},
+                status=400,
+            )
+
         # 5. SCORING
         try:
             progress_data = attempt.progress_data
-            
+
             if puzzle_model_name_lower == "sudokupuzzle":
                 if "grid" in progress_data:
                     validation_data = progress_data["grid"]
@@ -417,11 +431,9 @@ class SubmitPuzzleView(View):
                     validation_data = progress_data
             else:
                 validation_data = progress_data
-            
-            points_awarded, tries = puzzle_instance.validate_and_score(
-                validation_data, difficulty
-            )
-            
+
+            points_awarded, tries = puzzle_instance.validate_and_score(validation_data, difficulty)
+
             print(f"[SubmitPuzzleView] Validation result: {points_awarded} points, {tries} tries")
         except AttributeError:
             return JsonResponse(
@@ -435,7 +447,7 @@ class SubmitPuzzleView(View):
             traceback.print_exc()
             return JsonResponse({"error": f"Scoring failed: {str(e)}"}, status=400)
 
-        # 6. CREATE SUBMISSION RECORD (even for 0 points)
+        # 7. CREATE SUBMISSION RECORD (even for 0 points)
         submission = Submission.objects.create(
             user=user,
             puzzle=puzzle_instance,
@@ -448,14 +460,14 @@ class SubmitPuzzleView(View):
             puzzle_date=daily_puzzle.date,
         )
 
-        # 7. UPDATE USER STATS (only if points > 0)
+        # 8. UPDATE USER STATS (only if points > 0)
         if points_awarded > 0:
             user.total_points_alltime = F('total_points_alltime') + points_awarded
             user.current_points = F('current_points') + points_awarded
             user.save(update_fields=['total_points_alltime', 'current_points'])
             user.refresh_from_db()
 
-        # 8. UPDATE LEADERBOARDS (only if points > 0)
+        # 9. UPDATE LEADERBOARDS (only if points > 0)
         if points_awarded > 0:
             try:
                 LeaderboardAggregator.update_all_for_date(daily_puzzle.date)
@@ -463,7 +475,7 @@ class SubmitPuzzleView(View):
             except Exception as e:
                 print(f"⚠️ Leaderboard update failed: {e}")
 
-        # 9. Clean up the PuzzleAttempt
+        # 10. Clean up the PuzzleAttempt
         attempt.delete()
 
         print(
@@ -471,17 +483,24 @@ class SubmitPuzzleView(View):
         )
 
         # ✅ Return complete response with all streak fields
-        response_message = "Puzzle submitted successfully." if points_awarded > 0 else "Puzzle submitted (no points awarded)."
-        
-        return JsonResponse({
-            "message": response_message,
-            "points_awarded": points_awarded,
-            "submission_id": submission.pk,
-            # ✅ Add streak information (set to 0 for now, you can implement proper streak logic later)
-            "current_streak": 0,
-            "max_streak": 0,
-            "streak_updated_today": False,
-        }, status=201)
+        response_message = (
+            "Puzzle submitted successfully."
+            if points_awarded > 0
+            else "Puzzle submitted (no points awarded)."
+        )
+
+        return JsonResponse(
+            {
+                "message": response_message,
+                "points_awarded": points_awarded,
+                "submission_id": submission.pk,
+                # ✅ Add streak information (set to 0 for now, you can implement proper streak logic later)
+                "current_streak": 0,
+                "max_streak": 0,
+                "streak_updated_today": False,
+            },
+            status=201,
+        )
 
 
 # ============================================================================

@@ -80,19 +80,19 @@ class WordlePuzzle(models.Model):
         tries = len(guesses)
         difficulty_upper = difficulty.upper()
 
-        print(f"[WordlePuzzle.validate_and_score] Called")
+        print("[WordlePuzzle.validate_and_score] Called")
         print(f"  Difficulty: {difficulty_upper}")
         print(f"  Guesses: {guesses}")
         print(f"  Tries: {tries}")
-        
+
         status = progress_data.get("status", "ACTIVE").upper()
         print(f"  Status: {status}")
-        
+
         # ✅ Allow LOST games to submit with 0 points
         if status == "LOST":
-            print(f"[WordlePuzzle.validate_and_score] ✅ LOST game - Awarding 0 points")
+            print("[WordlePuzzle.validate_and_score] ✅ LOST game - Awarding 0 points")
             return 0, tries
-        
+
         # For SOLVED games, verify the solution
         client_claims_solved = status == "SOLVED"
         is_correct_guess = tries > 0 and guesses[-1].upper() == self.solution_word.upper()
