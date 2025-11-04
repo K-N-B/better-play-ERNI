@@ -185,7 +185,6 @@ AZURE_AD_TENANT_ID =  os.environ.get("AZURE_AD_TENANT_ID")
 AZURE_AD_REDIRECT_URI =  os.environ.get("AZURE_AD_REDIRECT_URI", "http://localhost:8000/auth/callback/")
 
 
-SESSION_COOKIE_DOMAIN = 'better-play-erni.onrender.com'
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # --- Session Settings (Optional but good practice) ---
