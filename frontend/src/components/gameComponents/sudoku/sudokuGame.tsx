@@ -1,17 +1,21 @@
+// src/components/gameComponents/sudoku/sudokuGame.tsx - FIXED
+
 import React, { useState, useEffect, useCallback } from 'react';
-import { submitPuzzle, getSavedAttempt, saveProgress } from '../../../api/gameService'; // Adjust path
+import { submitPuzzle, getSavedAttempt, saveProgress, checkSubmissionExists } from '../../../api/gameService';
 import { completeChallenge } from '../../../api/challengeService';
-import type { SudokuPuzzle, SudokuCell, PuzzleAttemptData, SubmissionData, SubmissionResult } from '../../../types/game';
+import type { SudokuPuzzle, SudokuCell, PuzzleAttemptData, SubmissionData } from '../../../types/game';
 import { SudokuGrid } from './sudokuGrid';
 import { NumberPad } from './numberPad';
 import { PostGameResultsModal } from '../../ui/postGameResultsModal';
+import { AlreadyPlayedScreen } from '../shared/alreadyPlayedScreen';
+import { ResumeGameModal } from '../../ui/resumeGameModal';
 import { useTimer } from '../../../hooks/useTimer';
 import { Timer } from '../../ui/timer';
 import { useApi } from '../../../hooks/useApi';
 import { LoadingSpinner } from '../../ui/loadingSpinner';
-import type { Difficulty } from '../../../pages/gamePage'; // Adjust path
+import type { Difficulty } from '../../../pages/gamePage';
 
-// Helper Functions (Keep parseGrid, checkGridForErrors)
+// Helper Functions
 const parseGrid = (puzzleString: string): SudokuCell[][] => {
   return Array.from({ length: 9 }, (_, r) =>
     Array.from({ length: 9 }, (_, c) => {
@@ -20,246 +24,403 @@ const parseGrid = (puzzleString: string): SudokuCell[][] => {
     })
   );
 };
+
 const checkGridForErrors = (grid: SudokuCell[][]): SudokuCell[][] => {
   const newGrid = grid.map(row => row.map(cell => ({ ...cell, isError: false })));
   for (let i = 0; i < 9; i++) {
-    const row = new Set<number>(); const col = new Set<number>(); const box = new Set<number>();
+    const row = new Set<number>();
+    const col = new Set<number>();
+    const box = new Set<number>();
+    
     for (let j = 0; j < 9; j++) {
-      const rowVal = newGrid[i][j].value; if (rowVal) { if (row.has(rowVal)) newGrid[i][j].isError = true; row.add(rowVal); }
-      const colVal = newGrid[j][i].value; if (colVal) { if (col.has(colVal)) newGrid[j][i].isError = true; col.add(colVal); }
-      const boxRow = Math.floor(i / 3) * 3 + Math.floor(j / 3); const boxCol = (i % 3) * 3 + (j % 3);
-      const boxVal = newGrid[boxRow][boxCol].value; if (boxVal) { if (box.has(boxVal)) newGrid[boxRow][boxCol].isError = true; box.add(boxVal); }
+      const rowVal = newGrid[i][j].value;
+      if (rowVal) {
+        if (row.has(rowVal)) newGrid[i][j].isError = true;
+        row.add(rowVal);
+      }
+      
+      const colVal = newGrid[j][i].value;
+      if (colVal) {
+        if (col.has(colVal)) newGrid[j][i].isError = true;
+        col.add(colVal);
+      }
+      
+      const boxRow = Math.floor(i / 3) * 3 + Math.floor(j / 3);
+      const boxCol = (i % 3) * 3 + (j % 3);
+      const boxVal = newGrid[boxRow][boxCol].value;
+      if (boxVal) {
+        if (box.has(boxVal)) newGrid[boxRow][boxCol].isError = true;
+        box.add(boxVal);
+      }
     }
   }
   return newGrid;
+};
+
+const checkSolution = (currentGrid: SudokuCell[][], solutionString: string): boolean => {
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      const expectedValue = parseInt(solutionString[r * 9 + c]);
+      if (!currentGrid[r][c].value || currentGrid[r][c].value !== expectedValue) {
+        return false;
+      }
+    }
+  }
+  return true;
+};
+
+const countFilledCells = (grid: SudokuCell[][]): number => {
+  let count = 0;
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      if (grid[r][c].value !== null) count++;
+    }
+  }
+  return count;
 };
 
 interface SudokuGameProps {
   puzzle: SudokuPuzzle;
   difficulty: Difficulty;
   challengeId: number | null;
-  dailyPuzzleDate: string;
 }
 
-export const SudokuGame = ({ puzzle, difficulty, challengeId, dailyPuzzleDate }: SudokuGameProps) => {
+export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps) => {
   const initialPuzzleString = difficulty === 'easy' ? puzzle.puzzle_string_easy : puzzle.puzzle_string_hard;
+  
   const [grid, setGrid] = useState<SudokuCell[][]>(() => parseGrid(initialPuzzleString));
   const [selectedCell, setSelectedCell] = useState<{ row: number, col: number } | null>(null);
   const [isNoteMode, setIsNoteMode] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
-  const [gameResult, setGameResult] = useState<{
-    score: number;
-    submissionId: number | null;
-    currentStreak: number;
-    maxStreak: number;
-    streakUpdatedToday: boolean;
-    message: string;
+  const [gameResult, setGameResult] = useState<{ score: number; submissionId: number | null } | null>(null);
+  
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [alreadyCompleted, setAlreadyCompleted] = useState<{
+    hasSubmitted: boolean;
+    score?: number;
+    submittedAt?: string;
   } | null>(null);
+  const [checkingSubmission, setCheckingSubmission] = useState(true);
 
   const { time, startTimer, stopTimer, setSavedTime } = useTimer();
-  const fetchSavedSudoku = useCallback(
-    () => getSavedAttempt('sudoku', dailyPuzzleDate, puzzle.id),
-    [dailyPuzzleDate, puzzle.id]
-  );
+
+  // Check for existing submission FIRST
+  useEffect(() => {
+    if (!puzzle?.date_to_be_used || !puzzle?.id) {
+      setCheckingSubmission(false);
+      return;
+    }
+    
+    console.log('[SudokuGame] Checking if already submitted...');
+    setCheckingSubmission(true);
+    
+    checkSubmissionExists('sudoku', puzzle.date_to_be_used, puzzle.id)
+      .then(result => {
+        console.log('[SudokuGame] Submission check result:', result);
+        if (result.hasSubmitted) {
+          setAlreadyCompleted(result);
+          setIsGameOver(true);
+        }
+      })
+      .catch(err => console.error('[SudokuGame] Check failed:', err))
+      .finally(() => setCheckingSubmission(false));
+  }, [puzzle?.date_to_be_used, puzzle?.id]);
+
+  // Fetch saved game
+  const fetchSavedSudoku = useCallback(() => {
+    if (!puzzle?.date_to_be_used || !puzzle?.id || alreadyCompleted?.hasSubmitted) {
+      return Promise.resolve(null);
+    }
+    return getSavedAttempt('sudoku', puzzle.date_to_be_used, puzzle.id.toString());
+  }, [puzzle?.date_to_be_used, puzzle?.id, alreadyCompleted]);
+
   const { data: savedGame, loading } = useApi(fetchSavedSudoku);
 
-  // Effect to load data
+  // Load saved progress and show resume modal
   useEffect(() => {
+    if (alreadyCompleted?.hasSubmitted) return;
+    
     let loadedIsGameOver = false;
     if (savedGame && savedGame.puzzle_type === 'sudoku') {
-      const savedGrid = savedGame.progress_data as SudokuCell[][];
-      setGrid(savedGrid);
-      setSavedTime(savedGame.time_spent_ms);
-      // Determine if loaded grid is solved (or save isGameOver flag)
-      // Check if grid matches solution?
-      // loadedIsGameOver = checkSolution(savedGrid, puzzle.solution_string);
-      // setIsGameOver(loadedIsGameOver);
-    }
-    if (!loadedIsGameOver) {
+      // ✅ Handle both old format (direct grid) and new format (wrapped object)
+      const progressData = savedGame.progress_data;
+      const savedGrid = progressData?.grid || progressData;
+      
+      if (savedGrid && Array.isArray(savedGrid)) {
+        setGrid(savedGrid);
+        setSavedTime(savedGame.time_spent_ms);
+        
+        // Check if grid is already solved
+        loadedIsGameOver = checkSolution(savedGrid, puzzle.solution_string);
+        setIsGameOver(loadedIsGameOver);
+        
+        // Show resume modal if user has made progress
+        const filledCells = countFilledCells(savedGrid);
+        const hasProgress = filledCells > countFilledCells(parseGrid(initialPuzzleString)) || savedGame.time_spent_ms > 5000;
+        
+        if (hasProgress && !loadedIsGameOver) {
+          console.log('[SudokuGame] Showing resume modal');
+          setShowResumeModal(true);
+        } else if (!loadedIsGameOver) {
+          console.log('[SudokuGame] Starting timer - no resume needed');
+          startTimer();
+        }
+      }
+    } else if (!loadedIsGameOver) {
       startTimer();
     }
-  }, [savedGame, startTimer, setSavedTime, puzzle.solution_string]); // Added solution string dependency
+  }, [savedGame, startTimer, setSavedTime, puzzle.solution_string, initialPuzzleString, alreadyCompleted]);
 
-  // Effect to auto-save
+  // Auto-save progress (debounced)
   useEffect(() => {
-    if (loading || isGameOver) return;
-    const saveTimer = setTimeout(() => {
-      saveProgress(
-        {
-          puzzle_id: puzzle.id,
-          puzzle_type: 'sudoku',
-          progress_data: grid, // Save grid state
-          time_spent_ms: time,
-          difficulty,
-        },
-        dailyPuzzleDate,
-        puzzle.id
-      );
-    }, 2000);
-    return () => clearTimeout(saveTimer);
-  }, [grid, isGameOver, time, loading, puzzle.id]);
+    if (loading || isGameOver || alreadyCompleted?.hasSubmitted || !puzzle?.date_to_be_used || !puzzle?.id) return;
 
+    const saveTimer = setTimeout(() => {
+      const dataPayload: PuzzleAttemptData = {
+        puzzle_id: puzzle.id,
+        puzzle_type: 'sudoku',
+        progress_data: { grid: grid, hints_used: 0 }, // Wrap grid in object
+        time_spent_ms: time,
+        difficulty: difficulty,
+      };
+
+      console.log('[SudokuGame] Auto-saving progress...');
+      saveProgress(dataPayload, puzzle.date_to_be_used, puzzle.id)
+        .then(() => console.log('[SudokuGame] ✅ Auto-save successful'))
+        .catch(err => console.error('[SudokuGame] ❌ Auto-save failed:', err));
+    }, 2000);
+
+    return () => clearTimeout(saveTimer);
+  }, [grid, isGameOver, time, loading, puzzle?.id, puzzle?.date_to_be_used, difficulty, alreadyCompleted]);
+
+  // Save immediately when user inputs a number
+  const saveImmediately = useCallback((newGrid: SudokuCell[][]) => {
+    if (!puzzle?.date_to_be_used || !puzzle?.id || isGameOver || alreadyCompleted?.hasSubmitted) return;
+
+    const dataPayload: PuzzleAttemptData = {
+      puzzle_id: puzzle.id,
+      puzzle_type: 'sudoku',
+      progress_data: newGrid, // ✅ Send grid directly
+      time_spent_ms: time,
+      difficulty: difficulty,
+    };
+
+    console.log('[SudokuGame] Saving immediately after input');
+    saveProgress(dataPayload, puzzle.date_to_be_used, puzzle.id)
+      .then(() => console.log('[SudokuGame] ✅ Immediate save successful'))
+      .catch(err => console.error('[SudokuGame] ❌ Immediate save failed:', err));
+  }, [puzzle, time, difficulty, isGameOver, alreadyCompleted]);
 
   // Event Handlers
   const handleCellClick = (row: number, col: number) => {
-    if (isGameOver || grid[row][col].isGiven) return;
+    if (isGameOver || grid[row][col].isGiven || alreadyCompleted?.hasSubmitted) return;
     setSelectedCell({ row, col });
   };
 
   const handleNumberClick = (num: number) => {
-    if (!selectedCell || isGameOver) return;
+    if (!selectedCell || isGameOver || alreadyCompleted?.hasSubmitted) return;
     const { row, col } = selectedCell;
-    if (grid[row][col].isGiven) return; // Prevent changing given numbers
+    if (grid[row][col].isGiven) return;
 
-    const newGrid = grid.map((r, ri) => r.map((c, ci) => (ri === row && ci === col ? { ...c } : c))); // Copy only the changed cell
+    const newGrid = grid.map((r, ri) => r.map((c, ci) => (ri === row && ci === col ? { ...c } : c)));
     const cell = newGrid[row][col];
 
     if (isNoteMode) {
       const noteIndex = cell.notes.indexOf(num);
       if (noteIndex > -1) cell.notes.splice(noteIndex, 1);
       else cell.notes.push(num);
-      cell.value = null; // Clear value when adding note
+      cell.value = null;
     } else {
-      cell.value = cell.value === num ? null : num; // Toggle value or clear
-      cell.notes = []; // Clear notes when setting value
+      cell.value = cell.value === num ? null : num;
+      cell.notes = [];
     }
-    setGrid(checkGridForErrors(newGrid));
+    
+    const checkedGrid = checkGridForErrors(newGrid);
+    setGrid(checkedGrid);
+    saveImmediately(checkedGrid);
   };
 
   const handleEraseClick = () => {
-    if (!selectedCell || isGameOver) return;
+    if (!selectedCell || isGameOver || alreadyCompleted?.hasSubmitted) return;
     const { row, col } = selectedCell;
     if (grid[row][col].isGiven) return;
 
     const newGrid = grid.map((r, ri) => r.map((c, ci) => (ri === row && ci === col ? { ...c } : c)));
     newGrid[row][col].value = null;
     newGrid[row][col].notes = [];
-    setGrid(checkGridForErrors(newGrid));
+    
+    const checkedGrid = checkGridForErrors(newGrid);
+    setGrid(checkedGrid);
+    saveImmediately(checkedGrid);
   };
 
-  // Check Solution function (can be moved to utils)
-  const checkSolution = (currentGrid: SudokuCell[][], solutionString: string): boolean => {
-    for (let r = 0; r < 9; r++) {
-      for (let c = 0; c < 9; c++) {
-        const expectedValue = parseInt(solutionString[r * 9 + c]);
-        if (!currentGrid[r][c].value || currentGrid[r][c].value !== expectedValue) {
-          return false; // Found a mismatch
-        }
-      }
-    }
-    return true; // All cells match
-  };
-
-  // handleSubmit function
   const handleSubmit = async () => {
-    if (isGameOver) return;
+    if (isGameOver || alreadyCompleted?.hasSubmitted) return;
+    
+    const isCorrect = checkSolution(grid, puzzle.solution_string);
+    
+    if (!isCorrect) {
+      alert("Solution is incorrect. Keep trying or check for errors (in red).");
+      return;
+    }
+
+    setIsGameOver(true);
     stopTimer();
     const finalTime = time;
     let finalScore = 0;
     let submissionIdForResultModal: number | null = null;
-    let submissionResult: SubmissionResult | null = null;
 
-    const isCorrect = checkSolution(grid, puzzle.solution_string);
+    if (!puzzle?.date_to_be_used || !puzzle?.id) {
+      setGameResult({ score: 0, submissionId: null });
+      return;
+    }
 
-    if (isCorrect) {
-      setIsGameOver(true);
-      try {
-        const submissionData: SubmissionData = {
+    try {
+      // ✅ Convert grid to string format for backend validation
+      let finalGridString = '';
+      for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+          finalGridString += (grid[r][c].value || 0).toString();
+        }
+      }
+
+      // ✅ Save final state with proper format for validation
+      const finalProgressData = {
+        grid: grid, // Keep grid for resume functionality
+        final_grid: finalGridString, // Add string format for validation
+        hints_used: 0, // TODO: Track hints when implemented
+        status: 'SOLVED'
+      };
+
+      await saveProgress(
+        {
           puzzle_id: puzzle.id,
           puzzle_type: 'sudoku',
-          difficulty: difficulty, // <-- Pass difficulty
-          time_taken_ms: finalTime,
-          tries: 1,
-        };
-        submissionResult = await submitPuzzle(submissionData, dailyPuzzleDate, puzzle.id);
-        finalScore = submissionResult.score;
-        submissionIdForResultModal = submissionResult.submissionId ?? null;
+          progress_data: finalProgressData,
+          time_spent_ms: finalTime,
+          difficulty: difficulty,
+        },
+        puzzle.date_to_be_used,
+        puzzle.id
+      );
 
-        if (challengeId && submissionIdForResultModal) {
-          await completeChallenge(challengeId, { submission_id: submissionIdForResultModal });
-        } else if (challengeId) {
-          console.error("[SudokuGame] Challenge ID present but failed to get submission ID.");
-        }
-      } catch (err) {
-        console.error("Error during Sudoku submit/challenge:", err);
-      } finally {
-        setGameResult({
-          score: finalScore,
-          submissionId: submissionIdForResultModal,
-          currentStreak: submissionResult?.currentStreak ?? 0,
-          maxStreak: submissionResult?.maxStreak ?? 0,
-          streakUpdatedToday: submissionResult?.streakUpdatedToday ?? false,
-          message: submissionResult?.message ?? '',
-        });
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const submissionData: SubmissionData = {
+        puzzle_id: puzzle.id,
+        puzzle_type: 'sudoku',
+        difficulty: difficulty,
+        time_taken_ms: finalTime,
+        tries: 1,
+      };
+
+      const submissionResult = await submitPuzzle(
+        submissionData,
+        puzzle.date_to_be_used,
+        puzzle.id
+      );
+      
+      finalScore = submissionResult.score;
+      submissionIdForResultModal = submissionResult.submissionId ?? null;
+
+      if (challengeId && submissionIdForResultModal) {
+        await completeChallenge(challengeId, { submission_id: submissionIdForResultModal });
       }
-    } else {
-      alert("Solution is incorrect. Keep trying or check for errors (in red).");
-      startTimer();
+    } catch (err) {
+      console.error("[SudokuGame] Error:", err);
+    } finally {
+      setGameResult({ score: finalScore, submissionId: submissionIdForResultModal });
     }
   };
-  // ---
 
-  // if (loading) {
-  //   return <LoadingSpinner fullPage={true} />;
-  // }
+  const handleContinue = () => {
+    setShowResumeModal(false);
+    startTimer();
+  };
+
+  if (checkingSubmission || loading) {
+    return <LoadingSpinner fullPage={true} />;
+  }
+
+  if (alreadyCompleted?.hasSubmitted) {
+    return (
+      <AlreadyPlayedScreen
+        gameType="sudoku"
+        score={alreadyCompleted.score || 0}
+        submittedAt={alreadyCompleted.submittedAt || new Date().toISOString()}
+        difficulty={difficulty}
+      />
+    );
+  }
+
+  const filledCells = countFilledCells(grid);
+  const totalCells = 81;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
-      <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
-        <SudokuGrid
-          grid={grid}
-          selectedCell={selectedCell}
-          onCellClick={handleCellClick}
+    <>
+      {showResumeModal && (
+        <ResumeGameModal
+          guessCount={filledCells}
+          maxGuesses={totalCells}
+          puzzleDate={puzzle.date_to_be_used}
+          puzzleNumber={puzzle.id}
+          editor="ERNI Team"
+          onContinue={handleContinue}
         />
-      </div>
-      <div className="place-content-center p-20 text-xl leading-5">
-        <div className="flex justify-between mb-10">
-          <div className="">
-            <h1 className="text-4xl font-bold">Sudoku</h1>
-            <p>on {difficulty} difficulty</p>
+      )}
 
-          </div>
-          <Timer timeMs={time} />
-        </div>
-
-        <NumberPad
-          isNoteMode={isNoteMode}
-          onNoteToggle={() => !isGameOver && setIsNoteMode(!isNoteMode)}
-          onNumberClick={handleNumberClick}
-          onEraseClick={handleEraseClick}
-        />
-        <div className="grid grid-cols-2 gap-4 mt-2">
-          <button
-            onClick={handleSubmit}
-            disabled={isGameOver}
-            className="mt-6 px-8 py-3 bg-yellow-500 text-white font-bold rounded-lg shadow-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Hint
-          </button>
-
-          <button
-            onClick={handleSubmit}
-            disabled={isGameOver}
-            className="mt-6 px-8 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Submit
-          </button>
-        </div>
-
-
-        {gameResult && (
-          <PostGameResultsModal
-            score={gameResult.score}
-            submissionId={gameResult.submissionId}
-            currentStreak={gameResult.currentStreak}
-            maxStreak={gameResult.maxStreak}
-            streakUpdatedToday={gameResult.streakUpdatedToday}
-            message={gameResult.message}
-            onClose={() => setGameResult(null)}
+      <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
+        <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
+          <SudokuGrid
+            grid={grid}
+            selectedCell={selectedCell}
+            onCellClick={handleCellClick}
           />
-        )}
+        </div>
+        <div className="place-content-center p-20 text-xl leading-5">
+          <div className="flex justify-between mb-10">
+            <div>
+              <h1 className="text-4xl font-bold">Sudoku</h1>
+              <p>on {difficulty} difficulty</p>
+            </div>
+            <Timer timeMs={time} />
+          </div>
 
+          <NumberPad
+            isNoteMode={isNoteMode}
+            onNoteToggle={() => !isGameOver && setIsNoteMode(!isNoteMode)}
+            onNumberClick={handleNumberClick}
+            onEraseClick={handleEraseClick}
+          />
+          
+          <div className="grid grid-cols-2 gap-4 mt-2">
+            <button
+              onClick={() => {/* TODO: Implement hint */}}
+              disabled={isGameOver}
+              className="mt-6 px-8 py-3 bg-yellow-500 text-white font-bold rounded-lg shadow-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Hint
+            </button>
+
+            <button
+              onClick={handleSubmit}
+              disabled={isGameOver}
+              className="mt-6 px-8 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Submit
+            </button>
+          </div>
+
+          {gameResult && (
+            <PostGameResultsModal
+              score={gameResult.score}
+              submissionId={gameResult.submissionId}
+              gameType="sudoku"
+              onClose={() => setGameResult(null)}
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };

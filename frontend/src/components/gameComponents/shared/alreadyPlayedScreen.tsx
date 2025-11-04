@@ -1,107 +1,101 @@
-// src/components/gameComponents/shared/alreadyPlayedScreen.tsx - NEW FILE
+// src/components/gameComponents/shared/alreadyPlayedScreen.tsx
 
-import { Trophy, Star, Home, Swords } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import type { Difficulty } from '../../../pages/gamePage';
 
 interface AlreadyPlayedScreenProps {
   gameType: 'wordle' | 'sudoku' | 'ernigram';
   score: number;
   submittedAt: string;
-  difficulty: string;
+  difficulty: Difficulty;
 }
 
-export const AlreadyPlayedScreen = ({ 
-  gameType, 
-  score, 
-  submittedAt, 
-  difficulty 
+export const AlreadyPlayedScreen = ({
+  gameType,
+  score,
+  submittedAt,
+  difficulty,
 }: AlreadyPlayedScreenProps) => {
   const navigate = useNavigate();
 
   const gameColors = {
-    wordle: {
-      primary: 'text-emerald-600',
-      bg: 'bg-emerald-50',
-      border: 'border-emerald-200'
-    },
-    sudoku: {
-      primary: 'text-pink-600',
-      bg: 'bg-pink-50',
-      border: 'border-pink-200'
-    },
-    ernigram: {
-      primary: 'text-sky-600',
-      bg: 'bg-sky-50',
-      border: 'border-sky-200'
-    }
+    wordle: 'bg-emerald-100 border-emerald-300 text-emerald-800',
+    sudoku: 'bg-pink-100 border-pink-300 text-pink-800',
+    ernigram: 'bg-sky-100 border-sky-300 text-sky-800',
   };
 
-  const colors = gameColors[gameType];
-  const gameTitle = gameType.charAt(0).toUpperCase() + gameType.slice(1);
+  const gameTitles = {
+    wordle: 'Wordle',
+    sudoku: 'Sudoku',
+    ernigram: 'ERNIgram',
+  };
 
-  // Format the submission time
-  const formatTime = (isoString: string) => {
+  const formatDate = (isoString: string) => {
     const date = new Date(isoString);
-    return date.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
+    return date.toLocaleString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
       minute: '2-digit',
-      hour12: true 
+      hour12: true,
     });
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[500px] p-8">
-      <div className={`max-w-md w-full ${colors.bg} border-2 ${colors.border} rounded-3xl p-8 text-center shadow-lg`}>
-        {/* Trophy Icon */}
-        <div className="mb-6">
-          <Trophy className={`mx-auto ${colors.primary}`} size={64} strokeWidth={1.5} />
+    <div className="flex items-center justify-center min-h-[600px] p-8">
+      <div
+        className={`max-w-lg w-full p-12 rounded-3xl border-2 ${gameColors[gameType]} text-center`}
+      >
+        {/* Success Icon */}
+        <div className="flex justify-center mb-6">
+          <CheckCircle size={80} className="text-green-500" strokeWidth={2} />
         </div>
 
-        {/* Heading */}
-        <h2 className={`text-3xl font-bold mb-2 ${colors.primary}`}>
+        {/* Title */}
+        <h1 className="text-4xl font-bold mb-4">
           Already Completed!
-        </h2>
-        
-        <p className="text-gray-600 mb-6">
-          You've already finished today's <strong>{gameTitle}</strong> puzzle on <strong>{difficulty}</strong> mode.
+        </h1>
+
+        {/* Message */}
+        <p className="text-lg mb-6">
+          You've already completed today's{' '}
+          <strong>{gameTitles[gameType]}</strong> puzzle on{' '}
+          <strong>{difficulty}</strong> difficulty.
         </p>
 
         {/* Score Display */}
-        <div className="bg-white p-6 rounded-2xl mb-6 shadow-sm">
-          <p className="text-sm text-gray-500 mb-2">Your Score</p>
-          <div className="flex items-center justify-center gap-2">
-            <span className={`text-5xl font-bold ${colors.primary}`}>
-              {score}
-            </span>
-            <Star size={36} className="text-yellow-500 fill-current" />
-          </div>
-          <p className="text-xs text-gray-400 mt-2">
-            Completed at {formatTime(submittedAt)}
-          </p>
+        <div className="bg-white/50 rounded-xl p-6 mb-6">
+          <p className="text-sm text-gray-600 mb-2">Your Score</p>
+          <p className="text-5xl font-bold">{score}</p>
+          <p className="text-sm text-gray-500 mt-2">points</p>
         </div>
+
+        {/* Submission Time */}
+        <p className="text-sm text-gray-600 mb-8">
+          Completed on {formatDate(submittedAt)}
+        </p>
 
         {/* Action Buttons */}
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
           <button
             onClick={() => navigate('/')}
-            className="w-full px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+            className="w-full py-3 px-6 bg-gray-800 text-white font-semibold rounded-lg hover:bg-gray-700 transition"
           >
-            <Home size={20} />
             Back to Home
           </button>
-
           <button
-            onClick={() => navigate('/challenges')}
-            className={`w-full px-6 py-3 ${colors.primary} bg-white border-2 ${colors.border} rounded-xl font-medium hover:opacity-80 transition-opacity flex items-center justify-center gap-2`}
+            onClick={() => navigate('/leaderboards')}
+            className="w-full py-3 px-6 bg-white text-gray-800 font-semibold rounded-lg border-2 border-gray-300 hover:bg-gray-50 transition"
           >
-            <Swords size={20} />
-            View Challenges
+            View Leaderboards
           </button>
         </div>
 
-        {/* Hint Text */}
-        <p className="text-xs text-gray-500 mt-6">
-          Come back tomorrow for a new puzzle!
+        {/* Fun Message */}
+        <p className="text-sm text-gray-600 mt-6">
+          Come back tomorrow for a new puzzle! 🎉
         </p>
       </div>
     </div>
