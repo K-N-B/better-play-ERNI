@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from users.serializers import UserNestedSerializer
-from .models import Reward, ClaimedReward
+
+from .models import ClaimedReward, Reward
 
 
 class RewardSerializer(serializers.ModelSerializer):

@@ -1,9 +1,15 @@
 # leaderboards/admin.py
 from django.contrib import admin
+
 from .models import (
-    DailyIndividualScore, WeeklyIndividualScore, MonthlyIndividualScore,
-    DailyDepartmentScore, WeeklyDepartmentScore, MonthlyDepartmentScore
+    DailyDepartmentScore,
+    DailyIndividualScore,
+    MonthlyDepartmentScore,
+    MonthlyIndividualScore,
+    WeeklyDepartmentScore,
+    WeeklyIndividualScore,
 )
+
 
 @admin.register(DailyIndividualScore)
 class DailyIndividualScoreAdmin(admin.ModelAdmin):

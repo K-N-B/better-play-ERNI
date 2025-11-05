@@ -1,7 +1,23 @@
 # gameplay/serializers.py
 from rest_framework import serializers
-from .models import Challenge, Submission
+from .models import Challenge, Submission, PuzzleAttempt
 from users.serializers import UserNestedSerializer
+
+class PuzzleAttemptSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PuzzleAttempt
+        fields = [
+            'id',
+            'user',
+            'puzzle_type',
+            'puzzle_id',
+            'progress_data',
+            'time_spent_ms',
+            'completed',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['user', 'created_at', 'updated_at']
 
 
 class SubmissionNestedSerializer(serializers.ModelSerializer):
@@ -156,3 +172,14 @@ class CompleteChallengeSerializer(serializers.Serializer):
                 raise serializers.ValidationError("This submission does not belong to you.")
         
         return value
+
+
+class SubmissionCreateSerializer(serializers.Serializer):
+    """Serializer for submitting completed puzzle"""
+
+    puzzle_id = serializers.IntegerField()
+    puzzle_type = serializers.ChoiceField(choices=['wordle', 'sudoku', 'ernigram'])
+    difficulty = serializers.ChoiceField(choices=['easy', 'hard'])
+    time_taken_ms = serializers.IntegerField(min_value=0)
+    tries = serializers.IntegerField(min_value=1)
+    final_state = serializers.JSONField(required=False, default=dict)

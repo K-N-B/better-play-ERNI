@@ -4,6 +4,9 @@ from django.utils import timezone
 from datetime import timedelta, time
 from games.utils.timezone_helpers import get_local_now, MANILA_TZ
 
+from django.utils import timezone
+
+
 def update_daily_activity_streak(user):
     """
     Updates the user's streak based on the current submission date.

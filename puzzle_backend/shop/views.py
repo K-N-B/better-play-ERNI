@@ -1,9 +1,10 @@
+from django.db import transaction
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
-from django.db import transaction
-from .models import Reward, ClaimedReward
-from .serializers import RewardSerializer, ClaimedRewardSerializer
 from users.models import User  # Import User to access current_points
+
+from .models import ClaimedReward, Reward
+from .serializers import ClaimedRewardSerializer, RewardSerializer
 
 
 class RewardListView(generics.ListAPIView):

@@ -1,10 +1,13 @@
 # leaderboards/models.py
-from django.db import models
 from django.conf import settings
+from django.db import models
 from users.models import Department
 
+
 class DailyIndividualScore(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='daily_scores')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='daily_scores'
+    )
     score = models.IntegerField(db_index=True, default=0)
     date = models.DateField(db_index=True)
 
@@ -22,7 +25,9 @@ class DailyIndividualScore(models.Model):
 
 
 class WeeklyIndividualScore(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='weekly_scores')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='weekly_scores'
+    )
     score = models.IntegerField(db_index=True, default=0)
     week_start_date = models.DateField(db_index=True, help_text="Date of the Monday for that week")
 
@@ -40,7 +45,9 @@ class WeeklyIndividualScore(models.Model):
 
 
 class MonthlyIndividualScore(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='monthly_scores')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='monthly_scores'
+    )
     score = models.IntegerField(db_index=True, default=0)
     month_start_date = models.DateField(db_index=True, help_text="Date of the 1st of that month")
 
@@ -59,7 +66,9 @@ class MonthlyIndividualScore(models.Model):
 
 # --- Department Leaderboards ---
 class DailyDepartmentScore(models.Model):
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='daily_scores')
+    department = models.ForeignKey(
+        Department, on_delete=models.CASCADE, related_name='daily_scores'
+    )
     score = models.IntegerField(db_index=True, default=0)
     date = models.DateField(db_index=True)
 
@@ -77,7 +86,9 @@ class DailyDepartmentScore(models.Model):
 
 
 class WeeklyDepartmentScore(models.Model):
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='weekly_scores')
+    department = models.ForeignKey(
+        Department, on_delete=models.CASCADE, related_name='weekly_scores'
+    )
     score = models.IntegerField(db_index=True, default=0)
     week_start_date = models.DateField(db_index=True)
 
@@ -95,7 +106,9 @@ class WeeklyDepartmentScore(models.Model):
 
 
 class MonthlyDepartmentScore(models.Model):
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='monthly_scores')
+    department = models.ForeignKey(
+        Department, on_delete=models.CASCADE, related_name='monthly_scores'
+    )
     score = models.IntegerField(db_index=True, default=0)
     month_start_date = models.DateField(db_index=True)
 
@@ -109,4 +122,6 @@ class MonthlyDepartmentScore(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.department.name} - {self.month_start_date.strftime('%B %Y')} - {self.score}pts"
+        return (
+            f"{self.department.name} - {self.month_start_date.strftime('%B %Y')} - {self.score}pts"
+        )
