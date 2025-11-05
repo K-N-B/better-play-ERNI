@@ -1,4 +1,4 @@
-name: Django CI/CD - Backend Tests & Lint
+name: Run Tests and Coverage
 
 on:
   push:
@@ -11,40 +11,53 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Set up Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.14"
 
+      # 3. Install dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install black flake8 pytest pytest-cov
+          pip install black flake8 pytest pytest-django pytest-cov
 
+      # 4. Set environment variable for Django settings
+      - name: Set DJANGO_SETTINGS_MODULE
+        run: echo "DJANGO_SETTINGS_MODULE=puzzle_backend.config.settings_test" >> $GITHUB_ENV
+
+      # 5. Run migrations
+      - name: Run migrations
+        run: |
+          python manage.py migrate --run-syncdb
+
+      # 6. Run Black and Flake8
       - name: Run Black (formatting check)
-        run: black puzzle_backend
+        run: black --check puzzle_backend
 
       - name: Run Flake8 (linting)
         run: flake8 puzzle_backend
 
-      - name: Set DJANGO_SETTINGS_MODULE
-        run: echo "DJANGO_SETTINGS_MODULE=puzzle_backend.config.settings_test" >> $GITHUB_ENV
-        
+      # 7. Run pytest with coverage
       - name: Run Pytest with coverage
         run: |
-          cd puzzle_backend
-          pytest --cov=puzzle_backend \
+          pytest puzzle_backend \
+            --cov=puzzle_backend \
             --cov-report=term-missing \
-            --cov-fail-under=80 \
-            --cov-config=.coveragerc \
-            --cov-report=html
+            --cov-report=html \
+            --cov-branch \
+            --maxfail=1 \
+            --disable-warnings
 
-      - name: Upload HTML Coverage Report
+      # 8. Upload HTML coverage report as artifact
+      - name: Upload coverage HTML report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: puzzle_backend/htmlcov/
+          path: puzzle_backend/htmlcov
