@@ -32,12 +32,9 @@ jobs:
         run: flake8 puzzle_backend
 
       - name: Run Pytest with coverage
-        run: cd puzzle_backend && pytest \
-          --cov=puzzle_backend \
-          --cov-report=term-missing \
-          --cov-fail-under=60 \
-          --cov-branch \
-          --cov-config=.coveragerc
+        run: |
+          cd puzzle_backend
+          pytest --cov-report=term-missing --cov-report=xml --cov-fail-under=80 --cov-branch --cov-
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
