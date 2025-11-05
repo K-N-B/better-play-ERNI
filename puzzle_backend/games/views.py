@@ -11,14 +11,12 @@ from django.utils import timezone
 import datetime
 from rest_framework.permissions import AllowAny
 from games.utils.timezone_helpers import get_local_today
-
 from .models import DailyPuzzle
-import os
 
 # from .models import DailyPuzzle, WordlePuzzle, SudokuPuzzle, ErnigramPuzzle
 from .serializers import DailyPuzzleSerializer
-
-from django.http import HttpResponse, HttpRequest
+import os
+from django.http import HttpRequest, HttpResponse
 
 # from .serializers import (
 #     DailyPuzzleSerializer,
@@ -40,7 +38,6 @@ class DailyPuzzlesView(APIView):
     # permission_classes = [IsAuthenticated] # Uncomment this for production
     # For dev convenience, remove/change for production
     permission_classes = [AllowAny]
-
     def get(self, request, format=None):
         date_param = request.query_params.get("date", None)
         print("Django timezone now():", timezone.now())
@@ -113,6 +110,7 @@ class MockDailyPuzzlesGenerateView(APIView):
                 {"detail": f"Error generating puzzles: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
 
 
 def cron_generate_puzzles_view(request: HttpRequest):

@@ -1,4 +1,4 @@
-# games/models.py
+# games/models.py - COMPLETE FILE WITH FIXED SUDOKU
 from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
@@ -71,40 +71,40 @@ class WordlePuzzle(models.Model):
 
     def validate_and_score(self, progress_data, difficulty="EASY"):
         """
-        Calculates the score and verifies the final Wordle puzzle against the solution.
-        Requires: 'status' to be 'SOLVED' AND the last guess to be the solution.
+        Calculates the score for Wordle puzzle.
+        - Returns full points if status='SOLVED' and last guess is correct
+        - Returns 0 points if status='LOST' (allows submission for completion tracking)
         """
         guesses = progress_data.get("guesses", [])
         tries = len(guesses)
         difficulty_upper = difficulty.upper()
 
-        # Debug logging
         print(f"[WordlePuzzle.validate_and_score] Called")
         print(f"  Difficulty: {difficulty_upper}")
         print(f"  Guesses: {guesses}")
         print(f"  Tries: {tries}")
-        print(f"  Solution: {self.solution_word}")
-        print(f"  Progress Data: {progress_data}")
         
-        # Check for the explicit API status sent by the client
         status = progress_data.get("status", "ACTIVE").upper()
         print(f"  Status: {status}")
         
+        # ✅ Allow LOST games to submit with 0 points
+        if status == "LOST":
+            print(f"[WordlePuzzle.validate_and_score] ✅ LOST game - Awarding 0 points")
+            return 0, tries
+        
+        # For SOLVED games, verify the solution
         client_claims_solved = status == "SOLVED"
-
-        # Verification: Check if the last guess is the solution
         is_correct_guess = tries > 0 and guesses[-1].upper() == self.solution_word.upper()
         
         if tries > 0:
             print(f"  Last guess: '{guesses[-1]}' vs Solution: '{self.solution_word}'")
             print(f"  Match: {is_correct_guess}")
 
-        # The submission is only valid if BOTH conditions are true
         if not is_correct_guess or not client_claims_solved:
             print(f"[WordlePuzzle.validate_and_score] ❌ VALIDATION FAILED")
             return 0, tries
 
-        # Scoring: Award full base points based on difficulty
+        # Award full points for won games
         points = self.BASE_POINTS.get(difficulty_upper, 0)
         print(f"[WordlePuzzle.validate_and_score] ✅ SUCCESS - Awarding {points} points")
 
@@ -160,24 +160,146 @@ class SudokuPuzzle(models.Model):
     def validate_and_score(self, progress_data, difficulty="EASY"):
         """
         Calculates the score and verifies the final Sudoku grid against the solution.
+        Handles multiple input formats:
+        - Grid array (list of lists with cell objects)
+        - Dict with 'grid' key (grid array)
+        - Dict with 'final_grid' key (81-char string)
+        - String (direct 81-char grid)
         """
-        final_grid = progress_data.get("final_grid", "")
-        hints_used = progress_data.get("hints_used", 0)
         difficulty = difficulty.upper()
-
-        status = progress_data.get("status", "ACTIVE").upper()
-        client_claims_solved = status == "SOLVED"
-
-        is_correct_grid = final_grid == self.solution_string
-
-        if not client_claims_solved or not is_correct_grid or len(final_grid) != 81:
+        
+        print(f"[SudokuPuzzle.validate_and_score] Called")
+        print(f"  Difficulty: {difficulty}")
+        print(f"  Progress data type: {type(progress_data)}")
+        
+        # ✅ Extract final_grid string and hints_used from various formats
+        final_grid = None
+        hints_used = 0
+        
+        if isinstance(progress_data, dict):
+            print(f"  Progress data keys: {progress_data.keys()}")
+            
+            # Get hints_used if available
+            hints_used = progress_data.get("hints_used", 0)
+            
+            # Priority 1: Check for 'final_grid' (string format)
+            if "final_grid" in progress_data:
+                final_grid = progress_data["final_grid"]
+                print(f"  ✅ Using 'final_grid' string: {final_grid[:20]}...")
+            
+            # Priority 2: Check for 'grid' (array format) and convert
+            elif "grid" in progress_data:
+                grid_array = progress_data["grid"]
+                final_grid = self._grid_to_string(grid_array)
+                print(f"  ✅ Converted 'grid' array to string: {final_grid[:20]}...")
+            
+            else:
+                print(f"  ❌ ERROR: Dict missing both 'final_grid' and 'grid' keys")
+                return 0, hints_used
+        
+        elif isinstance(progress_data, list):
+            # Direct grid array
+            final_grid = self._grid_to_string(progress_data)
+            print(f"  ✅ Converted list array to string: {final_grid[:20]}...")
+        
+        elif isinstance(progress_data, str):
+            # Already a string
+            final_grid = progress_data
+            print(f"  ✅ Using string directly: {final_grid[:20]}...")
+        
+        else:
+            print(f"  ❌ ERROR: Invalid progress_data type: {type(progress_data)}")
             return 0, hints_used
-
+        
+        # ✅ Validate final_grid
+        if not final_grid or len(final_grid) != 81:
+            print(f"  ❌ ERROR: Invalid final_grid length: {len(final_grid) if final_grid else 0}")
+            return 0, hints_used
+        
+        # ✅ Check status (if provided)
+        status = "ACTIVE"
+        if isinstance(progress_data, dict):
+            status = progress_data.get("status", "ACTIVE").upper()
+        
+        client_claims_solved = status == "SOLVED"
+        print(f"  Status: {status} (claims solved: {client_claims_solved})")
+        
+        # ✅ Verify solution matches
+        is_correct_grid = final_grid == self.solution_string
+        
+        print(f"  User solution:     {final_grid}")
+        print(f"  Expected solution: {self.solution_string}")
+        print(f"  Match: {is_correct_grid}")
+        
+        if not is_correct_grid:
+            # Find first difference for debugging
+            for i, (user_char, solution_char) in enumerate(zip(final_grid, self.solution_string)):
+                if user_char != solution_char:
+                    row, col = divmod(i, 9)
+                    print(f"  ❌ First difference at position {i} (row {row}, col {col}): got '{user_char}', expected '{solution_char}'")
+                    break
+            print(f"[SudokuPuzzle.validate_and_score] ❌ VALIDATION FAILED - Grid doesn't match")
+            return 0, hints_used
+        
+        # ✅ Optional: Also check client status flag (for extra validation)
+        # Uncomment if you want to enforce status='SOLVED' in progress_data
+        # if not client_claims_solved:
+        #     print(f"[SudokuPuzzle.validate_and_score] ❌ VALIDATION FAILED - Status not SOLVED")
+        #     return 0, hints_used
+        
+        # ✅ Calculate score
         base_points = self.BASE_POINTS.get(difficulty, 0)
         penalty = hints_used * self.HINT_PENALTY_POINTS
         points = max(0, base_points - penalty)
-
+        
+        print(f"  Base points: {base_points}")
+        print(f"  Hints used: {hints_used}")
+        print(f"  Penalty: {penalty}")
+        print(f"  Final points: {points}")
+        print(f"[SudokuPuzzle.validate_and_score] ✅ SUCCESS - Awarding {points} points")
+        
         return points, hints_used
+
+    def _grid_to_string(self, grid_array):
+        """
+        Convert a 9x9 grid array to an 81-character string.
+        Handles grid cells that are either:
+        - Dicts with 'value' key: {value: 5, isGiven: true, ...}
+        - Direct integers: 5
+        - None/null values: converted to 0
+        """
+        if not isinstance(grid_array, list) or len(grid_array) != 9:
+            print(f"  ❌ Invalid grid_array: not a 9-length list")
+            return ""
+        
+        result = ""
+        for row_idx, row in enumerate(grid_array):
+            if not isinstance(row, list) or len(row) != 9:
+                print(f"  ❌ Invalid row {row_idx}: not a 9-length list")
+                return ""
+            
+            for col_idx, cell in enumerate(row):
+                if isinstance(cell, dict):
+                    # Cell is {value: X, isGiven: bool, isError: bool, notes: []}
+                    value = cell.get('value')
+                    if value is None or value == 0:
+                        result += '0'
+                    else:
+                        result += str(value)
+                elif isinstance(cell, (int, float)):
+                    # Cell is just a number
+                    if cell == 0 or cell is None:
+                        result += '0'
+                    else:
+                        result += str(int(cell))
+                elif cell is None:
+                    result += '0'
+                else:
+                    print(f"  ❌ Invalid cell at ({row_idx},{col_idx}): {type(cell)}")
+                    result += '0'
+        
+        print(f"  Converted grid to string: length={len(result)}")
+        return result
 
     def __str__(self):
         return f"Sudoku {self.id} (Easy/Hard)"
