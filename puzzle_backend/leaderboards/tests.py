@@ -1,5 +1,5 @@
 import pytz
-from datetime import date, timedelta
+from datetime import timedelta
 from datetime import datetime as real_datetime
 from django.test import TestCase
 from django.urls import reverse

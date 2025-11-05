@@ -1,6 +1,6 @@
 import json
 import pytz
-from datetime import date, timedelta
+from datetime import date
 from datetime import datetime as real_datetime
 from django.test import TestCase
 from django.urls import reverse
@@ -10,7 +10,6 @@ from django.contrib.contenttypes.models import ContentType
 from unittest import mock
 
 # Import all the models we need to create
-from users.models import Department
 from games.models import DailyPuzzle, WordlePuzzle, SudokuPuzzle, ErnigramPuzzle
 from .models import PuzzleAttempt, Submission
 

@@ -17,7 +17,23 @@ from django.views.decorators.csrf import csrf_protect
 from games.models import DailyPuzzle, ErnigramPuzzle, SudokuPuzzle, WordlePuzzle
 from leaderboards.services import LeaderboardAggregator
 
+from django.views.decorators.csrf import csrf_exempt
+
 from .models import PuzzleAttempt, Submission
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .models import Challenge
+from django.db.models import Q
+from users.models import User
+from .serializers import (
+    ChallengeSerializer,
+    CreateChallengeSerializer,
+)
+
+
+# Import the streak utility function
+from .streak_utils import update_daily_activity_streak
 
 
 # ============================================================================
@@ -460,7 +476,10 @@ class SubmitPuzzleView(View):
             puzzle_date=daily_puzzle.date,
         )
 
-        # 8. UPDATE USER STATS (only if points > 0)
+        # 7.0 UPDATE USER STREAK
+        streak_was_updated = update_daily_activity_streak(user)
+
+        # 7.1 UPDATE USER STATS (only if points > 0)
         if points_awarded > 0:
             user.total_points_alltime = F('total_points_alltime') + points_awarded
             user.current_points = F('current_points') + points_awarded
@@ -478,6 +497,8 @@ class SubmitPuzzleView(View):
         # 10. Clean up the PuzzleAttempt
         attempt.delete()
 
+        # 10  Refresh user to get latest streak info
+        user.refresh_from_db()
         print(
             f"[SubmitPuzzleView] ✅ Submitted successfully: {points_awarded} points for {user.username}"
         )
@@ -495,9 +516,11 @@ class SubmitPuzzleView(View):
                 "points_awarded": points_awarded,
                 "submission_id": submission.pk,
                 # ✅ Add streak information (set to 0 for now, you can implement proper streak logic later)
-                "current_streak": 0,
-                "max_streak": 0,
-                "streak_updated_today": False,
+                # ⭐️ Use the live values from the refreshed user instance ⭐️
+                "current_streak": user.current_streak_count,
+                "max_streak": user.max_streak_count,
+                "last_active": user.last_active.isoformat() if user.last_active else None,
+                "streak_updated_today": streak_was_updated,  # Use the boolean return value
             },
             status=201,
         )
@@ -730,6 +753,399 @@ class GetTodayCompletedPuzzlesView(View):
 
         except Exception as e:
             print(f"[GetTodayCompleted] Error: {e}")
+            import traceback
+
+            traceback.print_exc()
+            return JsonResponse({'error': str(e)}, status=500)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_streak_data(request):
+    user = request.user
+
+    data = {
+        'current_streak': user.current_streak_count,
+        'max_streak': user.max_streak_count,
+        'last_active_timestamp': user.last_active,  # Frontend can use this for display
+        'display_message': f"You are currently on a {user.current_streak_count}-day streak!",
+    }
+
+    return Response(data)
+
+
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(login_required, name='get')
+class SearchUsersView(View):
+    """
+    GET /api/challenges/search-users/?q=<query>
+    Search for users to challenge by username or email
+    """
+
+    def get(self, request):
+        query = request.GET.get('q', '').strip()
+
+        if len(query) < 2:
+            return JsonResponse(
+                {'error': 'Search query must be at least 2 characters.'}, status=400
+            )
+
+        try:
+            # Search by username or email (case-insensitive)
+            users = (
+                User.objects.filter(Q(username__icontains=query) | Q(email__icontains=query))
+                .exclude(id=request.user.id)  # Exclude current user
+                .values('id', 'username', 'email')[:10]
+            )  # Limit to 10 results
+
+            users_list = list(users)
+            print(f"[SearchUsers] Found {len(users_list)} users for query '{query}'")
+
+            return JsonResponse(users_list, safe=False)
+
+        except Exception as e:
+            print(f"[SearchUsers] Error: {e}")
+            import traceback
+
+            traceback.print_exc()
+            return JsonResponse({'error': str(e)}, status=500)
+
+
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(login_required, name='get')
+class PendingChallengesView(View):
+    """
+    GET /api/challenges/pending/
+    Get all pending challenges where the current user is the recipient
+    """
+
+    def get(self, request):
+        user = request.user
+
+        try:
+            # Get challenges where user is recipient and status is PENDING
+            challenges = (
+                Challenge.objects.filter(recipient=user, status=Challenge.Status.PENDING)
+                .select_related(
+                    'challenger',
+                    'recipient',
+                    'challenger_submission',
+                    'challenger_submission__content_type',
+                )
+                .order_by('-created_at')
+            )
+
+            # Serialize using DRF serializer
+            # from rest_framework.renderers import JSONRenderer
+
+            serializer = ChallengeSerializer(challenges, many=True)
+
+            print(f"[PendingChallenges] Found {challenges.count()} pending for {user.username}")
+
+            # Return as JSON
+            # json_data = JSONRenderer().render(serializer.data)
+            return JsonResponse(serializer.data, safe=False)
+
+        except Exception as e:
+            print(f"[PendingChallenges] Error: {e}")
+            import traceback
+
+            traceback.print_exc()
+            return JsonResponse({'error': str(e)}, status=500)
+
+
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(login_required, name='get')
+class CompletedChallengesView(View):
+    """
+    GET /api/challenges/completed/
+    Get all completed challenges involving the current user
+    """
+
+    def get(self, request):
+        user = request.user
+
+        try:
+            # Get completed challenges where user is either challenger or recipient
+            challenges = (
+                Challenge.objects.filter(
+                    Q(challenger=user) | Q(recipient=user), status=Challenge.Status.COMPLETED
+                )
+                .select_related(
+                    'challenger',
+                    'recipient',
+                    'challenger_submission',
+                    'recipient_submission',
+                    'winner',
+                    'challenger_submission__content_type',
+                )
+                .order_by('-created_at')
+            )
+
+            serializer = ChallengeSerializer(challenges, many=True)
+
+            print(f"[CompletedChallenges] Found {challenges.count()} completed for {user.username}")
+
+            return JsonResponse(serializer.data, safe=False)
+
+        except Exception as e:
+            print(f"[CompletedChallenges] Error: {e}")
+            import traceback
+
+            traceback.print_exc()
+            return JsonResponse({'error': str(e)}, status=500)
+
+
+@method_decorator(login_required, name='post')
+class SendChallengeView(View):
+    """
+    POST /api/challenges/send/
+    Create a new challenge
+    Body: {"recipient_id": <int>, "submission_id": <int>}
+    """
+
+    # ✅ Exempt this view from CSRF for API calls
+    @method_decorator(csrf_exempt)
+    @transaction.atomic
+    def post(self, request):
+        user = request.user
+
+        try:
+            data = json.loads(request.body)
+
+            print("[SendChallenge] ========== START ==========")
+            print(f"[SendChallenge] Received data: {data}")
+            print(f"[SendChallenge] User: {user.username} (ID: {user.id})")
+            print(f"[SendChallenge] User authenticated: {user.is_authenticated}")
+
+            # ✅ Simplified: Pass the Django request directly
+            serializer = CreateChallengeSerializer(data=data, context={'request': request})
+
+            print("[SendChallenge] About to validate...")
+            is_valid = serializer.is_valid()
+            print(f"[SendChallenge] Validation result: {is_valid}")
+            print(f"[SendChallenge] Validation errors: {serializer.errors}")
+
+            if not is_valid:
+                print("[SendChallenge] ❌ Validation FAILED")
+                return JsonResponse(
+                    {'error': 'Validation failed', 'errors': serializer.errors}, status=400
+                )
+
+            print("[SendChallenge] ✅ Validation PASSED, continuing...")
+
+            recipient_id = serializer.validated_data['recipient_id']
+            submission_id = serializer.validated_data['submission_id']
+
+            # Get objects
+            recipient = User.objects.get(pk=recipient_id)
+            submission = Submission.objects.get(pk=submission_id)
+
+            # ✅ NEW: Check if recipient has already submitted this puzzle
+            recipient_submission = Submission.objects.filter(
+                user=recipient, content_type=submission.content_type, object_id=submission.object_id
+            ).first()
+
+            if recipient_submission:
+                return JsonResponse(
+                    {
+                        'error': f'{recipient.username} has already completed this puzzle. You cannot challenge them on it.'
+                    },
+                    status=400,
+                )
+
+            # Create the challenge
+            challenge = Challenge.objects.create(
+                challenger=user,
+                recipient=recipient,
+                challenger_submission=submission,
+                status=Challenge.Status.PENDING,
+            )
+
+            # Increment challenges_made_count
+            user.challenges_made_count = F('challenges_made_count') + 1
+            user.save(update_fields=['challenges_made_count'])
+            user.refresh_from_db()
+
+            # Serialize response
+            response_serializer = ChallengeSerializer(challenge)
+
+            print(f"[SendChallenge] ✅ Challenge created: {user.username} -> {recipient.username}")
+
+            return JsonResponse(response_serializer.data, status=201)
+
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'Recipient not found.'}, status=404)
+        except Submission.DoesNotExist:
+            return JsonResponse({'error': 'Submission not found.'}, status=404)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON.'}, status=400)
+        except Exception as e:
+            print(f"[SendChallenge] Error: {e}")
+            import traceback
+
+            traceback.print_exc()
+            return JsonResponse({'error': str(e)}, status=500)
+
+
+@method_decorator(login_required, name='post')
+class CompleteChallengeView(View):
+    """
+    POST /api/challenges/<challenge_id>/complete/
+    Complete a challenge as the recipient
+    Body: {"submission_id": <int>}
+    """
+
+    @method_decorator(csrf_exempt)
+    @transaction.atomic
+    def post(self, request, challenge_id):
+        user = request.user
+
+        try:
+            data = json.loads(request.body)
+
+            print("\n[CompleteChallenge] ========== START ==========")
+            print(f"[CompleteChallenge] Challenge ID: {challenge_id}")
+            print(f"[CompleteChallenge] User: {user.username} (ID: {user.id})")
+            print(f"[CompleteChallenge] Data: {data}")
+
+            # Get the challenge with SELECT FOR UPDATE to lock the row
+            challenge = (
+                Challenge.objects.select_for_update()
+                .select_related('challenger', 'recipient', 'challenger_submission')
+                .get(pk=challenge_id)
+            )
+
+            print("[CompleteChallenge] Found challenge:")
+            print(f"  - Status BEFORE: '{challenge.status}'")
+            print(f"  - Challenger: {challenge.challenger.username}")
+            print(f"  - Recipient: {challenge.recipient.username}")
+
+            # Verify user is the recipient
+            if challenge.recipient != user:
+                print("[CompleteChallenge] ❌ User is not recipient")
+                return JsonResponse(
+                    {'error': 'You are not the recipient of this challenge.'}, status=403
+                )
+
+            # Verify challenge is still pending
+            if challenge.status != Challenge.Status.PENDING:
+                print(f"[CompleteChallenge] ❌ Challenge not pending (status: {challenge.status})")
+                return JsonResponse({'error': 'This challenge is no longer pending.'}, status=400)
+
+            # Validate submission_id
+            submission_id = data.get('submission_id')
+            if not submission_id:
+                print("[CompleteChallenge] ❌ Missing submission_id")
+                return JsonResponse({'error': 'submission_id is required'}, status=400)
+
+            # Get the submission
+            try:
+                submission = Submission.objects.get(pk=submission_id)
+            except Submission.DoesNotExist:
+                print(f"[CompleteChallenge] ❌ Submission {submission_id} not found")
+                return JsonResponse({'error': 'Submission not found.'}, status=404)
+
+            print(f"[CompleteChallenge] Found submission #{submission_id}")
+            print(f"  - User: {submission.user.username}")
+            print(f"  - Points: {submission.points_awarded}")
+
+            # Verify submission belongs to recipient
+            if submission.user != user:
+                print("[CompleteChallenge] ❌ Submission doesn't belong to user")
+                return JsonResponse({'error': 'Submission must belong to you.'}, status=400)
+
+            # Verify the submission is for the same puzzle
+            if (
+                submission.content_type != challenge.challenger_submission.content_type
+                or submission.object_id != challenge.challenger_submission.object_id
+            ):
+                print("[CompleteChallenge] ❌ Submission puzzle mismatch")
+                return JsonResponse(
+                    {'error': 'Submission must be for the same puzzle as the challenge.'},
+                    status=400,
+                )
+
+            # ✅ UPDATE CHALLENGE - This is the critical part
+            print("[CompleteChallenge] Updating challenge...")
+
+            challenge.recipient_submission = submission
+            challenge.status = Challenge.Status.COMPLETED  # ✅ This line MUST execute
+
+            # Determine winner based on points
+            challenger_points = challenge.challenger_submission.points_awarded
+            recipient_points = submission.points_awarded
+
+            print("[CompleteChallenge] Comparing scores:")
+            print(f"  - Challenger: {challenger_points} pts")
+            print(f"  - Recipient: {recipient_points} pts")
+
+            if recipient_points > challenger_points:
+                challenge.winner = challenge.recipient
+                print("[CompleteChallenge] → Recipient won!")
+            elif recipient_points < challenger_points:
+                challenge.winner = challenge.challenger
+                print("[CompleteChallenge] → Challenger won!")
+            else:
+                challenge.winner = None  # Tie
+                print("[CompleteChallenge] → Tie!")
+
+            # ✅ CRITICAL: SAVE THE CHALLENGE
+            print("[CompleteChallenge] About to save challenge...")
+            print(f"[CompleteChallenge] Status field value: '{challenge.status}'")
+            print(
+                f"[CompleteChallenge] Status is COMPLETED: {challenge.status == Challenge.Status.COMPLETED}"
+            )
+
+            challenge.save()
+
+            print("[CompleteChallenge] ✅ Challenge.save() called successfully")
+
+            # ✅ VERIFY IT SAVED - Refresh from database
+            challenge.refresh_from_db()
+            print(f"[CompleteChallenge] Status AFTER save: '{challenge.status}'")
+
+            if challenge.status != Challenge.Status.COMPLETED:
+                print("[CompleteChallenge] ❌❌❌ CRITICAL: Status did NOT save!")
+                print(f"[CompleteChallenge] Expected: 'COMPLETED', Got: '{challenge.status}'")
+                return JsonResponse(
+                    {'error': 'Database update failed - status not changed'}, status=500
+                )
+
+            # Double-check in raw SQL
+            from django.db import connection
+
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT status FROM gameplay_challenge WHERE id = %s", [challenge.id]
+                )
+                raw_status = cursor.fetchone()[0]
+                print(f"[CompleteChallenge] Raw SQL status: '{raw_status}'")
+
+                if raw_status != 'COMPLETED':
+                    print(
+                        f"[CompleteChallenge] ❌❌❌ CRITICAL: SQL shows status is still '{raw_status}'"
+                    )
+                    return JsonResponse(
+                        {'error': 'Database update failed at SQL level'}, status=500
+                    )
+
+            print("[CompleteChallenge] ✅✅✅ VERIFIED: Status is COMPLETED in database")
+            print("[CompleteChallenge] ========== END ==========\n")
+
+            # Serialize response
+            response_serializer = ChallengeSerializer(challenge)
+
+            return JsonResponse(response_serializer.data, status=200)
+
+        except Challenge.DoesNotExist:
+            print(f"[CompleteChallenge] ❌ Challenge {challenge_id} not found")
+            return JsonResponse({'error': 'Challenge not found.'}, status=404)
+        except json.JSONDecodeError:
+            print("[CompleteChallenge] ❌ Invalid JSON")
+            return JsonResponse({'error': 'Invalid JSON.'}, status=400)
+        except Exception as e:
+            print(f"[CompleteChallenge] ❌ Unexpected error: {e}")
             import traceback
 
             traceback.print_exc()

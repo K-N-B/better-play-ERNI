@@ -11,6 +11,7 @@ from .views import (
     SaveProgressView,
     SubmitPuzzleView,
 )
+from .views import get_user_streak_data
 
 urlpatterns = [
     # Save progress for a specific puzzle attempt
@@ -60,4 +61,5 @@ urlpatterns = [
         GetTodaySubmissionsView.as_view(),
         name="today_submissions",
     ),
+    path('streak/', get_user_streak_data, name='user_streak_data'),
 ]

@@ -191,7 +191,7 @@ export const checkSubmissionExists = async (
   puzzleType: string,
   dailyPuzzleDate: string,
   puzzleId: number
-): Promise<{ hasSubmitted: boolean; score?: number; submittedAt?: string }> => {
+): Promise<{ hasSubmitted: boolean; score?: number; submittedAt?: string; submissionId?: number }> => {
   try {
     const url = `${API_BASE_URL}/gameplay/check-submission/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/`;
     console.log('[checkSubmissionExists] Checking:', url);

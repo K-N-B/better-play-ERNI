@@ -5,6 +5,7 @@ import json
 import os
 import random
 import string
+import re
 from datetime import timedelta
 from typing import Dict, List, Optional, Set
 from django.db import transaction
@@ -309,9 +310,12 @@ class ErnigramGeneratorAI:
                 # CRITICAL FIX: Defensive JSON Parsing
                 result = json.loads(raw_json)
                 phrase = result.get("solution_phrase", "").upper().strip()
-                if not phrase:
-                    raise ValueError("AI returned JSON missing solution_phrase.")
-                # END Defensive Parsing
+                phrase = re.sub(r"[^A-Z0-9\s]", "", phrase)
+                phrase = re.sub(r"\s+", " ", phrase).strip()
+
+                if not phrase or not re.match(r"^[A-Z0-9 ]+$", phrase):
+                    print(f"⚠️ Invalid phrase format detected: {phrase}. Retrying...")
+                    continue
 
                 is_unique_by_fuzzy_check = True
                 for used_phrase in used_phrases:
@@ -390,6 +394,7 @@ class ErnigramGeneratorAI:
 
             1. Create a short "solution_phrase" — a concise 3–5 word summary inspired by the chosen block/ Context, written in UPPERCASE.
             - Must NOT include punctuation or symbols.
+            -  If the phrase includes possessives like MARCO'S, rewrite it as MARCOS (no apostrophe).
             2. Create a "clue" — a two-sentence hint that:
             - Relates to the story naturally.
             - Does NOT reuse any words from the title or the solution phrase.
