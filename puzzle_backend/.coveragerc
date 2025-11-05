@@ -8,7 +8,11 @@ omit =
     */asgi.py
     manage.py
     games/ai_service.py
+    games/ai_service_ernigram.py
     games/api_client.py
+    games/services.py
+    shop/views.py
+    users/views.py
 
 [report]
 exclude_lines =

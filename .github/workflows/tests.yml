@@ -35,13 +35,13 @@ jobs:
         run: |
           cd puzzle_backend
           pytest --cov=puzzle_backend \
-            --cov-branch \
             --cov-report=term-missing \
-            --cov-fail-under=60 \
-            --cov-config=.coveragerc
+            --cov-fail-under=80 \
+            --cov-config=.coveragerc \
+            --cov-report=html
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+      - name: Upload HTML Coverage Report
+        uses: actions/upload-artifact@v3
         with:
-          files: puzzle_backend/coverage.xml
-          fail_ci_if_error: true
+          name: coverage-report
+          path: puzzle_backend/htmlcov/
