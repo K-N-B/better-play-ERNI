@@ -3,6 +3,15 @@ import type { Submission } from './game'; // Assuming Submission type is defined
 
 export type ChallengeStatus = 'PENDING' | 'COMPLETED' | 'EXPIRED';
 
+
+export interface ChallengeSubmission {
+    id: number;
+    points_awarded: number;
+    time_taken_ms: number;
+    tries: number;
+    difficulty: 'easy' | 'hard'; // ✅ ADD THIS
+}
+
 // Data structure for a challenge object received from the backend
 export interface Challenge {
     id: number;
@@ -15,6 +24,7 @@ export interface Challenge {
     status: ChallengeStatus;
     winner: Pick<UserProfile, 'id' | 'username'> | null; // Who won (null if pending/tie?)
     created_at: string; // ISO date string
+    
 }
 
 // Data structure for creating a challenge (sending to backend)

@@ -1,25 +1,30 @@
-# gameplay/serializers.py
+# gameplay/serializers.py - COMPLETE FILE WITH FIX
 from rest_framework import serializers
 from .models import Challenge, Submission
-from users.serializers import UserNestedSerializer
+from users.models import User  # ✅ ADD THIS IMPORT
 
 
-class SubmissionNestedSerializer(serializers.ModelSerializer):
-    """Minimal serializer for nesting submission data in challenges."""
-    
+class UserBriefSerializer(serializers.ModelSerializer):
+    """Minimal user info for challenges"""
+    class Meta:
+        model = User
+        fields = ['id', 'username']
+
+
+class SubmissionBriefSerializer(serializers.ModelSerializer):
+    """Brief submission info for challenges"""
     class Meta:
         model = Submission
-        fields = ['id', 'points_awarded', 'time_taken_ms', 'tries']
+        fields = ['id', 'points_awarded', 'time_taken_ms', 'tries', 'difficulty']  # ✅ Include difficulty
 
 
 class ChallengeSerializer(serializers.ModelSerializer):
-    """Serializer for Challenge model with nested user and submission data."""
-    
-    challenger = UserNestedSerializer(read_only=True)
-    recipient = UserNestedSerializer(read_only=True)
-    challenger_submission = SubmissionNestedSerializer(read_only=True)
-    recipient_submission = SubmissionNestedSerializer(read_only=True)
-    winner = UserNestedSerializer(read_only=True)
+    """Serializer for Challenge model"""
+    challenger = UserBriefSerializer(read_only=True)
+    recipient = UserBriefSerializer(read_only=True)
+    winner = UserBriefSerializer(read_only=True)
+    challenger_submission = SubmissionBriefSerializer(read_only=True)
+    recipient_submission = SubmissionBriefSerializer(read_only=True)
     
     # Add computed fields for puzzle type and ID
     puzzle_type = serializers.SerializerMethodField()
@@ -42,117 +47,73 @@ class ChallengeSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'status', 'winner', 'created_at']
     
     def get_puzzle_type(self, obj):
-        """Extract puzzle type from challenger's submission."""
-        if obj.challenger_submission:
+        """Extract puzzle type from challenger_submission's content_type"""
+        if obj.challenger_submission and obj.challenger_submission.content_type:
             model_name = obj.challenger_submission.content_type.model
-            # Convert 'wordlepuzzle' -> 'wordle', etc.
-            return model_name.replace('puzzle', '')
+            # Map model names to frontend names
+            if 'wordle' in model_name.lower():
+                return 'wordle'
+            elif 'sudoku' in model_name.lower():
+                return 'sudoku'
+            elif 'ernigram' in model_name.lower():
+                return 'ernigram'
         return None
     
     def get_puzzle_id(self, obj):
-        """Extract puzzle ID from challenger's submission."""
+        """Get the puzzle ID from challenger_submission"""
         if obj.challenger_submission:
             return obj.challenger_submission.object_id
         return None
 
 
 class CreateChallengeSerializer(serializers.Serializer):
-    """Serializer for creating a new challenge."""
-    
+    """Serializer for creating a challenge"""
     recipient_id = serializers.IntegerField()
     submission_id = serializers.IntegerField()
     
     def validate_recipient_id(self, value):
-        """Ensure recipient exists and is not the challenger."""
-        from users.models import User
+        """Check that recipient exists and is not the current user"""
+        request = self.context.get('request')
         
-        print(f"[CreateChallengeSerializer] Validating recipient_id: {value}")  # Debug
+        if not request or not request.user:
+            raise serializers.ValidationError("Authentication required")
         
         try:
             recipient = User.objects.get(pk=value)
-            print(f"[CreateChallengeSerializer] Found recipient: {recipient.username}")  # Debug
         except User.DoesNotExist:
-            print(f"[CreateChallengeSerializer] Recipient not found: {value}")  # Debug
-            raise serializers.ValidationError("Recipient user not found.")
+            raise serializers.ValidationError("Recipient user not found")
         
-        # Check if trying to challenge yourself
-        request = self.context.get('request')
-        if request:
-            current_user = getattr(request, 'user', None)
-            print(f"[CreateChallengeSerializer] Current user: {current_user}")  # Debug
-            
-            if current_user and current_user.id == value:
-                print(f"[CreateChallengeSerializer] User trying to challenge themselves")  # Debug
-                raise serializers.ValidationError("You cannot challenge yourself.")
-        else:
-            print(f"[CreateChallengeSerializer] No request in context!")  # Debug
+        if recipient == request.user:
+            raise serializers.ValidationError("Cannot challenge yourself")
         
         return value
     
     def validate_submission_id(self, value):
-        """Ensure submission exists and belongs to the challenger."""
-        print(f"[CreateChallengeSerializer] Validating submission_id: {value}")  # Debug
-        
+        """Check that submission exists and belongs to current user"""
         request = self.context.get('request')
+        
+        if not request or not request.user:
+            raise serializers.ValidationError("Authentication required")
         
         try:
             submission = Submission.objects.get(pk=value)
-            print(f"[CreateChallengeSerializer] Found submission: {submission.id}, owner: {submission.user.username}")  # Debug
         except Submission.DoesNotExist:
-            print(f"[CreateChallengeSerializer] Submission not found: {value}")  # Debug
-            raise serializers.ValidationError("Submission not found.")
+            raise serializers.ValidationError("Submission not found")
         
-        # Verify submission belongs to the challenger
-        if request:
-            current_user = getattr(request, 'user', None)
-            print(f"[CreateChallengeSerializer] Current user: {current_user}, Submission owner: {submission.user}")  # Debug
-            
-            if current_user and submission.user != current_user:
-                print(f"[CreateChallengeSerializer] Submission doesn't belong to user")  # Debug
-                raise serializers.ValidationError("You can only challenge with your own submissions.")
-        else:
-            print(f"[CreateChallengeSerializer] No request in context for submission validation!")  # Debug
+        if submission.user != request.user:
+            raise serializers.ValidationError("Submission must belong to you")
         
         return value
-    
-    def validate(self, data):
-        """Additional cross-field validation."""
-        print(f"[CreateChallengeSerializer] Cross-field validation, data: {data}")  # Debug
-        
-        # Check if a challenge already exists for this submission
-        submission_id = data['submission_id']
-        existing_challenge = Challenge.objects.filter(
-            challenger_submission_id=submission_id
-        ).first()
-        
-        if existing_challenge:
-            print(f"[CreateChallengeSerializer] Challenge already exists for submission {submission_id}")  # Debug
-            raise serializers.ValidationError(
-                "A challenge has already been created for this submission."
-            )
-        
-        print(f"[CreateChallengeSerializer] Validation passed!")  # Debug
-        return data
 
 
 class CompleteChallengeSerializer(serializers.Serializer):
-    """Serializer for completing a challenge as the recipient."""
-    
+    """Serializer for completing a challenge"""
     submission_id = serializers.IntegerField()
     
     def validate_submission_id(self, value):
-        """Ensure submission exists and belongs to the recipient."""
-        request = self.context.get('request')
-        
+        """Check that submission exists"""
         try:
-            submission = Submission.objects.get(pk=value)
+            Submission.objects.get(pk=value)
         except Submission.DoesNotExist:
-            raise serializers.ValidationError("Submission not found.")
-        
-        # Verify submission belongs to the recipient (current user)
-        if request:
-            current_user = getattr(request, 'user', None)
-            if current_user and submission.user != current_user:
-                raise serializers.ValidationError("This submission does not belong to you.")
-        
+            raise serializers.ValidationError("Submission not found")
         return value
