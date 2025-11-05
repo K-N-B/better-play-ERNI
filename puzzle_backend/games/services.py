@@ -474,18 +474,22 @@ class ErnigramGeneratorAI:
 
     def generate_from_employee_data(self, employee_data, used_phrases):
         available = [e for e in employee_data if e['phrase'] not in used_phrases]
-        selected = random.choice(available) if available else None
 
-        if not selected:
-            raise ValueError("All employee names have been used as Ernigram solutions.")
+        if not available:
+            # Return a standardized failure dict
+            return {
+                "solution_phrase": "NO UNIQUE EMPLOYEE DATA",
+                "clue": "All employee names have already been used.",
+                "employee_source_id": None,
+            }
 
+        selected = random.choice(available)
         fixed_clue = "Better ask employee"
 
-        # CRITICAL CHANGE: Return the ID of the source object
         return {
             "solution_phrase": selected['phrase'],
             "clue": fixed_clue,
-            "employee_source_id": selected['id'],  # Returns the ID (PK)
+            "employee_source_id": selected['id'],
         }
 
 
@@ -540,12 +544,11 @@ def generate_ernigram_puzzle_data(date_to_be_used):
     # 4. THE FALLBACK LOOP: TRY EACH SOURCE IN THE RANDOMIZED ORDER
     for source in available_sources:
         source_name = source["name"]
-        source_data = source["data"]  # This is the actual list of articles, employees, etc.
+        source_data = source["data"]
 
         print(f"➡️ Trying randomly selected source: {source_name}...")
-        result = {}
+
         try:
-            # Route to the correct generation method based on the source's name
             if source_name == "EMPLOYEE":
                 result = ai.generate_from_employee_data(source_data, used_phrases)
             elif source_name == "RSS":
@@ -553,30 +556,32 @@ def generate_ernigram_puzzle_data(date_to_be_used):
             elif source_name == "CSV":
                 result = ai.generate_from_raw_text(source_data, used_phrases, dominant_theme)
 
-            # --- CRITICAL QUALITY CHECK ---
-            # After trying a source, we MUST validate its output before accepting it.
-            generated_phrase = result.get('solution_phrase', '').upper()
+            # ✅ Robust check
+            if not result or not isinstance(result, dict):
+                print(
+                    f"❌ Source '{source_name}' returned invalid data: {result}. Trying next source..."
+                )
+                continue
+
+            generated_phrase = (result.get('solution_phrase') or '').upper()
             failure_keywords = ["NO UNIQUE", "FAILED", "NO DATA", "NOT IMPLEMENTED"]
 
             if generated_phrase and not any(
                 keyword in generated_phrase for keyword in failure_keywords
             ):
                 print(f"✅ Success! Generated puzzle from '{source_name}': '{generated_phrase}'")
-                # A valid puzzle was generated. Return it immediately and exit the function.
                 return result
             else:
-                # This source FAILED to produce a valid phrase.
-                # Log it and let the loop continue to the next available source.
                 print(
                     f"❌ Source '{source_name}' failed. Reason: '{generated_phrase}'. Trying next source..."
                 )
+                continue
 
         except Exception as e:
-            # This catches any unexpected crashes within a generation method (like a ValueError).
             print(
                 f"❌ Source '{source_name}' crashed with an exception: {e}. Trying next source..."
             )
-            continue  # Go to the next source in the shuffled list
+            continue
 
     # 5. FINAL FALLBACK
     # This code is only ever reached if the 'for' loop finishes without a single success.
