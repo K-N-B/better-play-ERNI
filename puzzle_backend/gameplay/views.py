@@ -17,7 +17,12 @@ import pytz
 from .models import PuzzleAttempt, Submission
 from games.models import DailyPuzzle, WordlePuzzle, SudokuPuzzle, ErnigramPuzzle
 from leaderboards.services import LeaderboardAggregator
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
+# Import the streak utility function
+from .streak_utils import update_daily_activity_streak
 
 # ============================================================================
 # VIEW 1: SaveProgressView - Save/Update Game State
@@ -421,7 +426,10 @@ class SubmitPuzzleView(View):
             puzzle_date=daily_puzzle.date,
         )
 
-        # 7. UPDATE USER STATS (only if points > 0)
+        # 7.0 UPDATE USER STREAK
+        streak_was_updated = update_daily_activity_streak(user)
+
+        # 7.1 UPDATE USER STATS (only if points > 0)
         if points_awarded > 0:
             user.total_points_alltime = F('total_points_alltime') + points_awarded
             user.current_points = F('current_points') + points_awarded
@@ -439,6 +447,8 @@ class SubmitPuzzleView(View):
         # 9. Clean up the PuzzleAttempt
         attempt.delete()
 
+        # 10  Refresh user to get latest streak info
+        user.refresh_from_db()
         print(f"[SubmitPuzzleView] ✅ Submitted successfully: {points_awarded} points for {user.username}")
 
         # ✅ Return complete response with all streak fields
@@ -449,9 +459,11 @@ class SubmitPuzzleView(View):
             "points_awarded": points_awarded,
             "submission_id": submission.pk,
             # ✅ Add streak information (set to 0 for now, you can implement proper streak logic later)
-            "current_streak": 0,
-            "max_streak": 0,
-            "streak_updated_today": False,
+            # ⭐️ Use the live values from the refreshed user instance ⭐️
+            "current_streak": user.current_streak_count,
+            "max_streak": user.max_streak_count,
+            "last_active": user.last_active.isoformat() if user.last_active else None,
+            "streak_updated_today": streak_was_updated, # Use the boolean return value
         }, status=201)
 
 
@@ -684,3 +696,23 @@ class GetTodayCompletedPuzzlesView(View):
             import traceback
             traceback.print_exc()
             return JsonResponse({'error': str(e)}, status=500)
+        
+
+
+
+from rest_framework.permissions import AllowAny
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+
+def get_user_streak_data(request):
+    user = request.user
+    
+    data = {
+        'current_streak': user.current_streak_count,
+        'max_streak': user.max_streak_count,
+        'last_active_timestamp': user.last_active, # Frontend can use this for display
+        'display_message': f"You are currently on a {user.current_streak_count}-day streak!"
+    }
+    
+    return Response(data)

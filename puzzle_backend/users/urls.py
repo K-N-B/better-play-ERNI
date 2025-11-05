@@ -13,4 +13,5 @@ urlpatterns = [
     path('api/departments/', views.DepartmentListView.as_view(), name='department-list'),
     path('me/complete-profile/', views.CompleteProfileView.as_view(), name='complete-profile'),
 
+  
 ]
