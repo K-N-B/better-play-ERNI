@@ -34,7 +34,8 @@ jobs:
 
       # 5. Run migrations
       - name: Run migrations
-        run: |
+        run: | 
+          cd puzzle_backend
           python manage.py migrate --run-syncdb
 
       # 6. Run Black and Flake8
