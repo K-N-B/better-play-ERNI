@@ -156,7 +156,11 @@ class Challenge(models.Model):
         null=True,
         blank=True,
     )
-    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    status = models.CharField(
+        max_length=20,  # ✅ Changed from 10 to 20 to be safe
+        choices=Status.choices, 
+        default=Status.PENDING
+    )
     winner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name="challenges_won",

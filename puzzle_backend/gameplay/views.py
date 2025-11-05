@@ -915,7 +915,6 @@ class CompleteChallengeView(View):
     Body: {"submission_id": <int>}
     """
     
-    # ✅ Exempt this view from CSRF for API calls
     @method_decorator(csrf_exempt)
     @transaction.atomic
     def post(self, request, challenge_id):
@@ -924,79 +923,145 @@ class CompleteChallengeView(View):
         try:
             data = json.loads(request.body)
             
-            # Get the challenge
-            challenge = Challenge.objects.select_related(
+            print(f"\n[CompleteChallenge] ========== START ==========")
+            print(f"[CompleteChallenge] Challenge ID: {challenge_id}")
+            print(f"[CompleteChallenge] User: {user.username} (ID: {user.id})")
+            print(f"[CompleteChallenge] Data: {data}")
+            
+            # Get the challenge with SELECT FOR UPDATE to lock the row
+            challenge = Challenge.objects.select_for_update().select_related(
                 'challenger',
                 'recipient',
                 'challenger_submission'
             ).get(pk=challenge_id)
             
+            print(f"[CompleteChallenge] Found challenge:")
+            print(f"  - Status BEFORE: '{challenge.status}'")
+            print(f"  - Challenger: {challenge.challenger.username}")
+            print(f"  - Recipient: {challenge.recipient.username}")
+            
             # Verify user is the recipient
             if challenge.recipient != user:
+                print(f"[CompleteChallenge] ❌ User is not recipient")
                 return JsonResponse({
                     'error': 'You are not the recipient of this challenge.'
                 }, status=403)
             
             # Verify challenge is still pending
             if challenge.status != Challenge.Status.PENDING:
+                print(f"[CompleteChallenge] ❌ Challenge not pending (status: {challenge.status})")
                 return JsonResponse({
                     'error': 'This challenge is no longer pending.'
                 }, status=400)
             
-            # ✅ Simplified: Pass the Django request directly
-            serializer = CompleteChallengeSerializer(
-                data=data,
-                context={'request': request}  # Pass Django request, not DRF
-            )
+            # Validate submission_id
+            submission_id = data.get('submission_id')
+            if not submission_id:
+                print(f"[CompleteChallenge] ❌ Missing submission_id")
+                return JsonResponse({'error': 'submission_id is required'}, status=400)
             
-            if not serializer.is_valid():
-                return JsonResponse({'errors': serializer.errors}, status=400)
+            # Get the submission
+            try:
+                submission = Submission.objects.get(pk=submission_id)
+            except Submission.DoesNotExist:
+                print(f"[CompleteChallenge] ❌ Submission {submission_id} not found")
+                return JsonResponse({'error': 'Submission not found.'}, status=404)
             
-            submission_id = serializer.validated_data['submission_id']
-            submission = Submission.objects.get(pk=submission_id)
+            print(f"[CompleteChallenge] Found submission #{submission_id}")
+            print(f"  - User: {submission.user.username}")
+            print(f"  - Points: {submission.points_awarded}")
+            
+            # Verify submission belongs to recipient
+            if submission.user != user:
+                print(f"[CompleteChallenge] ❌ Submission doesn't belong to user")
+                return JsonResponse({
+                    'error': 'Submission must belong to you.'
+                }, status=400)
             
             # Verify the submission is for the same puzzle
             if (submission.content_type != challenge.challenger_submission.content_type or
                 submission.object_id != challenge.challenger_submission.object_id):
+                print(f"[CompleteChallenge] ❌ Submission puzzle mismatch")
                 return JsonResponse({
                     'error': 'Submission must be for the same puzzle as the challenge.'
                 }, status=400)
             
-            # Update challenge
-            challenge.recipient_submission = submission
-            challenge.status = Challenge.Status.COMPLETED
+            # ✅ UPDATE CHALLENGE - This is the critical part
+            print(f"[CompleteChallenge] Updating challenge...")
             
-            # Determine winner based on points_awarded
+            challenge.recipient_submission = submission
+            challenge.status = Challenge.Status.COMPLETED  # ✅ This line MUST execute
+            
+            # Determine winner based on points
             challenger_points = challenge.challenger_submission.points_awarded
             recipient_points = submission.points_awarded
             
+            print(f"[CompleteChallenge] Comparing scores:")
+            print(f"  - Challenger: {challenger_points} pts")
+            print(f"  - Recipient: {recipient_points} pts")
+            
             if recipient_points > challenger_points:
                 challenge.winner = challenge.recipient
-                print(f"[CompleteChallenge] Recipient won: {recipient_points} > {challenger_points}")
+                print(f"[CompleteChallenge] → Recipient won!")
             elif recipient_points < challenger_points:
                 challenge.winner = challenge.challenger
-                print(f"[CompleteChallenge] Challenger won: {challenger_points} > {recipient_points}")
+                print(f"[CompleteChallenge] → Challenger won!")
             else:
                 challenge.winner = None  # Tie
-                print(f"[CompleteChallenge] Tie: {recipient_points} == {challenger_points}")
+                print(f"[CompleteChallenge] → Tie!")
+            
+            # ✅ CRITICAL: SAVE THE CHALLENGE
+            print(f"[CompleteChallenge] About to save challenge...")
+            print(f"[CompleteChallenge] Status field value: '{challenge.status}'")
+            print(f"[CompleteChallenge] Status is COMPLETED: {challenge.status == Challenge.Status.COMPLETED}")
             
             challenge.save()
+            
+            print(f"[CompleteChallenge] ✅ Challenge.save() called successfully")
+            
+            # ✅ VERIFY IT SAVED - Refresh from database
+            challenge.refresh_from_db()
+            print(f"[CompleteChallenge] Status AFTER save: '{challenge.status}'")
+            
+            if challenge.status != Challenge.Status.COMPLETED:
+                print(f"[CompleteChallenge] ❌❌❌ CRITICAL: Status did NOT save!")
+                print(f"[CompleteChallenge] Expected: 'COMPLETED', Got: '{challenge.status}'")
+                return JsonResponse({
+                    'error': 'Database update failed - status not changed'
+                }, status=500)
+            
+            # Double-check in raw SQL
+            from django.db import connection
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT status FROM gameplay_challenge WHERE id = %s",
+                    [challenge.id]
+                )
+                raw_status = cursor.fetchone()[0]
+                print(f"[CompleteChallenge] Raw SQL status: '{raw_status}'")
+                
+                if raw_status != 'COMPLETED':
+                    print(f"[CompleteChallenge] ❌❌❌ CRITICAL: SQL shows status is still '{raw_status}'")
+                    return JsonResponse({
+                        'error': 'Database update failed at SQL level'
+                    }, status=500)
+            
+            print(f"[CompleteChallenge] ✅✅✅ VERIFIED: Status is COMPLETED in database")
+            print(f"[CompleteChallenge] ========== END ==========\n")
             
             # Serialize response
             response_serializer = ChallengeSerializer(challenge)
             
-            print(f"[CompleteChallenge] ✅ Challenge completed: #{challenge_id}")
-            
             return JsonResponse(response_serializer.data, status=200)
             
         except Challenge.DoesNotExist:
+            print(f"[CompleteChallenge] ❌ Challenge {challenge_id} not found")
             return JsonResponse({'error': 'Challenge not found.'}, status=404)
-        except Submission.DoesNotExist:
-            return JsonResponse({'error': 'Submission not found.'}, status=404)
         except json.JSONDecodeError:
+            print(f"[CompleteChallenge] ❌ Invalid JSON")
             return JsonResponse({'error': 'Invalid JSON.'}, status=400)
         except Exception as e:
-            print(f"[CompleteChallenge] Error: {e}")
+            print(f"[CompleteChallenge] ❌ Unexpected error: {e}")
             import traceback
             traceback.print_exc()
             return JsonResponse({'error': str(e)}, status=500)
