@@ -17,6 +17,7 @@ from .models import DailyPuzzle
 from .serializers import DailyPuzzleSerializer
 import os
 from django.http import HttpRequest, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 
 # from .serializers import (
 #     DailyPuzzleSerializer,
@@ -113,7 +114,11 @@ class MockDailyPuzzlesGenerateView(APIView):
 
 
 
+
+from django.views.decorators.csrf import csrf_exempt
+@csrf_exempt
 def cron_generate_puzzles_view(request: HttpRequest):
+  
     # 1. SECURITY CHECK: Validate the secret key
     expected_secret = os.environ.get('FASTCRON_SECRET')
     provided_secret = request.GET.get('secret')
