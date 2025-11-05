@@ -1,6 +1,6 @@
 # games/urls.py
 from django.urls import path
-from .views import DailyPuzzlesView, MockDailyPuzzlesGenerateView
+from .views import DailyPuzzlesView, MockDailyPuzzlesGenerateView, GetSudokuHintLimitsView
 from . import views
 
 
@@ -17,4 +17,5 @@ urlpatterns = [
         MockDailyPuzzlesGenerateView.as_view(),
         name="mock-generate-daily-puzzles",
     ),
+    path("hint-limits/sudoku/", GetSudokuHintLimitsView.as_view(), name="get_sudoku_hint_limits"),
 ]

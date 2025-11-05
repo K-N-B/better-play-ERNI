@@ -18,6 +18,10 @@ from .serializers import DailyPuzzleSerializer
 import os
 from django.http import HttpRequest, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.http import JsonResponse
+from django.views import View
+from .models import SudokuPuzzle
 
 # from .serializers import (
 #     DailyPuzzleSerializer,
@@ -142,3 +146,15 @@ def cron_generate_puzzles_view(request: HttpRequest):
         # 4. ERROR HANDLING: Return a server error if the task fails
         print(f"CRON JOB ERROR: {e}")
         return HttpResponse(f"Internal Server Error during task execution: {e}", status=500)
+
+
+
+
+
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class GetSudokuHintLimitsView(View):
+    """Return Sudoku hint limits from backend"""
+    def get(self, request):
+        return JsonResponse(SudokuPuzzle.HINT_LIMITS)

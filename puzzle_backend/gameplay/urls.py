@@ -9,8 +9,10 @@ from .views import (
     CheckSubmissionView,
     GetTodaySubmissionsView,
     GetTodayCompletedPuzzlesView,
+    get_user_streak_data,
 )
-from .views import get_user_streak_data
+from django.views.decorators.csrf import csrf_exempt
+
 
 urlpatterns = [
     # Save progress for a specific puzzle attempt

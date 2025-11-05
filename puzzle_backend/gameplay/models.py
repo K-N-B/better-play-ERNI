@@ -4,6 +4,7 @@ from django.conf import settings  # Uses AUTH_USER_MODEL
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
+from django.db import transaction
 
 
 class PuzzleAttemptManager(models.Manager):
@@ -27,6 +28,33 @@ class PuzzleAttemptManager(models.Manager):
             },
         )
         return attempt, created
+    def record_hint_usage(self, attempt_id):
+        """
+        Atomically increments the hints_used count within the progress_data JSONField.
+        Returns the new hint count or raises PuzzleAttempt.DoesNotExist.
+        """
+        try:
+            # We must lock the row to prevent race conditions if multiple hints are requested simultaneously
+            with transaction.atomic():
+                attempt = self.select_for_update().get(pk=attempt_id)
+                
+                # Retrieve current count, default to 0, and increment
+                hints_used_new = attempt.progress_data.get("hints_used", 0) + 1
+                
+                # Update the JSONField dictionary
+                attempt.progress_data["hints_used"] = hints_used_new
+                
+                # Save the updated progress_data
+                attempt.save(update_fields=['progress_data'])
+                
+                return hints_used_new
+
+        except self.model.DoesNotExist:
+            raise
+        except Exception as e:
+            # Optional: Log the error if the transaction fails
+            print(f"Error recording hint: {e}")
+            raise
 
 
 class PuzzleAttempt(models.Model):
