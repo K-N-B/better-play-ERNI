@@ -1,6 +1,6 @@
-// /src/pages/gamePage.tsx
+// /src/pages/gamePage.tsx - WITH CHALLENGE SUPPORT
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import { useParams, Navigate, useSearchParams } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
 import { getDailyPuzzles, checkSubmissionExists, getSavedAttempt } from '../api/gameService';
 import { AlreadyPlayedScreen } from '../components/gameComponents/shared/alreadyPlayedScreen';
@@ -52,7 +52,6 @@ const introContent = {
 export type Difficulty = "easy" | "hard";
 
 // --- Helper Function ---
-// This checks if an attempt has actual progress
 const hasResumableProgress = (attempt: PuzzleAttemptData | null, gameType: string) => {
   if (!attempt) return false;
   
@@ -66,66 +65,81 @@ const hasResumableProgress = (attempt: PuzzleAttemptData | null, gameType: strin
   
   return hasProgress;
 };
-// -----------------------
-
 
 export const GamePage = () => {
   const { gameType } = useParams<{ gameType: string }>();
+  const [searchParams] = useSearchParams();
   
-  // This is the user's *selected* difficulty, defaults to 'easy'
+  // ✅ NEW: Get challengeId from URL
+  const challengeIdFromUrl = searchParams.get('challenge_id');
+  console.log('[GamePage] ========== URL PARAMS ==========');
+  console.log('[GamePage] Full URL:', window.location.href);
+  console.log('[GamePage] searchParams.toString():', searchParams.toString());
+  console.log('[GamePage] challengeIdFromUrl:', challengeIdFromUrl);
+  console.log('[GamePage] challengeIdFromUrl type:', typeof challengeIdFromUrl);
+  
+  const challengeId = challengeIdFromUrl ? parseInt(challengeIdFromUrl, 10) : null;
+  
+  console.log('[GamePage] Parsed challengeId:', challengeId);
+  console.log('[GamePage] challengeId type:', typeof challengeId);
+  console.log('[GamePage] challengeId is null?:', challengeId === null);
+  console.log('[GamePage] challengeId is NaN?:', Number.isNaN(challengeId));
+  console.log('[GamePage] =====================================');
+  
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>('easy');
-  
-  // This locks the difficulty if a game is found
   const [lockedDifficulty, setLockedDifficulty] = useState<Difficulty | null>(null);
-  
   const [hasStarted, setHasStarted] = useState(false); 
   const { data: puzzles, loading: loadingPuzzles, error: error } = useApi(getDailyPuzzles);
   
-  // State for the *found* submission or attempt
   const [foundSubmission, setFoundSubmission] = useState<any>(null);
   const [foundAttempt, setFoundAttempt] = useState<PuzzleAttemptData | null>(null);
   
-  // Single loading state for both checks
   const [isChecking, setIsChecking] = useState(true);
   const [checkError, setCheckError] = useState<string | null>(null);
 
+  // ✅ NEW: If challengeId exists, skip intro and start game immediately
+  useEffect(() => {
+    if (challengeId) {
+      console.log('[GamePage] Challenge mode detected - skipping intro');
+      setHasStarted(true);
+    }
+  }, [challengeId]);
+
   // Reset states when the gameType (URL) changes
   useEffect(() => {
-    setHasStarted(false);
+    // ✅ Don't reset hasStarted if we have a challengeId
+    if (!challengeId) {
+      setHasStarted(false);
+    }
     setSelectedDifficulty('easy');
     setLockedDifficulty(null);
     setFoundSubmission(null);
     setFoundAttempt(null);
     setIsChecking(true);
     setCheckError(null);
-  }, [gameType]);
-
+  }, [gameType, challengeId]);
 
   // --- Combined Check Effect ---
-  // This runs on load and checks both difficulties
   useEffect(() => {
-    // Wait for puzzles to be loaded
     if (loadingPuzzles || !puzzles || !gameType) {
       return;
     }
 
-    // Don't re-check if user is playing
-    if (hasStarted) {
+    // ✅ NEW: In challenge mode, still check but don't block
+    if (hasStarted && !challengeId) {
       return;
     }
 
     setIsChecking(true);
     
-    // Define the puzzles to check
     const puzzlesToCheck: { diff: Difficulty; puzzle: any }[] = [
       { diff: 'easy', puzzle: (puzzles as any)[`${gameType}_easy`] },
       { diff: 'hard', puzzle: (puzzles as any)[`${gameType}_hard`] },
     ];
     
-    // Special case for Sudoku/Ernigram if they share one puzzle object
     if (gameType === 'sudoku' || gameType === 'ernigram') {
       puzzlesToCheck[0].puzzle = (puzzles as any)[gameType];
-      puzzlesToCheck[1].puzzle = null; // Only check one
+      puzzlesToCheck[1].puzzle = null;
     }
 
     const checkAll = async () => {
@@ -139,7 +153,6 @@ export const GamePage = () => {
 
           console.log(`[GamePage] Checking ${diff} difficulty for ${gameType}`);
 
-          // 1. Check for submission
           try {
             const subResult = await checkSubmissionExists(gameType, puzzles.date, puzzle.id);
             console.log(`[GamePage] Submission check result for ${diff}:`, subResult);
@@ -148,13 +161,12 @@ export const GamePage = () => {
               submission = subResult;
               diffLock = diff;
               console.log(`[GamePage] ✅ Found submission for ${diff}`);
-              break; // Found a submission, stop
+              break;
             }
           } catch (err) {
             console.warn(`[GamePage] Submission check failed for ${diff}:`, err);
           }
 
-          // 2. Check for resumable attempt
           try {
             const attemptResult = await getSavedAttempt(gameType, puzzles.date, puzzle.id);
             console.log(`[GamePage] Attempt check result for ${diff}:`, attemptResult);
@@ -163,15 +175,13 @@ export const GamePage = () => {
               attempt = attemptResult;
               diffLock = diff;
               console.log(`[GamePage] ✅ Found resumable attempt for ${diff}`);
-              break; // Found an attempt, stop
+              break;
             }
           } catch (err) {
-            // 404 is expected when no attempt exists - this is not an error
             console.log(`[GamePage] No attempt found for ${diff} (expected)`);
           }
         }
 
-        // Set results
         setFoundSubmission(submission);
         setFoundAttempt(attempt);
         setLockedDifficulty(diffLock);
@@ -193,21 +203,16 @@ export const GamePage = () => {
       console.log('[GamePage] isChecking set to false');
     });
 
-  }, [loadingPuzzles, puzzles, gameType, hasStarted]); // Re-run if user goes "Back"
+  }, [loadingPuzzles, puzzles, gameType, hasStarted, challengeId]);
 
-  
   // --- RENDER LOGIC ---
-
   const isLoading = loadingPuzzles || isChecking;
   
-  // Get intro data (needed for colors, etc.)
   const isValidGameType = gameType && gameType in introContent;
   const introData = isValidGameType ? introContent[gameType as keyof typeof introContent] : null;
 
-  // The *active* difficulty is the one we locked, or the one the user selected
   const activeDifficulty = lockedDifficulty || selectedDifficulty;
   
-  // Get the puzzle data for the *active* difficulty
   const { puzzleData, GameComponent } = useMemo(() => {
     if (!puzzles || !isValidGameType) {
       return { puzzleData: null, GameComponent: null };
@@ -235,12 +240,10 @@ export const GamePage = () => {
   }, [puzzles, isValidGameType, gameType, activeDifficulty]);
 
   // --- Render ---
-
   if (isLoading) {
     return <LoadingSpinner fullPage={true} />;
   }
 
-  // Handle API error or invalid game type
   if (error || !puzzles || !isValidGameType || !introData) {
     if (error) {
       console.error("[GamePage] Error fetching puzzles:", error);
@@ -251,16 +254,13 @@ export const GamePage = () => {
         </div>
       );
     }
-    // Navigate home if game type is invalid
     return <Navigate to="/" replace />;
   }
 
-  // Handle check errors (but allow continuing with no saved game)
   if (checkError) {
     console.error("[GamePage] Check error (non-fatal):", checkError);
   }
 
-  // We now render content into a variable, which is cleaner
   let content;
 
   // RENDER PRIORITY 1: SUBMISSION FOUND
@@ -277,22 +277,20 @@ export const GamePage = () => {
   // RENDER PRIORITY 2 OR 3: INTRO / RESUME
   else if (!hasStarted) {
     if (foundAttempt) {
-      // ✅ 2. RENDER THE NEW RESUME SCREEN
       content = (
         <ResumeGameScreen
           gameType={gameType as any}
           guessCount={gameType === 'wordle' ? (foundAttempt.progress_data as WordleProgress)?.guesses?.length || 0 : 0}
-          maxGuesses={6} // TODO: make dynamic
+          maxGuesses={6}
           puzzleDate={puzzles.date} 
           puzzleNumber={puzzleData?.id || 0} 
           onContinue={() => {
-            setHasStarted(true); // Go to game
+            setHasStarted(true);
           }}
           difficulty={activeDifficulty}
         />
       );
     } else {
-      // No attempt found, show the intro
       content = (
         <GameIntro
           title={introData.title}
@@ -312,7 +310,6 @@ export const GamePage = () => {
   // RENDER PRIORITY 4: PLAYING GAME
   else {
     if (!puzzleData || !GameComponent) {
-      // "Puzzle Not Available" logic
       content = (
         <div className="text-center p-8 bg-white/50 rounded-lg">
           <h2 className="text-2xl font-bold text-red-600">Puzzle Not Available</h2>
@@ -320,7 +317,7 @@ export const GamePage = () => {
             The {introData.title} puzzle for '{activeDifficulty}' mode has not been set by the admin for today.
           </p>
           <button
-            onClick={() => setHasStarted(false)} // Go back to intro
+            onClick={() => setHasStarted(false)}
             className="mt-6 px-6 py-2 bg-primary text-white font-semibold rounded-lg shadow"
           >
             Go Back
@@ -328,22 +325,27 @@ export const GamePage = () => {
         </div>
       );
     } else {
-      // All checks passed, show the game
+      // ✅ NEW: Pass challengeId to game component
+      console.log('[GamePage] ========== RENDERING GAME ==========');
+      console.log('[GamePage] gameType:', gameType);
+      console.log('[GamePage] About to pass challengeId:', challengeId);
+      console.log('[GamePage] difficulty:', activeDifficulty);
+      console.log('[GamePage] =====================================');
+      
       content = (
         <GameComponent
           puzzle={puzzleData}
           difficulty={activeDifficulty}
-          challengeId={null}
+          challengeId={challengeId}
           dailyPuzzleDate={puzzles.date}
         />
       );
     }
   }
 
-  // The final render is now just this one container
   return (
     <div className={`container mx-auto h-full w-full shadow-md rounded-4xl p-4 sm:p-8 md:p-12 ${introData.bgColor}`}>
       {content}
     </div>
   );
-}
+};

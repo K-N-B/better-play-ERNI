@@ -32,4 +32,9 @@ jobs:
         run: flake8 puzzle_backend
 
       - name: Run Pytest with coverage
-        run: cd puzzle_backend && pytest --cov=. --cov-report=term-missing --cov-fail-under=60
+        run: cd puzzle_backend && pytest \
+          --cov=puzzle_backend \
+          --cov-report=term-missing \
+          --cov-fail-under=60 \
+          --cov-branch \
+          --cov-config=.coveragerc

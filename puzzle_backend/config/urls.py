@@ -35,6 +35,7 @@ urlpatterns = [
     path("", include("users.urls")),
     path("auth/", include("users.urls")),
     path("api/gameplay/", include("gameplay.urls")),
+    path('api/challenges/', include('gameplay.challenge_urls')),
 
     path('api/v1/cron/generate-puzzles/', cron_generate_puzzles_view, name='cron_task'),
     path('healthz/', health_check, name='health-check'), # Health check endpoint wakeup URL
