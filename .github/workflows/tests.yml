@@ -27,6 +27,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install black flake8 pytest pytest-django pytest-cov
+      
+      - name: Set Python path
+        run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
 
       # 4. Set environment variable for Django settings
       - name: Set DJANGO_SETTINGS_MODULE
