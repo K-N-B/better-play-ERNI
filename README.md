@@ -243,12 +243,19 @@ All API endpoints require authentication (session cookie) unless marked as `Allo
 
 * **Linting/Formatting:**
     ```bash
+    # 1. Remove unused imports
+    autoflake --in-place --recursive .
+
+    # 2. Sort the remaining imports
+    isort .
+
+    # 3. Format everything else
     black .
     flake8 .
     ```
 * **Running Tests:**
     ```bash
-    python manage.py test
+    pytest #run from root
     ```
 
 ### Frontend

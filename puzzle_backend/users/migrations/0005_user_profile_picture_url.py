@@ -13,6 +13,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='user',
             name='profile_picture_url',
-            field=models.URLField(blank=True, help_text='URL of the profile picture retrieved from Azure AD/Microsoft Graph.', max_length=500, null=True),
+            field=models.URLField(
+                blank=True,
+                help_text='URL of the profile picture retrieved from Azure AD/Microsoft Graph.',
+                max_length=500,
+                null=True,
+            ),
         ),
     ]

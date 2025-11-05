@@ -1,16 +1,16 @@
 # games/views.py
 # from rest_framework import generics
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework import status
+# from datetime import date as date_type
+import datetime
 
 # from django.shortcuts import get_object_or_404
 from django.utils import timezone
-
-# from datetime import date as date_type
-import datetime
-from rest_framework.permissions import AllowAny
 from games.utils.timezone_helpers import get_local_today
+from rest_framework import status
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from .models import DailyPuzzle
 
 # from .models import DailyPuzzle, WordlePuzzle, SudokuPuzzle, ErnigramPuzzle
@@ -19,15 +19,8 @@ import os
 from django.http import HttpRequest, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
-# from .serializers import (
-#     DailyPuzzleSerializer,
-#     WordlePuzzleSerializer,
-#     SudokuPuzzleSerializer,
-#     ErnigramPuzzleSerializer,
-# )
-
 # Import your new service function
-from .services import generate_daily_puzzles
+# from .services import generate_daily_puzzles
 
 
 class DailyPuzzlesView(APIView):
@@ -70,35 +63,27 @@ class DailyPuzzlesView(APIView):
 # --- Mock Data Generation Endpoint (FOR DEVELOPMENT ONLY) ---
 
 
-class MockDailyPuzzlesGenerateView(APIView):
-    """
-    Mocks the creation of a daily puzzle set for a specific date.
-    Uses dedicated service functions for generation logic.
-    """
+# class MockDailyPuzzlesGenerateView(APIView):
 
-    permission_classes = [AllowAny]  # For dev convenience, remove/change for production
+#     def post(self, request, *args, **kwargs):
+#         try:
+#             target_date_str = request.data.get("date")
+#             if not target_date_str:
+#                 return Response({"detail": "Date is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request, format=None):
-        date_param = request.data.get("date", None)
-        if not date_param:
-            return Response(
-                {"detail": "Date is required (YYYY-MM-DD)."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+#             target_date = date.fromisoformat(target_date_str)
 
-        try:
-            target_date = datetime.datetime.strptime(date_param, "%Y-%m-%d").date()
-        except ValueError:
-            return Response(
-                {"detail": "Invalid date format. Use YYYY-MM-DD."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+#             # ✅ Check existence BEFORE calling generator
+#             if DailyPuzzle.objects.filter(date=target_date).exists():
+#                 return Response(
+#                     {"detail": f"Daily puzzles for {target_date} already exist."},
+#                     status=status.HTTP_409_CONFLICT
+#                 )
 
-        if DailyPuzzle.objects.filter(date=target_date).exists():
-            return Response(
-                {"detail": f"Daily puzzles for {target_date} already exist."},
-                status=status.HTTP_409_CONFLICT,
-            )
+#             # Only call generator if not existing
+#             daily_puzzle_set = generate_daily_puzzles(target_date)
+#             serializer = DailyPuzzleSerializer(daily_puzzle_set)
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         try:
             # Call the service function to generate all puzzles for the date

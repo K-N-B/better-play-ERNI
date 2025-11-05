@@ -11,8 +11,9 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
-from dotenv import load_dotenv
 from pathlib import Path
+
+from dotenv import load_dotenv
 
 load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -54,11 +55,12 @@ INSTALLED_APPS = [
     "corsheaders",  # Add this for Cross-Origin Resource Sharing
     # Your local apps
     'users.apps.UsersConfig',
+    # 'games.apps.GamesConfig',
     'games.apps.GamesConfig',
     'gameplay.apps.GameplayConfig',  # <-- Ensure this line is present
     'leaderboards.apps.LeaderboardsConfig',
     'shop.apps.ShopConfig',
-    'activity',
+    'activity.apps.ActivityConfig',
 ]
 
 CRON_CLASSES = [
@@ -69,7 +71,6 @@ CRON_CLASSES = [
 DJANGO_CRON_LOCK_BACKEND = 'django_cron.backends.lock.database.DatabaseLock'
 
 SITE_ID = 1
-
 
 
 MIDDLEWARE = [
@@ -84,7 +85,6 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'corsheaders.middleware.CorsMiddleware',
 ]
-
 
 
 ROOT_URLCONF = 'config.urls'
@@ -131,7 +131,7 @@ DATABASES = {
             #     "AND pid <> pg_backend_pid();",
             # },
         },
-        'OPTIONS': {             'options': '-c search_path=public' }
+        'OPTIONS': {'options': '-c search_path=public'},
         # ----------------------------------------------------
     }
 }

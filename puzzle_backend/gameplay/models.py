@@ -1,8 +1,8 @@
 # /gameplay/models.py
-from django.db import models
 from django.conf import settings  # Uses AUTH_USER_MODEL
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.db import models
 from django.utils import timezone
 
 
@@ -86,8 +86,7 @@ class Submission(models.Model):
     # ------------------------------------------------------------------
 
     puzzle_date = models.DateField(
-        db_index=True,
-        help_text="The date of the puzzle being submitted (from DailyPuzzle.date)"
+        db_index=True, help_text="The date of the puzzle being submitted (from DailyPuzzle.date)"
     )
 
     # Difficulty played

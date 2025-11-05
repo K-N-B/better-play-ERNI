@@ -1,17 +1,26 @@
-from rest_framework import generics, permissions
-from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from datetime import date, timedelta
+
 from django.utils import timezone
-from datetime import timedelta, date
-from django.db.models import Sum, Q
+from rest_framework import generics
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from users.models import Department, User
+
 from .models import (
-    DailyIndividualScore, WeeklyIndividualScore, MonthlyIndividualScore,
-    DailyDepartmentScore, WeeklyDepartmentScore, MonthlyDepartmentScore
+    DailyDepartmentScore,
+    DailyIndividualScore,
+    MonthlyDepartmentScore,
+    MonthlyIndividualScore,
+    WeeklyDepartmentScore,
+    WeeklyIndividualScore,
 )
-from users.models import User, Department
 from .serializers import (
-    DailyIndividualScoreSerializer, WeeklyIndividualScoreSerializer, MonthlyIndividualScoreSerializer,
-    DailyDepartmentScoreSerializer, WeeklyDepartmentScoreSerializer, MonthlyDepartmentScoreSerializer,
+    DailyDepartmentScoreSerializer,
+    DailyIndividualScoreSerializer,
+    MonthlyDepartmentScoreSerializer,
+    MonthlyIndividualScoreSerializer,
+    WeeklyDepartmentScoreSerializer,
+    WeeklyIndividualScoreSerializer,
 )
 
 
@@ -29,8 +38,9 @@ class GetLeaderboardView(generics.ListAPIView):
     - period: 'daily', 'weekly', 'monthly', 'all_time'
     - date: optional ISO date string
     """
+
     permission_classes = [AllowAny]
-    
+
     def get_serializer_class(self):
         """Dynamically determine serializer based on type and period"""
         lb_type = self.request.query_params.get('type', 'individual')
@@ -45,23 +55,20 @@ class GetLeaderboardView(generics.ListAPIView):
                 return MonthlyIndividualScoreSerializer
             elif period == 'all_time':
                 from rest_framework import serializers
-                
+
                 class UserAllTimeSerializer(serializers.ModelSerializer):
                     score = serializers.IntegerField(source='total_points_alltime')
                     user = serializers.SerializerMethodField()
-                    
+
                     class Meta:
                         model = User
                         fields = ['user', 'score']
-                    
+
                     def get_user(self, obj):
-                        return {
-                            'id': obj.id,
-                            'username': obj.username
-                        }
-                
+                        return {'id': obj.id, 'username': obj.username}
+
                 return UserAllTimeSerializer
-                
+
         elif lb_type == 'department':
             if period == 'daily':
                 return DailyDepartmentScoreSerializer
@@ -71,21 +78,18 @@ class GetLeaderboardView(generics.ListAPIView):
                 return MonthlyDepartmentScoreSerializer
             elif period == 'all_time':
                 from rest_framework import serializers
-                
+
                 class DepartmentAllTimeSerializer(serializers.ModelSerializer):
                     score = serializers.IntegerField(source='total_points_alltime')
                     department = serializers.SerializerMethodField()
-                    
+
                     class Meta:
                         model = Department
                         fields = ['department', 'score']
-                    
+
                     def get_department(self, obj):
-                        return {
-                            'id': obj.id,
-                            'name': obj.name
-                        }
-                
+                        return {'id': obj.id, 'name': obj.name}
+
                 return DepartmentAllTimeSerializer
 
         return WeeklyIndividualScoreSerializer
@@ -115,27 +119,37 @@ class GetLeaderboardView(generics.ListAPIView):
             if period == 'daily':
                 filter_date = target_date if target_date else timezone.now().date()
                 return DailyIndividualScore.objects.filter(date=filter_date).select_related('user')
-            
+
             elif period == 'weekly':
                 week_start = get_week_start(target_date if target_date else timezone.now().date())
-                return WeeklyIndividualScore.objects.filter(week_start_date=week_start).select_related('user')
-            
+                return WeeklyIndividualScore.objects.filter(
+                    week_start_date=week_start
+                ).select_related('user')
+
             elif period == 'monthly':
                 month_start = (target_date if target_date else timezone.now().date()).replace(day=1)
-                return MonthlyIndividualScore.objects.filter(month_start_date=month_start).select_related('user')
+                return MonthlyIndividualScore.objects.filter(
+                    month_start_date=month_start
+                ).select_related('user')
 
         elif lb_type == 'department':
             if period == 'daily':
                 filter_date = target_date if target_date else timezone.now().date()
-                return DailyDepartmentScore.objects.filter(date=filter_date).select_related('department')
-            
+                return DailyDepartmentScore.objects.filter(date=filter_date).select_related(
+                    'department'
+                )
+
             elif period == 'weekly':
                 week_start = get_week_start(target_date if target_date else timezone.now().date())
-                return WeeklyDepartmentScore.objects.filter(week_start_date=week_start).select_related('department')
-            
+                return WeeklyDepartmentScore.objects.filter(
+                    week_start_date=week_start
+                ).select_related('department')
+
             elif period == 'monthly':
                 month_start = (target_date if target_date else timezone.now().date()).replace(day=1)
-                return MonthlyDepartmentScore.objects.filter(month_start_date=month_start).select_related('department')
+                return MonthlyDepartmentScore.objects.filter(
+                    month_start_date=month_start
+                ).select_related('department')
 
         return DailyIndividualScore.objects.none()
 
@@ -143,11 +157,13 @@ class GetLeaderboardView(generics.ListAPIView):
         """Override list to return plain array"""
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        
+
         # Debug logging
-        print(f"[GetLeaderboardView] Type: {request.query_params.get('type')}, Period: {request.query_params.get('period')}")
+        print(
+            f"[GetLeaderboardView] Type: {request.query_params.get('type')}, Period: {request.query_params.get('period')}"
+        )
         print(f"[GetLeaderboardView] Queryset count: {queryset.count()}")
         print(f"[GetLeaderboardView] Serialized data length: {len(serializer.data)}")
-        
+
         # ✅ CRITICAL: Return plain array, not wrapped object
         return Response(serializer.data)
