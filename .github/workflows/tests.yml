@@ -34,7 +34,7 @@ jobs:
       - name: Run Pytest with coverage
         run: |
           cd puzzle_backend
-          pytest --settings=puzzle_backend.config.settings_test --cov=. --cov-report=term-missing --cov-report=xml --cov-fail-under=80
+          pytest --cov=. --cov-report=term-missing --cov-report=xml --cov-fail-under=80
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
