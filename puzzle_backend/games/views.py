@@ -11,11 +11,13 @@ from django.utils import timezone
 import datetime
 from rest_framework.permissions import AllowAny
 from games.utils.timezone_helpers import get_local_today
-
 from .models import DailyPuzzle
 
 # from .models import DailyPuzzle, WordlePuzzle, SudokuPuzzle, ErnigramPuzzle
 from .serializers import DailyPuzzleSerializer
+import os
+from django.http import HttpRequest, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 
 # from .serializers import (
 #     DailyPuzzleSerializer,
@@ -37,7 +39,6 @@ class DailyPuzzlesView(APIView):
     # permission_classes = [IsAuthenticated] # Uncomment this for production
     # For dev convenience, remove/change for production
     permission_classes = [AllowAny]
-
     def get(self, request, format=None):
         date_param = request.query_params.get("date", None)
         print("Django timezone now():", timezone.now())
@@ -110,3 +111,34 @@ class MockDailyPuzzlesGenerateView(APIView):
                 {"detail": f"Error generating puzzles: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+
+
+from django.views.decorators.csrf import csrf_exempt
+@csrf_exempt
+def cron_generate_puzzles_view(request: HttpRequest):
+  
+    # 1. SECURITY CHECK: Validate the secret key
+    expected_secret = os.environ.get('FASTCRON_SECRET')
+    provided_secret = request.GET.get('secret')
+
+    # If the secret is missing or incorrect, deny access.
+    if not provided_secret or provided_secret != expected_secret:
+        return HttpResponse("Unauthorized Access", status=401)
+
+    # 2. METHOD CHECK: Ensure it's a GET request (as FastCron uses GET by default)
+    if request.method != 'GET':
+        return HttpResponse("Method Not Allowed", status=405)
+
+    try:
+        # 3. EXECUTE THE TASK
+        # Call your main puzzle generation function
+        generate_daily_puzzles()
+
+        return HttpResponse("Daily puzzles generated successfully.", status=200)
+
+    except Exception as e:
+        # 4. ERROR HANDLING: Return a server error if the task fails
+        print(f"CRON JOB ERROR: {e}")
+        return HttpResponse(f"Internal Server Error during task execution: {e}", status=500)
