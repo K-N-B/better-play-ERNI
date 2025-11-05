@@ -19,11 +19,9 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import PuzzleAttempt, Submission
 from games.models import DailyPuzzle, WordlePuzzle, SudokuPuzzle, ErnigramPuzzle
 from leaderboards.services import LeaderboardAggregator
-<<<<<<< HEAD
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-=======
 from .models import Challenge
 from django.db.models import Q
 from users.models import User
@@ -35,7 +33,6 @@ from .serializers import (
 
 )
 
->>>>>>> 63dc551e8a8afaec7eb2c0e836aa5be0b0f80765
 
 # Import the streak utility function
 from .streak_utils import update_daily_activity_streak
