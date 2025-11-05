@@ -31,6 +31,9 @@ jobs:
       - name: Run Flake8 (linting)
         run: flake8 puzzle_backend
 
+      - name: Set DJANGO_SETTINGS_MODULE
+        run: echo "DJANGO_SETTINGS_MODULE=puzzle_backend.config.settings_test" >> $GITHUB_ENV
+        
       - name: Run Pytest with coverage
         run: |
           cd puzzle_backend
