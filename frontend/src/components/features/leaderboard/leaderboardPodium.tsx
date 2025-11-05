@@ -25,10 +25,10 @@ const PodiumItem: React.FC<{
   
   let name = 'Unknown';
   let id = rank;
+  let profileImageUrl: string | null = null;
   
-  // ✅ FIXED: More robust extraction with detailed logging
+  // Extract user/department data and profile picture
   if (type === 'department') {
-    // For department leaderboards
     if ('department' in entry && entry.department) {
       name = entry.department.name || 'Unknown Dept';
       id = entry.department.id || rank;
@@ -37,11 +37,11 @@ const PodiumItem: React.FC<{
       console.error(`[PodiumItem] Department type but no department data:`, entry);
     }
   } else if (type === 'individual') {
-    // For individual leaderboards
     if ('user' in entry && entry.user) {
       name = entry.user.username || 'Unknown User';
       id = entry.user.id || rank;
-      console.log(`[PodiumItem] Extracted username: ${name}`);
+      profileImageUrl = entry.user.profile_picture_url || null;
+      console.log(`[PodiumItem] Extracted username: ${name}, Profile URL: ${profileImageUrl}`);
     } else {
       console.error(`[PodiumItem] Individual type but no user data:`, entry);
     }
@@ -49,6 +49,7 @@ const PodiumItem: React.FC<{
   
   const score = entry.score || 0;
   const rankSuffix = rank === 1 ? 'st' : rank === 2 ? 'nd' : 'rd';
+  const userInitial = name.charAt(0).toUpperCase();
 
   console.log(`[PodiumItem] Final display - Rank: ${rank}, Name: ${name}, Score: ${score}`);
 
@@ -75,9 +76,19 @@ const PodiumItem: React.FC<{
           </p>
         </div>
 
-        {/* Avatar Circle */}
-        <div className={`absolute z-20 rounded-full w-20 h-20 bg-neutral-100 ${topClass}`}>
-           {/* Add avatar image here later if available */}
+        {/* Avatar Circle - Updated with profile picture */}
+        <div className={`absolute z-20 rounded-full w-20 h-20 overflow-hidden ${topClass}`}>
+          {profileImageUrl ? (
+            <img
+              src={profileImageUrl}
+              alt={`${name} profile picture`}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-sky-400 flex items-center justify-center text-white text-2xl font-bold">
+              {userInitial}
+            </div>
+          )}
         </div>
 
         {/* Text */}

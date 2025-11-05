@@ -1,8 +1,9 @@
-import type { UserProfile, Department } from "./user"; // Changed Team to Department
+// types/leaderboard.ts
+import type { UserProfile, Department } from "./user";
 
-// Structure for an individual score entry (no change needed here)
+// Structure for an individual score entry
 export interface IndividualScoreEntry {
-  user: Pick<UserProfile, "id" | "username">;
+  user: Pick<UserProfile, "id" | "username" | "profile_picture_url">;  
   score: number;
   date?: string;
   week_start_date?: string;
@@ -11,8 +12,7 @@ export interface IndividualScoreEntry {
 
 // Structure for a department score entry
 export interface DepartmentScoreEntry {
-  // Renamed from TeamScoreEntry
-  department: Pick<Department, "id" | "name">; // Changed team to department
+  department: Pick<Department, "id" | "name">;
   score: number;
   date?: string;
   week_start_date?: string;
@@ -20,10 +20,10 @@ export interface DepartmentScoreEntry {
 }
 
 // Union type for the API response
-export type LeaderboardData = IndividualScoreEntry[] | DepartmentScoreEntry[]; // Updated type name
+export type LeaderboardData = IndividualScoreEntry[] | DepartmentScoreEntry[];
 
-// Define the period types (no change)
+// Define the period types
 export type LeaderboardPeriod = "daily" | "weekly" | "monthly" | "all_time";
 
-// Define the leaderboard type (updated value)
-export type LeaderboardType = "individual" | "department"; // Changed team to department
+// Define the leaderboard type
+export type LeaderboardType = "individual" | "department";

@@ -10,7 +10,6 @@ import { Link } from "react-router-dom";
 const PREVIEW_LIMIT = 10;
 
 export const LeaderboardPreviewCard = () => {
-  // ✅ Changed from "daily" to "all_time"
   const fetchPreviewData = React.useCallback(
     () => getLeaderboard("all_time", "individual"),
     []
@@ -32,7 +31,6 @@ export const LeaderboardPreviewCard = () => {
 
   return (
     <div className="bg-white p-6 rounded-4xl shadow-md border border-gray-100 flex flex-col h-full">
-      {/* ✅ Removed dropdown button, simplified header */}
       <div className="flex justify-between items-center flex-shrink-0 mb-3">
         <h3 className="text-xl font-semibold flex items-center space-x-3">
           <Trophy size={22} strokeWidth={2.5} />

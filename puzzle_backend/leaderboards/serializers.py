@@ -12,11 +12,12 @@ from .models import (
 )
 
 
+
 # --- Individual Score Serializers ---
 class UserBasicSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username']
+        fields = ['id', 'username', 'profile_picture_url']
 
 
 class DailyIndividualScoreSerializer(serializers.ModelSerializer):
