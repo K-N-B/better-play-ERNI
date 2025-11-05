@@ -182,7 +182,7 @@ User = get_user_model()
 
 
 
-        }
+        
 
 class StreakLogicTests(TestCase):
     def setUp(self):

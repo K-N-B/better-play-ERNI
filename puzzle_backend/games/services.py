@@ -12,6 +12,7 @@ from groq import Groq
 from django.db import connection
 from typing import List, Set, Dict, Optional
 import string
+import re
 
 # Django Models and External I/O
 from .models import WordlePuzzle, SudokuPuzzle, ErnigramPuzzle, DailyPuzzle, EmployeeImageSource
@@ -285,9 +286,12 @@ class ErnigramGeneratorAI:
                 # CRITICAL FIX: Defensive JSON Parsing
                 result = json.loads(raw_json)
                 phrase = result.get("solution_phrase", "").upper().strip()
-                if not phrase:
-                    raise ValueError("AI returned JSON missing solution_phrase.")
-                # END Defensive Parsing
+                phrase = re.sub(r"[^A-Z0-9\s]", "", phrase)
+                phrase = re.sub(r"\s+", " ", phrase).strip()
+
+                if not phrase or not re.match(r"^[A-Z0-9 ]+$", phrase):
+                    print(f"⚠️ Invalid phrase format detected: {phrase}. Retrying...")
+                    continue
 
                 is_unique_by_fuzzy_check = True
                 for used_phrase in used_phrases:
@@ -346,6 +350,7 @@ class ErnigramGeneratorAI:
 
             1. Create a short "solution_phrase" — a concise 3–5 word summary inspired by the chosen block/ Context, written in UPPERCASE.
             - Must NOT include punctuation or symbols.
+            -  If the phrase includes possessives like MARCO'S, rewrite it as MARCOS (no apostrophe).
             2. Create a "clue" — a two-sentence hint that:
             - Relates to the story naturally.
             - Does NOT reuse any words from the title or the solution phrase.
@@ -427,7 +432,7 @@ class ErnigramGeneratorAI:
         if not selected:
             raise ValueError("All employee names have been used as Ernigram solutions.")
 
-        fixed_clue = "Better ask employee"
+        fixed_clue = "Guess the ERNI employee."
 
         # CRITICAL CHANGE: Return the ID of the source object
         return {

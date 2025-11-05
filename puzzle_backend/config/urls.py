@@ -5,6 +5,15 @@ from users import views as user_views
 from django.conf import settings
 from django.conf.urls.static import static
 
+
+from django.http import JsonResponse
+from games.views import cron_generate_puzzles_view
+
+
+def health_check(request):
+    return JsonResponse({"status": "ok"})
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     
@@ -26,6 +35,9 @@ urlpatterns = [
     path("", include("users.urls")),
     path("auth/", include("users.urls")),
     path("api/gameplay/", include("gameplay.urls")),
+
+    path('api/v1/cron/generate-puzzles/', cron_generate_puzzles_view, name='cron_task'),
+    path('healthz/', health_check, name='health-check'), # Health check endpoint wakeup URL
 ]
 
 if settings.DEBUG:
