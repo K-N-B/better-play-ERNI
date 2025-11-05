@@ -1,5 +1,4 @@
 # flake8: noqa
-from .settings import *
 
 # Use SQLite (in-memory) for isolated test runs
 DATABASES = {

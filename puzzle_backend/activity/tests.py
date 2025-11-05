@@ -1,23 +1,22 @@
 from datetime import timedelta
-from django.utils import timezone
-from django.urls import reverse
-from django.test import TestCase
-from django.contrib.auth import get_user_model
 from unittest import mock
 
 from activity.models import UserActivity
 from activity.serializers import (
     ActivityEventSerializer,
-    OnlineUserSerializer,
     ActivityHubResponseSerializer,
+    OnlineUserSerializer,
 )
 from activity.services import ActivityService
-from games.models import WordlePuzzle
-
+from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
+from django.test import TestCase
+from django.urls import reverse
+from django.utils import timezone
 
 # We'll mock gameplay Submission since it's external
 from gameplay.models import Submission
-from django.contrib.contenttypes.models import ContentType
+from games.models import WordlePuzzle
 
 User = get_user_model()
 

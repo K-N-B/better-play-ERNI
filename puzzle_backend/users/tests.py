@@ -4,7 +4,6 @@ from django.contrib.auth import get_user_model
 from django.db.utils import IntegrityError  # Import the correct exception
 from django.test import TestCase
 from django.urls import reverse
-from django.utils import timezone
 
 from .models import Department
 from .serializers import AssignDepartmentSerializer

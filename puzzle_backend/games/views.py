@@ -2,22 +2,25 @@
 # from rest_framework import generics
 # from datetime import date as date_type
 import datetime
+import os
+
+from django.http import HttpRequest, HttpResponse
 
 # from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 from games.utils.timezone_helpers import get_local_today
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from puzzle_backend.games.services import generate_daily_puzzles
+
 from .models import DailyPuzzle
 
 # from .models import DailyPuzzle, WordlePuzzle, SudokuPuzzle, ErnigramPuzzle
 from .serializers import DailyPuzzleSerializer
-import os
-from django.http import HttpRequest, HttpResponse
-from django.views.decorators.csrf import csrf_exempt
 
 # Import your new service function
 # from .services import generate_daily_puzzles
@@ -32,6 +35,7 @@ class DailyPuzzlesView(APIView):
     # permission_classes = [IsAuthenticated] # Uncomment this for production
     # For dev convenience, remove/change for production
     permission_classes = [AllowAny]
+
     def get(self, request, format=None):
         date_param = request.query_params.get("date", None)
         print("Django timezone now():", timezone.now())
@@ -59,51 +63,46 @@ class DailyPuzzlesView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
+        # --- Mock Data Generation Endpoint (FOR DEVELOPMENT ONLY) ---
 
-# --- Mock Data Generation Endpoint (FOR DEVELOPMENT ONLY) ---
+        # class MockDailyPuzzlesGenerateView(APIView):
 
+        #     def post(self, request, *args, **kwargs):
+        #         try:
+        #             target_date_str = request.data.get("date")
+        #             if not target_date_str:
+        #                 return Response({"detail": "Date is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-# class MockDailyPuzzlesGenerateView(APIView):
+        #             target_date = date.fromisoformat(target_date_str)
 
-#     def post(self, request, *args, **kwargs):
-#         try:
-#             target_date_str = request.data.get("date")
-#             if not target_date_str:
-#                 return Response({"detail": "Date is required."}, status=status.HTTP_400_BAD_REQUEST)
+        #             # ✅ Check existence BEFORE calling generator
+        #             if DailyPuzzle.objects.filter(date=target_date).exists():
+        #                 return Response(
+        #                     {"detail": f"Daily puzzles for {target_date} already exist."},
+        #                     status=status.HTTP_409_CONFLICT
+        #                 )
 
-#             target_date = date.fromisoformat(target_date_str)
+        #             # Only call generator if not existing
+        #             daily_puzzle_set = generate_daily_puzzles(target_date)
+        #             serializer = DailyPuzzleSerializer(daily_puzzle_set)
+        #             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-#             # ✅ Check existence BEFORE calling generator
-#             if DailyPuzzle.objects.filter(date=target_date).exists():
-#                 return Response(
-#                     {"detail": f"Daily puzzles for {target_date} already exist."},
-#                     status=status.HTTP_409_CONFLICT
-#                 )
-
-#             # Only call generator if not existing
-#             daily_puzzle_set = generate_daily_puzzles(target_date)
-#             serializer = DailyPuzzleSerializer(daily_puzzle_set)
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        try:
-            # Call the service function to generate all puzzles for the date
-            daily_puzzle_set = generate_daily_puzzles(target_date)
-            serializer = DailyPuzzleSerializer(daily_puzzle_set)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            # Catch any error during generation and return a 500
-            return Response(
-                {"detail": f"Error generating puzzles: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+        # try:
+        #     # Call the service function to generate all puzzles for the date
+        #     daily_puzzle_set = generate_daily_puzzles(target_date)
+        #     serializer = DailyPuzzleSerializer(daily_puzzle_set)
+        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # except Exception as e:
+        #     # Catch any error during generation and return a 500
+        #     return Response(
+        #         {"detail": f"Error generating puzzles: {str(e)}"},
+        #         status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        #     )
 
 
-
-
-from django.views.decorators.csrf import csrf_exempt
 @csrf_exempt
 def cron_generate_puzzles_view(request: HttpRequest):
-  
+
     # 1. SECURITY CHECK: Validate the secret key
     expected_secret = os.environ.get('FASTCRON_SECRET')
     provided_secret = request.GET.get('secret')

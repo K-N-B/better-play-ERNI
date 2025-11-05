@@ -1,17 +1,18 @@
 import json
-import pytz
-from datetime import date, timedelta
+from datetime import date
 from datetime import datetime as real_datetime
-from django.test import TestCase
-from django.urls import reverse
-from django.contrib.auth import get_user_model
-from django.utils import timezone
-from django.contrib.contenttypes.models import ContentType
 from unittest import mock
 
+import pytz
+from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
+from django.test import TestCase
+from django.urls import reverse
+from django.utils import timezone
+from games.models import DailyPuzzle, ErnigramPuzzle, SudokuPuzzle, WordlePuzzle
+
 # Import all the models we need to create
-from users.models import Department
-from games.models import DailyPuzzle, WordlePuzzle, SudokuPuzzle, ErnigramPuzzle
+
 from .models import PuzzleAttempt, Submission
 
 # Get the custom User model
