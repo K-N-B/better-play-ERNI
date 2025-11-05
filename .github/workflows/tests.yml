@@ -50,8 +50,7 @@ jobs:
       # 7. Run pytest with coverage
       - name: Run Pytest with coverage
         run: |
-          cd puzzle_backend
-          pytest puzzle_backend \
+          cd puzzle_backend && pytest \
             --cov=puzzle_backend \
             --cov-report=term-missing \
             --cov-report=html \
