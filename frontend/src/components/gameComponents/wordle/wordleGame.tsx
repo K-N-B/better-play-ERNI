@@ -1,5 +1,5 @@
 // src/components/gameComponents/wordle/wordleGame.tsx - COMPLETE FILE WITH DEBUG
-
+import confetti from "canvas-confetti";
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
   submitPuzzle,
@@ -283,6 +283,11 @@ export const WordleGame = ({
     ) => {
       if (isGameOver || alreadyCompleted?.hasSubmitted) return;
       playSuccess();
+      confetti({
+        particleCount: 200,
+        spread: 100,
+        origin: { y: 0.6 },
+      });
 
       console.log("[WordleGame] ========== END GAME CALLED ==========");
       console.log("[WordleGame] challengeId:", challengeId);
