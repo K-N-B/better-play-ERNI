@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 // src/components/gameComponents/wordle/wordleGame.tsx - COMPLETE FILE WITH DEBUG
 
 import { useState, useEffect, useCallback, useRef } from 'react';

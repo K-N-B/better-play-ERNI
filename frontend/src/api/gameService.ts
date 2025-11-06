@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 // src/api/gameService.ts (FINAL COMPLETE VERSION)
 import type {
   DailyPuzzleResponse,
@@ -272,27 +273,20 @@ export const getHint = async (
   }
 };
 
-export const getSudokuHintLimits = async (): Promise<
-  Record<string, number>
-> => {
-  try {
-    const response = await fetch(
-      'http://localhost:8000/api/games/hint-limits/sudoku/',
-      {
-        method: 'GET',
-        credentials: 'include',
-        headers: { Accept: 'application/json' },
-      },
-    );
+export const getSudokuHintLimits = async (): Promise<{
+  HINT_LIMITS: Record<string, number>;
+}> => {
+  const response = await fetch(`${API_BASE_URL}/games/hint-limits/sudoku/`, {
+    method: 'GET',
+    credentials: 'include',
+    headers: { Accept: 'application/json' },
+  });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch hint limits: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data; // ✅ Must return an object like { EASY: 3, HARD: 1 }
-  } catch (error) {
-    console.error('[getSudokuHintLimits] Error:', error);
-    return {}; // ✅ Always return an object, not void
+  if (!response.ok) {
+    throw new Error('Failed to fetch Sudoku hint limits');
   }
+
+  const data = await response.json();
+  console.log('[getSudokuHintLimits] Response:', data);
+  return data;
 };

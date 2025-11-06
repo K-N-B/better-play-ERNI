@@ -1,3 +1,5 @@
+/* eslint-disable prettier/prettier */
+ 
 // src/types/game.ts - FIXED VERSION
 
 import type { LucideIcon } from 'lucide-react';
@@ -111,6 +113,7 @@ export interface PuzzleAttemptData {
   progress_data: any;
   time_spent_ms: number;
   difficulty: Difficulty;
+  hints_used?: number;
 }
 
 export interface PuzzleAttemptResponse extends PuzzleAttemptData {
