@@ -13,7 +13,7 @@ import {
 import { ChallengeIcon } from '../features/challenge/challengeIcon';
 import { Store, Star, Menu, X } from 'lucide-react';
 import clsx from 'clsx';
-const unusedVar = 123;
+const unusedVar = 1233;
 
 export default function Navbar() {
   const [isModalOpen, setIsModalOpen] = useState(false);
