@@ -1,8 +1,10 @@
-// src/components/gameComponents/sudoku/sudokuGame.tsx - FIXED
+// ========== FILE 1: src/components/gameComponents/sudoku/sudokuGame.tsx ==========
+// UPDATED WITH CHALLENGE SUPPORT
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { submitPuzzle, getSavedAttempt, saveProgress, checkSubmissionExists } from '../../../api/gameService';
 import { completeChallenge } from '../../../api/challengeService';
+import { useChallenges } from '../../../context/ChallengeContext';
 import type { SudokuPuzzle, SudokuCell, PuzzleAttemptData, SubmissionData } from '../../../types/game';
 import { SudokuGrid } from './sudokuGrid';
 import { NumberPad } from './numberPad';
@@ -86,6 +88,15 @@ interface SudokuGameProps {
 }
 
 export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps) => {
+  // ✅ DEBUG: Component mounted
+  console.log('[SudokuGame] ========== COMPONENT MOUNTED ==========');
+  console.log('[SudokuGame] Props received:');
+  console.log('[SudokuGame]   - challengeId:', challengeId, '(type:', typeof challengeId, ')');
+  console.log('[SudokuGame]   - difficulty:', difficulty);
+  console.log('[SudokuGame]   - puzzle.id:', puzzle?.id);
+  console.log('[SudokuGame] ===========================================');
+  
+  const { refreshChallenges } = useChallenges();
   const initialPuzzleString = difficulty === 'easy' ? puzzle.puzzle_string_easy : puzzle.puzzle_string_hard;
   
   const [grid, setGrid] = useState<SudokuCell[][]>(() => parseGrid(initialPuzzleString));
@@ -99,6 +110,7 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
     hasSubmitted: boolean;
     score?: number;
     submittedAt?: string;
+    submissionId?: number;
   } | null>(null);
   const [checkingSubmission, setCheckingSubmission] = useState(true);
 
@@ -111,20 +123,48 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
       return;
     }
     
-    console.log('[SudokuGame] Checking if already submitted...');
+    console.log('[SudokuGame] ========== CHECKING SUBMISSION ==========');
+    console.log('[SudokuGame] challengeId:', challengeId);
     setCheckingSubmission(true);
     
     checkSubmissionExists('sudoku', puzzle.date_to_be_used, puzzle.id)
-      .then(result => {
+      .then(async result => {
         console.log('[SudokuGame] Submission check result:', result);
+        console.log('[SudokuGame] result.hasSubmitted:', result.hasSubmitted);
+        console.log('[SudokuGame] result.submissionId:', result.submissionId);
+        
         if (result.hasSubmitted) {
           setAlreadyCompleted(result);
           setIsGameOver(true);
+          
+          // ✅ NEW: Auto-complete challenge if already submitted
+          console.log('[SudokuGame] ========== SHOULD COMPLETE CHALLENGE? ==========');
+          console.log('[SudokuGame] challengeId:', challengeId);
+          console.log('[SudokuGame] result.submissionId:', result.submissionId);
+          console.log('[SudokuGame] Both truthy?:', !!(challengeId && result.submissionId));
+          
+          if (challengeId && result.submissionId) {
+            console.log('[SudokuGame] ⚠️ User already submitted - completing challenge now!');
+            try {
+              console.log('[SudokuGame] ========== CHALLENGE COMPLETION START ==========');
+              const challengeResult = await completeChallenge(challengeId, { submission_id: result.submissionId });
+              console.log('[SudokuGame] ✅ Challenge completed automatically!');
+              await new Promise(resolve => setTimeout(resolve, 2000));
+              await refreshChallenges();
+              console.log('[SudokuGame] ========== CHALLENGE COMPLETION END ==========');
+            } catch (error) {
+              console.error('[SudokuGame] ❌ Failed to auto-complete challenge:', error);
+            }
+          } else {
+            console.log('[SudokuGame] ❌ NOT completing challenge because:');
+            if (!challengeId) console.log('[SudokuGame]   - challengeId is missing/falsy');
+            if (!result.submissionId) console.log('[SudokuGame]   - result.submissionId is missing/falsy');
+          }
         }
       })
       .catch(err => console.error('[SudokuGame] Check failed:', err))
       .finally(() => setCheckingSubmission(false));
-  }, [puzzle?.date_to_be_used, puzzle?.id]);
+  }, [puzzle?.date_to_be_used, puzzle?.id, challengeId, refreshChallenges]);
 
   // Fetch saved game
   const fetchSavedSudoku = useCallback(() => {
@@ -136,13 +176,12 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
 
   const { data: savedGame, loading } = useApi(fetchSavedSudoku);
 
-  // Load saved progress and show resume modal
+  // Load saved progress
   useEffect(() => {
     if (alreadyCompleted?.hasSubmitted) return;
     
     let loadedIsGameOver = false;
     if (savedGame && savedGame.puzzle_type === 'sudoku') {
-      // ✅ Handle both old format (direct grid) and new format (wrapped object)
       const progressData = savedGame.progress_data;
       const savedGrid = progressData?.grid || progressData;
       
@@ -150,11 +189,9 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
         setGrid(savedGrid);
         setSavedTime(savedGame.time_spent_ms);
         
-        // Check if grid is already solved
         loadedIsGameOver = checkSolution(savedGrid, puzzle.solution_string);
         setIsGameOver(loadedIsGameOver);
         
-        // Show resume modal if user has made progress
         const filledCells = countFilledCells(savedGrid);
         const hasProgress = filledCells > countFilledCells(parseGrid(initialPuzzleString)) || savedGame.time_spent_ms > 5000;
         
@@ -162,7 +199,6 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
           console.log('[SudokuGame] Showing resume modal');
           setShowResumeModal(true);
         } else if (!loadedIsGameOver) {
-          console.log('[SudokuGame] Starting timer - no resume needed');
           startTimer();
         }
       }
@@ -171,7 +207,7 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
     }
   }, [savedGame, startTimer, setSavedTime, puzzle.solution_string, initialPuzzleString, alreadyCompleted]);
 
-  // Auto-save progress (debounced)
+  // Auto-save progress
   useEffect(() => {
     if (loading || isGameOver || alreadyCompleted?.hasSubmitted || !puzzle?.date_to_be_used || !puzzle?.id) return;
 
@@ -179,35 +215,31 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
       const dataPayload: PuzzleAttemptData = {
         puzzle_id: puzzle.id,
         puzzle_type: 'sudoku',
-        progress_data: { grid: grid, hints_used: 0 }, // Wrap grid in object
+        progress_data: { grid: grid, hints_used: 0 },
         time_spent_ms: time,
         difficulty: difficulty,
       };
 
-      console.log('[SudokuGame] Auto-saving progress...');
       saveProgress(dataPayload, puzzle.date_to_be_used, puzzle.id)
-        .then(() => console.log('[SudokuGame] ✅ Auto-save successful'))
         .catch(err => console.error('[SudokuGame] ❌ Auto-save failed:', err));
     }, 2000);
 
     return () => clearTimeout(saveTimer);
   }, [grid, isGameOver, time, loading, puzzle?.id, puzzle?.date_to_be_used, difficulty, alreadyCompleted]);
 
-  // Save immediately when user inputs a number
+  // Save immediately when user inputs
   const saveImmediately = useCallback((newGrid: SudokuCell[][]) => {
     if (!puzzle?.date_to_be_used || !puzzle?.id || isGameOver || alreadyCompleted?.hasSubmitted) return;
 
     const dataPayload: PuzzleAttemptData = {
       puzzle_id: puzzle.id,
       puzzle_type: 'sudoku',
-      progress_data: newGrid, // ✅ Send grid directly
+      progress_data: newGrid,
       time_spent_ms: time,
       difficulty: difficulty,
     };
 
-    console.log('[SudokuGame] Saving immediately after input');
     saveProgress(dataPayload, puzzle.date_to_be_used, puzzle.id)
-      .then(() => console.log('[SudokuGame] ✅ Immediate save successful'))
       .catch(err => console.error('[SudokuGame] ❌ Immediate save failed:', err));
   }, [puzzle, time, difficulty, isGameOver, alreadyCompleted]);
 
@@ -264,6 +296,9 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
       return;
     }
 
+    console.log('[SudokuGame] ========== SUBMITTING PUZZLE ==========');
+    console.log('[SudokuGame] challengeId:', challengeId);
+
     setIsGameOver(true);
     stopTimer();
     const finalTime = time;
@@ -276,7 +311,6 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
     }
 
     try {
-      // ✅ Convert grid to string format for backend validation
       let finalGridString = '';
       for (let r = 0; r < 9; r++) {
         for (let c = 0; c < 9; c++) {
@@ -284,11 +318,10 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
         }
       }
 
-      // ✅ Save final state with proper format for validation
       const finalProgressData = {
-        grid: grid, // Keep grid for resume functionality
-        final_grid: finalGridString, // Add string format for validation
-        hints_used: 0, // TODO: Track hints when implemented
+        grid: grid,
+        final_grid: finalGridString,
+        hints_used: 0,
         status: 'SOLVED'
       };
 
@@ -323,8 +356,29 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
       finalScore = submissionResult.score;
       submissionIdForResultModal = submissionResult.submissionId ?? null;
 
+      // ✅ NEW: Complete challenge
+      console.log('[SudokuGame] ========== AFTER SUBMISSION ==========');
+      console.log('[SudokuGame] challengeId:', challengeId);
+      console.log('[SudokuGame] submissionIdForResultModal:', submissionIdForResultModal);
+      console.log('[SudokuGame] Both truthy?:', !!(challengeId && submissionIdForResultModal));
+
       if (challengeId && submissionIdForResultModal) {
-        await completeChallenge(challengeId, { submission_id: submissionIdForResultModal });
+        try {
+          console.log('[SudokuGame] ========== CHALLENGE COMPLETION START ==========');
+          const challengeResult = await completeChallenge(challengeId, { submission_id: submissionIdForResultModal });
+          console.log('[SudokuGame] ✅ Challenge API call succeeded!');
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          await refreshChallenges();
+          console.log('[SudokuGame] ✅ Challenge flow complete!');
+          console.log('[SudokuGame] ========== CHALLENGE COMPLETION END ==========');
+        } catch (challengeError) {
+          console.error('[SudokuGame] ❌ Challenge error:', challengeError);
+          await refreshChallenges();
+        }
+      } else {
+        console.log('[SudokuGame] ❌ NOT completing challenge because:');
+        if (!challengeId) console.log('[SudokuGame]   - challengeId is missing/falsy');
+        if (!submissionIdForResultModal) console.log('[SudokuGame]   - submissionIdForResultModal is missing/falsy');
       }
     } catch (err) {
       console.error("[SudokuGame] Error:", err);
@@ -424,3 +478,5 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
     </>
   );
 };
+
+// ========== FILE 2: Continue in next artifact due to length... ==========

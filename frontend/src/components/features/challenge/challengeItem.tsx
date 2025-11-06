@@ -1,9 +1,11 @@
-// src/components/features/challenge/challengeItem.tsx - FIXED
+// src/components/features/challenge/challengeItem.tsx - FIXED WINNER LOGIC
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import type { Challenge } from '../../../types/challenge';
 import { Swords, CheckCircle, Hourglass, X } from 'lucide-react';
 import { clsx } from 'clsx';
+import { useAuth } from '../../../hooks/authContext';
 
 interface ChallengeItemProps {
     challenge: Challenge;
@@ -11,83 +13,130 @@ interface ChallengeItemProps {
 }
 
 export const ChallengeItem: React.FC<ChallengeItemProps> = ({ challenge, onPlayClick }) => {
+    const { user } = useAuth();  // ✅ Get current user
     const isPending = challenge.status === 'PENDING';
-    const won = challenge.winner?.id === challenge.recipient?.id;
-    const lost = challenge.winner?.id === challenge.challenger?.id;
-    const opponent = challenge.challenger;
+
+    // ✅ FIXED: Determine if current user won/lost
+    const isChallenger = user?.id === challenge.challenger?.id;
+    const isRecipient = user?.id === challenge.recipient?.id;
     
-    // ✅ FIX: Access difficulty from the ChallengeSubmission type
-    const difficulty = challenge.challenger_submission?.difficulty || 'easy';
+    // ✅ Win/loss logic based on who is viewing
+    let won = false;
+    let lost = false;
+    
+    if (!isPending && challenge.winner) {
+        if (isChallenger) {
+            // If I'm the challenger
+            won = challenge.winner.id === challenge.challenger.id;
+            lost = challenge.winner.id === challenge.recipient.id;
+        } else if (isRecipient) {
+            // If I'm the recipient
+            won = challenge.winner.id === challenge.recipient.id;
+            lost = challenge.winner.id === challenge.challenger.id;
+        }
+    }
+    
+    const isTie = !isPending && !challenge.winner;
+
+    // ✅ Determine opponent based on who is viewing
+    const opponent = isChallenger ? challenge.recipient : challenge.challenger;
+    
+    // ✅ Determine "my score" and "opponent's score"
+    const myScore = isChallenger 
+        ? challenge.challenger_submission?.points_awarded 
+        : challenge.recipient_submission?.points_awarded;
+    
+    const opponentScore = isChallenger
+        ? challenge.recipient_submission?.points_awarded
+        : challenge.challenger_submission?.points_awarded;
 
     const handlePlayClick = async (e: React.MouseEvent) => {
         console.log('[ChallengeItem] ========== PLAY NOW CLICKED ==========');
         console.log('[ChallengeItem] challenge.id:', challenge.id);
         console.log('[ChallengeItem] challenge.puzzle_type:', challenge.puzzle_type);
-        console.log('[ChallengeItem] challenge difficulty:', difficulty);
-        console.log('[ChallengeItem] URL will be:', `/game/${challenge.puzzle_type}?challenge_id=${challenge.id}&difficulty=${difficulty}`);
-        console.log('[ChallengeItem] ===========================================');
+        console.log('[ChallengeItem] URL will be:', `/game/${challenge.puzzle_type}?challenge_id=${challenge.id}`);
         
         if (onPlayClick) {
             e.preventDefault();
             await onPlayClick();
-            // ✅ Include difficulty in URL
-            window.location.href = `/game/${challenge.puzzle_type}?challenge_id=${challenge.id}&difficulty=${difficulty}`;
+            window.location.href = `/game/${challenge.puzzle_type}?challenge_id=${challenge.id}`;
         }
     };
 
     return (
         <div className={clsx(
-            "bg-white rounded-lg shadow p-4 border transition-all",
-            isPending ? "border-blue-200 hover:border-blue-400" : "border-gray-200"
+            "p-4 rounded-lg shadow flex items-center space-x-4 transition-shadow hover:shadow-md",
+            isPending && "bg-yellow-50",
+            won && "bg-green-50",
+            lost && "bg-red-50",
+            isTie && "bg-gray-50"
         )}>
             {/* Icon based on status */}
-            <div className="flex items-start space-x-3">
-                {isPending ? <Hourglass size={24} className="text-blue-500 mt-1" /> :
-                    won ? <CheckCircle size={24} className="text-green-500 mt-1" /> :
-                        lost ? <X size={24} className="text-red-500 mt-1" /> :
-                            <Swords size={24} className="text-gray-400 mt-1" />}
+            <div className="flex-shrink-0">
+                {isPending ? <Hourglass className="text-yellow-500" /> :
+                    won ? <CheckCircle className="text-green-500" /> :
+                        lost ? <X className="text-red-500" /> :
+                            <Swords className="text-gray-500" />}
+            </div>
 
-                {/* Challenge Details */}
-                <div className="flex-1">
-                    <p className="font-medium text-gray-800">
-                        Challenge {isPending ? 'from' : 'vs'} {opponent.username} on{' '}
-                        <span className="capitalize">{challenge.puzzle_type}</span>
-                        {/* ✅ Show difficulty badge */}
-                        <span className={clsx(
-                            "ml-2 px-2 py-0.5 text-xs rounded font-semibold",
-                            difficulty === 'hard' ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
-                        )}>
-                            {difficulty.toUpperCase()}
-                        </span>
-                    </p>
-
-                    <p className="text-sm text-gray-600 mt-1">
-                        {opponent.username}'s Score: {challenge.challenger_submission.points_awarded} pts
-                    </p>
-
-                    {challenge.recipient_submission && (
-                        <div className="text-sm mt-2">
-                            Your Score: {challenge.recipient_submission.points_awarded} pts
-                            {won && <span className="ml-2 text-green-600 font-semibold">You Won!</span>}
-                            {lost && <span className="ml-2 text-red-600 font-semibold">You Lost</span>}
-                            {!isPending && !won && !lost && <span className="ml-2 text-gray-600 font-semibold">Tie</span>}
-                        </div>
-                    )}
-                </div>
-
-                {/* Play Now Button */}
+            {/* Challenge Details */}
+            <div className="flex-grow">
+                <p className="text-sm">
+                    Challenge {isPending ? 'from' : 'vs'} <strong className="font-medium">{opponent?.username}</strong> on{' '}
+                    <strong className="font-medium capitalize">{challenge.puzzle_type}</strong>
+                </p>
+                
+                {/* Show opponent's score for pending challenges */}
                 {isPending && (
-                    <div className="ml-auto">
-                        <Link
-                            to={`/game/${challenge.puzzle_type}?challenge_id=${challenge.id}&difficulty=${difficulty}`}
-                            onClick={handlePlayClick}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium whitespace-nowrap"
-                        >
-                            Play Now
-                        </Link>
+                    <p className="text-xs text-black">
+                        {opponent?.username}'s Score: {opponentScore} pts
+                    </p>
+                )}
+                
+                {/* Show both scores for completed challenges */}
+                {!isPending && (
+                    <div className="mt-1">
+                        <p className="text-xs text-black">
+                            Your Score: <strong>{myScore ?? 0}</strong> pts
+                        </p>
+                        <p className="text-xs text-black">
+                            {opponent?.username}'s Score: <strong>{opponentScore ?? 0}</strong> pts
+                        </p>
+                        
+                        {/* Result Badge */}
+                        <div className="mt-1">
+                            {won && (
+                                <span className="inline-block px-2 py-0.5 rounded bg-green-200 text-green-800 text-[10px] font-semibold">
+                                    You Won! 🎉
+                                </span>
+                            )}
+                            {lost && (
+                                <span className="inline-block px-2 py-0.5 rounded bg-red-200 text-red-800 text-[10px] font-semibold">
+                                    You Lost
+                                </span>
+                            )}
+                            {isTie && (
+                                <span className="inline-block px-2 py-0.5 rounded bg-gray-200 text-gray-700 text-[10px] font-semibold">
+                                    Tie
+                                </span>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>
+
+            {/* Play Now Button */}
+            {isPending && isRecipient && (
+                <div className="flex-shrink-0 ml-auto">
+                    <Link
+                        to={`/game/${challenge.puzzle_type}?challenge_id=${challenge.id}`}
+                        onClick={handlePlayClick}
+                        className="inline-block px-3 py-1 bg-primary text-white text-xs font-medium rounded hover:bg-primary-dark shadow-sm transition-colors"
+                    >
+                        Play Now
+                    </Link>
+                </div>
+            )}
         </div>
     );
 };

@@ -15,7 +15,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from puzzle_backend.games.services import generate_daily_puzzles
+from .services import generate_daily_puzzles
 
 from .models import DailyPuzzle
 
