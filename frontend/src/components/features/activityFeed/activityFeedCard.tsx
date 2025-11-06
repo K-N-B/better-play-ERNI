@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { ActivityFeed } from './activityFeed'; // Your existing component
 import { Zap } from 'lucide-react';
 

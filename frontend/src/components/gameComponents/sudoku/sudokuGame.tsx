@@ -297,6 +297,7 @@ export const SudokuGame = ({
     puzzle?.date_to_be_used,
     difficulty,
     alreadyCompleted,
+    hintsUsed
   ]);
 
   // Save immediately when user inputs a number
@@ -325,7 +326,7 @@ export const SudokuGame = ({
           console.error('[SudokuGame] ❌ Immediate save failed:', err),
         );
     },
-    [puzzle, time, difficulty, isGameOver, alreadyCompleted],
+    [puzzle, time, difficulty, isGameOver, alreadyCompleted, hintsUsed],
   );
 
   // Event Handlers
