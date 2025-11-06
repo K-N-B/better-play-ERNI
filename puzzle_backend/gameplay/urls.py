@@ -13,6 +13,7 @@ from .views import (
     get_user_streak_data,
 )
 
+
 urlpatterns = [
     # Save progress for a specific puzzle attempt
     # Example: POST /api/gameplay/save/2025-11-03/wordlepuzzle/42/

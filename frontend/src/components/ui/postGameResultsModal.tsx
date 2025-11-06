@@ -1,5 +1,5 @@
 // src/components/ui/postGameResultsModal.tsx - COMPLETE VERSION
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, Trophy, Star, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ChallengeModal } from '../features/challenge/challengeModal';

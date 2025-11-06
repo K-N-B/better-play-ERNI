@@ -19,6 +19,7 @@ urlpatterns = [
     path('auth/callback/', user_views.auth_callback, name='auth-callback'),
     path('auth/check/', user_views.check_auth, name='auth-check'),
     path('auth/logout/', user_views.logout_view, name='auth-logout'),
+    path('auth/', include('social_django.urls', namespace='social')),
     # ✅ FIX: Make sure games URLs are included under /api/games/
     path('api/games/', include('games.urls')),  # This makes /api/games/daily/ work
     # Other API endpoints
