@@ -25,6 +25,7 @@ class ClaimRewardView(generics.GenericAPIView):
     """
 
     permission_classes = [permissions.IsAuthenticated]
+
     def post(self, request, *args, **kwargs):
         reward_id = self.kwargs.get("reward_id")
         user = request.user

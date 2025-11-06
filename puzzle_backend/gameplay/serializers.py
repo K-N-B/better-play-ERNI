@@ -1,7 +1,25 @@
 # gameplay/serializers.py - COMPLETE FILE WITH FIX
 from rest_framework import serializers
-from .models import Challenge, Submission
+from users.serializers import UserNestedSerializer
+
+from .models import Challenge, PuzzleAttempt, Submission
 from users.models import User  # ✅ ADD THIS IMPORT
+
+class PuzzleAttemptSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PuzzleAttempt
+        fields = [
+            'id',
+            'user',
+            'puzzle_type',
+            'puzzle_id',
+            'progress_data',
+            'time_spent_ms',
+            'completed',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['user', 'created_at', 'updated_at']
 
 
 class UserBriefSerializer(serializers.ModelSerializer):
@@ -13,6 +31,7 @@ class UserBriefSerializer(serializers.ModelSerializer):
 
 class SubmissionBriefSerializer(serializers.ModelSerializer):
     """Brief submission info for challenges"""
+
     class Meta:
         model = Submission
         fields = ['id', 'points_awarded', 'time_taken_ms', 'tries', 'difficulty']  # ✅ Include difficulty
@@ -29,7 +48,7 @@ class ChallengeSerializer(serializers.ModelSerializer):
     # Add computed fields for puzzle type and ID
     puzzle_type = serializers.SerializerMethodField()
     puzzle_id = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Challenge
         fields = [
@@ -45,7 +64,7 @@ class ChallengeSerializer(serializers.ModelSerializer):
             'created_at',
         ]
         read_only_fields = ['id', 'status', 'winner', 'created_at']
-    
+
     def get_puzzle_type(self, obj):
         """Extract puzzle type from challenger_submission's content_type"""
         if obj.challenger_submission and obj.challenger_submission.content_type:
@@ -58,7 +77,7 @@ class ChallengeSerializer(serializers.ModelSerializer):
             elif 'ernigram' in model_name.lower():
                 return 'ernigram'
         return None
-    
+
     def get_puzzle_id(self, obj):
         """Get the puzzle ID from challenger_submission"""
         if obj.challenger_submission:
@@ -70,7 +89,7 @@ class CreateChallengeSerializer(serializers.Serializer):
     """Serializer for creating a challenge"""
     recipient_id = serializers.IntegerField()
     submission_id = serializers.IntegerField()
-    
+
     def validate_recipient_id(self, value):
         """Check that recipient exists and is not the current user"""
         request = self.context.get('request')
@@ -87,7 +106,7 @@ class CreateChallengeSerializer(serializers.Serializer):
             raise serializers.ValidationError("Cannot challenge yourself")
         
         return value
-    
+
     def validate_submission_id(self, value):
         """Check that submission exists and belongs to current user"""
         request = self.context.get('request')
@@ -109,7 +128,7 @@ class CreateChallengeSerializer(serializers.Serializer):
 class CompleteChallengeSerializer(serializers.Serializer):
     """Serializer for completing a challenge"""
     submission_id = serializers.IntegerField()
-    
+
     def validate_submission_id(self, value):
         """Check that submission exists"""
         try:

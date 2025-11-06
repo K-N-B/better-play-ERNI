@@ -13,6 +13,14 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='challenge',
             name='status',
-            field=models.CharField(choices=[('PENDING', 'Pending'), ('COMPLETED', 'Completed'), ('EXPIRED', 'Expired')], default='PENDING', max_length=20),
+            field=models.CharField(
+                choices=[
+                    ('PENDING', 'Pending'),
+                    ('COMPLETED', 'Completed'),
+                    ('EXPIRED', 'Expired'),
+                ],
+                default='PENDING',
+                max_length=20,
+            ),
         ),
     ]

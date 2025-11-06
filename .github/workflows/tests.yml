@@ -33,7 +33,7 @@ jobs:
 
       - name: Run Pytest with coverage
         run: |
-          cd puzzle_backend
+          cd puzzle_backend &&
           pytest --cov=puzzle_backend \
             --cov-report=term-missing \
             --cov-fail-under=80 \

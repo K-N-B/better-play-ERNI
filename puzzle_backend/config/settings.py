@@ -117,13 +117,13 @@ CSRF_COOKIE_SECURE = False
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME":  os.environ.get("DB_NAME"),
-        "USER":  os.environ.get("DB_USER"),
-        "PASSWORD":  os.environ.get("DB_PASSWORD"),
-        "HOST":  os.environ.get("DB_HOST"),
-        "PORT":  os.environ.get("DB_PORT"),
+        "NAME": os.environ.get("DB_NAME"),
+        "USER": os.environ.get("DB_USER"),
+        "PASSWORD": os.environ.get("DB_PASSWORD"),
+        "HOST": os.environ.get("DB_HOST"),
+        "PORT": os.environ.get("DB_PORT"),
         "TEST": {
-            "NAME":  os.environ.get("DB_TEST"),  # MUST match the name in the error message
+            "NAME": os.environ.get("DB_TEST"),  # MUST match the name in the error message
             # "OPTIONS": {
             #     "init_session": "SELECT pg_terminate_backend(pg_stat_activity.pid) "
             #     "FROM pg_stat_activity "
@@ -159,7 +159,6 @@ else:
     ]
 
 
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -189,11 +188,13 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # --- Azure AD Credentials (Loaded from .env) ---
-AZURE_AD_CLIENT_ID =  os.environ.get("AZURE_AD_CLIENT_ID")
-AZURE_AD_CLIENT_SECRET =  os.environ.get("AZURE_AD_CLIENT_SECRET")
-AZURE_AD_TENANT_ID =  os.environ.get("AZURE_AD_TENANT_ID")
+AZURE_AD_CLIENT_ID = os.environ.get("AZURE_AD_CLIENT_ID")
+AZURE_AD_CLIENT_SECRET = os.environ.get("AZURE_AD_CLIENT_SECRET")
+AZURE_AD_TENANT_ID = os.environ.get("AZURE_AD_TENANT_ID")
 # This MUST match the 'Web' redirect URI in Azure App Registration AND users/urls.py path
-AZURE_AD_REDIRECT_URI =  os.environ.get("AZURE_AD_REDIRECT_URI", "http://localhost:8000/auth/callback/")
+AZURE_AD_REDIRECT_URI = os.environ.get(
+    "AZURE_AD_REDIRECT_URI", "http://localhost:8000/auth/callback/"
+)
 
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -204,21 +205,20 @@ if ENVIRONMENT == "production":
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SAMESITE = None
     CSRF_COOKIE_SAMESITE = None
-    CSRF_USE_SESSIONS = True        # ✅ store CSRF in session (safer for production)
-    CSRF_COOKIE_HTTPONLY = True     # ✅ prevent JS access to CSRF cookie
+    CSRF_USE_SESSIONS = True  # ✅ store CSRF in session (safer for production)
+    CSRF_COOKIE_HTTPONLY = True  # ✅ prevent JS access to CSRF cookie
     SESSION_COOKIE_HTTPONLY = True  # ✅ prevent JS access to session cookie
 else:
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
     SESSION_COOKIE_SAMESITE = "Lax"
     CSRF_COOKIE_SAMESITE = "Lax"
-    CSRF_USE_SESSIONS = False       # ✅ local dev convenience
-    CSRF_COOKIE_HTTPONLY = False    # ✅ easier debugging
+    CSRF_USE_SESSIONS = False  # ✅ local dev convenience
+    CSRF_COOKIE_HTTPONLY = False  # ✅ easier debugging
     SESSION_COOKIE_HTTPONLY = True  # still good practice even locally
 
 
-SESSION_COOKIE_AGE = 86400      # Session lasts 1 day (optional)
-
+SESSION_COOKIE_AGE = 86400  # Session lasts 1 day (optional)
 
 
 # --- DRF Settings (Optional for basic session auth, but good to have) ---

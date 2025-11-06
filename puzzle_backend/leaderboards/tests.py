@@ -1,30 +1,30 @@
-import pytz
-from datetime import date, timedelta
 from datetime import datetime as real_datetime
+from datetime import timedelta
+from unittest import mock
+
+import pytz
+from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
-from django.contrib.contenttypes.models import ContentType
+from gameplay.models import Submission
+from games.models import DailyPuzzle, ErnigramPuzzle, SudokuPuzzle, WordlePuzzle
 from rest_framework import status
 from rest_framework.test import APITestCase
-from unittest import mock
 
 # Models from other apps we need to create
-from users.models import User, Department
-from games.models import DailyPuzzle, WordlePuzzle, SudokuPuzzle, ErnigramPuzzle
-from gameplay.models import Submission
-from .services import LeaderboardAggregator, get_week_start, get_month_start
+from users.models import Department, User
 
 # Models we are testing
 from .models import (
-    DailyIndividualScore,
-    WeeklyIndividualScore,
-    MonthlyIndividualScore,
     DailyDepartmentScore,
-    WeeklyDepartmentScore,
+    DailyIndividualScore,
     MonthlyDepartmentScore,
+    MonthlyIndividualScore,
+    WeeklyDepartmentScore,
+    WeeklyIndividualScore,
 )
-
+from .services import LeaderboardAggregator, get_month_start, get_week_start
 
 # --- Mocking Setup ---
 
