@@ -12,9 +12,9 @@ export default function AuthCallback() {
         const response = await fetch('http://localhost:8000/auth/check/', {
           credentials: 'include',
         });
-        
+
         const data = await response.json();
-        
+
         if (data.authenticated) {
           navigate('/', { replace: true });
         } else {

@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import clsx from 'clsx';
 
 interface UnderConstructionProps {
   title: string; // e.g. "ERNIgram"
@@ -15,8 +15,8 @@ export default function UnderConstruction({
     <>
       <div
         className={clsx(
-          "h-full w-full rounded-4xl p-20 flex items-center justify-center text-center", 
-          bg
+          'h-full w-full rounded-4xl p-20 flex items-center justify-center text-center',
+          bg,
         )}
       >
         <div className={text}>

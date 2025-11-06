@@ -1,4 +1,3 @@
-
 import { useAuth } from '../../hooks/authContext';
 import type { UserProfile } from '../../types/user';
 import { X, LogOut, Star, Flame, Mountain } from 'lucide-react';
@@ -9,7 +8,11 @@ interface UserProfileModalProps {
   user: UserProfile | null;
 }
 
-export default function UserProfileModal({ isOpen, onClose, user }: UserProfileModalProps) {
+export default function UserProfileModal({
+  isOpen,
+  onClose,
+  user,
+}: UserProfileModalProps) {
   const { logout } = useAuth(); // Get the global logout function
   const profileImageUrl = user?.profile_picture_url ?? null;
   const userInitial = user?.username.charAt(0).toUpperCase() ?? '?';
@@ -25,7 +28,7 @@ export default function UserProfileModal({ isOpen, onClose, user }: UserProfileM
       {/* Modal Content */}
       <div
         className="bg-white rounded-3xl w-full max-w-sm p-6"
-        onClick={e => e.stopPropagation()} // Prevent click from closing modal
+        onClick={(e) => e.stopPropagation()} // Prevent click from closing modal
       >
         {/* Header */}
         <div className="flex justify-between items-center ">
@@ -52,21 +55,27 @@ export default function UserProfileModal({ isOpen, onClose, user }: UserProfileM
             <div>
               <div className="text-xl font-bold">{user?.username}</div>
               <p className="text-sm text-gray-500">{user?.email}</p>
-              <p className="text-sm text-gray-500">Team: {user?.department?.name || 'N/A'}</p>
+              <p className="text-sm text-gray-500">
+                Team: {user?.department?.name || 'N/A'}
+              </p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-4 text-center">
             <div className="bg-gray-100 p-4 rounded-lg items-center justify-center flex flex-col">
               <div className="flex items-center justify-center gap-1">
-                <div className="text-xl font-bold">{user?.total_points_alltime || 0}</div>
+                <div className="text-xl font-bold">
+                  {user?.total_points_alltime || 0}
+                </div>
                 <Star size={24} className="fill-current text-yellow-500" />
               </div>
               <div className="text-sm text-gray-600">All-time Points</div>
             </div>
             <div className="bg-gray-100 p-4 rounded-lg items-center justify-center flex flex-col">
               <div className="flex items-center justify-center gap-1">
-                <div className="text-xl font-bold">{user?.challenges_made_count || 0}</div>
+                <div className="text-xl font-bold">
+                  {user?.challenges_made_count || 0}
+                </div>
                 <Mountain className="fill-current text-amber-700" size={24} />
               </div>
               <div className="text-sm text-gray-600">Challenges made</div>
@@ -76,14 +85,18 @@ export default function UserProfileModal({ isOpen, onClose, user }: UserProfileM
           <div className="grid grid-cols-2 gap-4 mb-6 text-center">
             <div className="bg-gray-100 p-4 rounded-lg items-center justify-center flex flex-col">
               <div className="flex items-center justify-center gap-1">
-                <div className="text-xl font-bold">{user?.current_streak_count || 0}</div>
+                <div className="text-xl font-bold">
+                  {user?.current_streak_count || 0}
+                </div>
                 <Flame className="fill-current text-orange-500" size={24} />
               </div>
               <div className="text-sm text-gray-600">Current Streak</div>
             </div>
             <div className="bg-gray-100 p-4 rounded-lg items-center justify-center flex flex-col">
               <div className="flex items-center justify-center gap-1">
-                <div className="text-xl font-bold">{user?.max_streak_count || 0}</div>
+                <div className="text-xl font-bold">
+                  {user?.max_streak_count || 0}
+                </div>
                 <Flame className="fill-current text-red-500" size={24} />
               </div>
               <div className="text-sm text-gray-600">Max Streak</div>

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import clsx from "clsx";
+import { useState } from 'react';
+import clsx from 'clsx';
 
 interface DifficultyToggleProps {
   // Callback function when the toggle state changes (true for Hard, false for Easy)
@@ -15,9 +15,9 @@ export default function DifficultyToggle({
   onToggle,
   initialIsHard,
   color,
-  darkColor = "shadow-gray-900", // Default shadow if not provided
+  darkColor = 'shadow-gray-900', // Default shadow if not provided
 }: DifficultyToggleProps) {
-  const [isHard, setIsHard] = useState(initialIsHard);;
+  const [isHard, setIsHard] = useState(initialIsHard);
 
   const handleToggle = () => {
     const newState = !isHard;
@@ -27,7 +27,7 @@ export default function DifficultyToggle({
 
   // Extract the shadow depth class (e.g., shadow-[0_5px_0_0]) if present
   const shadowDepthClass =
-    darkColor.match(/shadow-\[.*?\]/) || "shadow-[0_2px_0_0]";
+    darkColor.match(/shadow-\[.*?\]/) || 'shadow-[0_2px_0_0]';
 
   return (
     // Use a label to wrap the entire control for better click handling
@@ -35,8 +35,8 @@ export default function DifficultyToggle({
       {/* "Easy" Label */}
       <span
         className={clsx(
-          "mr-4 text-xl font-medium transition-colors",
-          !isHard ? "text-black font-semibold" : "text-gray-500" // Highlight active state
+          'mr-4 text-xl font-medium transition-colors',
+          !isHard ? 'text-black font-semibold' : 'text-gray-500', // Highlight active state
         )}
       >
         Easy
@@ -53,20 +53,20 @@ export default function DifficultyToggle({
       {/* Toggle Track (the background) */}
       <div
         className={clsx(
-          "relative w-[5rem] h-11 rounded-full bg-white border border-gray-300", // Slightly larger track
-          "transition-colors duration-300 ease-in-out"
+          'relative w-[5rem] h-11 rounded-full bg-white border border-gray-300', // Slightly larger track
+          'transition-colors duration-300 ease-in-out',
         )}
       >
         {/* Toggle Knob (the moving part) */}
         <div
           className={clsx(
-            "absolute h-10 w-10 rounded-full",
-            "transition-transform duration-300 ease-in-out",
-            "shadow-[0_2px_0_0] peer-checked:shadow-[0_2px_0_0]", // Consistent shadow base
+            'absolute h-10 w-10 rounded-full',
+            'transition-transform duration-300 ease-in-out',
+            'shadow-[0_2px_0_0] peer-checked:shadow-[0_2px_0_0]', // Consistent shadow base
             shadowDepthClass, // Apply dynamic shadow depth
             color, // Apply the main color
             darkColor, // Apply the shadow color
-            isHard && "translate-x-full" // Move knob when checked (Hard)
+            isHard && 'translate-x-full', // Move knob when checked (Hard)
           )}
         ></div>
       </div>
@@ -74,8 +74,8 @@ export default function DifficultyToggle({
       {/* "Hard" Label */}
       <span
         className={clsx(
-          "ml-4 text-xl font-medium transition-colors",
-          isHard ? "text-black font-semibold" : "text-gray-500" // Highlight active state
+          'ml-4 text-xl font-medium transition-colors',
+          isHard ? 'text-black font-semibold' : 'text-gray-500', // Highlight active state
         )}
       >
         Hard

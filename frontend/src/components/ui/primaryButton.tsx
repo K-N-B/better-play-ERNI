@@ -6,7 +6,11 @@ interface PrimaryButtonProps {
   path: string;
 }
 
-export default function PrimaryButton({ text, color, path }: PrimaryButtonProps) {
+export default function PrimaryButton({
+  text,
+  color,
+  path,
+}: PrimaryButtonProps) {
   return (
     <Link
       to={path}

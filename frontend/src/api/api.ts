@@ -11,9 +11,9 @@ export const MOCK_MODE = false;
 
 // Simulate network delay for mock calls
 export const mockApiCall = <T>(data: T): Promise<T> => {
-    return new Promise(resolve => {
-        setTimeout(() => {
-            resolve(data);
-        }, 100);
-    });
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(data);
+    }, 100);
+  });
 };

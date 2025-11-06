@@ -1,11 +1,11 @@
 import type {
   LeaderboardData,
   LeaderboardType,
-} from "../../../types/leaderboard";
-import { LeaderboardPodium } from "./leaderboardPodium";
-import { LeaderboardList } from "./leaderboardList";
-import { LoadingSpinner } from "../../ui/loadingSpinner";
-import { LeaderboardStack } from "./leaderboardStack";
+} from '../../../types/leaderboard';
+import { LeaderboardPodium } from './leaderboardPodium';
+import { LeaderboardList } from './leaderboardList';
+import { LoadingSpinner } from '../../ui/loadingSpinner';
+import { LeaderboardStack } from './leaderboardStack';
 
 interface LeaderboardCardProps {
   title: string; // e.g., "Weekly Individual", "All-Time Department"
@@ -24,15 +24,15 @@ export const LeaderboardCard: React.FC<LeaderboardCardProps> = ({
 }) => {
   console.log(
     `[LeaderboardCard] Received props for "${title}". Type: ${type}, Data:`,
-    data
+    data,
   );
 
   // ✅ Ensure data is always an array (to prevent "slice is not a function" errors)
   const leaderboardArray = Array.isArray(data)
     ? data
     : Array.isArray((data as any)?.leaderboard)
-    ? (data as any).leaderboard
-    : [];
+      ? (data as any).leaderboard
+      : [];
 
   const topThree = leaderboardArray.slice(0, 3);
   const restOfList = leaderboardArray.slice(3);

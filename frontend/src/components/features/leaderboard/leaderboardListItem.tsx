@@ -1,6 +1,10 @@
 // /src/components/features/leaderboard/leaderboardListItem.tsx
 import React from 'react';
-import type { IndividualScoreEntry, DepartmentScoreEntry, LeaderboardType } from '../../../types/leaderboard';
+import type {
+  IndividualScoreEntry,
+  DepartmentScoreEntry,
+  LeaderboardType,
+} from '../../../types/leaderboard';
 import clsx from 'clsx';
 
 type LeaderboardEntry = IndividualScoreEntry | DepartmentScoreEntry;
@@ -12,22 +16,28 @@ interface LeaderboardListItemProps {
 }
 
 const rankColors: Record<number, string> = {
-  1: "text-yellow-500",
-  2: "text-gray-500",
-  3: "text-amber-700",
+  1: 'text-yellow-500',
+  2: 'text-gray-500',
+  3: 'text-amber-700',
 };
 
-export const LeaderboardListItem: React.FC<LeaderboardListItemProps> = ({ entry, rank, type }) => {
-  const name = type === 'individual'
-                 ? (entry as IndividualScoreEntry).user?.username ?? 'N/A'
-                 : (entry as DepartmentScoreEntry).department?.name ?? 'N/A';
+export const LeaderboardListItem: React.FC<LeaderboardListItemProps> = ({
+  entry,
+  rank,
+  type,
+}) => {
+  const name =
+    type === 'individual'
+      ? ((entry as IndividualScoreEntry).user?.username ?? 'N/A')
+      : ((entry as DepartmentScoreEntry).department?.name ?? 'N/A');
 
   const score = entry.score;
-  const rankColor = rankColors[rank] || "text-primary";
+  const rankColor = rankColors[rank] || 'text-primary';
 
-  const entryId = type === 'individual'
-                  ? (entry as IndividualScoreEntry).user?.id
-                  : (entry as DepartmentScoreEntry).department?.id;
+  const entryId =
+    type === 'individual'
+      ? (entry as IndividualScoreEntry).user?.id
+      : (entry as DepartmentScoreEntry).department?.id;
   const key = `${type}-${entryId}-${rank}`;
 
   return (
@@ -40,7 +50,12 @@ export const LeaderboardListItem: React.FC<LeaderboardListItemProps> = ({ entry,
       {/* Add min-w-0 to allow this flex item to shrink and truncate its children */}
       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         {/* Rank (no change) */}
-        <span className={clsx("font-bold text-lg sm:text-xl w-6 text-left", rankColor)}>
+        <span
+          className={clsx(
+            'font-bold text-lg sm:text-xl w-6 text-left',
+            rankColor,
+          )}
+        >
           {rank}
         </span>
         {/* Name: Replace 'text-clip' with 'truncate' to add ellipsis */}

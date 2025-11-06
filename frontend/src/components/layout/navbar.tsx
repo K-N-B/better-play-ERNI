@@ -5,14 +5,17 @@ import logo from '../../assets/logo.png';
 import PrimaryButton from '../ui/primaryButton';
 import UserProfileModal from '../features/userProfileModal';
 import { useAuth } from '../../hooks/authContext';
-import { navItems, shopNavStyle, notificationNavStyle } from '../../data/navItems'; // <-- IMPORT YOUR DATA
+import {
+  navItems,
+  shopNavStyle,
+  notificationNavStyle,
+} from '../../data/navItems'; // <-- IMPORT YOUR DATA
 import { ChallengeIcon } from '../features/challenge/challengeIcon';
-import { Store, Star, Menu, X, Mountain } from 'lucide-react';
+import { Store, Star, Menu, X } from 'lucide-react';
 import clsx from 'clsx';
-
+const unusedVar = 123;
 
 export default function Navbar() {
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, isLoading: authLoading } = useAuth();
@@ -27,7 +30,6 @@ export default function Navbar() {
 
   const currentPoints = user?.current_points ?? 0;
   const isShopActive = location.pathname === shopNavStyle.path;
-
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -47,7 +49,13 @@ export default function Navbar() {
             {navItems.map((item, idx) => {
               if (item.name === '┃') {
                 return (
-                  <span key={`separator-${idx}`} className="font-semibold text-primary mx-2"> ┃ </span>
+                  <span
+                    key={`separator-${idx}`}
+                    className="font-semibold text-primary mx-2"
+                  >
+                    {' '}
+                    ┃{' '}
+                  </span>
                 );
               }
               if (item.path && item.activeClasses && item.hoverClasses) {
@@ -91,9 +99,10 @@ export default function Navbar() {
                 // Base styles for the icon button
                 'hidden md:inline-flex items-center justify-center h-10 w-10 m-0 rounded-lg transition-all duration-150',
                 // Active styles
-                isShopActive && `active:translate-y-[2px] active:shadow-[0_3px_0_0] ${shopNavStyle.activeClasses}`,
+                isShopActive &&
+                  `active:translate-y-[2px] active:shadow-[0_3px_0_0] ${shopNavStyle.activeClasses}`,
                 // Inactive styles
-                !isShopActive && `text-primary ${shopNavStyle.hoverClasses}` // Apply hover from nav data
+                !isShopActive && `text-primary ${shopNavStyle.hoverClasses}`, // Apply hover from nav data
               )}
               aria-label="Shop"
               title="Shop"
@@ -110,13 +119,13 @@ export default function Navbar() {
               />
             </div>
 
-
-            {!authLoading && user && ( // Only show if user is loaded
-              <div className="hidden md:flex m-0 items-center space-x-1 bg-yellow-100 text-yellow-800 px-3 py-2 rounded-full text-lg font-bold shadow-inner">
-                <span>{currentPoints}</span>
-                <Star size={24} className="fill-current text-yellow-500" />
-              </div>
-            )}
+            {!authLoading &&
+              user && ( // Only show if user is loaded
+                <div className="hidden md:flex m-0 items-center space-x-1 bg-yellow-100 text-yellow-800 px-3 py-2 rounded-full text-lg font-bold shadow-inner">
+                  <span>{currentPoints}</span>
+                  <Star size={24} className="fill-current text-yellow-500" />
+                </div>
+              )}
             {/* Right: Profile button */}
             <div className="flex items-center m-0 ">
               {authLoading ? (
@@ -125,10 +134,10 @@ export default function Navbar() {
                 <button
                   onClick={() => setIsModalOpen(true)}
                   className={clsx(
-                    "w-10 h-10 rounded-full flex items-center justify-center font-bold transition overflow-hidden",
+                    'w-10 h-10 rounded-full flex items-center justify-center font-bold transition overflow-hidden',
                     profileImageUrl
-                      ? "bg-gray-200 hover:bg-gray-300 text-transparent"
-                      : "bg-sky-400 hover:bg-sky-500 text-white"
+                      ? 'bg-gray-200 hover:bg-gray-300 text-transparent'
+                      : 'bg-sky-400 hover:bg-sky-500 text-white',
                   )}
                   title={user?.username || 'Profile'}
                 >
@@ -163,15 +172,14 @@ export default function Navbar() {
             </button>
             {/* --- End Hamburger Menu Button --- */}
           </div>
-
         </div>
       </div>
 
       {/* Show overlay only when mobile menu is open */}
       <div
         className={clsx(
-          "fixed inset-0 z-40 bg-black bg-opacity-20 backdrop-blur-sm lg:hidden", // Only visible below md breakpoint
-          isMobileMenuOpen ? "block" : "hidden" // Toggle visibility
+          'fixed inset-0 z-40 bg-black bg-opacity-20 backdrop-blur-sm lg:hidden', // Only visible below md breakpoint
+          isMobileMenuOpen ? 'block' : 'hidden', // Toggle visibility
         )}
         onClick={() => setIsMobileMenuOpen(false)} // Close on overlay click
         aria-hidden="true"
@@ -180,11 +188,13 @@ export default function Navbar() {
       {/* Show menu content only when mobile menu is open */}
       <div
         className={clsx(
-          "fixed top-0 right-0 z-50 w-64 h-full bg-slate-50 shadow-xl transform transition-transform duration-300 ease-in-out lg:hidden",
-          isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+          'fixed top-0 right-0 z-50 w-64 h-full bg-slate-50 shadow-xl transform transition-transform duration-300 ease-in-out lg:hidden',
+          isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full',
         )}
       >
-        <div className="p-5 pt-16"> {/* Add padding top for close button */}
+        <div className="p-5 pt-16">
+          {' '}
+          {/* Add padding top for close button */}
           <button
             onClick={() => setIsMobileMenuOpen(false)}
             className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-700"
@@ -192,7 +202,9 @@ export default function Navbar() {
           >
             <X size={24} />
           </button>
-          <h2 className="text-lg text-center font-semibold mb-2 text-gray-800 pb-2">Menu</h2>
+          <h2 className="text-lg text-center font-semibold mb-2 text-gray-800 pb-2">
+            Menu
+          </h2>
           <nav className="flex flex-col space-y-1">
             {/* Map over main navItems */}
             {navItems.map((item) => {
@@ -211,11 +223,12 @@ export default function Navbar() {
                     // Apply styles conditionally using clsx
                     className={clsx(
                       // Base styles for all mobile links
-                      "block px-3 py-2 rounded-md text-base font-medium transition-colors text-left", // Added text-center
+                      'block px-3 py-2 rounded-md text-base font-medium transition-colors text-left', // Added text-center
                       // Apply activeClasses if isActive is true
-                      isActive && `active:translate-y-[2px] active:shadow-[0_3px_0_0] ${item.activeClasses}`,
+                      isActive &&
+                        `active:translate-y-[2px] active:shadow-[0_3px_0_0] ${item.activeClasses}`,
                       // Apply standard text + hoverClasses if inactive
-                      !isActive && `text-primary ${item.hoverClasses}`
+                      !isActive && `text-primary ${item.hoverClasses}`,
                     )}
                   >
                     {/* Just the text */}
@@ -228,8 +241,12 @@ export default function Navbar() {
             })}
             {/* Shop Link */}
             {[
-              { path: '/shop', name: 'Shop', style: shopNavStyle},
-              { path: '/challenges', name: 'Challenges', style: notificationNavStyle}
+              { path: '/shop', name: 'Shop', style: shopNavStyle },
+              {
+                path: '/challenges',
+                name: 'Challenges',
+                style: notificationNavStyle,
+              },
             ].map((linkItem) => {
               const isActive = location.pathname === linkItem.path;
               // Always render a Link
@@ -240,11 +257,12 @@ export default function Navbar() {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={clsx(
                     // Base styles
-                    "flex items-center justify-start gap-2 px-3 py-2 rounded-md text-base font-medium transition-colors", // Added justify-center
+                    'flex items-center justify-start gap-2 px-3 py-2 rounded-md text-base font-medium transition-colors', // Added justify-center
                     // Active styles
-                    isActive && `active:translate-y-[2px] active:shadow-[0_3px_0_0] ${linkItem.style.activeClasses}`,
+                    isActive &&
+                      `active:translate-y-[2px] active:shadow-[0_3px_0_0] ${linkItem.style.activeClasses}`,
                     // Inactive styles
-                    !isActive && `text-primary ${linkItem.style.hoverClasses}`
+                    !isActive && `text-primary ${linkItem.style.hoverClasses}`,
                   )}
                 >
                   {linkItem.name}

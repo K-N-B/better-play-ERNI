@@ -28,10 +28,10 @@ export const Keyboard = ({ onKeyPress, letterStatuses }: KeyboardProps) => {
     <div className="w-full max-w-lg mx-auto">
       {keys.map((row, i) => (
         <div key={i} className="flex justify-center gap-1 sm:gap-1.5 mb-1.5">
-          {row.map(key => {
+          {row.map((key) => {
             const keyUpper = key.toUpperCase();
             const status = letterStatuses[keyUpper] || 'default';
-            
+
             return (
               <button
                 key={key}
@@ -40,7 +40,13 @@ export const Keyboard = ({ onKeyPress, letterStatuses }: KeyboardProps) => {
                           ${key.length > 1 ? 'flex-[1.5] text-xs' : 'flex-1 text-lg'}
                           ${statusColors[status]}`}
               >
-                {key === 'Backspace' ? <X className="mx-auto" /> : key === 'Enter' ? <CornerDownLeft className="mx-auto" /> : key}
+                {key === 'Backspace' ? (
+                  <X className="mx-auto" />
+                ) : key === 'Enter' ? (
+                  <CornerDownLeft className="mx-auto" />
+                ) : (
+                  key
+                )}
               </button>
             );
           })}

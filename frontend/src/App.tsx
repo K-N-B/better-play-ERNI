@@ -4,7 +4,7 @@ import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './hooks/authContext';
 import { ChallengeProvider } from './context/ChallengeContext'; // ✅ NEW
 import LoginPage from './pages/loginPage';
-import AuthCallback from './pages/AuthCallback'
+import AuthCallback from './pages/AuthCallback';
 import { HomePage } from './pages/homePage';
 import { LeaderboardPage } from './pages/leaderboardPage';
 import { ProtectedRoute } from './components/ui/protectedRoute';

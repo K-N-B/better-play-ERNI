@@ -42,10 +42,13 @@ export const useTimer = (startTimeMs: number = 0) => {
   }, [stopTimer]);
 
   // setSavedTime is stable
-  const setSavedTime = useCallback((savedTimeMs: number) => {
-     stopTimer();
-     setTime(savedTimeMs);
-  }, [stopTimer]);
+  const setSavedTime = useCallback(
+    (savedTimeMs: number) => {
+      stopTimer();
+      setTime(savedTimeMs);
+    },
+    [stopTimer],
+  );
 
   // Cleanup effect is stable
   useEffect(() => {

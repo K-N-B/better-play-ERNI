@@ -10,9 +10,12 @@ interface ChallengeModalProps {
   submissionId: number;
 }
 
-function debounce<F extends (...args: any[]) => any>(func: F, wait: number): (...args: Parameters<F>) => void {
+function debounce<F extends (...args: any[]) => any>(
+  func: F,
+  wait: number,
+): (...args: Parameters<F>) => void {
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
-  return function(this: ThisParameterType<F>, ...args: Parameters<F>) {
+  return function (this: ThisParameterType<F>, ...args: Parameters<F>) {
     if (timeoutId) {
       clearTimeout(timeoutId);
     }
@@ -22,10 +25,19 @@ function debounce<F extends (...args: any[]) => any>(func: F, wait: number): (..
   };
 }
 
-export const ChallengeModal: React.FC<ChallengeModalProps> = ({ isOpen, onClose, submissionId }) => {
+export const ChallengeModal: React.FC<ChallengeModalProps> = ({
+  isOpen,
+  onClose,
+  submissionId,
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState<Pick<UserProfile, 'id' | 'username' | 'email'>[]>([]);
-  const [selectedUser, setSelectedUser] = useState<Pick<UserProfile, 'id' | 'username' | 'email'> | null>(null);
+  const [searchResults, setSearchResults] = useState<
+    Pick<UserProfile, 'id' | 'username' | 'email'>[]
+  >([]);
+  const [selectedUser, setSelectedUser] = useState<Pick<
+    UserProfile,
+    'id' | 'username' | 'email'
+  > | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState('');
@@ -50,7 +62,7 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({ isOpen, onClose,
         setIsSearching(false);
       }
     }, 500),
-    []
+    [],
   );
 
   useEffect(() => {
@@ -65,37 +77,39 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({ isOpen, onClose,
     setIsSending(true);
     setError('');
     setSuccessMessage('');
-    
+
     try {
       const challengeData: CreateChallengeData = {
         recipient_id: selectedUser.id,
-        submission_id: submissionId
+        submission_id: submissionId,
       };
 
       console.log('[ChallengeModal] Sending challenge:', challengeData);
 
       const result = await sendChallenge(challengeData);
-      
+
       console.log('[ChallengeModal] Challenge sent successfully:', result);
 
       setSuccessMessage(`Challenge sent to ${selectedUser.username}!`);
       setSelectedUser(null);
       setSearchTerm('');
       setSearchResults([]);
-      
+
       // Close modal after a short delay
       setTimeout(onClose, 2500);
     } catch (err) {
       console.error('[ChallengeModal] Error sending challenge:', err);
-      
+
       // ✅ Better error handling - check error type
       if (err instanceof Error) {
         // Extract the actual error message
         const errorMessage = err.message;
-        
+
         // Check if it's a validation error with details
         if (errorMessage.includes('Validation failed')) {
-          setError('Unable to send challenge. Please check your selection and try again.');
+          setError(
+            'Unable to send challenge. Please check your selection and try again.',
+          );
         } else {
           setError(errorMessage);
         }
@@ -123,8 +137,14 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({ isOpen, onClose,
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-white p-6 rounded-3xl shadow-xl w-full max-w-md relative mx-4" onClick={e => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white p-6 rounded-3xl shadow-xl w-full max-w-md relative mx-4"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
@@ -132,7 +152,9 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({ isOpen, onClose,
         >
           <X size={24} />
         </button>
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">Challenge a Colleague</h2>
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">
+          Challenge a Colleague
+        </h2>
 
         <div className="relative mb-4">
           <input
@@ -143,7 +165,10 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({ isOpen, onClose,
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary pl-10"
             disabled={isSending || !!successMessage}
           />
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <Search
+            size={18}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+          />
           {isSearching && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
               <LoadingSpinner />
@@ -155,7 +180,7 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({ isOpen, onClose,
           {!isSearching && !selectedUser && searchResults.length > 0 && (
             <div className="max-h-48 overflow-y-auto border rounded-md bg-gray-50">
               <ul className="divide-y divide-gray-200">
-                {searchResults.map(user => (
+                {searchResults.map((user) => (
                   <li key={user.id}>
                     <button
                       onClick={() => setSelectedUser(user)}
@@ -164,19 +189,28 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({ isOpen, onClose,
                     >
                       <div>
                         <span className="font-medium">{user.username}</span>
-                        <span className="text-xs text-gray-500 block">{user.email}</span>
+                        <span className="text-xs text-gray-500 block">
+                          {user.email}
+                        </span>
                       </div>
-                      <span className="text-xs text-primary font-medium">Select</span>
+                      <span className="text-xs text-primary font-medium">
+                        Select
+                      </span>
                     </button>
                   </li>
                 ))}
               </ul>
             </div>
           )}
-          
-          {!isSearching && !selectedUser && searchTerm.length >= 2 && searchResults.length === 0 && (
-            <p className="text-sm text-gray-500 text-center py-4">No users found matching "{searchTerm}".</p>
-          )}
+
+          {!isSearching &&
+            !selectedUser &&
+            searchTerm.length >= 2 &&
+            searchResults.length === 0 && (
+              <p className="text-sm text-gray-500 text-center py-4">
+                No users found matching "{searchTerm}".
+              </p>
+            )}
 
           {selectedUser && !successMessage && (
             <div className="bg-blue-50 p-3 rounded-md flex justify-between items-center border border-blue-100">
@@ -185,7 +219,9 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({ isOpen, onClose,
                   <UserCheck size={16} />
                   Challenging: {selectedUser.username}
                 </p>
-                <p className="text-xs text-blue-600 ml-5">{selectedUser.email}</p>
+                <p className="text-xs text-blue-600 ml-5">
+                  {selectedUser.email}
+                </p>
               </div>
               <button
                 onClick={handleSendChallenge}
@@ -199,8 +235,14 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({ isOpen, onClose,
           )}
         </div>
 
-        {error && <p className="text-sm text-red-600 mt-2 text-center">{error}</p>}
-        {successMessage && <p className="text-sm text-green-600 mt-2 text-center font-medium">{successMessage}</p>}
+        {error && (
+          <p className="text-sm text-red-600 mt-2 text-center">{error}</p>
+        )}
+        {successMessage && (
+          <p className="text-sm text-green-600 mt-2 text-center font-medium">
+            {successMessage}
+          </p>
+        )}
       </div>
     </div>
   );

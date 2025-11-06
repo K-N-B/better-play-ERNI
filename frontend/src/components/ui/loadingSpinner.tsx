@@ -20,17 +20,24 @@ const sizeMap: Record<SpinnerSize, string> = {
   xl: 'h-16 w-16 border-4', // Extra large
 };
 
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 'md', fullPage = false }) => {
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+  size = 'md',
+  fullPage = false,
+}) => {
   const sizeClasses = sizeMap[size] || sizeMap.md; // Get classes or fallback to medium
 
   return (
     // Outer div for centering if fullPage is true
-    <div className={clsx(fullPage && 'flex items-center justify-center h-full w-full')}>
+    <div
+      className={clsx(
+        fullPage && 'flex items-center justify-center h-full w-full',
+      )}
+    >
       {/* The spinner element */}
       <div
         className={clsx(
-          "animate-spin rounded-full border-blue-500 border-b-transparent", // Base styles: color, transparent bottom border for spin effect
-          sizeClasses // Apply dynamic size and border width
+          'animate-spin rounded-full border-blue-500 border-b-transparent', // Base styles: color, transparent bottom border for spin effect
+          sizeClasses, // Apply dynamic size and border width
         )}
         role="status" // Accessibility
         aria-live="polite"

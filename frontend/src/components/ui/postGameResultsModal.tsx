@@ -11,11 +11,11 @@ interface PostGameResultsModalProps {
   gameType: 'wordle' | 'sudoku' | 'ernigram'; // ✅ NEW: Track which game
 }
 
-export const PostGameResultsModal = ({ 
-  score, 
-  onClose, 
+export const PostGameResultsModal = ({
+  score,
+  onClose,
   submissionId,
-  gameType 
+  gameType,
 }: PostGameResultsModalProps) => {
   const [isChallengeModalOpen, setIsChallengeModalOpen] = useState(false);
   const navigate = useNavigate();
@@ -40,13 +40,15 @@ export const PostGameResultsModal = ({
           </button>
 
           <Trophy className="mx-auto text-yellow-500 mb-3" size={48} />
-          <h2 className="text-xl font-bold mb-3 text-gray-800">Puzzle Complete!</h2>
-          
+          <h2 className="text-xl font-bold mb-3 text-gray-800">
+            Puzzle Complete!
+          </h2>
+
           {/* ✅ ENHANCED: Show game type */}
           <p className="text-sm text-gray-600 mb-1">
             {gameType.charAt(0).toUpperCase() + gameType.slice(1)} • Completed
           </p>
-          
+
           <p className="text-lg text-gray-700 mb-1">You earned</p>
           <div className="font-bold text-primary text-4xl flex items-center justify-center gap-1 mb-4">
             {score}
@@ -58,7 +60,11 @@ export const PostGameResultsModal = ({
             onClick={() => setIsChallengeModalOpen(true)}
             disabled={!effectiveSubmissionId}
             className="w-full px-6 py-3 mb-2 text-base text-white bg-primary rounded-lg shadow hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-            title={!effectiveSubmissionId ? "Submission failed, cannot challenge" : "Challenge a colleague"}
+            title={
+              !effectiveSubmissionId
+                ? 'Submission failed, cannot challenge'
+                : 'Challenge a colleague'
+            }
           >
             Challenge a Colleague!
           </button>

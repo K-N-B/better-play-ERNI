@@ -9,12 +9,17 @@ interface NumberPadProps {
   isNoteMode: boolean;
 }
 
-export const NumberPad = ({ onNumberClick, onEraseClick, onNoteToggle, isNoteMode }: NumberPadProps) => {
+export const NumberPad = ({
+  onNumberClick,
+  onEraseClick,
+  onNoteToggle,
+  isNoteMode,
+}: NumberPadProps) => {
   const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
   return (
     <div className="grid grid-cols-5 gap-2 w-full max-w-sm mx-auto mt-4">
-      {numbers.map(num => (
+      {numbers.map((num) => (
         <button
           key={num}
           onClick={() => onNumberClick(num)}

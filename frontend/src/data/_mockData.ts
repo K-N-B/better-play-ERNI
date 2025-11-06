@@ -1,34 +1,34 @@
-import type { UserProfile, Department } from "../types/user";
-import type { DailyPuzzleResponse } from "../types/game";
+import type { UserProfile, Department } from '../types/user';
+import type { DailyPuzzleResponse } from '../types/game';
 import type {
   IndividualScoreEntry,
   DepartmentScoreEntry,
-} from "../types/leaderboard"; // Updated type name
-import type { ActivityHubResponse, OnlineUser } from "../types/activity";
-import type { Submission } from "../types/game";
-import type { Challenge } from "../types/challenge";
-import type { RewardItem, ClaimResponse, ClaimedReward } from "../types";
+} from '../types/leaderboard'; // Updated type name
+import type { ActivityHubResponse, OnlineUser } from '../types/activity';
+import type { Submission } from '../types/game';
+import type { Challenge } from '../types/challenge';
+import type { RewardItem, ClaimResponse, ClaimedReward } from '../types';
 
-import stickerImage from "../assets/images/stickers.jpg"; // Adjust path/filename
-import mugImage from "../assets/images/mug.jpg";
-import pinImage from "../assets/images/pin.png";
-import ballerImage from "../assets/images/baller.jpg";
+import stickerImage from '../assets/images/stickers.jpg'; // Adjust path/filename
+import mugImage from '../assets/images/mug.jpg';
+import pinImage from '../assets/images/pin.png';
+import ballerImage from '../assets/images/baller.jpg';
 
 // Mock Departments
 export const MOCK_DEPARTMENTS: Department[] = [
-  { id: 1, name: "Backend & Cloud" },
-  { id: 2, name: "Data & AI" },
-  { id: 3, name: "Web Dev 1" },
-  { id: 4, name: "Web Dev 2" },
-  { id: 5, name: "Sales" },
-  { id: 6, name: "HR & Admin" },
+  { id: 1, name: 'Backend & Cloud' },
+  { id: 2, name: 'Data & AI' },
+  { id: 3, name: 'Web Dev 1' },
+  { id: 4, name: 'Web Dev 2' },
+  { id: 5, name: 'Sales' },
+  { id: 6, name: 'HR & Admin' },
 ];
 
 // Mock user 1 with a department
 export const MOCK_USER_MAIN: UserProfile = {
   id: 1,
-  username: "forondayna",
-  email: "forondayna1214@gmail.com",
+  username: 'forondayna',
+  email: 'forondayna1214@gmail.com',
   department: MOCK_DEPARTMENTS[1],
   profile_complete: true,
   total_points_alltime: 1250,
@@ -42,8 +42,8 @@ export const MOCK_USER_MAIN: UserProfile = {
 // Mock user 2 with no department yet
 export const MOCK_USER_NEW: UserProfile = {
   id: 2,
-  username: "new_user",
-  email: "new.user@erni.com",
+  username: 'new_user',
+  email: 'new.user@erni.com',
   department: null,
   profile_complete: false,
   total_points_alltime: 0,
@@ -74,43 +74,43 @@ export const MOCK_USER_NEW: UserProfile = {
 // };
 
 export const MOCK_ONLINE_USERS: OnlineUser[] = [
-  { id: 1, username: "gavin_cii" }, // Example user
-  { id: 3, username: "jerome_B" }, // Example user
-  { id: 5, username: "alex_m" }, // Example user
+  { id: 1, username: 'gavin_cii' }, // Example user
+  { id: 3, username: 'jerome_B' }, // Example user
+  { id: 5, username: 'alex_m' }, // Example user
 ];
 
 export const MOCK_ACTIVITY_HUB: ActivityHubResponse = {
   recent_activity: [
     {
       id: 105,
-      user: { id: 2, username: "Dayniel Caadiang" },
-      puzzle_name: "Sudoku",
-      difficulty: "easy",
-      time_in_minutes: "4:98",
+      user: { id: 2, username: 'Dayniel Caadiang' },
+      puzzle_name: 'Sudoku',
+      difficulty: 'easy',
+      time_in_minutes: '4:98',
       created_at: new Date(Date.now() - 60000 * 2).toISOString(), // 2 mins ago
     },
     {
       id: 104,
-      user: { id: 1, username: "gavin_cii" },
-      puzzle_name: "Wordle",
-      difficulty: "hard",
-      time_in_minutes: "1:32",
+      user: { id: 1, username: 'gavin_cii' },
+      puzzle_name: 'Wordle',
+      difficulty: 'hard',
+      time_in_minutes: '1:32',
       created_at: new Date(Date.now() - 60000 * 5).toISOString(), // 5 mins ago
     },
     {
       id: 103,
-      user: { id: 3, username: "jerome_B" },
-      puzzle_name: "ERNIgram",
-      difficulty: "easy",
-      time_in_minutes: "2:15",
+      user: { id: 3, username: 'jerome_B' },
+      puzzle_name: 'ERNIgram',
+      difficulty: 'easy',
+      time_in_minutes: '2:15',
       created_at: new Date(Date.now() - 60000 * 10).toISOString(), // 10 mins ago
     },
     // ... add more as needed
   ],
   online_users: [
-    { id: 1, username: "gavin_cii" },
-    { id: 3, username: "jerome_B" },
-    { id: 2, username: "Dayniel Caadiang" },
+    { id: 1, username: 'gavin_cii' },
+    { id: 3, username: 'jerome_B' },
+    { id: 2, username: 'Dayniel Caadiang' },
   ],
 };
 
@@ -141,20 +141,20 @@ export const MOCK_ACTIVITY_HUB: ActivityHubResponse = {
 
 export const MOCK_USERS_SEARCH: Pick<
   UserProfile,
-  "id" | "username" | "email"
+  'id' | 'username' | 'email'
 >[] = [
-  { id: 1, username: "gavin_cii", email: "gavin@erni.com" },
-  { id: 2, username: "Dayniel Caadiang", email: "dayniel@erni.com" },
-  { id: 3, username: "sarah_b", email: "sarah@erni.com" },
-  { id: 4, username: "mike_t", email: "mike@erni.com" },
+  { id: 1, username: 'gavin_cii', email: 'gavin@erni.com' },
+  { id: 2, username: 'Dayniel Caadiang', email: 'dayniel@erni.com' },
+  { id: 3, username: 'sarah_b', email: 'sarah@erni.com' },
+  { id: 4, username: 'mike_t', email: 'mike@erni.com' },
 ];
 
 export const MOCK_PENDING_CHALLENGES: Challenge[] = [
   {
     id: 1,
-    challenger: { id: 1, username: "gavin_cii" },
-    recipient: { id: 2, username: "Dayniel Caadiang" }, // Assuming current user is Dayniel
-    puzzle_type: "wordle",
+    challenger: { id: 1, username: 'gavin_cii' },
+    recipient: { id: 2, username: 'Dayniel Caadiang' }, // Assuming current user is Dayniel
+    puzzle_type: 'wordle',
     puzzle_id: 101, // Matches MOCK_PUZZLES.wordle.id
     challenger_submission: {
       id: 501,
@@ -163,15 +163,15 @@ export const MOCK_PENDING_CHALLENGES: Challenge[] = [
       tries: 2,
     },
     recipient_submission: null,
-    status: "PENDING",
+    status: 'PENDING',
     winner: null,
     created_at: new Date(Date.now() - 60000 * 30).toISOString(), // 30 mins ago
   },
   {
     id: 2,
-    challenger: { id: 3, username: "sarah_b" },
-    recipient: { id: 2, username: "Dayniel Caadiang" },
-    puzzle_type: "sudoku",
+    challenger: { id: 3, username: 'sarah_b' },
+    recipient: { id: 2, username: 'Dayniel Caadiang' },
+    puzzle_type: 'sudoku',
     puzzle_id: 201, // Matches MOCK_PUZZLES.sudoku.id
     challenger_submission: {
       id: 503,
@@ -180,7 +180,7 @@ export const MOCK_PENDING_CHALLENGES: Challenge[] = [
       tries: 1,
     },
     recipient_submission: null,
-    status: "PENDING",
+    status: 'PENDING',
     winner: null,
     created_at: new Date(Date.now() - 60000 * 60 * 2).toISOString(), // 2 hours ago
   },
@@ -189,9 +189,9 @@ export const MOCK_PENDING_CHALLENGES: Challenge[] = [
 export const MOCK_COMPLETED_CHALLENGES: Challenge[] = [
   {
     id: 3,
-    challenger: { id: 2, username: "Dayniel Caadiang" },
-    recipient: { id: 1, username: "gavin_cii" },
-    puzzle_type: "ernigram",
+    challenger: { id: 2, username: 'Dayniel Caadiang' },
+    recipient: { id: 1, username: 'gavin_cii' },
+    puzzle_type: 'ernigram',
     puzzle_id: 301,
     challenger_submission: {
       id: 504,
@@ -205,45 +205,45 @@ export const MOCK_COMPLETED_CHALLENGES: Challenge[] = [
       time_taken_ms: 80000,
       tries: 2,
     },
-    status: "COMPLETED",
-    winner: { id: 1, username: "gavin_cii" }, // Gavin won
+    status: 'COMPLETED',
+    winner: { id: 1, username: 'gavin_cii' }, // Gavin won
     created_at: new Date(Date.now() - 60000 * 60 * 24).toISOString(), // 1 day ago
   },
 ];
 
-export const MOCK_USER_SARAH: Pick<UserProfile, "id" | "username" | "email"> = {
+export const MOCK_USER_SARAH: Pick<UserProfile, 'id' | 'username' | 'email'> = {
   id: 3,
-  username: "sarah_b",
-  email: "sarah@erni.com",
+  username: 'sarah_b',
+  email: 'sarah@erni.com',
 };
-export const MOCK_USER_MIKE: Pick<UserProfile, "id" | "username" | "email"> = {
+export const MOCK_USER_MIKE: Pick<UserProfile, 'id' | 'username' | 'email'> = {
   id: 4,
-  username: "mike_t",
-  email: "mike@erni.com",
+  username: 'mike_t',
+  email: 'mike@erni.com',
 };
-export const MOCK_USER_DAYNIEL: Pick<UserProfile, "id" | "username" | "email"> =
-  { id: 5, username: "Dayniel Caadiang", email: "dayniel@erni.com" }; // Corrected ID from previous example
+export const MOCK_USER_DAYNIEL: Pick<UserProfile, 'id' | 'username' | 'email'> =
+  { id: 5, username: 'Dayniel Caadiang', email: 'dayniel@erni.com' }; // Corrected ID from previous example
 
 export const MOCK_LEADERBOARD_INDIVIDUAL_WEEKLY: IndividualScoreEntry[] = [
   {
     user: { id: MOCK_USER_MAIN.id, username: MOCK_USER_MAIN.username },
     score: 1250,
-    week_start_date: "2025-10-19",
+    week_start_date: '2025-10-19',
   },
   {
     user: { id: MOCK_USER_SARAH.id, username: MOCK_USER_SARAH.username },
     score: 1100,
-    week_start_date: "2025-10-19",
+    week_start_date: '2025-10-19',
   },
   {
     user: { id: MOCK_USER_MIKE.id, username: MOCK_USER_MIKE.username },
     score: 980,
-    week_start_date: "2025-10-19",
+    week_start_date: '2025-10-19',
   },
   {
     user: { id: MOCK_USER_DAYNIEL.id, username: MOCK_USER_DAYNIEL.username },
     score: 950,
-    week_start_date: "2025-10-19",
+    week_start_date: '2025-10-19',
   },
 ];
 
@@ -251,54 +251,54 @@ export const MOCK_LEADERBOARD_DEPARTMENT_WEEKLY: DepartmentScoreEntry[] = [
   {
     department: { id: MOCK_DEPARTMENTS[0].id, name: MOCK_DEPARTMENTS[0].name },
     score: 2230,
-    week_start_date: "2025-10-19",
+    week_start_date: '2025-10-19',
   },
   {
     department: { id: MOCK_DEPARTMENTS[1].id, name: MOCK_DEPARTMENTS[1].name },
     score: 1500,
-    week_start_date: "2025-10-19",
+    week_start_date: '2025-10-19',
   },
   {
     department: { id: MOCK_DEPARTMENTS[3].id, name: MOCK_DEPARTMENTS[3].name },
     score: 1100,
-    week_start_date: "2025-10-19",
+    week_start_date: '2025-10-19',
   },
   {
     department: { id: MOCK_DEPARTMENTS[2].id, name: MOCK_DEPARTMENTS[2].name },
     score: 900,
-    week_start_date: "2025-10-19",
+    week_start_date: '2025-10-19',
   },
 ];
 
 export const MOCK_REWARDS: RewardItem[] = [
   {
-    id: "reward-001",
-    name: "Company Sticker Pack",
-    description: "Show your ERNI pride with these cool stickers.",
+    id: 'reward-001',
+    name: 'Company Sticker Pack',
+    description: 'Show your ERNI pride with these cool stickers.',
     cost: 250,
     image: stickerImage,
     max_claims_per_user: 5, // User can claim this 5 times
   },
   {
-    id: "reward-002",
-    name: "ERNI Coffee Mug",
-    description: "Enjoy your morning brew in style.",
+    id: 'reward-002',
+    name: 'ERNI Coffee Mug',
+    description: 'Enjoy your morning brew in style.',
     cost: 1000,
     image: mugImage,
     max_claims_per_user: 1, // User can only claim this ONCE
   },
   {
-    id: "reward-003",
+    id: 'reward-003',
     name: '"Puzzle Master" Title (Internal)',
-    description: "Get recognized internally as a puzzle whiz for a week!",
+    description: 'Get recognized internally as a puzzle whiz for a week!',
     cost: 5000,
     image: ballerImage,
     max_claims_per_user: null, // No limit (infinite claims)
   },
   {
-    id: "reward-004",
-    name: "Extra Hint Coupon",
-    description: "Redeem for one free hint on any puzzle.",
+    id: 'reward-004',
+    name: 'Extra Hint Coupon',
+    description: 'Redeem for one free hint on any puzzle.',
     cost: 150,
     image: pinImage,
     max_claims_per_user: 10, // Can claim 10 coupons
@@ -311,28 +311,28 @@ export const MOCK_CLAIMED_REWARDS: ClaimedReward[] = [
   // User has already claimed the mug once
   {
     id: 901,
-    user: { id: 1, username: "gavin_cii" }, // Assuming user 1 is logged in
+    user: { id: 1, username: 'gavin_cii' }, // Assuming user 1 is logged in
     reward: MOCK_REWARDS[1], // The ERNI Coffee Mug
     claimed_at: new Date(Date.now() - 86400000 * 5).toISOString(), // 5 days ago
     points_spent: 1000,
-    status: "FULFILLED",
+    status: 'FULFILLED',
   },
   // User has claimed stickers twice
   {
     id: 902,
-    user: { id: 1, username: "gavin_cii" },
+    user: { id: 1, username: 'gavin_cii' },
     reward: MOCK_REWARDS[0], // Sticker Pack
     claimed_at: new Date(Date.now() - 86400000 * 2).toISOString(), // 2 days ago
     points_spent: 250,
-    status: "CLAIMED",
+    status: 'CLAIMED',
   },
   {
     id: 903,
-    user: { id: 1, username: "gavin_cii" },
+    user: { id: 1, username: 'gavin_cii' },
     reward: MOCK_REWARDS[0], // Sticker Pack
     claimed_at: new Date(Date.now() - 86400000 * 1).toISOString(), // 1 day ago
     points_spent: 250,
-    status: "CLAIMED",
+    status: 'CLAIMED',
   },
 ];
 // ---

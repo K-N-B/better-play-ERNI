@@ -26,7 +26,7 @@ export default function LoginPage() {
     try {
       const data = await getLoginRedirectUrl();
       if (data.auth_url) {
-        window.location.href = data.auth_url; 
+        window.location.href = data.auth_url;
       } else {
         setError('Failed to get authorization URL');
         setLoading(false);
@@ -37,7 +37,6 @@ export default function LoginPage() {
     }
   };
 
-  
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* ... (keep all your original JSX: Header, Main Content, Card, Button, etc.) ... */}
@@ -84,9 +83,7 @@ export default function LoginPage() {
                 </>
               )}
             </button>
-            
 
-            
             {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
@@ -114,7 +111,6 @@ export default function LoginPage() {
                 </div>
               </div>
             </div>
-          
 
             {/* Footer */}
             <div className="mt-8 text-center text-sm text-gray-500">

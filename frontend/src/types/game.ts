@@ -2,7 +2,7 @@
 
 import type { LucideIcon } from 'lucide-react';
 
-export type Difficulty = "easy" | "hard";
+export type Difficulty = 'easy' | 'hard';
 
 // --- PUZZLE TYPES ---
 export interface WordlePuzzle {
@@ -24,7 +24,7 @@ export interface ErnigramPuzzle {
   id: number;
   solution_phrase: string;
   clue: string;
-  employee_image_url: string | "None"; 
+  employee_image_url: string | 'None';
   date_to_be_used: string;
 }
 
@@ -77,7 +77,7 @@ export interface WordleProgress {
   currentRow: number;
   letterStatuses: Record<string, KeyStatus>;
   isGameOver: boolean;
-  status?: 'ACTIVE' | 'SOLVED' | 'LOST';  // ✅ Added 'LOST'
+  status?: 'ACTIVE' | 'SOLVED' | 'LOST'; // ✅ Added 'LOST'
 }
 
 export interface SudokuCell {
@@ -92,8 +92,8 @@ export interface ErnigramProgress {
   guessedLetters: string[];
   attemptsLeft: number;
   isGameOver: boolean;
-  misses?: number;  // ✅ Added optional misses
-  status?: 'ACTIVE' | 'SOLVED' | 'LOST';  // ✅ Added status
+  misses?: number; // ✅ Added optional misses
+  status?: 'ACTIVE' | 'SOLVED' | 'LOST'; // ✅ Added status
 }
 
 // ✅ FIX 4: Updated SudokuProgress type
@@ -102,7 +102,7 @@ export interface SudokuProgress {
   final_grid?: string;
   hints_used: number;
   isGameOver: boolean;
-  status?: 'ACTIVE' | 'SOLVED' | 'LOST';  // ✅ Added status
+  status?: 'ACTIVE' | 'SOLVED' | 'LOST'; // ✅ Added status
 }
 
 export interface PuzzleAttemptData {

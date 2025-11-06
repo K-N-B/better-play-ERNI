@@ -1,7 +1,7 @@
 // frontend/src/api/authService.ts
-import type { Department, UserProfile } from "../types/user";
+import type { Department, UserProfile } from '../types/user';
 
-export const API_URL = "http://localhost:8000";
+export const API_URL = 'http://localhost:8000';
 
 /**
  * Check if user has a valid session cookie
@@ -13,7 +13,7 @@ export const checkAuth = async (): Promise<{
 }> => {
   try {
     const response = await fetch(`${API_URL}/auth/check/`, {
-      credentials: "include", // This sends the session cookie
+      credentials: 'include', // This sends the session cookie
     });
 
     if (!response.ok) {
@@ -34,11 +34,11 @@ export const checkAuth = async (): Promise<{
  */
 export const getLoginRedirectUrl = async (): Promise<{ auth_url: string }> => {
   const response = await fetch(`${API_URL}/auth/login/`, {
-    credentials: "include",
+    credentials: 'include',
   });
 
   if (!response.ok) {
-    throw new Error("Failed to get auth URL");
+    throw new Error('Failed to get auth URL');
   }
 
   return response.json();
@@ -52,25 +52,28 @@ export const getLoginRedirectUrl = async (): Promise<{ auth_url: string }> => {
 export const logoutUser = async (): Promise<void> => {
   const csrfToken = getCookie('csrftoken');
   if (!csrfToken) {
-    console.warn("[logoutUser] CSRF token not found. Logout may fail.");
+    console.warn('[logoutUser] CSRF token not found. Logout may fail.');
   }
-  
+
   const response = await fetch(`${API_URL}/auth/logout/`, {
-    method: "POST",
-    credentials: "include",
+    method: 'POST',
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       // CRUCIAL ADDITION: Send the CSRF token
-      'X-CSRFToken': csrfToken || '', 
+      'X-CSRFToken': csrfToken || '',
     },
     body: JSON.stringify({}), // Include a body for fetch consistency with POST
   });
-  
+
   if (!response.ok) {
-      // Throw an error if the backend request failed (e.g., 403, 500)
-      const errorText = await response.text();
-      console.error(`[logoutUser] API request failed (${response.status}):`, errorText);
-      throw new Error(`Failed to log out: ${response.statusText}`);
+    // Throw an error if the backend request failed (e.g., 403, 500)
+    const errorText = await response.text();
+    console.error(
+      `[logoutUser] API request failed (${response.status}):`,
+      errorText,
+    );
+    throw new Error(`Failed to log out: ${response.statusText}`);
   }
 };
 
@@ -84,19 +87,20 @@ export const getDepartments = async (): Promise<Department[]> => {
     const response = await fetch(`${API_URL}/api/departments/`, {
       credentials: 'include', // Include cookies for authentication
       headers: {
-        'Accept': 'application/json',
-      }
+        Accept: 'application/json',
+      },
     });
 
     if (!response.ok) {
-      console.error(`[getDepartments] API request failed with status ${response.status}`);
+      console.error(
+        `[getDepartments] API request failed with status ${response.status}`,
+      );
       throw new Error(`Failed to fetch departments: ${response.statusText}`);
     }
 
     const data: Department[] = await response.json();
     console.log('[getDepartments] Fetched departments:', data);
     return data;
-
   } catch (error) {
     console.error('[getDepartments] Fetch error:', error);
     throw error;
@@ -107,15 +111,19 @@ export const getDepartments = async (): Promise<Department[]> => {
  * Complete user profile by selecting a department
  * POST /api/users/me/complete-profile/
  */
-export const completeProfile = async (departmentId: number): Promise<UserProfile> => {
+export const completeProfile = async (
+  departmentId: number,
+): Promise<UserProfile> => {
   try {
-    console.log(`[completeProfile] Sending request... Dept ID: ${departmentId}`);
+    console.log(
+      `[completeProfile] Sending request... Dept ID: ${departmentId}`,
+    );
 
     // Get CSRF Token
     const csrfToken = getCookie('csrftoken');
     if (!csrfToken) {
-      console.error("[completeProfile] CSRF token not found.");
-      throw new Error("CSRF token missing. Cannot complete profile.");
+      console.error('[completeProfile] CSRF token not found.');
+      throw new Error('CSRF token missing. Cannot complete profile.');
     }
 
     const response = await fetch(`${API_URL}/api/users/me/complete-profile/`, {
@@ -130,14 +138,21 @@ export const completeProfile = async (departmentId: number): Promise<UserProfile
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error(`[completeProfile] API request failed (${response.status}):`, errorData);
-      throw new Error(`Failed to complete profile: ${errorData.detail || response.statusText}`);
+      console.error(
+        `[completeProfile] API request failed (${response.status}):`,
+        errorData,
+      );
+      throw new Error(
+        `Failed to complete profile: ${errorData.detail || response.statusText}`,
+      );
     }
 
     const updatedUserProfile: UserProfile = await response.json();
-    console.log('[completeProfile] Profile updated successfully:', updatedUserProfile);
+    console.log(
+      '[completeProfile] Profile updated successfully:',
+      updatedUserProfile,
+    );
     return updatedUserProfile;
-
   } catch (error) {
     console.error('[completeProfile] Fetch error:', error);
     throw error;
@@ -153,7 +168,7 @@ export function getCookie(name: string): string | null {
     const cookies = document.cookie.split(';');
     for (let i = 0; i < cookies.length; i++) {
       const cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+      if (cookie.substring(0, name.length + 1) === name + '=') {
         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
         break;
       }

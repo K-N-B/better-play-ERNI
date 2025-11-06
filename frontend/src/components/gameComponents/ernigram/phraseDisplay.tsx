@@ -5,7 +5,10 @@ interface PhraseDisplayProps {
   guessedLetters: string[];
 }
 
-export const PhraseDisplay = ({ solutionPhrase, guessedLetters }: PhraseDisplayProps) => {
+export const PhraseDisplay = ({
+  solutionPhrase,
+  guessedLetters,
+}: PhraseDisplayProps) => {
   return (
     <div className="flex justify-center flex-wrap gap-2 mb-6">
       {solutionPhrase.split(' ').map((word, wordIndex) => (

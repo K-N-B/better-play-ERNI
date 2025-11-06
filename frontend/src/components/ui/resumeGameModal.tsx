@@ -14,29 +14,29 @@ export const ResumeGameModal = ({
   maxGuesses,
   puzzleDate,
   puzzleNumber,
-  editor = "ERNI Team",
+  editor = 'ERNI Team',
   onContinue,
 }: ResumeGameModalProps) => {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center animate-in fade-in zoom-in duration-300">
         {/* Welcome Back Header */}
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Welcome Back
-        </h1>
-        
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">Welcome Back</h1>
+
         {/* Progress Message */}
         <p className="text-xl text-gray-700 mb-8 leading-relaxed">
           {guessCount > 0 && maxGuesses <= 10 ? (
             // Wordle/ERNIgram style (guesses out of max)
             <>
-              You've made <strong className="text-emerald-600">{guessCount}</strong> of{' '}
+              You've made{' '}
+              <strong className="text-emerald-600">{guessCount}</strong> of{' '}
               <strong>{maxGuesses}</strong> guesses. Keep it up!
             </>
           ) : guessCount > 0 && maxGuesses > 10 ? (
             // Sudoku style (cells filled)
             <>
-              You've filled <strong className="text-pink-500">{guessCount}</strong> of{' '}
+              You've filled{' '}
+              <strong className="text-pink-500">{guessCount}</strong> of{' '}
               <strong>{maxGuesses}</strong> cells. Keep it up!
             </>
           ) : (
@@ -48,7 +48,7 @@ export const ResumeGameModal = ({
             </>
           )}
         </p>
-        
+
         {/* Continue Button */}
         <button
           onClick={onContinue}
@@ -56,14 +56,14 @@ export const ResumeGameModal = ({
         >
           Continue
         </button>
-        
+
         {/* Puzzle Info */}
         <div className="text-sm text-gray-600 space-y-1">
           <p className="font-medium">
             {new Date(puzzleDate).toLocaleDateString('en-US', {
               month: 'long',
               day: 'numeric',
-              year: 'numeric'
+              year: 'numeric',
             })}
           </p>
           <p>No. {puzzleNumber}</p>

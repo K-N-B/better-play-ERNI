@@ -1,51 +1,40 @@
-// /frontend/eslint.config.js
-import globals from "globals";
-import pluginJs from "@eslint/js";
-import tseslint from "typescript-eslint";
-import pluginReactConfig from "eslint-plugin-react/configs/recommended.js";
-import { fixupConfigRules } from "@eslint/compat";
-import pluginReactHooks from "eslint-plugin-react-hooks";
-import pluginReactRefresh from "eslint-plugin-react-refresh";
+// eslint.config.js
+import tsPlugin from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
+import reactPlugin from 'eslint-plugin-react';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
+import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
+import prettierPlugin from 'eslint-plugin-prettier';
 
-// --- 1. Import Prettier Config ---
-import pluginPrettier from "eslint-config-prettier";
-// ---
 export default [
-  js.configs.recommended,
-  ...tseslint.configs.recommended,
-  ...fixupConfigRules(pluginReactConfig),
   {
-    files: ["**/*.{js,jsx,ts,tsx}"],
+    files: ['**/*.{ts,tsx,js,jsx}'],
     languageOptions: {
-      globals: globals.browser,
-      parser: tseslint.parser,
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 2025,
+        sourceType: 'module',
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
     },
     plugins: {
-      react,
+      '@typescript-eslint': tsPlugin,
+      react: reactPlugin,
+      'react-hooks': reactHooksPlugin,
+      'jsx-a11y': jsxA11yPlugin,
+      prettier: prettierPlugin,
     },
     rules: {
-      // ✅ JSX formatting rules
-      "react/jsx-first-prop-new-line": ["error", "never"], // keep props on same line
-      "react/jsx-max-props-per-line": ["error", { maximum: 3, when: "always" }], // adjust 3 → 1 for stricter
-      "react/jsx-closing-bracket-location": ["error", "line-aligned"],
-      "react/jsx-tag-spacing": [
-        "error",
-        {
-          closingSlash: "never",
-          beforeSelfClosing: "always",
-          afterOpening: "never",
-          beforeClosing: "never",
-        },
+      'prettier/prettier': 'error',
+      'react/react-in-jsx-scope': 'off',
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_' },
       ],
-
-      // 🧠 General React cleanup
-      "react/react-in-jsx-scope": "off", // React 17+ doesn’t need import React
-      "react/prop-types": "off", // using TypeScript, so not needed
-    },
-    settings: {
-      react: {
-        version: "detect",
-      },
     },
   },
 ];

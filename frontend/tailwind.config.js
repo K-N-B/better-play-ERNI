@@ -1,9 +1,9 @@
 const defaultTheme = require('tailwindcss/defaultTheme');
 
 module.exports = {
-    mode: 'jit',
-    // These paths are just examples, customize them to match your project structure
-    theme: {
+  mode: 'jit',
+  // These paths are just examples, customize them to match your project structure
+  theme: {
     extend: {
       // --- THIS IS THE CHANGE ---
       fontFamily: {
@@ -11,16 +11,14 @@ module.exports = {
         sans: ['Poppins', ...defaultTheme.fontFamily.sans],
       },
       // ---
-      
+
       // ... (your other theme extensions like colors) ...
     },
   },
-   purge: [
-     './public/**/*.html',
-     './src/**/*.{js,jsx,ts,tsx,vue}',
-     './node_modules/flowbite/**/*.js'],
-    plugins: [
-        require('flowbite/plugin')
-    ]
-
-}
+  purge: [
+    './public/**/*.html',
+    './src/**/*.{js,jsx,ts,tsx,vue}',
+    './node_modules/flowbite/**/*.js',
+  ],
+  plugins: [require('flowbite/plugin')],
+};

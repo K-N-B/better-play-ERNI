@@ -2,7 +2,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Navigate, useSearchParams } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
-import { getDailyPuzzles, checkSubmissionExists, getSavedAttempt } from '../api/gameService';
+import {
+  getDailyPuzzles,
+  checkSubmissionExists,
+  getSavedAttempt,
+} from '../api/gameService';
 import { AlreadyPlayedScreen } from '../components/gameComponents/shared/alreadyPlayedScreen';
 import { ResumeGameScreen } from '../components/gameComponents/shared/resumeGameScreen';
 import { LoadingSpinner } from '../components/ui/loadingSpinner';
@@ -21,7 +25,8 @@ const introContent = {
     title: 'Wordle',
     description: 'Guess the hidden <strong>5-letter word</strong>.',
     howToPlay: `You have a set number of tries to guess the word.\nType a 5-letter word and press Enter.\nTiles change color to show how close your guess was:\n<strong class="text-emerald-500">Green</strong>: Correct letter, correct spot.\n<strong class="text-yellow-400">Yellow</strong>: Correct letter, wrong spot.\n<strong class="text-gray-600">Gray</strong>: Letter not in the word.`,
-    pointsInfo: 'Earn points based on how many tries you take. Fewer tries = more points!',
+    pointsInfo:
+      'Earn points based on how many tries you take. Fewer tries = more points!',
     hintInfo: 'Hard mode gives you fewer tries!',
     color: 'bg-emerald-500',
     darkColor: 'shadow-emerald-900',
@@ -29,7 +34,8 @@ const introContent = {
   },
   sudoku: {
     title: 'Sudoku',
-    description: 'Fill the <strong>9x9 grid</strong> so each row, column, and 3x3 box contains digits 1-9 without repeating.',
+    description:
+      'Fill the <strong>9x9 grid</strong> so each row, column, and 3x3 box contains digits 1-9 without repeating.',
     howToPlay: `Click a cell to select it.\nUse the number pad to enter digits.\nToggle "Note Mode" (<span class="inline-block align-middle mx-1">📝</span>) to pencil in possibilities.\nCells will turn <strong class="text-red-500">red</strong> if they conflict with another number.`,
     pointsInfo: 'Earn points based on how quickly you solve the puzzle.',
     hintInfo: 'Hard mode gives you fewer starting numbers.',
@@ -39,7 +45,8 @@ const introContent = {
   },
   ernigram: {
     title: 'ERNIgram',
-    description: 'Guess the hidden phrase related to <strong>ERNI culture, values, or tools</strong>.',
+    description:
+      'Guess the hidden phrase related to <strong>ERNI culture, values, or tools</strong>.',
     howToPlay: `Guess letters one by one using the keyboard.\nEach incorrect guess reduces your remaining attempts.\nTry to solve the phrase before you run out of guesses!`,
     pointsInfo: 'Earn points based on remaining attempts and time.',
     hintInfo: 'Hard mode gives you significantly fewer attempts!',
@@ -49,27 +56,32 @@ const introContent = {
   },
 };
 
-export type Difficulty = "easy" | "hard";
+export type Difficulty = 'easy' | 'hard';
 
 // --- Helper Function ---
-const hasResumableProgress = (attempt: PuzzleAttemptData | null, gameType: string) => {
+const hasResumableProgress = (
+  attempt: PuzzleAttemptData | null,
+  gameType: string,
+) => {
   if (!attempt) return false;
-  
+
   let hasProgress = attempt.time_spent_ms > 5000; // 5 seconds
-  
+
   if (gameType === 'wordle') {
     const wordleProgress = attempt.progress_data as WordleProgress;
-    hasProgress = hasProgress || (wordleProgress?.guesses?.length > 0 && !wordleProgress?.isGameOver);
+    hasProgress =
+      hasProgress ||
+      (wordleProgress?.guesses?.length > 0 && !wordleProgress?.isGameOver);
   }
   // TODO: Add similar progress checks for Sudoku and Ernigram here
-  
+
   return hasProgress;
 };
 
 export const GamePage = () => {
   const { gameType } = useParams<{ gameType: string }>();
   const [searchParams] = useSearchParams();
-  
+
   // ✅ NEW: Get challengeId from URL
   const challengeIdFromUrl = searchParams.get('challenge_id');
   console.log('[GamePage] ========== URL PARAMS ==========');
@@ -77,23 +89,34 @@ export const GamePage = () => {
   console.log('[GamePage] searchParams.toString():', searchParams.toString());
   console.log('[GamePage] challengeIdFromUrl:', challengeIdFromUrl);
   console.log('[GamePage] challengeIdFromUrl type:', typeof challengeIdFromUrl);
-  
-  const challengeId = challengeIdFromUrl ? parseInt(challengeIdFromUrl, 10) : null;
-  
+
+  const challengeId = challengeIdFromUrl
+    ? parseInt(challengeIdFromUrl, 10)
+    : null;
+
   console.log('[GamePage] Parsed challengeId:', challengeId);
   console.log('[GamePage] challengeId type:', typeof challengeId);
   console.log('[GamePage] challengeId is null?:', challengeId === null);
   console.log('[GamePage] challengeId is NaN?:', Number.isNaN(challengeId));
   console.log('[GamePage] =====================================');
-  
-  const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>('easy');
-  const [lockedDifficulty, setLockedDifficulty] = useState<Difficulty | null>(null);
-  const [hasStarted, setHasStarted] = useState(false); 
-  const { data: puzzles, loading: loadingPuzzles, error: error } = useApi(getDailyPuzzles);
-  
+
+  const [selectedDifficulty, setSelectedDifficulty] =
+    useState<Difficulty>('easy');
+  const [lockedDifficulty, setLockedDifficulty] = useState<Difficulty | null>(
+    null,
+  );
+  const [hasStarted, setHasStarted] = useState(false);
+  const {
+    data: puzzles,
+    loading: loadingPuzzles,
+    error: error,
+  } = useApi(getDailyPuzzles);
+
   const [foundSubmission, setFoundSubmission] = useState<any>(null);
-  const [foundAttempt, setFoundAttempt] = useState<PuzzleAttemptData | null>(null);
-  
+  const [foundAttempt, setFoundAttempt] = useState<PuzzleAttemptData | null>(
+    null,
+  );
+
   const [isChecking, setIsChecking] = useState(true);
   const [checkError, setCheckError] = useState<string | null>(null);
 
@@ -131,12 +154,12 @@ export const GamePage = () => {
     }
 
     setIsChecking(true);
-    
+
     const puzzlesToCheck: { diff: Difficulty; puzzle: any }[] = [
       { diff: 'easy', puzzle: (puzzles as any)[`${gameType}_easy`] },
       { diff: 'hard', puzzle: (puzzles as any)[`${gameType}_hard`] },
     ];
-    
+
     if (gameType === 'sudoku' || gameType === 'ernigram') {
       puzzlesToCheck[0].puzzle = (puzzles as any)[gameType];
       puzzlesToCheck[1].puzzle = null;
@@ -154,9 +177,16 @@ export const GamePage = () => {
           console.log(`[GamePage] Checking ${diff} difficulty for ${gameType}`);
 
           try {
-            const subResult = await checkSubmissionExists(gameType, puzzles.date, puzzle.id);
-            console.log(`[GamePage] Submission check result for ${diff}:`, subResult);
-            
+            const subResult = await checkSubmissionExists(
+              gameType,
+              puzzles.date,
+              puzzle.id,
+            );
+            console.log(
+              `[GamePage] Submission check result for ${diff}:`,
+              subResult,
+            );
+
             if (subResult && subResult.hasSubmitted) {
               submission = subResult;
               diffLock = diff;
@@ -164,14 +194,27 @@ export const GamePage = () => {
               break;
             }
           } catch (err) {
-            console.warn(`[GamePage] Submission check failed for ${diff}:`, err);
+            console.warn(
+              `[GamePage] Submission check failed for ${diff}:`,
+              err,
+            );
           }
 
           try {
-            const attemptResult = await getSavedAttempt(gameType, puzzles.date, puzzle.id);
-            console.log(`[GamePage] Attempt check result for ${diff}:`, attemptResult);
-            
-            if (attemptResult && hasResumableProgress(attemptResult, gameType)) {
+            const attemptResult = await getSavedAttempt(
+              gameType,
+              puzzles.date,
+              puzzle.id,
+            );
+            console.log(
+              `[GamePage] Attempt check result for ${diff}:`,
+              attemptResult,
+            );
+
+            if (
+              attemptResult &&
+              hasResumableProgress(attemptResult, gameType)
+            ) {
               attempt = attemptResult;
               diffLock = diff;
               console.log(`[GamePage] ✅ Found resumable attempt for ${diff}`);
@@ -186,44 +229,50 @@ export const GamePage = () => {
         setFoundAttempt(attempt);
         setLockedDifficulty(diffLock);
         setCheckError(null);
-        
+
         console.log('[GamePage] ✅ Check complete:', {
           foundSubmission: !!submission,
           foundAttempt: !!attempt,
-          lockedDifficulty: diffLock
+          lockedDifficulty: diffLock,
         });
       } catch (err) {
         console.error('[GamePage] Critical error during checks:', err);
-        setCheckError(err instanceof Error ? err.message : 'Failed to check game status');
+        setCheckError(
+          err instanceof Error ? err.message : 'Failed to check game status',
+        );
       }
     };
-    
+
     checkAll().finally(() => {
       setIsChecking(false);
       console.log('[GamePage] isChecking set to false');
     });
-
   }, [loadingPuzzles, puzzles, gameType, hasStarted, challengeId]);
 
   // --- RENDER LOGIC ---
   const isLoading = loadingPuzzles || isChecking;
-  
+
   const isValidGameType = gameType && gameType in introContent;
-  const introData = isValidGameType ? introContent[gameType as keyof typeof introContent] : null;
+  const introData = isValidGameType
+    ? introContent[gameType as keyof typeof introContent]
+    : null;
 
   const activeDifficulty = lockedDifficulty || selectedDifficulty;
-  
+
   const { puzzleData, GameComponent } = useMemo(() => {
     if (!puzzles || !isValidGameType) {
       return { puzzleData: null, GameComponent: null };
     }
     let pd: any = null;
     let gc: React.ComponentType<any> | null = null;
-    
+
     switch (gameType) {
       case 'wordle':
         gc = WordleGame;
-        pd = activeDifficulty === 'easy' ? puzzles.wordle_easy : puzzles.wordle_hard;
+        pd =
+          activeDifficulty === 'easy'
+            ? puzzles.wordle_easy
+            : puzzles.wordle_hard;
         break;
       case 'sudoku':
         gc = SudokuGame;
@@ -246,7 +295,7 @@ export const GamePage = () => {
 
   if (error || !puzzles || !isValidGameType || !introData) {
     if (error) {
-      console.error("[GamePage] Error fetching puzzles:", error);
+      console.error('[GamePage] Error fetching puzzles:', error);
       return (
         <div className="p-8 text-center text-red-600">
           Could not load daily puzzles from the server. Please try again later.
@@ -258,7 +307,7 @@ export const GamePage = () => {
   }
 
   if (checkError) {
-    console.error("[GamePage] Check error (non-fatal):", checkError);
+    console.error('[GamePage] Check error (non-fatal):', checkError);
   }
 
   let content;
@@ -270,7 +319,7 @@ export const GamePage = () => {
         gameType={gameType as any}
         score={foundSubmission.score || 0}
         submittedAt={foundSubmission.submittedAt || new Date().toISOString()}
-        difficulty={lockedDifficulty!} 
+        difficulty={lockedDifficulty!}
       />
     );
   }
@@ -280,10 +329,15 @@ export const GamePage = () => {
       content = (
         <ResumeGameScreen
           gameType={gameType as any}
-          guessCount={gameType === 'wordle' ? (foundAttempt.progress_data as WordleProgress)?.guesses?.length || 0 : 0}
+          guessCount={
+            gameType === 'wordle'
+              ? (foundAttempt.progress_data as WordleProgress)?.guesses
+                  ?.length || 0
+              : 0
+          }
           maxGuesses={6}
-          puzzleDate={puzzles.date} 
-          puzzleNumber={puzzleData?.id || 0} 
+          puzzleDate={puzzles.date}
+          puzzleNumber={puzzleData?.id || 0}
           onContinue={() => {
             setHasStarted(true);
           }}
@@ -300,7 +354,7 @@ export const GamePage = () => {
           hintInfo={introData.hintInfo}
           onStart={() => setHasStarted(true)}
           onDifficultyChange={setSelectedDifficulty}
-          initialDifficulty={activeDifficulty} 
+          initialDifficulty={activeDifficulty}
           color={introData.color}
           darkColor={introData.darkColor}
         />
@@ -312,9 +366,12 @@ export const GamePage = () => {
     if (!puzzleData || !GameComponent) {
       content = (
         <div className="text-center p-8 bg-white/50 rounded-lg">
-          <h2 className="text-2xl font-bold text-red-600">Puzzle Not Available</h2>
+          <h2 className="text-2xl font-bold text-red-600">
+            Puzzle Not Available
+          </h2>
           <p className="text-gray-700 mt-2">
-            The {introData.title} puzzle for '{activeDifficulty}' mode has not been set by the admin for today.
+            The {introData.title} puzzle for '{activeDifficulty}' mode has not
+            been set by the admin for today.
           </p>
           <button
             onClick={() => setHasStarted(false)}
@@ -331,7 +388,7 @@ export const GamePage = () => {
       console.log('[GamePage] About to pass challengeId:', challengeId);
       console.log('[GamePage] difficulty:', activeDifficulty);
       console.log('[GamePage] =====================================');
-      
+
       content = (
         <GameComponent
           puzzle={puzzleData}
@@ -344,7 +401,9 @@ export const GamePage = () => {
   }
 
   return (
-    <div className={`container mx-auto h-full w-full shadow-md rounded-4xl p-4 sm:p-8 md:p-12 ${introData.bgColor}`}>
+    <div
+      className={`container mx-auto h-full w-full shadow-md rounded-4xl p-4 sm:p-8 md:p-12 ${introData.bgColor}`}
+    >
       {content}
     </div>
   );

@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 // This hook is generic. <T> will be the type of data you expect back
 export const useApi = <T>(
   // The hook takes the specific API function to call as an argument
-  apiFunc: () => Promise<T>
+  apiFunc: () => Promise<T>,
 ) => {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);

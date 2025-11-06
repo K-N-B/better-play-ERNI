@@ -8,7 +8,7 @@ export interface ActivityEvent {
   difficulty: 'easy' | 'hard';
   time_in_minutes: string; // Formatted time string, e.g., "4:98"
   created_at: string; // ISO 8601 date string
-  
+
   // 'message' is no longer needed as we will construct it dynamically
   // message: string;
 }

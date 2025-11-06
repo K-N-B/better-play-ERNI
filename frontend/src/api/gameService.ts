@@ -6,18 +6,18 @@ import type {
   PuzzleAttemptResponse,
   Submission,
   SubmissionResult, // ✅ Import complete type
-} from "../types/game";
+} from '../types/game';
 
-const API_BASE_URL = "http://localhost:8000/api";
+const API_BASE_URL = 'http://localhost:8000/api';
 
 // ✅ Utility: Get CSRF token
 function getCookie(name: string): string | null {
   let cookieValue = null;
-  if (document.cookie && document.cookie !== "") {
-    const cookies = document.cookie.split(";");
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
     for (let i = 0; i < cookies.length; i++) {
       const cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === name + "=") {
+      if (cookie.substring(0, name.length + 1) === name + '=') {
         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
         break;
       }
@@ -30,9 +30,9 @@ function getCookie(name: string): string | null {
 export const getDailyPuzzles = async (): Promise<DailyPuzzleResponse> => {
   try {
     const response = await fetch(`${API_BASE_URL}/games/daily/`, {
-      method: "GET",
-      credentials: "include",
-      headers: { Accept: "application/json" },
+      method: 'GET',
+      credentials: 'include',
+      headers: { Accept: 'application/json' },
     });
 
     if (!response.ok) {
@@ -41,7 +41,7 @@ export const getDailyPuzzles = async (): Promise<DailyPuzzleResponse> => {
 
     return await response.json();
   } catch (error) {
-    console.error("[getDailyPuzzles] Error:", error);
+    console.error('[getDailyPuzzles] Error:', error);
     throw error;
   }
 };
@@ -50,31 +50,31 @@ export const getDailyPuzzles = async (): Promise<DailyPuzzleResponse> => {
 export const getSavedAttempt = async (
   puzzleType: string,
   dailyPuzzleDate: string,
-  puzzleId: string
+  puzzleId: string,
 ): Promise<PuzzleAttemptResponse | null> => {
   try {
     const url = `${API_BASE_URL}/gameplay/progress/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/`;
-    console.log("[getSavedAttempt] Fetching:", url);
+    console.log('[getSavedAttempt] Fetching:', url);
 
     const response = await fetch(url, {
-      method: "GET",
-      credentials: "include",
-      headers: { Accept: "application/json" },
+      method: 'GET',
+      credentials: 'include',
+      headers: { Accept: 'application/json' },
     });
 
     if (!response.ok) {
       if (response.status === 404) {
-        console.log("[getSavedAttempt] No saved attempt found (404)");
+        console.log('[getSavedAttempt] No saved attempt found (404)');
         return null;
       }
       throw new Error(`Failed to fetch saved attempt: ${response.statusText}`);
     }
 
     const data = await response.json();
-    console.log("[getSavedAttempt] Found saved attempt:", data);
+    console.log('[getSavedAttempt] Found saved attempt:', data);
     return data;
   } catch (error) {
-    console.error("[getSavedAttempt] Error:", error);
+    console.error('[getSavedAttempt] Error:', error);
     return null;
   }
 };
@@ -83,19 +83,19 @@ export const getSavedAttempt = async (
 export const saveProgress = async (
   data: PuzzleAttemptData,
   dailyPuzzleDate: string,
-  puzzleId: number
+  puzzleId: number,
 ): Promise<PuzzleAttemptResponse> => {
   try {
-    const csrfToken = getCookie("csrftoken");
+    const csrfToken = getCookie('csrftoken');
     const url = `${API_BASE_URL}/gameplay/save/${dailyPuzzleDate}/${data.puzzle_type}puzzle/${puzzleId}/`;
-    console.log("[saveProgress] Saving to:", url);
+    console.log('[saveProgress] Saving to:', url);
 
     const response = await fetch(url, {
-      method: "POST",
-      credentials: "include",
+      method: 'POST',
+      credentials: 'include',
       headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrfToken || "",
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken || '',
       },
       body: JSON.stringify({
         progress_data: data.progress_data,
@@ -106,17 +106,17 @@ export const saveProgress = async (
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("[saveProgress] Error response:", errorData);
+      console.error('[saveProgress] Error response:', errorData);
       throw new Error(
-        errorData.error || `Failed to save progress: ${response.statusText}`
+        errorData.error || `Failed to save progress: ${response.statusText}`,
       );
     }
 
     const result = await response.json();
-    console.log("[saveProgress] Success:", result);
+    console.log('[saveProgress] Success:', result);
     return result;
   } catch (error) {
-    console.error("[saveProgress] Error:", error);
+    console.error('[saveProgress] Error:', error);
     throw error;
   }
 };
@@ -125,35 +125,35 @@ export const saveProgress = async (
 export const submitPuzzle = async (
   data: SubmissionData,
   dailyPuzzleDate: string,
-  puzzleId: number
+  puzzleId: number,
 ): Promise<SubmissionResult> => {
   try {
-    const csrfToken = getCookie("csrftoken");
+    const csrfToken = getCookie('csrftoken');
     const url = `${API_BASE_URL}/gameplay/submit/${dailyPuzzleDate}/${data.puzzle_type}puzzle/${puzzleId}/`;
 
-    console.log("[submitPuzzle] Submitting to:", url);
-    console.log("[submitPuzzle] Data:", { difficulty: data.difficulty });
+    console.log('[submitPuzzle] Submitting to:', url);
+    console.log('[submitPuzzle] Data:', { difficulty: data.difficulty });
 
     const response = await fetch(url, {
-      method: "POST",
-      credentials: "include",
+      method: 'POST',
+      credentials: 'include',
       headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrfToken || "",
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken || '',
       },
       body: JSON.stringify({ difficulty: data.difficulty }),
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("[submitPuzzle] Error response:", errorData);
+      console.error('[submitPuzzle] Error response:', errorData);
       throw new Error(
-        errorData.error || `Failed to submit puzzle: ${response.statusText}`
+        errorData.error || `Failed to submit puzzle: ${response.statusText}`,
       );
     }
 
     const result = await response.json();
-    console.log("[submitPuzzle] Success:", result);
+    console.log('[submitPuzzle] Success:', result);
 
     // ✅ Return a full SubmissionResult object
     return {
@@ -162,10 +162,10 @@ export const submitPuzzle = async (
       currentStreak: result.current_streak || 0,
       maxStreak: result.max_streak || 0,
       streakUpdatedToday: result.streak_updated_today || false,
-      message: result.message || "",
+      message: result.message || '',
     };
   } catch (error) {
-    console.error("[submitPuzzle] Error:", error);
+    console.error('[submitPuzzle] Error:', error);
     throw error;
   }
 };
@@ -176,10 +176,10 @@ export const getTodaySubmissions = async (): Promise<Submission[]> => {
     const response = await fetch(
       `${API_BASE_URL}/gameplay/submissions/today/`,
       {
-        method: "GET",
-        credentials: "include",
-        headers: { Accept: "application/json" },
-      }
+        method: 'GET',
+        credentials: 'include',
+        headers: { Accept: 'application/json' },
+      },
     );
 
     if (!response.ok) {
@@ -188,7 +188,7 @@ export const getTodaySubmissions = async (): Promise<Submission[]> => {
 
     return await response.json();
   } catch (error) {
-    console.error("[getTodaySubmissions] Error:", error);
+    console.error('[getTodaySubmissions] Error:', error);
     return [];
   }
 };
@@ -197,7 +197,7 @@ export const getTodaySubmissions = async (): Promise<Submission[]> => {
 export const checkSubmissionExists = async (
   puzzleType: string,
   dailyPuzzleDate: string,
-  puzzleId: number
+  puzzleId: number,
 ): Promise<{
   hasSubmitted: boolean;
   score?: number;
@@ -206,12 +206,12 @@ export const checkSubmissionExists = async (
 }> => {
   try {
     const url = `${API_BASE_URL}/gameplay/check-submission/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/`;
-    console.log("[checkSubmissionExists] Checking:", url);
+    console.log('[checkSubmissionExists] Checking:', url);
 
     const response = await fetch(url, {
-      method: "GET",
-      credentials: "include",
-      headers: { Accept: "application/json" },
+      method: 'GET',
+      credentials: 'include',
+      headers: { Accept: 'application/json' },
     });
 
     if (!response.ok) {
@@ -223,7 +223,7 @@ export const checkSubmissionExists = async (
 
     return await response.json();
   } catch (error) {
-    console.error("[checkSubmissionExists] Error:", error);
+    console.error('[checkSubmissionExists] Error:', error);
     return { hasSubmitted: false };
   }
 };
@@ -232,7 +232,7 @@ export const getHint = async (
   dailyPuzzleDate: string,
   puzzleType: string,
   puzzleId: number,
-  difficulty: string
+  difficulty: string,
 ): Promise<{
   message: string;
   hint_index: number;
@@ -240,34 +240,34 @@ export const getHint = async (
   hints_used_new: number;
 }> => {
   try {
-    const csrfToken = getCookie("csrftoken");
+    const csrfToken = getCookie('csrftoken');
     const url = `${API_BASE_URL}/gameplay/hint/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/`;
 
-    console.log("[getHint] Requesting hint from:", url);
+    console.log('[getHint] Requesting hint from:', url);
 
     const response = await fetch(url, {
-      method: "POST",
-      credentials: "include",
+      method: 'POST',
+      credentials: 'include',
       headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrfToken || "",
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken || '',
       },
       body: JSON.stringify({ difficulty }),
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("[getHint] Error response:", errorData);
+      console.error('[getHint] Error response:', errorData);
       throw new Error(
-        errorData.error || `Failed to get hint: ${response.statusText}`
+        errorData.error || `Failed to get hint: ${response.statusText}`,
       );
     }
 
     const data = await response.json();
-    console.log("[getHint] Success:", data);
+    console.log('[getHint] Success:', data);
     return data;
   } catch (error) {
-    console.error("[getHint] Error:", error);
+    console.error('[getHint] Error:', error);
     throw error;
   }
 };
@@ -277,12 +277,12 @@ export const getSudokuHintLimits = async (): Promise<
 > => {
   try {
     const response = await fetch(
-      "http://localhost:8000/api/games/hint-limits/sudoku/",
+      'http://localhost:8000/api/games/hint-limits/sudoku/',
       {
-        method: "GET",
-        credentials: "include",
-        headers: { Accept: "application/json" },
-      }
+        method: 'GET',
+        credentials: 'include',
+        headers: { Accept: 'application/json' },
+      },
     );
 
     if (!response.ok) {
@@ -292,7 +292,7 @@ export const getSudokuHintLimits = async (): Promise<
     const data = await response.json();
     return data; // ✅ Must return an object like { EASY: 3, HARD: 1 }
   } catch (error) {
-    console.error("[getSudokuHintLimits] Error:", error);
+    console.error('[getSudokuHintLimits] Error:', error);
     return {}; // ✅ Always return an object, not void
   }
 };

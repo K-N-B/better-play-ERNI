@@ -54,9 +54,7 @@ export const AlreadyPlayedScreen = ({
         </div>
 
         {/* Title */}
-        <h1 className="text-4xl font-bold mb-4">
-          Already Completed!
-        </h1>
+        <h1 className="text-4xl font-bold mb-4">Already Completed!</h1>
 
         {/* Message */}
         <p className="text-lg mb-6">

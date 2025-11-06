@@ -1,4 +1,4 @@
-import DifficultyToggle from "../../ui/difficultyToggle";
+import DifficultyToggle from '../../ui/difficultyToggle';
 import type { Difficulty } from '../../../pages/gamePage';
 
 export interface PuzzleIntroProps {
@@ -23,8 +23,8 @@ export default function GameIntro({
   onStart,
   onDifficultyChange,
   initialDifficulty,
-  color = "bg-primary-500", // default color
-  darkColor = "bg-primary-900",
+  color = 'bg-primary-500', // default color
+  darkColor = 'bg-primary-900',
 }: PuzzleIntroProps) {
   return (
     <div className="h-full text-center grid grid-cols-1 lg:grid-cols-2">
@@ -59,7 +59,7 @@ export default function GameIntro({
           </div>
 
           <DifficultyToggle
-            onToggle={(isHard) => onDifficultyChange(isHard ? "hard" : "easy")}
+            onToggle={(isHard) => onDifficultyChange(isHard ? 'hard' : 'easy')}
             initialIsHard={initialDifficulty === 'hard'} // Pass the current selection state
             color={color}
             darkColor={darkColor}

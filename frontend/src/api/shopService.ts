@@ -1,7 +1,7 @@
-import { mockApiCall } from "./api"; // Import helpers
-import { getCookie, API_URL } from "./authService";
-import { MOCK_REWARDS, MOCK_CLAIMED_REWARDS } from "../data/_mockData"; // Adjust path
-import type { RewardItem, ClaimResponse, ClaimedReward } from "../types";
+import { mockApiCall } from './api'; // Import helpers
+import { getCookie, API_URL } from './authService';
+import { MOCK_REWARDS, MOCK_CLAIMED_REWARDS } from '../data/_mockData'; // Adjust path
+import type { RewardItem, ClaimResponse, ClaimedReward } from '../types';
 
 const MOCK_MODE = false;
 /**
@@ -9,17 +9,17 @@ const MOCK_MODE = false;
  */
 export const getRewards = async (): Promise<RewardItem[]> => {
   if (MOCK_MODE) {
-    console.log("Mock: Fetching rewards...");
+    console.log('Mock: Fetching rewards...');
     return mockApiCall([...MOCK_REWARDS]);
   }
 
   // --- REAL API CALL ---
   try {
     const response = await fetch(`${API_URL}/api/shop/rewards/`, {
-      method: "GET",
-      credentials: "include", // Send session cookie
+      method: 'GET',
+      credentials: 'include', // Send session cookie
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     });
     if (!response.ok) {
@@ -27,7 +27,7 @@ export const getRewards = async (): Promise<RewardItem[]> => {
     }
     return await response.json();
   } catch (error) {
-    console.error("[getRewards] Fetch error:", error);
+    console.error('[getRewards] Fetch error:', error);
     throw error;
   }
   // ---
@@ -38,7 +38,7 @@ export const getRewards = async (): Promise<RewardItem[]> => {
  */
 export const getClaimedRewards = async (): Promise<ClaimedReward[]> => {
   if (MOCK_MODE) {
-    console.log("Mock: Fetching claimed rewards history...");
+    console.log('Mock: Fetching claimed rewards history...');
     return mockApiCall([...MOCK_CLAIMED_REWARDS]);
   }
 
@@ -46,16 +46,18 @@ export const getClaimedRewards = async (): Promise<ClaimedReward[]> => {
   try {
     // This assumes your backend endpoint is /api/shop/claims/
     const response = await fetch(`${API_URL}/api/shop/claims/`, {
-      method: "GET",
-      credentials: "include", // Send session cookie
-      headers: { "Content-Type": "application/json" },
+      method: 'GET',
+      credentials: 'include', // Send session cookie
+      headers: { 'Content-Type': 'application/json' },
     });
     if (!response.ok) {
-      throw new Error(`Failed to fetch claimed rewards: ${response.statusText}`);
+      throw new Error(
+        `Failed to fetch claimed rewards: ${response.statusText}`,
+      );
     }
     return await response.json();
   } catch (error) {
-    console.error("[getClaimedRewards] Fetch error:", error);
+    console.error('[getClaimedRewards] Fetch error:', error);
     throw error;
   }
   // ---
@@ -66,7 +68,9 @@ export const getClaimedRewards = async (): Promise<ClaimedReward[]> => {
  * @param {string | number} rewardId - The ID of the reward to claim.
  * @returns {Promise<ClaimResponse>} - Response indicating success/failure.
  */
-export const claimReward = async (rewardId: string | number): Promise<ClaimResponse> => {
+export const claimReward = async (
+  rewardId: string | number,
+): Promise<ClaimResponse> => {
   // We no longer pass currentUserPoints; the backend handles this.
   if (MOCK_MODE) {
     // ... (Mock logic can stay for fallback testing) ...
@@ -74,25 +78,29 @@ export const claimReward = async (rewardId: string | number): Promise<ClaimRespo
     const reward = MOCK_REWARDS.find((r) => r.id === rewardId);
     if (reward && 1000 >= reward.cost) {
       // Hardcoded 1000 points for mock
-      return mockApiCall({ success: true, message: `Mock claimed ${reward.name}!`, remainingPoints: 1000 - reward.cost });
+      return mockApiCall({
+        success: true,
+        message: `Mock claimed ${reward.name}!`,
+        remainingPoints: 1000 - reward.cost,
+      });
     }
-    return mockApiCall({ success: false, message: "Mock: Not enough points." });
+    return mockApiCall({ success: false, message: 'Mock: Not enough points.' });
   }
 
   // --- REAL API CALL ---
   try {
-    const csrfToken = getCookie("csrftoken");
+    const csrfToken = getCookie('csrftoken');
     if (!csrfToken) {
-      throw new Error("CSRF token not found. Cannot claim reward.");
+      throw new Error('CSRF token not found. Cannot claim reward.');
     }
 
     const response = await fetch(`${API_URL}/api/shop/claim/${rewardId}/`, {
       // Use correct URL
-      method: "POST",
-      credentials: "include", // Send session cookie
+      method: 'POST',
+      credentials: 'include', // Send session cookie
       headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrfToken, // <-- Include CSRF token
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken, // <-- Include CSRF token
       },
       // No body is needed unless your view requires one
       // body: JSON.stringify({}),
@@ -102,13 +110,15 @@ export const claimReward = async (rewardId: string | number): Promise<ClaimRespo
 
     if (!response.ok) {
       // Throw an error with the message from the backend
-      throw new Error(data.message || `Failed to claim reward: ${response.statusText}`);
+      throw new Error(
+        data.message || `Failed to claim reward: ${response.statusText}`,
+      );
     }
 
     // Backend should return { success: true, message: "...", remainingPoints: ... }
     return data;
   } catch (error) {
-    console.error("[claimReward] Fetch error:", error);
+    console.error('[claimReward] Fetch error:', error);
     throw error; // Re-throw to be caught by the component
   }
   // ---

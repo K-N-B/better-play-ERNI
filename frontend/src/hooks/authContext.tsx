@@ -7,7 +7,13 @@
 // Provide the MSAL user, your userProfile, and a refetchProfile() function to the entire app.
 // Create a useAuth() hook to easily access this context.
 // Global state for your user. This is a critical file.
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react';
 import type { ReactNode } from 'react';
 import type { UserProfile } from '../types/user';
 import { checkAuth, logoutUser, completeProfile } from '../api/authService';
@@ -52,9 +58,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       await logoutUser(); // Call the API to destroy the cookie (now sends CSRF)
       // Only clear state if API call succeeds
-      setUser(null); 
+      setUser(null);
     } catch (error) {
-      console.error("Logout failed:", error);
+      console.error('Logout failed:', error);
       // If logout fails, we *might* still be authenticated, so re-check or just clear state for safety
       setUser(null); // Force clear the state anyway to redirect user
     } finally {
@@ -70,14 +76,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Update the user state in React
       setUser(updatedUser);
     } catch (err) {
-      console.error("Failed to update profile", err);
+      console.error('Failed to update profile', err);
       // Re-fetch user or handle error state if needed
       throw err;
     }
   }, []);
 
   const updateUserPoints = useCallback((newPoints: number) => {
-    setUser(currentUser => {
+    setUser((currentUser) => {
       if (!currentUser) return null;
       return { ...currentUser, current_points: newPoints }; // Update only current_points
     });
@@ -90,7 +96,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Pass down the real user data and functions
   return (
-    <AuthContext.Provider value={{ user, isLoading, logout, submitProfileCompletion, updateUserPoints }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        logout,
+        submitProfileCompletion,
+        updateUserPoints,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

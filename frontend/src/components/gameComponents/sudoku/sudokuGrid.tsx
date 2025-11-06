@@ -1,4 +1,4 @@
-import clsx from "clsx"; // Import clsx for cleaner class logic
+import clsx from 'clsx'; // Import clsx for cleaner class logic
 
 export interface SudokuCell {
   value: number | null;
@@ -27,31 +27,31 @@ export const SudokuGrid = ({
     // The parent 'divide-' classes will handle the thin lines.
     // The parent 'border-6' handles the outer border.
     const classes = clsx(
-      "flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 font-extrabold transition-colors",
+      'flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 font-extrabold transition-colors',
 
       // 2. We STILL add THICK borders for the 3x3 box lines.
       // These will draw ON TOP of the parent's thin divide lines.
-      row % 3 === 0 && row !== 0 && "border-t-4 border-t-gray-400",
-      col % 3 === 0 && col !== 0 && "border-l-4 border-l-gray-400",
+      row % 3 === 0 && row !== 0 && 'border-t-4 border-t-gray-400',
+      col % 3 === 0 && col !== 0 && 'border-l-4 border-l-gray-400',
 
       // ✅ NEW: Highlight hinted cells
-      cell.isHint && "bg-yellow-200 text-black font-bold",
+      cell.isHint && 'bg-yellow-200 text-black font-bold',
       // Cell value type
       cell.isGiven
-        ? "bg-gray-200 text-gray-900 font-extrabold"
-        : "bg-white text-blue-600 cursor-pointer hover:bg-blue-50",
+        ? 'bg-gray-200 text-gray-900 font-extrabold'
+        : 'bg-white text-blue-600 cursor-pointer hover:bg-blue-50',
 
       // Selected cell highlighting (no change)
       selectedCell &&
         selectedCell.row === row &&
         selectedCell.col === col &&
-        "bg-blue-200",
+        'bg-blue-200',
       selectedCell &&
         (selectedCell.row === row || selectedCell.col === col) &&
-        "bg-blue-50",
+        'bg-blue-50',
 
       // Show error (no change)
-      cell.isError && "bg-red-200 text-red-700"
+      cell.isError && 'bg-red-200 text-red-700',
     );
     // --- END FIX ---
 
@@ -84,7 +84,7 @@ export const SudokuGrid = ({
                   <span
                     key={note}
                     className={
-                      cell.notes.includes(note) ? "visible" : "invisible"
+                      cell.notes.includes(note) ? 'visible' : 'invisible'
                     }
                   >
                     {note}
@@ -93,7 +93,7 @@ export const SudokuGrid = ({
               </div>
             )}
           </div>
-        ))
+        )),
       )}
     </div>
   );
