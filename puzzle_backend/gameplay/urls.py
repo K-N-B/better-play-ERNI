@@ -10,8 +10,9 @@ from .views import (
     GetTodaySubmissionsView,
     SaveProgressView,
     SubmitPuzzleView,
+    get_user_streak_data,
 )
-from .views import get_user_streak_data
+
 
 urlpatterns = [
     # Save progress for a specific puzzle attempt

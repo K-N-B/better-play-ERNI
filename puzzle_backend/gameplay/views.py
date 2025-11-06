@@ -529,8 +529,11 @@ class SubmitPuzzleView(View):
 # ============================================================================
 # VIEW 5: GetHintView - Request Sudoku Hints
 # ============================================================================
-@method_decorator(csrf_protect, name="dispatch")
-@method_decorator(login_required, name="post")
+
+
+# @method_decorator(csrf_protect, name="dispatch")
+# @method_decorator(login_required, name="post")
+@method_decorator(csrf_exempt, name='dispatch')
 class GetHintView(View):
     def post(self, request, daily_puzzle_date, puzzle_model_name, puzzle_id):
         user = request.user
@@ -604,18 +607,25 @@ class GetHintView(View):
         hint_value = solution_string[hint_index]
 
         # 4. Prepare Response
-        hints_used_new = hints_used + 1
+        try:
+            # Call the manager method using the PuzzleAttempt's objects manager
+            hints_used_new = PuzzleAttempt.objects.record_hint_usage(attempt.pk)
+        except PuzzleAttempt.DoesNotExist:
+            return JsonResponse({"error": "Attempt disappeared during processing."}, status=404)
+        except Exception:
+            return JsonResponse({"error": "Failed to record hint usage in database."}, status=500)
 
         print(
-            f"[GetHintView] ✅ Hint granted to {user.username}: index {hint_index}, value {hint_value}"
+            f"[GetHintView] ✅ Hint granted and recorded to {user.username}. New count: {hints_used_new}"
         )
 
+        # 5. Prepare Response
         return JsonResponse(
             {
                 "message": "Hint granted.",
                 "hint_index": hint_index,
                 "hint_value": hint_value,
-                "hints_used_new": hints_used_new,
+                "hints_used_new": hints_used_new,  # Return the guaranteed saved value
             },
             status=200,
         )
