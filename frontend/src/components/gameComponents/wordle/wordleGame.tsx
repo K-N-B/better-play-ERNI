@@ -9,7 +9,7 @@ import { WordleGrid } from './wordleGrid';
 import { Keyboard } from './keyboard';
 import { PostGameResultsModal } from '../../ui/postGameResultsModal';
 import { AlreadyPlayedScreen } from '../shared/alreadyPlayedScreen';
-import { ResumeGameModal } from '../../ui/resumeGameModal';
+// import { ResumeGameModal } from '../../ui/resumeGameModal';
 import { useTimer } from '../../../hooks/useTimer';
 import { Timer } from '../../ui/timer';
 import { useApi } from '../../../hooks/useApi';
@@ -44,7 +44,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
   const [letterStatuses, setLetterStatuses] = useState<Record<string, KeyStatus>>({});
   const [gameResult, setGameResult] = useState<{ score: number; submissionId: number | null } | null>(null);
   
-  const [showResumeModal, setShowResumeModal] = useState(false);
+  // const [showResumeModal, setShowResumeModal] = useState(false);
   const [alreadyCompleted, setAlreadyCompleted] = useState<{
     hasSubmitted: boolean;
     score?: number;
@@ -149,8 +149,8 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
       const hasProgress = (progress.guesses?.length ?? 0) > 0 || savedGame.time_spent_ms > 5000;
       
       if (hasProgress && !loadedIsGameOver) {
-        console.log('[WordleGame] Showing resume modal');
-        setShowResumeModal(true);
+        // console.log('[WordleGame] Showing resume modal');
+        // setShowResumeModal(true);
       } else if (!loadedIsGameOver) {
         console.log('[WordleGame] Starting timer - no resume needed');
         startTimer();
@@ -362,10 +362,10 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyPress]);
 
-  const handleContinue = () => {
-    setShowResumeModal(false);
-    startTimer();
-  };
+  // const handleContinue = () => {
+  //   setShowResumeModal(false);
+  //   startTimer();
+  // };
 
   if (checkingSubmission || loading) {
     return <LoadingSpinner fullPage={true} />;
@@ -384,7 +384,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
 
   return (
     <>
-      {showResumeModal && (
+      {/* {showResumeModal && (
         <ResumeGameModal
           guessCount={guesses.length}
           maxGuesses={MAX_GUESSES}
@@ -393,7 +393,7 @@ export const WordleGame = ({ puzzle, difficulty, challengeId }: WordleGameProps)
           editor="ERNI Team"
           onContinue={handleContinue}
         />
-      )}
+      )} */}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
         <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
