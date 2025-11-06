@@ -1,7 +1,8 @@
 # /gameplay/admin.py
 from django.contrib import admin
-from .models import PuzzleAttempt, Submission, Challenge
 from django.utils.html import format_html
+
+from .models import Challenge, PuzzleAttempt, Submission
 
 
 @admin.register(PuzzleAttempt)

@@ -1,17 +1,17 @@
 # gameplay/urls.py - FIXED URL PATTERNS
 
 from django.urls import path
+
 from .views import (
+    CheckSubmissionView,
+    GetHintView,
+    GetProgressView,
+    GetTodayCompletedPuzzlesView,
+    GetTodaySubmissionsView,
     SaveProgressView,
     SubmitPuzzleView,
-    GetProgressView,
-    GetHintView,
-    CheckSubmissionView,
-    GetTodaySubmissionsView,
-    GetTodayCompletedPuzzlesView,
     get_user_streak_data,
 )
-from django.views.decorators.csrf import csrf_exempt
 
 
 urlpatterns = [
@@ -22,7 +22,6 @@ urlpatterns = [
         SaveProgressView.as_view(),
         name="save_progress",
     ),
-
     # Submit completed puzzle attempt
     # Example: POST /api/gameplay/submit/2025-11-03/wordlepuzzle/42/
     path(
@@ -30,7 +29,6 @@ urlpatterns = [
         SubmitPuzzleView.as_view(),
         name="submit_puzzle",
     ),
-
     # Retrieve saved progress
     # Example: GET /api/gameplay/progress/2025-11-03/wordlepuzzle/42/
     path(
@@ -38,7 +36,6 @@ urlpatterns = [
         GetProgressView.as_view(),
         name="get_progress",
     ),
-
     # Get a Sudoku hint
     # Example: POST /api/gameplay/hint/2025-11-03/sudokupuzzle/42/
     path(
@@ -46,7 +43,6 @@ urlpatterns = [
         GetHintView.as_view(),
         name="get_hint",
     ),
-
     # Check if the current user has already submitted a specific puzzle
     # Example: GET /api/gameplay/check-submission/2025-11-03/wordlepuzzle/42/
     path(
@@ -54,7 +50,6 @@ urlpatterns = [
         CheckSubmissionView.as_view(),
         name="check_submission",
     ),
-    
     path(
         "completed/today/",
         GetTodayCompletedPuzzlesView.as_view(),
@@ -67,8 +62,5 @@ urlpatterns = [
         GetTodaySubmissionsView.as_view(),
         name="today_submissions",
     ),
-
     path('streak/', get_user_streak_data, name='user_streak_data'),
-
-    
 ]

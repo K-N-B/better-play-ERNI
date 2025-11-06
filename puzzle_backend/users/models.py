@@ -50,9 +50,9 @@ class User(AbstractUser):
     # --- NEW FIELD FOR PROFILE PICTURE URL (FROM AZURE/GRAPH) ---
     profile_picture_url = models.URLField(
         max_length=500,  # Max length for a long URL
-        null=True, 
+        null=True,
         blank=True,
-        help_text="URL of the profile picture retrieved from Azure AD/Microsoft Graph."
+        help_text="URL of the profile picture retrieved from Azure AD/Microsoft Graph.",
     )
 
     # --- Stats Fields from DBML ---

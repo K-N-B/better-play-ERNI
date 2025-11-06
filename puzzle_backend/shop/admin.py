@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Reward, ClaimedReward
+
+from .models import ClaimedReward, Reward
 
 
 @admin.register(Reward)

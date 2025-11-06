@@ -1,8 +1,8 @@
 # /gameplay/models.py
-from django.db import models
 from django.conf import settings  # Uses AUTH_USER_MODEL
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.db import models
 from django.utils import timezone
 from django.db import transaction
 
@@ -28,6 +28,7 @@ class PuzzleAttemptManager(models.Manager):
             },
         )
         return attempt, created
+
     def record_hint_usage(self, attempt_id):
         """
         Atomically increments the hints_used count within the progress_data JSONField.
@@ -37,16 +38,16 @@ class PuzzleAttemptManager(models.Manager):
             # We must lock the row to prevent race conditions if multiple hints are requested simultaneously
             with transaction.atomic():
                 attempt = self.select_for_update().get(pk=attempt_id)
-                
+
                 # Retrieve current count, default to 0, and increment
                 hints_used_new = attempt.progress_data.get("hints_used", 0) + 1
-                
+
                 # Update the JSONField dictionary
                 attempt.progress_data["hints_used"] = hints_used_new
-                
+
                 # Save the updated progress_data
                 attempt.save(update_fields=['progress_data'])
-                
+
                 return hints_used_new
 
         except self.model.DoesNotExist:
@@ -114,8 +115,7 @@ class Submission(models.Model):
     # ------------------------------------------------------------------
 
     puzzle_date = models.DateField(
-        db_index=True,
-        help_text="The date of the puzzle being submitted (from DailyPuzzle.date)"
+        db_index=True, help_text="The date of the puzzle being submitted (from DailyPuzzle.date)"
     )
 
     # Difficulty played
@@ -186,8 +186,8 @@ class Challenge(models.Model):
     )
     status = models.CharField(
         max_length=20,  # ✅ Changed from 10 to 20 to be safe
-        choices=Status.choices, 
-        default=Status.PENDING
+        choices=Status.choices,
+        default=Status.PENDING,
     )
     winner = models.ForeignKey(
         settings.AUTH_USER_MODEL,

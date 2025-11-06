@@ -1,10 +1,15 @@
 # leaderboards/serializers.py
 from rest_framework import serializers
+from users.models import Department, User
+
 from .models import (
-    DailyIndividualScore, WeeklyIndividualScore, MonthlyIndividualScore,
-    DailyDepartmentScore, WeeklyDepartmentScore, MonthlyDepartmentScore
+    DailyDepartmentScore,
+    DailyIndividualScore,
+    MonthlyDepartmentScore,
+    MonthlyIndividualScore,
+    WeeklyDepartmentScore,
+    WeeklyIndividualScore,
 )
-from users.models import User, Department
 
 
 # --- Individual Score Serializers ---

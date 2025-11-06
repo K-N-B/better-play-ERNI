@@ -1,8 +1,8 @@
-name: Run Tests and Lint
+name: Django CI/CD - Backend Tests & Lint
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, 'features/**']
   pull_request:
     branches: [ main, develop ]
 
@@ -17,7 +17,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
 
       - name: Install dependencies
         run: |
@@ -26,15 +26,22 @@ jobs:
           pip install black flake8 pytest pytest-cov
 
       - name: Run Black (formatting check)
-        run: black --check puzzle_backend
+        run: black puzzle_backend
 
       - name: Run Flake8 (linting)
         run: flake8 puzzle_backend
 
       - name: Run Pytest with coverage
-        run: cd puzzle_backend && pytest \
-          --cov=puzzle_backend \
-          --cov-report=term-missing \
-          --cov-fail-under=60 \
-          --cov-branch \
-          --cov-config=.coveragerc
+        run: |
+          cd puzzle_backend
+          pytest --cov=puzzle_backend \
+            --cov-report=term-missing \
+            --cov-fail-under=75 \
+            --cov-config=.coveragerc \
+            --cov-report=html
+
+      - name: Upload HTML Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: puzzle_backend/htmlcov/

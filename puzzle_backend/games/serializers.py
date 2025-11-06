@@ -1,6 +1,7 @@
 # games/serializers.py
 from rest_framework import serializers
-from .models import WordlePuzzle, SudokuPuzzle, ErnigramPuzzle, DailyPuzzle, EmployeeImageSource
+
+from .models import DailyPuzzle, ErnigramPuzzle, SudokuPuzzle, WordlePuzzle
 
 
 class WordlePuzzleSerializer(serializers.ModelSerializer):
@@ -29,7 +30,14 @@ class ErnigramPuzzleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ErnigramPuzzle
-        fields = ['id', 'solution_phrase', 'clue', 'employee_source', 'employee_image_url', 'date_to_be_used']
+        fields = [
+            'id',
+            'solution_phrase',
+            'clue',
+            'employee_source',
+            'employee_image_url',
+            'date_to_be_used',
+        ]
         # 'solution_phrase' might be removed for public API responses
 
     def get_employee_image_url(self, obj: ErnigramPuzzle) -> str | None:
