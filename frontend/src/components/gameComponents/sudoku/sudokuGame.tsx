@@ -25,7 +25,7 @@ import { SudokuGrid } from "./sudokuGrid";
 import { NumberPad } from "./numberPad";
 import { PostGameResultsModal } from "../../ui/postGameResultsModal";
 import { AlreadyPlayedScreen } from "../shared/alreadyPlayedScreen";
-import { ResumeGameModal } from "../../ui/resumeGameModal";
+// import { ResumeGameModal } from "../../ui/resumeGameModal";
 import { useTimer } from "../../../hooks/useTimer";
 import { Timer } from "../../ui/timer";
 import { useApi } from "../../../hooks/useApi";
@@ -161,7 +161,7 @@ export const SudokuGame = ({
     fetchLimits();
   }, [difficulty]);
 
-  const [showResumeModal, setShowResumeModal] = useState(false);
+  // const [showResumeModal, setShowResumeModal] = useState(false);
   const [alreadyCompleted, setAlreadyCompleted] = useState<{
     hasSubmitted: boolean;
     score?: number;
@@ -239,8 +239,8 @@ export const SudokuGame = ({
           savedGame.time_spent_ms > 5000;
 
         if (hasProgress && !loadedIsGameOver) {
-          console.log("[SudokuGame] Showing resume modal");
-          setShowResumeModal(true);
+          // console.log("[SudokuGame] Showing resume modal");
+          // setShowResumeModal(true);
         } else if (!loadedIsGameOver) {
           console.log("[SudokuGame] Starting timer - no resume needed");
           startTimer();
@@ -459,10 +459,10 @@ export const SudokuGame = ({
     }
   };
 
-  const handleContinue = () => {
-    setShowResumeModal(false);
-    startTimer();
-  };
+  // const handleContinue = () => {
+  //   setShowResumeModal(false);
+  //   startTimer();
+  // };
 
   const handleGetHint = async () => {
     try {
@@ -532,12 +532,12 @@ export const SudokuGame = ({
     );
   }
 
-  const filledCells = countFilledCells(grid);
-  const totalCells = 81;
+  // const filledCells = countFilledCells(grid);
+  // const totalCells = 81;
 
   return (
     <>
-      {showResumeModal && (
+      {/* {showResumeModal && (
         <ResumeGameModal
           guessCount={filledCells}
           maxGuesses={totalCells}
@@ -546,7 +546,7 @@ export const SudokuGame = ({
           editor="ERNI Team"
           onContinue={handleContinue}
         />
-      )}
+      )} */}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
         <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
