@@ -1,4 +1,4 @@
-// /src/pages/gamePage.tsx - WITH CHALLENGE SUPPORT
+// frontend/src/pages/gamePage.tsx - COMPLETE FILE WITH CHALLENGE SUPPORT
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Navigate, useSearchParams } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
@@ -70,24 +70,29 @@ export const GamePage = () => {
   const { gameType } = useParams<{ gameType: string }>();
   const [searchParams] = useSearchParams();
   
-  // ✅ NEW: Get challengeId from URL
+  // ✅ CHALLENGE MODE: Get challengeId and difficulty from URL
   const challengeIdFromUrl = searchParams.get('challenge_id');
+  const difficultyFromUrl = searchParams.get('difficulty')?.toLowerCase() as Difficulty | null;
+  
   console.log('[GamePage] ========== URL PARAMS ==========');
   console.log('[GamePage] Full URL:', window.location.href);
   console.log('[GamePage] searchParams.toString():', searchParams.toString());
   console.log('[GamePage] challengeIdFromUrl:', challengeIdFromUrl);
-  console.log('[GamePage] challengeIdFromUrl type:', typeof challengeIdFromUrl);
+  console.log('[GamePage] difficultyFromUrl:', difficultyFromUrl);
   
   const challengeId = challengeIdFromUrl ? parseInt(challengeIdFromUrl, 10) : null;
   
   console.log('[GamePage] Parsed challengeId:', challengeId);
-  console.log('[GamePage] challengeId type:', typeof challengeId);
   console.log('[GamePage] challengeId is null?:', challengeId === null);
-  console.log('[GamePage] challengeId is NaN?:', Number.isNaN(challengeId));
   console.log('[GamePage] =====================================');
   
-  const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>('easy');
-  const [lockedDifficulty, setLockedDifficulty] = useState<Difficulty | null>(null);
+  // ✅ If challenge mode, use difficulty from URL, otherwise default to 'easy'
+  const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>(
+    difficultyFromUrl || 'easy'
+  );
+  const [lockedDifficulty, setLockedDifficulty] = useState<Difficulty | null>(
+    difficultyFromUrl || null
+  );
   const [hasStarted, setHasStarted] = useState(false); 
   const { data: puzzles, loading: loadingPuzzles, error: error } = useApi(getDailyPuzzles);
   
@@ -97,27 +102,36 @@ export const GamePage = () => {
   const [isChecking, setIsChecking] = useState(true);
   const [checkError, setCheckError] = useState<string | null>(null);
 
-  // ✅ NEW: If challengeId exists, skip intro and start game immediately
+  // ✅ CHALLENGE MODE: If challengeId exists, skip intro and start game immediately
   useEffect(() => {
-    if (challengeId) {
+    if (challengeId && difficultyFromUrl) {
       console.log('[GamePage] Challenge mode detected - skipping intro');
+      console.log('[GamePage] Locking difficulty to:', difficultyFromUrl);
+      setSelectedDifficulty(difficultyFromUrl);
+      setLockedDifficulty(difficultyFromUrl);
       setHasStarted(true);
     }
-  }, [challengeId]);
+  }, [challengeId, difficultyFromUrl]);
 
   // Reset states when the gameType (URL) changes
   useEffect(() => {
     // ✅ Don't reset hasStarted if we have a challengeId
     if (!challengeId) {
       setHasStarted(false);
+      setSelectedDifficulty('easy');
+      setLockedDifficulty(null);
+    } else {
+      // ✅ In challenge mode, maintain difficulty from URL
+      if (difficultyFromUrl) {
+        setSelectedDifficulty(difficultyFromUrl);
+        setLockedDifficulty(difficultyFromUrl);
+      }
     }
-    setSelectedDifficulty('easy');
-    setLockedDifficulty(null);
     setFoundSubmission(null);
     setFoundAttempt(null);
     setIsChecking(true);
     setCheckError(null);
-  }, [gameType, challengeId]);
+  }, [gameType, challengeId, difficultyFromUrl]);
 
   // --- Combined Check Effect ---
   useEffect(() => {
@@ -125,7 +139,7 @@ export const GamePage = () => {
       return;
     }
 
-    // ✅ NEW: In challenge mode, still check but don't block
+    // ✅ In challenge mode, still check but don't block
     if (hasStarted && !challengeId) {
       return;
     }
@@ -184,13 +198,18 @@ export const GamePage = () => {
 
         setFoundSubmission(submission);
         setFoundAttempt(attempt);
-        setLockedDifficulty(diffLock);
+        
+        // ✅ In challenge mode, keep URL difficulty locked
+        if (!challengeId) {
+          setLockedDifficulty(diffLock);
+        }
+        
         setCheckError(null);
         
         console.log('[GamePage] ✅ Check complete:', {
           foundSubmission: !!submission,
           foundAttempt: !!attempt,
-          lockedDifficulty: diffLock
+          lockedDifficulty: challengeId ? difficultyFromUrl : diffLock
         });
       } catch (err) {
         console.error('[GamePage] Critical error during checks:', err);
@@ -203,7 +222,7 @@ export const GamePage = () => {
       console.log('[GamePage] isChecking set to false');
     });
 
-  }, [loadingPuzzles, puzzles, gameType, hasStarted, challengeId]);
+  }, [loadingPuzzles, puzzles, gameType, hasStarted, challengeId, difficultyFromUrl]);
 
   // --- RENDER LOGIC ---
   const isLoading = loadingPuzzles || isChecking;
@@ -300,7 +319,9 @@ export const GamePage = () => {
           hintInfo={introData.hintInfo}
           onStart={() => setHasStarted(true)}
           onDifficultyChange={setSelectedDifficulty}
-          initialDifficulty={activeDifficulty} 
+          initialDifficulty={activeDifficulty}
+          // ✅ Disable difficulty selector in challenge mode
+          disableDifficultyChange={!!challengeId}
           color={introData.color}
           darkColor={introData.darkColor}
         />
@@ -325,7 +346,6 @@ export const GamePage = () => {
         </div>
       );
     } else {
-      // ✅ NEW: Pass challengeId to game component
       console.log('[GamePage] ========== RENDERING GAME ==========');
       console.log('[GamePage] gameType:', gameType);
       console.log('[GamePage] About to pass challengeId:', challengeId);
@@ -333,12 +353,26 @@ export const GamePage = () => {
       console.log('[GamePage] =====================================');
       
       content = (
-        <GameComponent
-          puzzle={puzzleData}
-          difficulty={activeDifficulty}
-          challengeId={challengeId}
-          dailyPuzzleDate={puzzles.date}
-        />
+        <>
+          {/* ✅ Show challenge banner when in challenge mode */}
+          {challengeId && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-center">
+              <p className="text-blue-800 font-medium">
+                🎯 Challenge Mode - Playing on <span className="uppercase font-bold">{activeDifficulty}</span> difficulty
+              </p>
+              <p className="text-blue-600 text-sm mt-1">
+                Beat your opponent's score to win!
+              </p>
+            </div>
+          )}
+          
+          <GameComponent
+            puzzle={puzzleData}
+            difficulty={activeDifficulty}
+            challengeId={challengeId}
+            dailyPuzzleDate={puzzles.date}
+          />
+        </>
       );
     }
   }

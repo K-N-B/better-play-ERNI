@@ -1,11 +1,12 @@
 # gameplay/challenge_urls.py
 from django.urls import path
+
 from .views import (
-    SearchUsersView,
-    PendingChallengesView,
-    CompletedChallengesView,
-    SendChallengeView,
     CompleteChallengeView,
+    CompletedChallengesView,
+    PendingChallengesView,
+    SearchUsersView,
+    SendChallengeView,
 )
 
 urlpatterns = [

@@ -1,85 +1,82 @@
-import { useState } from "react";
-import clsx from "clsx";
+// src/components/ui/difficultyToggle.tsx - UPDATED WITH DISABLED STATE
+import React, { useState, useEffect } from 'react';
 
 interface DifficultyToggleProps {
-  // Callback function when the toggle state changes (true for Hard, false for Easy)
   onToggle: (isHard: boolean) => void;
   initialIsHard?: boolean;
-  // Tailwind background color class for the knob (e.g., "bg-emerald-500")
-  color: string;
-  // Tailwind shadow color class (e.g., "shadow-emerald-900") used for the bottom border/shadow
+  disabled?: boolean; // ✅ NEW: Add disabled prop
+  color?: string;
   darkColor?: string;
 }
 
-export default function DifficultyToggle({
+const DifficultyToggle: React.FC<DifficultyToggleProps> = ({
   onToggle,
-  initialIsHard,
-  color,
-  darkColor = "shadow-gray-900", // Default shadow if not provided
-}: DifficultyToggleProps) {
-  const [isHard, setIsHard] = useState(initialIsHard);;
+  initialIsHard = false,
+  disabled = false, // ✅ NEW: Default to false
+  color = 'bg-primary',
+  darkColor = 'bg-primary-dark',
+}) => {
+  const [isHard, setIsHard] = useState(initialIsHard);
+
+  useEffect(() => {
+    setIsHard(initialIsHard);
+  }, [initialIsHard]);
 
   const handleToggle = () => {
-    const newState = !isHard;
-    setIsHard(newState);
-    onToggle(newState); // Call the parent component's callback
+    // ✅ Don't toggle if disabled
+    if (disabled) {
+      console.log('[DifficultyToggle] Toggle disabled');
+      return;
+    }
+    
+    const newValue = !isHard;
+    setIsHard(newValue);
+    onToggle(newValue);
   };
 
-  // Extract the shadow depth class (e.g., shadow-[0_5px_0_0]) if present
-  const shadowDepthClass =
-    darkColor.match(/shadow-\[.*?\]/) || "shadow-[0_2px_0_0]";
-
   return (
-    // Use a label to wrap the entire control for better click handling
-    <label className="inline-flex items-center cursor-pointer select-none">
-      {/* "Easy" Label */}
+    <div className="flex items-center justify-center space-x-4">
+      {/* Easy Label */}
       <span
-        className={clsx(
-          "mr-4 text-xl font-medium transition-colors",
-          !isHard ? "text-black font-semibold" : "text-gray-500" // Highlight active state
-        )}
+        className={`text-lg font-semibold transition-colors ${
+          !isHard ? 'text-green-600' : 'text-gray-400'
+        }`}
       >
         Easy
       </span>
 
-      {/* Hidden Checkbox Input (for accessibility and state management) */}
-      <input
-        type="checkbox"
-        className="sr-only peer" // Hides the default checkbox visually
-        checked={isHard}
-        onChange={handleToggle}
-      />
-
-      {/* Toggle Track (the background) */}
-      <div
-        className={clsx(
-          "relative w-[5rem] h-11 rounded-full bg-white border border-gray-300", // Slightly larger track
-          "transition-colors duration-300 ease-in-out"
-        )}
+      {/* Toggle Switch */}
+      <button
+        onClick={handleToggle}
+        disabled={disabled} // ✅ Disable the button
+        className={`relative w-16 h-8 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+          disabled
+            ? 'cursor-not-allowed opacity-50 bg-gray-300' // ✅ Disabled styles
+            : isHard
+            ? `${color} focus:ring-red-500`
+            : 'bg-green-500 focus:ring-green-500'
+        }`}
+        aria-label={`Toggle difficulty to ${isHard ? 'easy' : 'hard'}`}
+        title={disabled ? 'Difficulty locked for challenge' : undefined}
       >
-        {/* Toggle Knob (the moving part) */}
-        <div
-          className={clsx(
-            "absolute h-10 w-10 rounded-full",
-            "transition-transform duration-300 ease-in-out",
-            "shadow-[0_2px_0_0] peer-checked:shadow-[0_2px_0_0]", // Consistent shadow base
-            shadowDepthClass, // Apply dynamic shadow depth
-            color, // Apply the main color
-            darkColor, // Apply the shadow color
-            isHard && "translate-x-full" // Move knob when checked (Hard)
-          )}
-        ></div>
-      </div>
+        {/* Sliding Circle */}
+        <span
+          className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow-md transform transition-transform ${
+            isHard ? 'translate-x-8' : 'translate-x-0'
+          }`}
+        />
+      </button>
 
-      {/* "Hard" Label */}
+      {/* Hard Label */}
       <span
-        className={clsx(
-          "ml-4 text-xl font-medium transition-colors",
-          isHard ? "text-black font-semibold" : "text-gray-500" // Highlight active state
-        )}
+        className={`text-lg font-semibold transition-colors ${
+          isHard ? 'text-red-600' : 'text-gray-400'
+        }`}
       >
         Hard
       </span>
-    </label>
+    </div>
   );
-}
+};
+
+export default DifficultyToggle;

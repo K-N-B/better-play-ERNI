@@ -18,45 +18,65 @@ const rankColors: Record<number, string> = {
 };
 
 export const LeaderboardListItem: React.FC<LeaderboardListItemProps> = ({ entry, rank, type }) => {
-  const name = type === 'individual'
-                 ? (entry as IndividualScoreEntry).user?.username ?? 'N/A'
-                 : (entry as DepartmentScoreEntry).department?.name ?? 'N/A';
+  let name = 'N/A';
+  let profileImageUrl: string | null = null;
+  let entryId: number | undefined;
+  
+  if (type === 'individual') {
+    const individualEntry = entry as IndividualScoreEntry;
+    name = individualEntry.user?.username ?? 'N/A';
+    profileImageUrl = individualEntry.user?.profile_picture_url ?? null;
+    entryId = individualEntry.user?.id;
+  } else {
+    const deptEntry = entry as DepartmentScoreEntry;
+    name = deptEntry.department?.name ?? 'N/A';
+    entryId = deptEntry.department?.id;
+  }
 
   const score = entry.score;
   const rankColor = rankColors[rank] || "text-primary";
-
-  const entryId = type === 'individual'
-                  ? (entry as IndividualScoreEntry).user?.id
-                  : (entry as DepartmentScoreEntry).department?.id;
+  const userInitial = name.charAt(0).toUpperCase();
   const key = `${type}-${entryId}-${rank}`;
 
   return (
     <li
       key={key}
-      // Add gap-4 for spacing between name and score
       className="flex justify-between items-center py-2 text-base sm:text-lg w-full gap-4"
     >
-      {/* Left side: Rank + Name */}
-      {/* Add min-w-0 to allow this flex item to shrink and truncate its children */}
+      {/* Left side: Rank + Profile Picture (if individual) + Name */}
       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-        {/* Rank (no change) */}
-        <span className={clsx("font-bold text-lg sm:text-xl w-6 text-left", rankColor)}>
+        {/* Rank */}
+        <span className={clsx("font-bold text-lg sm:text-xl w-6 text-left flex-shrink-0", rankColor)}>
           {rank}
         </span>
-        {/* Name: Replace 'text-clip' with 'truncate' to add ellipsis */}
+        
+        {/* Profile Picture - Only for individual leaderboards */}
+        {type === 'individual' && (
+          <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+            {profileImageUrl ? (
+              <img
+                src={profileImageUrl}
+                alt={`${name} profile picture`}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-sky-400 flex items-center justify-center text-white text-sm font-bold">
+                {userInitial}
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Name */}
         <span className="text-primary-800 font-medium text-base sm:text-lg truncate">
           {name}
         </span>
       </div>
 
       {/* Right side: Score */}
-      {/* Add flex-shrink-0 to prevent this from shrinking */}
       <div className="text-primary-700 text-sm sm:text-base xl:text-lg italic flex-shrink-0">
         <span className="font-semibold">{score}</span> pts
       </div>
     </li>
   );
 };
-
-// If using default exports:
-// export default LeaderboardListItem;
