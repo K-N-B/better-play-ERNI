@@ -7,7 +7,6 @@ import React, {
   useEffect,
 } from 'react';
 import { getPendingChallenges } from '../api/challengeService';
-import { useAuth } from '../hooks/authContext';
 
 interface ChallengeContextType {
   pendingCount: number;

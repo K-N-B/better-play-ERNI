@@ -4,7 +4,6 @@ import type {
   LeaderboardType,
 } from '../../../types/leaderboard';
 import { LeaderboardListItem } from './leaderboardListItem';
-import clsx from 'clsx';
 type LeaderboardEntry = IndividualScoreEntry | DepartmentScoreEntry;
 
 interface LeaderboardListProps {

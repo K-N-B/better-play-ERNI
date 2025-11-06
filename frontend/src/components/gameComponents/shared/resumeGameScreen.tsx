@@ -15,7 +15,6 @@ export const ResumeGameScreen = ({
   guessCount,
   maxGuesses,
   puzzleDate,
-  puzzleNumber,
   onContinue,
   difficulty,
 }: ResumeGameScreenProps) => {

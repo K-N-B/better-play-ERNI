@@ -37,14 +37,14 @@ const PodiumItem: React.FC<{
   console.log(`[PodiumItem] Rank ${rank}, Type: ${type}, Entry:`, entry);
 
   let name = 'Unknown';
-  let id = rank;
+  // let id = rank;
 
   // ✅ FIXED: More robust extraction with detailed logging
   if (type === 'department') {
     // For department leaderboards
     if ('department' in entry && entry.department) {
       name = entry.department.name || 'Unknown Dept';
-      id = entry.department.id || rank;
+      // id = entry.department.id || rank;
       console.log(`[PodiumItem] Extracted department name: ${name}`);
     } else {
       console.error(
@@ -56,7 +56,7 @@ const PodiumItem: React.FC<{
     // For individual leaderboards
     if ('user' in entry && entry.user) {
       name = entry.user.username || 'Unknown User';
-      id = entry.user.id || rank;
+      // id = entry.user.id || rank;
       console.log(`[PodiumItem] Extracted username: ${name}`);
     } else {
       console.error(`[PodiumItem] Individual type but no user data:`, entry);

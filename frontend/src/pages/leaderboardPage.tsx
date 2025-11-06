@@ -3,11 +3,7 @@ import { useApi } from '../hooks/useApi';
 import { getLeaderboard } from '../api/leaderboardService';
 import { LeaderboardCard } from '../components/features/leaderboard/leaderboardCard';
 import { TabButton } from '../components/ui/tabButton';
-import type {
-  LeaderboardPeriod,
-  LeaderboardType,
-  LeaderboardData,
-} from '../types/leaderboard';
+import type { LeaderboardPeriod, LeaderboardData } from '../types/leaderboard';
 
 // Helper component for the filter tabs
 const PeriodFilters: React.FC<{

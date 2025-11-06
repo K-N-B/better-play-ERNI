@@ -1,13 +1,11 @@
 import type { UserProfile, Department } from '../types/user';
-import type { DailyPuzzleResponse } from '../types/game';
 import type {
   IndividualScoreEntry,
   DepartmentScoreEntry,
 } from '../types/leaderboard'; // Updated type name
 import type { ActivityHubResponse, OnlineUser } from '../types/activity';
-import type { Submission } from '../types/game';
 import type { Challenge } from '../types/challenge';
-import type { RewardItem, ClaimResponse, ClaimedReward } from '../types';
+import type { RewardItem, ClaimedReward } from '../types';
 
 import stickerImage from '../assets/images/stickers.jpg'; // Adjust path/filename
 import mugImage from '../assets/images/mug.jpg';

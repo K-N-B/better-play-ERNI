@@ -1,7 +1,7 @@
 // The modal for new users. It's triggered by the Layout component. It fetches authService.getTeams() to populate a dropdown. The "Save" button calls authService.completeProfile() and then closes.
 
 import { useState, useEffect } from 'react';
-import { completeProfile, getDepartments } from '../../api/authService';
+import { getDepartments } from '../../api/authService';
 import { useAuth } from '../../hooks/authContext';
 import type { Department } from '../../types/user';
 import { LoadingSpinner } from './loadingSpinner';

@@ -221,7 +221,10 @@ export const GamePage = () => {
               break;
             }
           } catch (err) {
-            console.log(`[GamePage] No attempt found for ${diff} (expected)`);
+            console.log(
+              `[GamePage] No attempt found for ${diff} (expected)`,
+              err,
+            );
           }
         }
 

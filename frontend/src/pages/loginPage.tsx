@@ -32,6 +32,7 @@ export default function LoginPage() {
         setLoading(false);
       }
     } catch (err) {
+      console.log('Error in handleMicrosoftLogin:', err);
       setError('An error occurred. Please try again.');
       setLoading(false);
     }

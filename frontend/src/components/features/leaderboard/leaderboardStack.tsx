@@ -4,7 +4,6 @@ import type {
   DepartmentScoreEntry,
   LeaderboardType,
 } from '../../../types/leaderboard';
-import { LeaderboardListItem } from './leaderboardListItem'; // We can reuse the list item!
 import { Crown } from 'lucide-react';
 import clsx from 'clsx';
 

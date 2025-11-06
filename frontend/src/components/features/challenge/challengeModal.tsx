@@ -43,6 +43,7 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSearch = useCallback(
     debounce(async (term: string) => {
       if (!term.trim() || term.length < 2) {
@@ -56,6 +57,7 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
         const results = await searchUsers(term);
         setSearchResults(results);
       } catch (err) {
+        console.log(err);
         setError('Failed to search users.');
         setSearchResults([]);
       } finally {

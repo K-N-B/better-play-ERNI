@@ -15,6 +15,7 @@ const formatClaimDate = (dateString: string) => {
       minute: '2-digit',
     });
   } catch (e) {
+    console.log(e);
     return 'Invalid Date';
   }
 };
