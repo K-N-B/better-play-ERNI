@@ -33,6 +33,12 @@ import { LoadingSpinner } from "../../ui/loadingSpinner";
 import type { Difficulty } from "../../../pages/gamePage";
 import { getHint, getSudokuHintLimits } from "../../../api/gameService";
 
+import click1 from "@/assets/sounds/keyboard_press_1.mp3";
+import click2 from "@/assets/sounds/keyboard_press_2.mp3";
+import click3 from "@/assets/sounds/keyboard_press_3.mp3";
+import success from "@/assets/sounds/success.mp3";
+import { useSound } from "../../../hooks/useSound";
+
 // Helper Functions
 const parseGrid = (puzzleString: string): SudokuCell[][] => {
   return Array.from({ length: 9 }, (_, r) =>
@@ -160,6 +166,10 @@ export const SudokuGame = ({
 
     fetchLimits();
   }, [difficulty]);
+
+  const playClick = useSound([click1, click2, click3], 0.5);
+  const playSuccess = useSound([success], 0.5);
+
 
   // const [showResumeModal, setShowResumeModal] = useState(false);
   const [alreadyCompleted, setAlreadyCompleted] = useState<{
@@ -337,6 +347,8 @@ export const SudokuGame = ({
       return;
     }
 
+    playSuccess();
+
     setIsGameOver(true);
     stopTimer();
     const finalTime = time;
@@ -417,6 +429,8 @@ export const SudokuGame = ({
   const handleInputCore = useCallback(
     (value: number | null) => {
       if (!selectedCell || isGameOver || alreadyCompleted?.hasSubmitted) return;
+      playClick();
+
       const { row, col } = selectedCell;
       const cell = grid[row][col];
 
@@ -484,10 +498,6 @@ export const SudokuGame = ({
   const handleEraseClick = () => {
     handleInputCore(null); // Erase is null input
   };
-
-  // You can now REMOVE the original body of handleNumberClick and handleEraseClick.
-
-  // ... (your existing handleCellClick and handleSubmit remain the same)
 
   const handleCellClick = (row: number, col: number) => {
     if (isGameOver || grid[row][col].isGiven || alreadyCompleted?.hasSubmitted)
