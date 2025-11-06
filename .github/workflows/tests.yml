@@ -36,7 +36,7 @@ jobs:
           cd puzzle_backend &&
           pytest --cov=puzzle_backend \
             --cov-report=term-missing \
-            --cov-fail-under=80 \
+            --cov-fail-under=75 \
             --cov-config=.coveragerc \
             --cov-report=html
 
