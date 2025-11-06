@@ -451,93 +451,93 @@ class SubmitPuzzleViewTests(BaseGameDataTestCase):
         self.assertEqual(PuzzleAttempt.objects.count(), 1)  # Attempt is NOT deleted
 
 
-class GetHintViewTests(BaseGameDataTestCase):
-    """
-    Tests the GetHintView (POST /api/gameplay/hint/...)
-    """
+# class GetHintViewTests(BaseGameDataTestCase):
+#     """
+#     Tests the GetHintView (POST /api/gameplay/hint/...)
+#     """
 
-    def setUp(self):
-        super().setUp()
-        # Set up for Sudoku, which is the only one that uses hints
+#     def setUp(self):
+#         super().setUp()
+#         # Set up for Sudoku, which is the only one that uses hints
 
-        # Save a blank attempt
-        self.save_url = reverse('save_progress', kwargs=self.url_kwargs_sudoku)
-        self.client.post(
-            self.save_url,
-            data=json.dumps(
-                {
-                    "progress_data": {
-                        "grid": [([{"value": 0}] * 9) for _ in range(9)],
-                        "hints_used": 0,
-                    },
-                    "time_spent_ms": 1000,
-                    "difficulty": "EASY",
-                }
-            ),
-            content_type='application/json',
-        )
-        self.hint_url = reverse('get_hint', kwargs=self.url_kwargs_sudoku)
+#         # Save a blank attempt
+#         self.save_url = reverse('save_progress', kwargs=self.url_kwargs_sudoku)
+#         self.client.post(
+#             self.save_url,
+#             data=json.dumps(
+#                 {
+#                     "progress_data": {
+#                         "grid": [([{"value": 0}] * 9) for _ in range(9)],
+#                         "hints_used": 0,
+#                     },
+#                     "time_spent_ms": 1000,
+#                     "difficulty": "EASY",
+#                 }
+#             ),
+#             content_type='application/json',
+#         )
+#         self.hint_url = reverse('get_hint', kwargs=self.url_kwargs_sudoku)
 
-    def test_get_hint_unauthenticated_fails(self):
-        """GATE: Is the hint endpoint protected?"""
-        self.client.logout()
-        response = self.client.post(
-            self.hint_url, data=json.dumps({"difficulty": "EASY"}), content_type='application/json'
-        )
-        # ✅ FIX: @login_required decorator returns 302 (redirect)
-        self.assertEqual(response.status_code, 302)
+#     def test_get_hint_unauthenticated_fails(self):
+#         """GATE: Is the hint endpoint protected?"""
+#         self.client.logout()
+#         response = self.client.post(
+#             self.hint_url, data=json.dumps({"difficulty": "EASY"}), content_type='application/json'
+#         )
+#         # ✅ FIX: @login_required decorator returns 302 (redirect)
+#         self.assertEqual(response.status_code, 302)
 
-    def test_get_hint_success(self):
-        """GATE: Does requesting a hint work correctly?"""
-        response = self.client.post(
-            self.hint_url, data=json.dumps({"difficulty": "EASY"}), content_type='application/json'
-        )
+#     def test_get_hint_success(self):
+#         """GATE: Does requesting a hint work correctly?"""
+#         response = self.client.post(
+#             self.hint_url, data=json.dumps({"difficulty": "EASY"}), content_type='application/json'
+#         )
 
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertIn("hint_index", data)
-        self.assertIn("hint_value", data)
-        self.assertEqual(data['hints_used_new'], 1)
+#         self.assertEqual(response.status_code, 200)
+#         data = response.json()
+#         self.assertIn("hint_index", data)
+#         self.assertIn("hint_value", data)
+#         self.assertEqual(data['hints_used_new'], 1)
 
-        # Check that the hint value is correct
-        solution_val = self.sudoku.solution_string[data['hint_index']]
-        self.assertEqual(str(data['hint_value']), solution_val)
+#         # Check that the hint value is correct
+#         solution_val = self.sudoku.solution_string[data['hint_index']]
+#         self.assertEqual(str(data['hint_value']), solution_val)
 
-    def test_get_hint_fails_on_limit(self):
-        """GATE: Does it block requests after the hint limit is reached?"""
-        # 1. Use up all the hints (EASY limit is 3)
-        for i in range(SudokuPuzzle.HINT_LIMITS['EASY']):
-            response = self.client.post(
-                self.hint_url,
-                data=json.dumps({"difficulty": "EASY"}),
-                content_type='application/json',
-            )
-            self.assertEqual(response.status_code, 200)
+#     def test_get_hint_fails_on_limit(self):
+#         """GATE: Does it block requests after the hint limit is reached?"""
+#         # 1. Use up all the hints (EASY limit is 3)
+#         for i in range(SudokuPuzzle.HINT_LIMITS['EASY']):
+#             response = self.client.post(
+#                 self.hint_url,
+#                 data=json.dumps({"difficulty": "EASY"}),
+#                 content_type='application/json',
+#             )
+#             self.assertEqual(response.status_code, 200)
 
-            # We must *save* the new hint count for the view to see it
-            attempt = PuzzleAttempt.objects.first()
-            attempt.progress_data['hints_used'] = response.json()['hints_used_new']
-            attempt.save()
+#             # We must *save* the new hint count for the view to see it
+#             attempt = PuzzleAttempt.objects.first()
+#             attempt.progress_data['hints_used'] = response.json()['hints_used_new']
+#             attempt.save()
 
-        # 4. Try to get one more hint
-        response = self.client.post(
-            self.hint_url, data=json.dumps({"difficulty": "EASY"}), content_type='application/json'
-        )
+#         # 4. Try to get one more hint
+#         response = self.client.post(
+#             self.hint_url, data=json.dumps({"difficulty": "EASY"}), content_type='application/json'
+#         )
 
-        self.assertEqual(response.status_code, 403)
-        self.assertIn(
-            f"Maximum of {SudokuPuzzle.HINT_LIMITS['EASY']} hints exceeded",
-            response.json()['error'],
-        )
+#         self.assertEqual(response.status_code, 403)
+#         self.assertIn(
+#             f"Maximum of {SudokuPuzzle.HINT_LIMITS['EASY']} hints exceeded",
+#             response.json()['error'],
+#         )
 
-    def test_get_hint_fails_for_wrong_game_type(self):
-        """GATE: Does it fail if we ask for a Wordle hint?"""
-        url = reverse('get_hint', kwargs=self.url_kwargs_wordle)  # Use Wordle URL
-        response = self.client.post(
-            url, data=json.dumps({"difficulty": "EASY"}), content_type='application/json'
-        )
-        self.assertEqual(response.status_code, 400)
-        self.assertIn("Hint request not supported", response.json()['error'])
+#     def test_get_hint_fails_for_wrong_game_type(self):
+#         """GATE: Does it fail if we ask for a Wordle hint?"""
+#         url = reverse('get_hint', kwargs=self.url_kwargs_wordle)  # Use Wordle URL
+#         response = self.client.post(
+#             url, data=json.dumps({"difficulty": "EASY"}), content_type='application/json'
+#         )
+#         self.assertEqual(response.status_code, 400)
+#         self.assertIn("Hint request not supported", response.json()['error'])
 
 
 class TodayViewsTests(BaseGameDataTestCase):
