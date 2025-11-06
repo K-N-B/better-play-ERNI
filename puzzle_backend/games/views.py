@@ -157,4 +157,6 @@ def cron_generate_puzzles_view(request: HttpRequest):
 class GetSudokuHintLimitsView(View):
     """Return Sudoku hint limits from backend"""
     def get(self, request):
-        return JsonResponse(SudokuPuzzle.HINT_LIMITS)
+        return JsonResponse({
+            "HINT_LIMITS": SudokuPuzzle.HINT_LIMITS
+        })
