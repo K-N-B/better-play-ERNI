@@ -2,6 +2,13 @@
 
 import { Eraser, Edit } from 'lucide-react';
 
+import click1 from "@/assets/sounds/keyboard_press_1.mp3";
+import click2 from "@/assets/sounds/keyboard_press_2.mp3";
+import click3 from "@/assets/sounds/keyboard_press_3.mp3";
+import { useSound } from "../../../hooks/useSound";
+
+
+
 interface NumberPadProps {
   onNumberClick: (num: number) => void;
   onEraseClick: () => void;
@@ -12,26 +19,37 @@ interface NumberPadProps {
 export const NumberPad = ({ onNumberClick, onEraseClick, onNoteToggle, isNoteMode }: NumberPadProps) => {
   const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
+  const playClick = useSound([click1, click2, click3], 0.5);
+
   return (
     <div className="grid grid-cols-5 gap-2 w-full max-w-sm mx-auto mt-4">
       {numbers.map(num => (
         <button
           key={num}
-          onClick={() => onNumberClick(num)}
+          onClick={() => {
+            playClick();
+            onNumberClick(num);
+          }}
           className="h-12 w-12 sm:h-14 sm:w-14 rounded-lg bg-blue-500 text-white text-xl font-bold hover:bg-blue-600"
         >
           {num}
         </button>
       ))}
       <button
-        onClick={onNoteToggle}
+        onClick={() =>{
+          playClick();
+          onNoteToggle;
+        }}
         className={`h-12 w-12 sm:h-14 sm:w-14 rounded-lg text-lg font-bold 
                     ${isNoteMode ? 'bg-yellow-400 text-black' : 'bg-gray-300 hover:bg-gray-400'}`}
       >
         <Edit className="mx-auto" />
       </button>
       <button
-        onClick={onEraseClick}
+        onClick={() =>{
+          playClick();
+          onEraseClick;
+        }}
         className="h-12 w-12 sm:h-14 sm:w-14 rounded-lg bg-red-500 text-white text-lg font-bold hover:bg-red-600"
       >
         <Eraser className="mx-auto" />

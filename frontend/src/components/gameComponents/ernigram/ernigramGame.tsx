@@ -28,6 +28,14 @@ import type { Difficulty } from "../../../pages/gamePage";
 import { API_URL } from "../../../api/authService";
 import clsx from "clsx";
 
+import click1 from "@/assets/sounds/keyboard_press_1.mp3";
+import click2 from "@/assets/sounds/keyboard_press_2.mp3";
+import click3 from "@/assets/sounds/keyboard_press_3.mp3";
+import success from "@/assets/sounds/success.mp3";
+import error from "@/assets/sounds/error.mp3";
+
+import { useSound } from "../../../hooks/useSound";
+
 interface ErnigramGameProps {
   puzzle: ErnigramPuzzle;
   difficulty: Difficulty;
@@ -73,6 +81,12 @@ export const ErnigramGame = ({
   const [checkingSubmission, setCheckingSubmission] = useState(true);
 
   const { time, startTimer, stopTimer, setSavedTime } = useTimer();
+
+  const playLetter = useSound([click1, click2, click3], 0.4);
+  // const playBackspace = useSound([back], 0.4);
+  const playError = useSound([error], 0.4)
+  const playSuccess = useSound([success], 0.4);
+
 
   const puzzleID = puzzle.id;
 
@@ -363,6 +377,7 @@ export const ErnigramGame = ({
       );
 
       if (hasWon) {
+        playSuccess();
         endGame(true);
       } else if (currentAttempts <= 0) {
         endGame(false);
@@ -417,6 +432,8 @@ export const ErnigramGame = ({
       const char = key.toUpperCase();
       if (guessedLetters.includes(char) || !/^[A-Z]$/.test(char)) return;
 
+      
+
       const newGuessedLetters = [...guessedLetters, char];
       setGuessedLetters(newGuessedLetters);
 
@@ -425,10 +442,12 @@ export const ErnigramGame = ({
 
       if (solution.includes(char)) {
         newStatuses[char] = "correct";
+        playLetter();
       } else {
         newStatuses[char] = "absent";
         newAttemptsLeft = attemptsLeft - 1;
         setAttemptsLeft(newAttemptsLeft);
+        playError();
       }
       setLetterStatuses(newStatuses);
 

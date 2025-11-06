@@ -28,6 +28,15 @@ import { LoadingSpinner } from "../../ui/loadingSpinner";
 import type { Difficulty } from "../../../pages/gamePage";
 import { isValidWord } from "../../../services/wordValidator";
 
+import { useSound } from "../../../hooks/useSound";
+import click1 from "@/assets/sounds/keyboard_press_1.mp3";
+import click2 from "@/assets/sounds/keyboard_press_2.mp3";
+import click3 from "@/assets/sounds/keyboard_press_3.mp3";
+import back from "@/assets/sounds/backspace.mp3";
+import error from "@/assets/sounds/error.mp3";
+import success from "@/assets/sounds/success.mp3";
+
+
 interface WordleGameProps {
   puzzle: WordlePuzzle;
   difficulty: Difficulty;
@@ -81,6 +90,12 @@ export const WordleGame = ({
   useEffect(() => {
     guessesRef.current = guesses;
   }, [guesses]);
+
+  const playLetter = useSound([click1, click2, click3], 0.4);
+  const playBackspace = useSound([back], 0.4);
+  const playSuccess = useSound([success], 0.4);
+  const playError = useSound([error], 0.4);
+
 
   // Check for existing submission FIRST
   useEffect(() => {
@@ -267,6 +282,7 @@ export const WordleGame = ({
       currentLetterStatuses: Record<string, KeyStatus>
     ) => {
       if (isGameOver || alreadyCompleted?.hasSubmitted) return;
+      playSuccess();
 
       console.log("[WordleGame] ========== END GAME CALLED ==========");
       console.log("[WordleGame] challengeId:", challengeId);
@@ -406,10 +422,13 @@ export const WordleGame = ({
     async (key: string) => {
       if (isGameOver || alreadyCompleted?.hasSubmitted) return;
 
+      
       if (key === "Enter" && currentGuess.length === wordLength) {
+        playLetter();
         // FRONTEND VALIDATION
         const valid = await isValidWord(currentGuess);
         if (!valid) {
+          playError();
           setErrorMessage(`'${currentGuess}' is not a valid word.`);
           return; // stop here
         }
@@ -465,8 +484,10 @@ export const WordleGame = ({
           );
         }
       } else if (key === "Backspace") {
+        playBackspace();
         setCurrentGuess((g) => g.slice(0, -1));
       } else if (currentGuess.length < wordLength && /^[a-zA-Z]$/.test(key)) {
+        playLetter();
         setCurrentGuess((g) => g + key.toUpperCase());
       }
     },
