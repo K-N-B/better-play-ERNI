@@ -1,9 +1,8 @@
 # gameplay/streak_utils.py
 
-from datetime import time, timedelta
-
 from django.utils import timezone
-from games.utils.timezone_helpers import MANILA_TZ, get_local_now
+from datetime import timedelta, time
+from games.utils.timezone_helpers import get_local_now, MANILA_TZ
 
 
 def update_daily_activity_streak(user):

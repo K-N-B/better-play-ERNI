@@ -2,25 +2,28 @@
 # from rest_framework import generics
 # from datetime import date as date_type
 import datetime
-import os
-
-from django.http import HttpRequest, HttpResponse
 
 # from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
 from games.utils.timezone_helpers import get_local_today
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from puzzle_backend.games.services import generate_daily_puzzles
+from .services import generate_daily_puzzles
 
 from .models import DailyPuzzle
 
 # from .models import DailyPuzzle, WordlePuzzle, SudokuPuzzle, ErnigramPuzzle
 from .serializers import DailyPuzzleSerializer
+import os
+from django.http import HttpRequest, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.http import JsonResponse
+from django.views import View
+from .models import SudokuPuzzle
 
 # Import your new service function
 # from .services import generate_daily_puzzles
@@ -87,17 +90,17 @@ class DailyPuzzlesView(APIView):
         #             serializer = DailyPuzzleSerializer(daily_puzzle_set)
         #             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        # try:
-        #     # Call the service function to generate all puzzles for the date
-        #     daily_puzzle_set = generate_daily_puzzles(target_date)
-        #     serializer = DailyPuzzleSerializer(daily_puzzle_set)
-        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-        # except Exception as e:
-        #     # Catch any error during generation and return a 500
-        #     return Response(
-        #         {"detail": f"Error generating puzzles: {str(e)}"},
-        #         status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        #     )
+        try:
+            # Call the service function to generate all puzzles for the date
+            daily_puzzle_set = generate_daily_puzzles(target_date)
+            serializer = DailyPuzzleSerializer(daily_puzzle_set)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            # Catch any error during generation and return a 500
+            return Response(
+                {"detail": f"Error generating puzzles: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 @csrf_exempt
@@ -126,3 +129,11 @@ def cron_generate_puzzles_view(request: HttpRequest):
         # 4. ERROR HANDLING: Return a server error if the task fails
         print(f"CRON JOB ERROR: {e}")
         return HttpResponse(f"Internal Server Error during task execution: {e}", status=500)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class GetSudokuHintLimitsView(View):
+    """Return Sudoku hint limits from backend"""
+
+    def get(self, request):
+        return JsonResponse(SudokuPuzzle.HINT_LIMITS)

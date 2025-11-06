@@ -4,13 +4,14 @@ import datetime
 import json
 import os
 import random
-import re
 import string
+import re
 from datetime import timedelta
 from typing import Dict, List, Optional, Set
+from django.db import transaction
 
 from django.core.exceptions import ImproperlyConfigured
-from django.db import connection, transaction
+from django.db import connection
 from django.utils import timezone
 from groq import Groq
 from rapidfuzz import fuzz

@@ -1,24 +1,27 @@
 import datetime
-from unittest import mock
-
 import pytz
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+from django.core.files.uploadedfile import SimpleUploadedFile
+from unittest import mock
 
-# We need to import the service module itself for patching
-from games import services
+# Models
+from .models import DailyPuzzle, WordlePuzzle, SudokuPuzzle, ErnigramPuzzle, EmployeeImageSource
+from .serializers import ErnigramPuzzleSerializer
 
 # ✅ ADDED: Import services to test directly
 from games.services import (
-    FALLBACK_WORDS_EASY,
-    ErnigramGeneratorAI,
     _generate_unique_wordle_data,
-    fetch_employee_image_data,
+    ErnigramGeneratorAI,
     fetch_raw_csv_data,
+    fetch_employee_image_data,
     generate_ernigram_puzzle_data,
+    FALLBACK_WORDS_EASY,
 )
+
+# We need to import the service module itself for patching
+from games import services
 
 # Models to create for dependencies
 
@@ -26,10 +29,6 @@ from games.services import (
 from .config import (
     ERNIGRAM_EASY_BASE_POINT,
 )
-
-# Models
-from .models import DailyPuzzle, EmployeeImageSource, ErnigramPuzzle, SudokuPuzzle, WordlePuzzle
-from .serializers import ErnigramPuzzleSerializer
 
 # --- Mocking Setup ---
 MOCK_DATETIME = timezone.datetime(2025, 10, 25, 14, 0, 0, tzinfo=pytz.timezone("Asia/Manila"))

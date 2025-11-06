@@ -8,21 +8,29 @@ import pytz
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
-from django.db.models import F, Q
+from django.db.models import F
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.views.decorators.csrf import csrf_protect
 from games.models import DailyPuzzle, ErnigramPuzzle, SudokuPuzzle, WordlePuzzle
 from leaderboards.services import LeaderboardAggregator
+
+from django.views.decorators.csrf import csrf_exempt
+
+from .models import PuzzleAttempt, Submission
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from .models import Challenge
+from django.db.models import Q
 from users.models import User
+from .serializers import (
+    ChallengeSerializer,
+    CreateChallengeSerializer,
+)
 
-from .models import Challenge, PuzzleAttempt, Submission
-from .serializers import ChallengeSerializer, CreateChallengeSerializer
 
 # Import the streak utility function
 from .streak_utils import update_daily_activity_streak
@@ -521,8 +529,11 @@ class SubmitPuzzleView(View):
 # ============================================================================
 # VIEW 5: GetHintView - Request Sudoku Hints
 # ============================================================================
-@method_decorator(csrf_protect, name="dispatch")
-@method_decorator(login_required, name="post")
+
+
+# @method_decorator(csrf_protect, name="dispatch")
+# @method_decorator(login_required, name="post")
+@method_decorator(csrf_exempt, name='dispatch')
 class GetHintView(View):
     def post(self, request, daily_puzzle_date, puzzle_model_name, puzzle_id):
         user = request.user
@@ -596,18 +607,25 @@ class GetHintView(View):
         hint_value = solution_string[hint_index]
 
         # 4. Prepare Response
-        hints_used_new = hints_used + 1
+        try:
+            # Call the manager method using the PuzzleAttempt's objects manager
+            hints_used_new = PuzzleAttempt.objects.record_hint_usage(attempt.pk)
+        except PuzzleAttempt.DoesNotExist:
+            return JsonResponse({"error": "Attempt disappeared during processing."}, status=404)
+        except Exception:
+            return JsonResponse({"error": "Failed to record hint usage in database."}, status=500)
 
         print(
-            f"[GetHintView] ✅ Hint granted to {user.username}: index {hint_index}, value {hint_value}"
+            f"[GetHintView] ✅ Hint granted and recorded to {user.username}. New count: {hints_used_new}"
         )
 
+        # 5. Prepare Response
         return JsonResponse(
             {
                 "message": "Hint granted.",
                 "hint_index": hint_index,
                 "hint_value": hint_value,
-                "hints_used_new": hints_used_new,
+                "hints_used_new": hints_used_new,  # Return the guaranteed saved value
             },
             status=200,
         )
@@ -828,14 +846,14 @@ class PendingChallengesView(View):
             )
 
             # Serialize using DRF serializer
-            from rest_framework.renderers import JSONRenderer
+            # from rest_framework.renderers import JSONRenderer
 
             serializer = ChallengeSerializer(challenges, many=True)
 
             print(f"[PendingChallenges] Found {challenges.count()} pending for {user.username}")
 
             # Return as JSON
-            JSONRenderer().render(serializer.data)
+            # json_data = JSONRenderer().render(serializer.data)
             return JsonResponse(serializer.data, safe=False)
 
         except Exception as e:
