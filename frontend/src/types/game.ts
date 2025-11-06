@@ -1,6 +1,6 @@
 // src/types/game.ts - FIXED VERSION
 
-import type { LucideIcon } from 'lucide-react';
+import type { LucideIcon } from "lucide-react";
 
 export type Difficulty = "easy" | "hard";
 
@@ -24,7 +24,7 @@ export interface ErnigramPuzzle {
   id: number;
   solution_phrase: string;
   clue: string;
-  employee_image_url: string | "None"; 
+  employee_image_url: string | "None";
   date_to_be_used: string;
 }
 
@@ -40,7 +40,7 @@ export interface DailyPuzzleResponse {
 // --- SUBMISSION DATA ---
 export interface SubmissionData {
   puzzle_id: number;
-  puzzle_type: 'wordle' | 'sudoku' | 'ernigram';
+  puzzle_type: "wordle" | "sudoku" | "ernigram";
   difficulty: Difficulty;
   time_taken_ms: number;
   tries: number;
@@ -49,7 +49,7 @@ export interface SubmissionData {
 export interface Submission {
   id: number;
   user_id: number;
-  puzzle_type: 'wordlepuzzle' | 'sudoku' | 'ernigram';
+  puzzle_type: "wordlepuzzle" | "sudoku" | "ernigram";
   puzzle_id: number;
   points_awarded: number;
   time_taken_ms: number;
@@ -69,7 +69,7 @@ export interface SubmissionResult {
 }
 
 // --- PROGRESS TYPES ---
-export type KeyStatus = 'correct' | 'present' | 'absent' | 'default';
+export type KeyStatus = "correct" | "present" | "absent" | "default";
 
 // ✅ FIX 2: Updated WordleProgress status to include 'LOST'
 export interface WordleProgress {
@@ -77,7 +77,7 @@ export interface WordleProgress {
   currentRow: number;
   letterStatuses: Record<string, KeyStatus>;
   isGameOver: boolean;
-  status?: 'ACTIVE' | 'SOLVED' | 'LOST';  // ✅ Added 'LOST'
+  status?: "ACTIVE" | "SOLVED" | "LOST"; // ✅ Added 'LOST'
 }
 
 export interface SudokuCell {
@@ -92,8 +92,8 @@ export interface ErnigramProgress {
   guessedLetters: string[];
   attemptsLeft: number;
   isGameOver: boolean;
-  misses?: number;  // ✅ Added optional misses
-  status?: 'ACTIVE' | 'SOLVED' | 'LOST';  // ✅ Added status
+  misses?: number; // ✅ Added optional misses
+  status?: "ACTIVE" | "SOLVED" | "LOST"; // ✅ Added status
 }
 
 // ✅ FIX 4: Updated SudokuProgress type
@@ -102,15 +102,16 @@ export interface SudokuProgress {
   final_grid?: string;
   hints_used: number;
   isGameOver: boolean;
-  status?: 'ACTIVE' | 'SOLVED' | 'LOST';  // ✅ Added status
+  status?: "ACTIVE" | "SOLVED" | "LOST"; // ✅ Added status
 }
 
 export interface PuzzleAttemptData {
   puzzle_id: number;
-  puzzle_type: 'wordle' | 'sudoku' | 'ernigram';
+  puzzle_type: "wordle" | "sudoku" | "ernigram";
   progress_data: any;
   time_spent_ms: number;
   difficulty: Difficulty;
+  hints_used?: number;
 }
 
 export interface PuzzleAttemptResponse extends PuzzleAttemptData {
@@ -118,7 +119,7 @@ export interface PuzzleAttemptResponse extends PuzzleAttemptData {
   user_id: number | null;
   last_saved: string;
   puzzle_id: number;
-  puzzle_type: 'wordle' | 'sudoku' | 'ernigram';
+  puzzle_type: "wordle" | "sudoku" | "ernigram";
   time_spent_ms: number;
   progress_data: any;
 }
