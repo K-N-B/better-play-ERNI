@@ -923,7 +923,6 @@ class SendChallengeView(View):
     Body: {"recipient_id": <int>, "submission_id": <int>}
     """
 
-    # ✅ Exempt this view from CSRF for API calls
     @method_decorator(csrf_exempt)
     @transaction.atomic
     def post(self, request):
@@ -960,9 +959,24 @@ class SendChallengeView(View):
             recipient = User.objects.get(pk=recipient_id)
             submission = Submission.objects.get(pk=submission_id)
 
-            # ✅ NEW: Check if recipient has already submitted this puzzle
+            # ✅ NEW: Check if this submission has already been used for a challenge
+            existing_challenge = Challenge.objects.filter(
+                challenger_submission=submission
+            ).first()
+            
+            if existing_challenge:
+                return JsonResponse(
+                    {
+                        'error': 'You have already created a challenge with this submission. Please complete a new puzzle to challenge someone else.'
+                    },
+                    status=400,
+                )
+
+            # ✅ Check if recipient has already submitted this puzzle
             recipient_submission = Submission.objects.filter(
-                user=recipient, content_type=submission.content_type, object_id=submission.object_id
+                user=recipient, 
+                content_type=submission.content_type, 
+                object_id=submission.object_id
             ).first()
 
             if recipient_submission:
@@ -1002,7 +1016,6 @@ class SendChallengeView(View):
         except Exception as e:
             print(f"[SendChallenge] Error: {e}")
             import traceback
-
             traceback.print_exc()
             return JsonResponse({'error': str(e)}, status=500)
 

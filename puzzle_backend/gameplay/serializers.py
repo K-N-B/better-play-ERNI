@@ -28,6 +28,7 @@ class ChallengeSerializer(serializers.ModelSerializer):
     
     # ✅ Add puzzle_type field
     puzzle_type = serializers.SerializerMethodField()
+    puzzle_id = serializers.SerializerMethodField()
     
     class Meta:
         model = Challenge
