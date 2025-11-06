@@ -15,6 +15,7 @@ from django.db import connection
 from django.utils import timezone
 from groq import Groq
 from rapidfuzz import fuzz
+from datetime import date
 
 from .api_client import fetch_cleaned_news_articles, generate_sudoku_puzzle_data
 
@@ -95,15 +96,15 @@ class WordleGeneratorAI:
 # --- MODIFIED FUNCTION: Adds client-side duplicate check ---
 
 
-FALLBACK_WORDS_EASY = ["ARRAY", "SCOPE", "FLOAT", "CLASS", "CRYPT", "QUEUE", "QUERY", "TANGO"]
+FALLBACK_WORDS_EASY = [
+    "ARRAY", "SCOPE", "FLOAT", "CLASS", "CRYPT", "QUEUE", "QUERY", "TANGO",
+    "DEBUG", "PATCH", "CACHE", "TOKEN", "BUILD", "ASSET"
+]
 
 FALLBACK_WORDS_HARD = [
-    "DEPLOYMENT",
-    "ALGORITHM",
-    "FRAMEWORK",
-    "RECOMMITS",
-    "INTERFACE",
-    "CONTAINER",
+    "DEPLOYMENT", "ALGORITHM", "FRAMEWORK", "RECOMMITS", "INTERFACE", "CONTAINER",
+    "BACKEND", "FRONTEND", "DATABASE", "MIGRATION", "PROTOCOL", "VARIABLE", 
+    "FUNCTION", "DEVOPS", "SECURITY", "ENDPOINT", "VALIDATE"
 ]
 
 
@@ -125,6 +126,14 @@ def _generate_unique_wordle_data(ai_generator, difficulty, existing_words):
         )
 
         # 1. Validate data structure and required key
+        if not isinstance(puzzle_data, dict):
+            print(
+                f"❌ AI returned an error object/non-dict: {type(puzzle_data).__name__}. Retrying..."
+            )
+            # If it's a known error type, you might log it more severely or raise.
+            continue
+        
+        # 1. Validate data structure and required key (now safe to use .get)
         if puzzle_data and puzzle_data.get('word'):
             word = puzzle_data['word']
 
@@ -137,7 +146,7 @@ def _generate_unique_wordle_data(ai_generator, difficulty, existing_words):
             return {"solution_word": word, "difficulty": difficulty}
 
         print(
-            f"⚠ AI generation failed (invalid data returned) on attempt {attempt + 1}. Retrying..."
+            f"⚠ AI generation failed (invalid data format returned) on attempt {attempt + 1}. Retrying..."
         )
         # Filter the fallback words to ensure we don't pick an already used word
     available_fallbacks = [word for word in fallback_source if word not in existing_words]
@@ -176,12 +185,22 @@ def fetch_raw_csv_data(file_path=CSV_FILE_PATH, text_column_index=RAW_TEXT_COLUM
     return raw_texts
 
 
-def fetch_used_solution_phrases(reference_date, lookback_days=90):
+def fetch_used_solution_phrases(reference_date, lookback_days=0): # ⭐️ CHANGE 90 TO 0 ⭐️
     """
     Fetches solution phrases used within the specified lookback period.
     Phases older than this period are considered available for reuse.
     """
-    cutoff_date = reference_date - timedelta(days=lookback_days)
+    
+    # If lookback_days is 0, cutoff_date = reference_date, and only today's phrases will be fetched, 
+    # but the subsequent generator logic will rely on history you are probably fetching elsewhere.
+    # To truly disable the check and get ALL phrases, you need a different approach:
+    
+    if lookback_days == 0:
+         # To disable lookback, we can set the cutoff date far in the past
+         # This forces the filter to include nearly all puzzles.
+         cutoff_date = reference_date - timedelta(days=365 * 10) # Set to 10 years ago
+    else:
+         cutoff_date = reference_date - timedelta(days=lookback_days)
 
     # CRITICAL: Filter based on the date the puzzle was used/created
     recent_phrases = set(
@@ -191,8 +210,6 @@ def fetch_used_solution_phrases(reference_date, lookback_days=90):
         .values_list("solution_phrase", flat=True)
         .all()
     )
-
-    # We now also filter out puzzles created *after* the reference date
 
     return recent_phrases
 
@@ -602,10 +619,15 @@ def generate_ernigram_puzzle_data(date_to_be_used):
 # (The code for _generate_unique_wordle_data is included above, before generate_ernigram_puzzle_data)
 
 
-def generate_daily_puzzles(target_date):
+def generate_daily_puzzles(target_date: Optional[date] = None):
     print(f"Generating daily puzzles for date: {target_date}")
 
     # ✅ Prevent nested atomic block when already in a transaction (test-safe)
+
+    if target_date is None:
+        target_date = timezone.now().date() # Or use get_local_today() if appropriate
+    
+    print(f"Generating daily puzzles for date: {target_date}")
     if connection.in_atomic_block:
         return _generate_daily_puzzles_inner(target_date)
 

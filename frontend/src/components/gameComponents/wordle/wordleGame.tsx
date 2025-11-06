@@ -36,7 +36,6 @@ import back from "@/assets/sounds/backspace.mp3";
 import error from "@/assets/sounds/error.mp3";
 import success from "@/assets/sounds/success.mp3";
 
-
 interface WordleGameProps {
   puzzle: WordlePuzzle;
   difficulty: Difficulty;
@@ -95,7 +94,6 @@ export const WordleGame = ({
   const playBackspace = useSound([back], 0.4);
   const playSuccess = useSound([success], 0.4);
   const playError = useSound([error], 0.4);
-
 
   // Check for existing submission FIRST
   useEffect(() => {
@@ -427,7 +425,6 @@ export const WordleGame = ({
     async (key: string) => {
       if (isGameOver || alreadyCompleted?.hasSubmitted) return;
 
-      
       if (key === "Enter" && currentGuess.length === wordLength) {
         playLetter();
         // FRONTEND VALIDATION

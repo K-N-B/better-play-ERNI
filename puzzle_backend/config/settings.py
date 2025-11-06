@@ -286,3 +286,15 @@ STATIC_URL = '/static/'
 
 
 print(f"⚙️ Running in {ENVIRONMENT.upper()} mode | DEBUG={DEBUG}")
+
+
+DATE_INPUT_FORMATS = [
+    "%Y-%m-%d",  # '2025-11-06'
+    "%m/%d/%Y",  # '11/06/2025'
+    "%m/%d/%y",  # '11/06/25'
+    "%b %d %Y",  # 'Nov 6 2025'
+    "%b. %d, %Y", # 'Nov. 6, 2025' <--- The format from your error
+    "%d %b %Y",  # '6 Nov 2025'
+    "%d %b, %Y", # '6 Nov, 2025'
+]
+USE_L10N = True
