@@ -203,6 +203,7 @@ export const checkSubmissionExists = async (
   score?: number;
   submittedAt?: string;
   submissionId?: number;
+  difficulty?: string; 
 }> => {
   try {
     const url = `${API_BASE_URL}/gameplay/check-submission/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/`;

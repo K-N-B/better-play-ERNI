@@ -322,6 +322,8 @@ class CheckSubmissionView(View):
                         'hasSubmitted': True,
                         'score': submission.points_awarded,
                         'submittedAt': submission.created_at.isoformat(),
+                        'difficulty': submission.difficulty,  # ✅ FIX: Include difficulty
+                        'submissionId': submission.id,  # ✅ BONUS: Also include ID
                     }
                 )
 

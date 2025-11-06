@@ -1,4 +1,4 @@
-// frontend/src/pages/gamePage.tsx - COMPLETE FILE WITH CHALLENGE SUPPORT
+// frontend/src/pages/gamePage.tsx - COMPLETE FILE WITH DIFFICULTY FIX
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Navigate, useSearchParams } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
@@ -61,7 +61,6 @@ const hasResumableProgress = (attempt: PuzzleAttemptData | null, gameType: strin
     const wordleProgress = attempt.progress_data as WordleProgress;
     hasProgress = hasProgress || (wordleProgress?.guesses?.length > 0 && !wordleProgress?.isGameOver);
   }
-  // TODO: Add similar progress checks for Sudoku and Ernigram here
   
   return hasProgress;
 };
@@ -115,13 +114,11 @@ export const GamePage = () => {
 
   // Reset states when the gameType (URL) changes
   useEffect(() => {
-    // ✅ Don't reset hasStarted if we have a challengeId
     if (!challengeId) {
       setHasStarted(false);
       setSelectedDifficulty('easy');
       setLockedDifficulty(null);
     } else {
-      // ✅ In challenge mode, maintain difficulty from URL
       if (difficultyFromUrl) {
         setSelectedDifficulty(difficultyFromUrl);
         setLockedDifficulty(difficultyFromUrl);
@@ -139,7 +136,6 @@ export const GamePage = () => {
       return;
     }
 
-    // ✅ In challenge mode, still check but don't block
     if (hasStarted && !challengeId) {
       return;
     }
@@ -199,7 +195,6 @@ export const GamePage = () => {
         setFoundSubmission(submission);
         setFoundAttempt(attempt);
         
-        // ✅ In challenge mode, keep URL difficulty locked
         if (!challengeId) {
           setLockedDifficulty(diffLock);
         }
@@ -283,13 +278,14 @@ export const GamePage = () => {
   let content;
 
   // RENDER PRIORITY 1: SUBMISSION FOUND
+  // ✅ CRITICAL FIX: Use difficulty from foundSubmission
   if (foundSubmission) {
     content = (
       <AlreadyPlayedScreen
         gameType={gameType as any}
         score={foundSubmission.score || 0}
         submittedAt={foundSubmission.submittedAt || new Date().toISOString()}
-        difficulty={lockedDifficulty!} 
+        difficulty={(foundSubmission.difficulty as Difficulty) || activeDifficulty}
       />
     );
   }
@@ -320,7 +316,6 @@ export const GamePage = () => {
           onStart={() => setHasStarted(true)}
           onDifficultyChange={setSelectedDifficulty}
           initialDifficulty={activeDifficulty}
-          // ✅ Disable difficulty selector in challenge mode
           disableDifficultyChange={!!challengeId}
           color={introData.color}
           darkColor={introData.darkColor}
@@ -354,7 +349,6 @@ export const GamePage = () => {
       
       content = (
         <>
-          {/* ✅ Show challenge banner when in challenge mode */}
           {challengeId && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-center">
               <p className="text-blue-800 font-medium">
