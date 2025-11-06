@@ -186,6 +186,8 @@ class SudokuPuzzle(models.Model):
 
             # Get hints_used if available
             hints_used = progress_data.get("hints_used", 0)
+            print(f"  ✅ Hints used from client: {hints_used}")
+            print(f"  Penalty per hint: {self.HINT_PENALTY_POINTS}")
 
             # Priority 1: Check for 'final_grid' (string format)
             if "final_grid" in progress_data:

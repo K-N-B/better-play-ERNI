@@ -425,6 +425,9 @@ class SubmitPuzzleView(View):
                     status=403,
                 )
 
+        points_awarded = 0
+        tries = 0
+        hints_used = 0
         # 5. CHECK GAME STATUS
         # We must ensure the game is actually over ('SOLVED' or 'LOST')
         # before we try to score it.
@@ -436,21 +439,26 @@ class SubmitPuzzleView(View):
                 status=400,
             )
 
-        # 5. SCORING
+       
+        validation_data = attempt.progress_data
+
+
+        # 2. Perform Scoring and Unpacking
         try:
-            progress_data = attempt.progress_data
-
             if puzzle_model_name_lower == "sudokupuzzle":
-                if "grid" in progress_data:
-                    validation_data = progress_data["grid"]
-                else:
-                    validation_data = progress_data
+                # Sudoku Model returns: (points_awarded, hints_used)
+                points_awarded, hints_used = puzzle_instance.validate_and_score(validation_data, difficulty)
+                tries = 1 # Manually set tries to 1 for Sudoku submission
+                
             else:
-                validation_data = progress_data
+                # Other Models return: (points_awarded, tries)
+                points_awarded, tries = puzzle_instance.validate_and_score(validation_data, difficulty)
+                # Default hints_used to 0 for non-Sudoku puzzles
+                hints_used = attempt.progress_data.get("hints_used", 0) 
 
-            points_awarded, tries = puzzle_instance.validate_and_score(validation_data, difficulty)
+            # Consolidated print statement now works for all puzzle types
+            print(f"[SubmitPuzzleView] Validation result: {points_awarded} points, {tries} tries, {hints_used} hints used")
 
-            print(f"[SubmitPuzzleView] Validation result: {points_awarded} points, {tries} tries")
         except AttributeError:
             return JsonResponse(
                 {"error": f"Scoring method missing for {puzzle_model_name}."},
@@ -463,7 +471,8 @@ class SubmitPuzzleView(View):
             traceback.print_exc()
             return JsonResponse({"error": f"Scoring failed: {str(e)}"}, status=400)
 
-        # 7. CREATE SUBMISSION RECORD (even for 0 points)
+
+        # 7. CREATE SUBMISSION RECORD (The code below is now safe)
         submission = Submission.objects.create(
             user=user,
             puzzle=puzzle_instance,
@@ -472,11 +481,11 @@ class SubmitPuzzleView(View):
             difficulty=difficulty.lower(),
             points_awarded=points_awarded,
             time_taken_ms=time_taken,
-            tries=tries,
+            tries=tries,      
+            hints_used=hints_used,  
             puzzle_date=daily_puzzle.date,
         )
-
-        # 7.0 UPDATE USER STREAK
+            # 7.0 UPDATE USER STREAK
         streak_was_updated = update_daily_activity_streak(user)
 
         # 7.1 UPDATE USER STATS (only if points > 0)

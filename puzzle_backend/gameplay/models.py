@@ -128,6 +128,7 @@ class Submission(models.Model):
 
     # Submission results
     points_awarded = models.IntegerField()
+    hints_used = models.IntegerField(default=0, help_text="Number of hints used during the attempt.")
     time_taken_ms = models.BigIntegerField(help_text="Time in milliseconds")
     tries = models.PositiveIntegerField(default=1, help_text="Number of guesses/attempts made")
     created_at = models.DateTimeField(default=timezone.now, db_index=True)

@@ -38,7 +38,13 @@ const parseGrid = (puzzleString: string): SudokuCell[][] => {
   return Array.from({ length: 9 }, (_, r) =>
     Array.from({ length: 9 }, (_, c) => {
       const val = parseInt(puzzleString[r * 9 + c]);
-      return { value: val || null, isGiven: !!val, isError: false, notes: [] };
+      return {
+        value: val || null,
+        isGiven: !!val,
+        isError: false,
+        isHint: false,
+        notes: [],
+      };
     })
   );
 };
@@ -403,7 +409,7 @@ export const SudokuGame = ({
       const finalProgressData = {
         grid: grid, // Keep grid for resume functionality
         final_grid: finalGridString, // Add string format for validation
-        hints_used: 0, // TODO: Track hints when implemented
+        hints_used: hintsUsed, // TODO: Track hints when implemented
         status: "SOLVED",
       };
 
