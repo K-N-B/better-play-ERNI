@@ -327,54 +327,6 @@ export const SudokuGame = ({
     [puzzle, time, difficulty, isGameOver, alreadyCompleted]
   );
 
-  // Event Handlers
-  const handleCellClick = (row: number, col: number) => {
-    if (isGameOver || grid[row][col].isGiven || alreadyCompleted?.hasSubmitted)
-      return;
-    setSelectedCell({ row, col });
-  };
-
-  const handleNumberClick = (num: number) => {
-    if (!selectedCell || isGameOver || alreadyCompleted?.hasSubmitted) return;
-    const { row, col } = selectedCell;
-    if (grid[row][col].isGiven) return;
-
-    const newGrid = grid.map((r, ri) =>
-      r.map((c, ci) => (ri === row && ci === col ? { ...c } : c))
-    );
-    const cell = newGrid[row][col];
-
-    if (isNoteMode) {
-      const noteIndex = cell.notes.indexOf(num);
-      if (noteIndex > -1) cell.notes.splice(noteIndex, 1);
-      else cell.notes.push(num);
-      cell.value = null;
-    } else {
-      cell.value = cell.value === num ? null : num;
-      cell.notes = [];
-    }
-
-    const checkedGrid = checkGridForErrors(newGrid);
-    setGrid(checkedGrid);
-    saveImmediately(checkedGrid);
-  };
-
-  const handleEraseClick = () => {
-    if (!selectedCell || isGameOver || alreadyCompleted?.hasSubmitted) return;
-    const { row, col } = selectedCell;
-    if (grid[row][col].isGiven) return;
-
-    const newGrid = grid.map((r, ri) =>
-      r.map((c, ci) => (ri === row && ci === col ? { ...c } : c))
-    );
-    newGrid[row][col].value = null;
-    newGrid[row][col].notes = [];
-
-    const checkedGrid = checkGridForErrors(newGrid);
-    setGrid(checkedGrid);
-    saveImmediately(checkedGrid);
-  };
-
   const handleSubmit = async () => {
     if (isGameOver || alreadyCompleted?.hasSubmitted) return;
 
@@ -458,6 +410,127 @@ export const SudokuGame = ({
       });
     }
   };
+  // Event Handlers
+  // Insert inside SudokuGame component
+
+  // ⭐️ NEW: Core function to handle all input (number, note, erase) ⭐️
+  const handleInputCore = useCallback(
+    (value: number | null) => {
+      if (!selectedCell || isGameOver || alreadyCompleted?.hasSubmitted) return;
+      const { row, col } = selectedCell;
+      const cell = grid[row][col];
+
+      if (cell.isGiven || cell.isHint) return; // Cannot modify given or hinted cells
+
+      // Create a deep copy of the grid for immutability
+      const newGrid = grid.map((r) => r.map((c) => ({ ...c })));
+      const targetCell = newGrid[row][col];
+
+      if (value === null) {
+        // --- Erase Logic (Handles 0, Delete, Backspace) ---
+        targetCell.value = null;
+        targetCell.notes = [];
+      } else if (isNoteMode) {
+        // --- Note Mode Logic ---
+        const noteIndex = targetCell.notes.indexOf(value);
+        if (noteIndex > -1) {
+          targetCell.notes.splice(noteIndex, 1); // Remove note
+        } else {
+          targetCell.notes.push(value); // Add note
+          targetCell.notes.sort((a, b) => a - b);
+        }
+        targetCell.value = null; // Clear value when toggling notes
+      } else {
+        // --- Value Mode Logic (Number Click) ---
+        targetCell.value = targetCell.value === value ? null : value;
+        targetCell.notes = [];
+      }
+
+      // Check and save the updated grid
+      const checkedGrid = checkGridForErrors(newGrid);
+      setGrid(checkedGrid);
+      // You should use the proper save function defined elsewhere in your component
+      // If your helper is `saveImmediately`, then use it here.
+      // saveImmediately(checkedGrid);
+
+      // Check for win condition and submit (This should also be in saveImmediately or a separate effect)
+      if (
+        countFilledCells(checkedGrid) === 81 &&
+        checkSolution(checkedGrid, puzzle.solution_string)
+      ) {
+        // If the grid is full and correct, trigger submission
+        handleSubmit();
+      }
+    },
+    [
+      selectedCell,
+      isGameOver,
+      alreadyCompleted,
+      grid,
+      isNoteMode,
+      checkGridForErrors,
+      countFilledCells,
+      puzzle.solution_string,
+      handleSubmit,
+      saveImmediately,
+    ]
+  );
+
+  // ⭐️ MODIFIED: Existing button handlers now point to the core logic ⭐️
+  const handleNumberClick = (num: number) => {
+    handleInputCore(num);
+  };
+
+  const handleEraseClick = () => {
+    handleInputCore(null); // Erase is null input
+  };
+
+  // You can now REMOVE the original body of handleNumberClick and handleEraseClick.
+
+  // ... (your existing handleCellClick and handleSubmit remain the same)
+
+  const handleCellClick = (row: number, col: number) => {
+    if (isGameOver || grid[row][col].isGiven || alreadyCompleted?.hasSubmitted)
+      return;
+    setSelectedCell({ row, col });
+  };
+
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (!selectedCell) return;
+
+      const key = event.key;
+      let inputValue: number | null | undefined = undefined;
+
+      // 1. Check for number keys (1-9)
+      if (key >= "1" && key <= "9") {
+        inputValue = parseInt(key);
+      }
+      // 2. Check for clear/delete keys (Delete, Backspace, 0)
+      else if (key === "Delete" || key === "Backspace" || key === "0") {
+        inputValue = null;
+        event.preventDefault(); // Prevents browser navigation on Backspace
+      }
+      // 3. Optional: Note toggle key
+      // else if (key.toLowerCase() === 'n') {
+      //     setIsNoteMode((prev) => !prev);
+      // }
+
+      if (inputValue !== undefined) {
+        handleInputCore(inputValue);
+      }
+    },
+    [selectedCell, handleInputCore] // Dependencies
+  );
+
+  // ⭐️ Attach the listener (useEffect) ⭐️
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleKeyDown]);
 
   // const handleContinue = () => {
   //   setShowResumeModal(false);
