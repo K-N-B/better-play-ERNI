@@ -40,11 +40,16 @@ const parseGrid = (puzzleString: string): SudokuCell[][] => {
   return Array.from({ length: 9 }, (_, r) =>
     Array.from({ length: 9 }, (_, c) => {
       const val = parseInt(puzzleString[r * 9 + c]);
-      return { value: val || null, isGiven: !!val, isError: false, isHint: false, notes: []  };
+      return {
+        value: val || null,
+        isGiven: !!val,
+        isError: false,
+        isHint: false,
+        notes: [],
+      };
     })
   );
 };
-
 
 const checkGridForErrors = (grid: SudokuCell[][]): SudokuCell[][] => {
   const newGrid = grid.map((row) =>
@@ -140,12 +145,18 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
 
   useEffect(() => {
     const fetchLimits = async () => {
-      const limits = await getSudokuHintLimits();
-      const difficultyUpper = difficulty.toUpperCase();
-      if (limits[difficultyUpper]) {
-        setMaxHints(limits[difficultyUpper]);
+      try {
+        const limits = await getSudokuHintLimits();
+        const difficultyUpper = difficulty.toUpperCase();
+
+        // ✅ Simplified: set max hints dynamically from backend, with fallback
+        setMaxHints(limits.HINT_LIMITS?.[difficultyUpper] ?? 3);
+      } catch (error) {
+        console.error("Failed to fetch Sudoku hint limits:", error);
+        setMaxHints(3); // fallback if backend call fails
       }
     };
+
     fetchLimits();
   }, [difficulty]);
 
@@ -240,6 +251,9 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
 
       if (savedGrid && Array.isArray(savedGrid)) {
         setGrid(savedGrid);
+        if (progressData?.hints_used) {
+          setHintsUsed(progressData.hints_used);
+        }
         setSavedTime(savedGame.time_spent_ms);
 
         // Check if grid is already solved
@@ -287,7 +301,7 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
       const dataPayload: PuzzleAttemptData = {
         puzzle_id: puzzle.id,
         puzzle_type: "sudoku",
-        progress_data: { grid: grid, hints_used: 0 }, // Wrap grid in object
+        progress_data: { grid: grid, hints_used: hintsUsed }, // Wrap grid in object
         time_spent_ms: time,
         difficulty: difficulty,
       };
@@ -326,7 +340,7 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
       const dataPayload: PuzzleAttemptData = {
         puzzle_id: puzzle.id,
         puzzle_type: "sudoku",
-        progress_data: newGrid, // ✅ Send grid directly
+        progress_data: { grid: newGrid, hints_used: hintsUsed },
         time_spent_ms: time,
         difficulty: difficulty,
       };
@@ -425,7 +439,7 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
       const finalProgressData = {
         grid: grid, // Keep grid for resume functionality
         final_grid: finalGridString, // Add string format for validation
-        hints_used: 0, // TODO: Track hints when implemented
+        hints_used: hintsUsed, // TODO: Track hints when implemented
         status: "SOLVED",
       };
 
@@ -501,7 +515,6 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
 
   const handleGetHint = async () => {
     try {
-      // ✅ Ensure the attempt exists before requesting a hint
       const dataPayload: PuzzleAttemptData = {
         puzzle_id: puzzle.id,
         puzzle_type: "sudoku",
@@ -520,39 +533,33 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
         difficulty.toUpperCase()
       );
 
-      console.log("[handleGetHint] Hint result:", result);
-
-      // ✅ 1️⃣ Get index & value from backend
-      const { hint_index, hint_value } = result;
-      setHintsUsed((prev) => result.hints_used_new || prev + 1);
-
-      // Convert the 1D index (0–80) into grid coordinates
+      const { hint_index, hint_value, hints_used_new } = result;
       const row = Math.floor(hint_index / 9);
       const col = hint_index % 9;
 
-      // ✅ 2️⃣ Update local grid state
+      // ✅ Update grid AND save the updated version
       setGrid((prevGrid) => {
         const newGrid = prevGrid.map((r) => r.map((cell) => ({ ...cell })));
         newGrid[row][col].value = parseInt(hint_value);
-        newGrid[row][col].isHint = true; // optional flag to style hinted cells
+        newGrid[row][col].isHint = true;
+
+        // Save the **new** grid to backend
+        saveProgress(
+          {
+            puzzle_id: puzzle.id,
+            puzzle_type: "sudoku",
+            progress_data: { grid: newGrid, hints_used: hints_used_new },
+            time_spent_ms: time,
+            difficulty,
+          },
+          puzzle.date_to_be_used,
+          puzzle.id
+        );
+
         return newGrid;
       });
 
-      // ✅ 3️⃣ Re-save the new progress with updated grid
-      await saveProgress(
-        {
-          puzzle_id: puzzle.id,
-          puzzle_type: "sudoku",
-          progress_data: { grid, hints_used: result.hints_used_new },
-          time_spent_ms: time,
-          difficulty,
-        },
-        puzzle.date_to_be_used,
-        puzzle.id
-      );
-
-      // ✅ (Optional) Give small feedback
-      console.log(`Hint placed at [${row},${col}] = ${hint_value}`);
+      setHintsUsed(hints_used_new);
     } catch (error) {
       console.error("[handleGetHint] Failed to get hint:", error);
       alert(`Failed to get hint: ${(error as Error).message}`);

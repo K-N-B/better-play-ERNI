@@ -88,6 +88,11 @@ class WordlePuzzle(models.Model):
         status = progress_data.get("status", "ACTIVE").upper()
         print(f"  Status: {status}")
 
+
+        #DEBUG LOGGING
+        last_guess_received = guesses[-1] if tries > 0 else "N/A"
+        print(f"  DEBUG: Raw Guess Sent: '{last_guess_received}' (Length: {len(last_guess_received)})")
+        print(f"  DEBUG: Solution Check: '{self.solution_word}' (Length: {len(self.solution_word)})")
         # ✅ Allow LOST games to submit with 0 points
         if status == "LOST":
             print("[WordlePuzzle.validate_and_score] ✅ LOST game - Awarding 0 points")
@@ -95,7 +100,7 @@ class WordlePuzzle(models.Model):
 
         # For SOLVED games, verify the solution
         client_claims_solved = status == "SOLVED"
-        is_correct_guess = tries > 0 and guesses[-1].upper() == self.solution_word.upper()
+        is_correct_guess = tries > 0 and guesses[-1].strip().upper() == self.solution_word.upper()
 
         if tries > 0:
             print(f"  Last guess: '{guesses[-1]}' vs Solution: '{self.solution_word}'")
@@ -186,6 +191,8 @@ class SudokuPuzzle(models.Model):
 
             # Get hints_used if available
             hints_used = progress_data.get("hints_used", 0)
+            print(f"  ✅ Hints used from client: {hints_used}")
+            print(f"  Penalty per hint: {self.HINT_PENALTY_POINTS}")
 
             # Priority 1: Check for 'final_grid' (string format)
             if "final_grid" in progress_data:
