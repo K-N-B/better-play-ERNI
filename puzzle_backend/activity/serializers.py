@@ -1,4 +1,4 @@
-# activity/serializers.py - FIXED VERSION
+# activity/serializers.py - UPDATED WITH PROFILE PICTURES
 
 from gameplay.models import Submission
 from rest_framework import serializers
@@ -17,7 +17,12 @@ class ActivityEventSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'puzzle_name', 'difficulty', 'time_in_minutes', 'created_at']
 
     def get_user(self, obj):
-        return {'id': obj.user.id, 'username': obj.user.username}
+        # ✅ Added profile_picture_url
+        return {
+            'id': obj.user.id,
+            'username': obj.user.username,
+            'profile_picture_url': obj.user.profile_picture_url
+        }
 
     def get_puzzle_name(self, obj):
         """
@@ -48,7 +53,7 @@ class OnlineUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username']
+        fields = ['id', 'username', 'profile_picture_url']  # ✅ Added profile_picture_url
 
 
 class ActivityHubResponseSerializer(serializers.Serializer):

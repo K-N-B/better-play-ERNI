@@ -1,7 +1,8 @@
+# leaderboards/views.py
 from datetime import date, timedelta
 
 from django.utils import timezone
-from rest_framework import generics
+from rest_framework import generics, serializers
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from users.models import Department, User
@@ -54,8 +55,7 @@ class GetLeaderboardView(generics.ListAPIView):
             elif period == 'monthly':
                 return MonthlyIndividualScoreSerializer
             elif period == 'all_time':
-                from rest_framework import serializers
-
+                # ✅ FIXED: Include profile_picture_url in all-time serializer
                 class UserAllTimeSerializer(serializers.ModelSerializer):
                     score = serializers.IntegerField(source='total_points_alltime')
                     user = serializers.SerializerMethodField()
@@ -65,7 +65,11 @@ class GetLeaderboardView(generics.ListAPIView):
                         fields = ['user', 'score']
 
                     def get_user(self, obj):
-                        return {'id': obj.id, 'username': obj.username}
+                        return {
+                            'id': obj.id,
+                            'username': obj.username,
+                            'profile_picture_url': obj.profile_picture_url  # ✅ Added this
+                        }
 
                 return UserAllTimeSerializer
 
@@ -77,8 +81,6 @@ class GetLeaderboardView(generics.ListAPIView):
             elif period == 'monthly':
                 return MonthlyDepartmentScoreSerializer
             elif period == 'all_time':
-                from rest_framework import serializers
-
                 class DepartmentAllTimeSerializer(serializers.ModelSerializer):
                     score = serializers.IntegerField(source='total_points_alltime')
                     department = serializers.SerializerMethodField()
@@ -165,5 +167,4 @@ class GetLeaderboardView(generics.ListAPIView):
         print(f"[GetLeaderboardView] Queryset count: {queryset.count()}")
         print(f"[GetLeaderboardView] Serialized data length: {len(serializer.data)}")
 
-        # ✅ CRITICAL: Return plain array, not wrapped object
         return Response(serializer.data)

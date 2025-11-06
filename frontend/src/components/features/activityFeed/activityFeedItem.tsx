@@ -1,8 +1,8 @@
-// /src/components/features/ActivityFeedItem.tsx
+// /src/components/features/activity/activityFeedItem.tsx
 
 import React from 'react';
-import type { ActivityEvent } from '../../../types/activity'; // Import the correct type
-import clsx from 'clsx'; // For conditional styling
+import type { ActivityEvent } from '../../../types/activity';
+import clsx from 'clsx';
 
 interface ActivityFeedItemProps {
   event: ActivityEvent;
@@ -17,22 +17,37 @@ const puzzleStyles: Record<ActivityEvent['puzzle_name'], { text: string; bg: str
 
 export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ event }) => {
   // Get the specific styles for this puzzle type
-  const styles = puzzleStyles[event.puzzle_name] || { text: 'text-gray-600', bg: 'bg-gray-100/60', avatarBg: 'bg-gray-300', avatarText: 'text-gray-800' };
+  const styles = puzzleStyles[event.puzzle_name] || { 
+    text: 'text-gray-600', 
+    bg: 'bg-gray-100/60', 
+    avatarBg: 'bg-gray-300', 
+    avatarText: 'text-gray-800' 
+  };
 
-  // Get the user's initial for the avatar
+  // Get the user's initial for the avatar fallback
   const userInitial = event.user.username?.charAt(0).toUpperCase() || '?';
+  const profileImageUrl = event.user.profile_picture_url;
 
   return (
-    // Main container with light background and rounded corners
     <div className={clsx("flex items-center space-x-4 p-3 sm:p-4 rounded-xl", styles.bg)}>
 
-      {/* Avatar Circle */}
-      <div className={clsx(
-        "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-xl font-bold",
-        styles.avatarBg,
-        styles.avatarText
-      )}>
-        {userInitial}
+      {/* Avatar Circle with Profile Picture */}
+      <div className="flex-shrink-0 w-10 h-10 rounded-full overflow-hidden">
+        {profileImageUrl ? (
+          <img
+            src={profileImageUrl}
+            alt={`${event.user.username} profile picture`}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className={clsx(
+            "w-full h-full flex items-center justify-center text-xl font-bold",
+            styles.avatarBg,
+            styles.avatarText
+          )}>
+            {userInitial}
+          </div>
+        )}
       </div>
 
       {/* Message Content */}
@@ -44,12 +59,7 @@ export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ event }) => 
         <strong className="text-gray-900 font-semibold">{event.difficulty}</strong>
         <span> mode in just </span>
         <strong className="text-gray-900 font-semibold">{event.time_in_minutes} minutes!</strong>
-        {/* Optional: Add time ago if needed */}
-        {/* <span className="text-xs text-gray-400 ml-2">{timeAgo(event.created_at)}</span> */}
       </div>
     </div>
   );
 };
-
-// If using default exports:
-// export
