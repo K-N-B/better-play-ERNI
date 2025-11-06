@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   submitPuzzle,
   getSavedAttempt,
@@ -19,7 +19,7 @@ import { AttemptsTracker } from "./attemptsTracker";
 import { Keyboard } from "../wordle/keyboard";
 import { PostGameResultsModal } from "../../ui/postGameResultsModal";
 import { AlreadyPlayedScreen } from "../shared/alreadyPlayedScreen";
-import { ResumeGameModal } from "../../ui/resumeGameModal";
+// import { ResumeGameModal } from "../../ui/resumeGameModal";
 import { useTimer } from "../../../hooks/useTimer";
 import { Timer } from "../../ui/timer";
 import { useApi } from "../../../hooks/useApi";
@@ -64,7 +64,7 @@ export const ErnigramGame = ({
     message: string;
   } | null>(null);
 
-  const [showResumeModal, setShowResumeModal] = useState(false);
+  // const [showResumeModal, setShowResumeModal] = useState(false);
   const [alreadyCompleted, setAlreadyCompleted] = useState<{
     hasSubmitted: boolean;
     score?: number;
@@ -173,8 +173,8 @@ export const ErnigramGame = ({
       console.log("[ErnigramGame] Has progress?", hasProgress, "Is game over?", loadedIsGameOver);
 
       if (hasProgress && !loadedIsGameOver) {
-        console.log("[ErnigramGame] Showing resume modal");
-        setShowResumeModal(true);
+        // console.log("[ErnigramGame] Showing resume modal");
+        // setShowResumeModal(true);
       } else if (!loadedIsGameOver) {
         console.log("[ErnigramGame] Starting timer - no resume needed");
         startTimer();
@@ -459,11 +459,11 @@ export const ErnigramGame = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyPress]);
 
-  // ✅ 6. Resume modal handler
-  const handleContinue = () => {
-    setShowResumeModal(false);
-    startTimer();
-  };
+  // // ✅ 6. Resume modal handler
+  // const handleContinue = () => {
+  //   setShowResumeModal(false);
+  //   startTimer();
+  // };
 
   // ✅ 7. Loading and already played screens
   if (checkingSubmission || loading) {
@@ -487,7 +487,7 @@ export const ErnigramGame = ({
 
   return (
     <>
-      {showResumeModal && (
+      {/* {showResumeModal && (
         <ResumeGameModal
           guessCount={guessedLetters.length}
           maxGuesses={null} // Don't show "of X" for ERNIgram
@@ -497,7 +497,7 @@ export const ErnigramGame = ({
           onContinue={handleContinue}
           customMessage={`You've guessed ${guessedLetters.length} letter${guessedLetters.length !== 1 ? 's' : ''} with ${attemptsLeft} attempt${attemptsLeft !== 1 ? 's' : ''} remaining.`}
         />
-      )}
+      )} */}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
         <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
@@ -549,10 +549,10 @@ export const ErnigramGame = ({
             <PostGameResultsModal
               score={gameResult.score}
               submissionId={gameResult.submissionId}
-              currentStreak={gameResult.currentStreak}
-              maxStreak={gameResult.maxStreak}
-              streakUpdatedToday={gameResult.streakUpdatedToday}
-              message={gameResult.message}
+              // currentStreak={gameResult.currentStreak}
+              // maxStreak={gameResult.maxStreak}
+              // streakUpdatedToday={gameResult.streakUpdatedToday}
+              // message={gameResult.message}
               gameType="ernigram"
               onClose={() => setGameResult(null)}
             />
