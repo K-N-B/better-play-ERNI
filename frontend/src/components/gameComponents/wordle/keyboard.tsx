@@ -31,7 +31,7 @@ export const Keyboard = ({ onKeyPress, letterStatuses }: KeyboardProps) => {
   const playClick = useSound([click1, click2, click3], 0.5);
 
   const handlePress = (key: string) => {
-    playClick(); // 🔊 play sound
+    playClick(); // play sound
     onKeyPress(key); // trigger original event
   };
 
