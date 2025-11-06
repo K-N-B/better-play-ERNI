@@ -1,4 +1,5 @@
 // src/components/gameComponents/shared/alreadyPlayedScreen.tsx
+// COMPLETE FILE WITH DIFFICULTY FIX
 
 import { CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -18,6 +19,16 @@ export const AlreadyPlayedScreen = ({
   difficulty,
 }: AlreadyPlayedScreenProps) => {
   const navigate = useNavigate();
+
+  // ✅ FIXED: Properly format difficulty for display
+  const displayDifficulty = (difficulty || 'easy').toUpperCase();
+
+  console.log('[AlreadyPlayedScreen] Rendering with:', {
+    gameType,
+    score,
+    difficulty,
+    displayDifficulty,
+  });
 
   const gameColors = {
     wordle: 'bg-emerald-100 border-emerald-300 text-emerald-800',
@@ -62,7 +73,7 @@ export const AlreadyPlayedScreen = ({
         <p className="text-lg mb-6">
           You've already completed today's{' '}
           <strong>{gameTitles[gameType]}</strong> puzzle on{' '}
-          <strong>{difficulty}</strong> difficulty.
+          <strong>{displayDifficulty}</strong> difficulty.
         </p>
 
         {/* Score Display */}

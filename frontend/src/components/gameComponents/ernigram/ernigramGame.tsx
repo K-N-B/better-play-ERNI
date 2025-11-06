@@ -1,5 +1,5 @@
 // src/components/gameComponents/ernigram/ernigramGame.tsx
-// UPDATED WITH CHALLENGE SUPPORT
+// COMPLETE FILE WITH DIFFICULTY FIX
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -56,7 +56,6 @@ export const ErnigramGame = ({
   challengeId,
   dailyPuzzleDate,
 }: ErnigramGameProps) => {
-  // ✅ DEBUG: Component mounted
   console.log('[ErnigramGame] ========== COMPONENT MOUNTED ==========');
   console.log('[ErnigramGame] Props received:');
   console.log('[ErnigramGame]   - challengeId:', challengeId, '(type:', typeof challengeId, ')');
@@ -91,16 +90,15 @@ export const ErnigramGame = ({
     score?: number;
     submittedAt?: string;
     submissionId?: number;
+    difficulty?: string;
   } | null>(null);
   const [checkingSubmission, setCheckingSubmission] = useState(true);
 
   const { time, startTimer, stopTimer, setSavedTime } = useTimer();
 
   const playLetter = useSound([click1, click2, click3], 0.4);
-  // const playBackspace = useSound([back], 0.4);
-  const playError = useSound([error], 0.4)
+  const playError = useSound([error], 0.4);
   const playSuccess = useSound([success], 0.4);
-
 
   const puzzleID = puzzle.id;
   const [isWon, setIsWon] = useState(false);
@@ -121,12 +119,12 @@ export const ErnigramGame = ({
         console.log('[ErnigramGame] Submission check result:', result);
         console.log('[ErnigramGame] result.hasSubmitted:', result.hasSubmitted);
         console.log('[ErnigramGame] result.submissionId:', result.submissionId);
+        console.log('[ErnigramGame] result.difficulty:', result.difficulty);
         
         if (result.hasSubmitted) {
           setAlreadyCompleted(result);
           setIsGameOver(true);
           
-          // ✅ NEW: Auto-complete challenge if already submitted
           console.log('[ErnigramGame] ========== SHOULD COMPLETE CHALLENGE? ==========');
           console.log('[ErnigramGame] challengeId:', challengeId);
           console.log('[ErnigramGame] result.submissionId:', result.submissionId);
@@ -136,7 +134,7 @@ export const ErnigramGame = ({
             console.log('[ErnigramGame] ⚠️ User already submitted - completing challenge now!');
             try {
               console.log('[ErnigramGame] ========== CHALLENGE COMPLETION START ==========');
-              const challengeResult = await completeChallenge(challengeId, { submission_id: result.submissionId });
+              await completeChallenge(challengeId, { submission_id: result.submissionId });
               console.log('[ErnigramGame] ✅ Challenge completed automatically!');
               await new Promise(resolve => setTimeout(resolve, 2000));
               await refreshChallenges();
@@ -144,10 +142,6 @@ export const ErnigramGame = ({
             } catch (error) {
               console.error('[ErnigramGame] ❌ Failed to auto-complete challenge:', error);
             }
-          } else {
-            console.log('[ErnigramGame] ❌ NOT completing challenge because:');
-            if (!challengeId) console.log('[ErnigramGame]   - challengeId is missing/falsy');
-            if (!result.submissionId) console.log('[ErnigramGame]   - result.submissionId is missing/falsy');
           }
         }
       })
@@ -352,7 +346,6 @@ export const ErnigramGame = ({
         finalScore = submissionResult.score;
         submissionIdForResultModal = submissionResult.submissionId ?? null;
 
-        // ✅ NEW: Complete challenge
         console.log('[ErnigramGame] ========== AFTER SUBMISSION ==========');
         console.log('[ErnigramGame] challengeId:', challengeId);
         console.log('[ErnigramGame] submissionIdForResultModal:', submissionIdForResultModal);
@@ -361,7 +354,7 @@ export const ErnigramGame = ({
         if (challengeId && submissionIdForResultModal) {
           try {
             console.log('[ErnigramGame] ========== CHALLENGE COMPLETION START ==========');
-            const challengeResult = await completeChallenge(challengeId, { submission_id: submissionIdForResultModal });
+            await completeChallenge(challengeId, { submission_id: submissionIdForResultModal });
             console.log('[ErnigramGame] ✅ Challenge API call succeeded!');
             await new Promise(resolve => setTimeout(resolve, 3000));
             await refreshChallenges();
@@ -371,10 +364,6 @@ export const ErnigramGame = ({
             console.error('[ErnigramGame] ❌ Challenge error:', challengeError);
             await refreshChallenges();
           }
-        } else {
-          console.log('[ErnigramGame] ❌ NOT completing challenge because:');
-          if (!challengeId) console.log('[ErnigramGame]   - challengeId is missing/falsy');
-          if (!submissionIdForResultModal) console.log('[ErnigramGame]   - submissionIdForResultModal is missing/falsy');
         }
       } catch (err) {
         console.error("[ErnigramGame] Error during end:", err);
@@ -418,7 +407,7 @@ export const ErnigramGame = ({
         endGame(false);
       }
     },
-    [solution, endGame]
+    [solution, endGame, playSuccess]
   );
 
   const saveImmediately = useCallback(
@@ -460,8 +449,6 @@ export const ErnigramGame = ({
       const char = key.toUpperCase();
       if (guessedLetters.includes(char) || !/^[A-Z]$/.test(char)) return;
 
-      
-
       const newGuessedLetters = [...guessedLetters, char];
       setGuessedLetters(newGuessedLetters);
 
@@ -490,6 +477,8 @@ export const ErnigramGame = ({
       letterStatuses,
       checkGameState,
       saveImmediately,
+      playLetter,
+      playError,
     ]
   );
 
@@ -512,13 +501,14 @@ export const ErnigramGame = ({
     return <LoadingSpinner fullPage={true} />;
   }
 
+  // ✅ CRITICAL FIX: Use difficulty from alreadyCompleted, not lockedDifficulty
   if (alreadyCompleted?.hasSubmitted) {
     return (
       <AlreadyPlayedScreen
         gameType="ernigram"
         score={alreadyCompleted.score || 0}
         submittedAt={alreadyCompleted.submittedAt || new Date().toISOString()}
-        difficulty={difficulty}
+        difficulty={(alreadyCompleted.difficulty as Difficulty) || difficulty}
       />
     );
   }
