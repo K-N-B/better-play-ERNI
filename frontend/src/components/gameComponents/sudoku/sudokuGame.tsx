@@ -34,6 +34,7 @@ import { LoadingSpinner } from "../../ui/loadingSpinner";
 import type { Difficulty } from "../../../pages/gamePage";
 import { getHint, getSudokuHintLimits } from "../../../api/gameService";
 import { useChallenges } from "../../../context/ChallengeContext";
+import { keyboardInputSudoku } from "./keyboardInputsSudoku";
 
 // Helper Functions
 const parseGrid = (puzzleString: string): SudokuCell[][] => {
@@ -119,20 +120,38 @@ interface SudokuGameProps {
   challengeId: number | null;
 }
 
-export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps) => {
+export const SudokuGame = ({
+  puzzle,
+  difficulty,
+  challengeId,
+}: SudokuGameProps) => {
   // ✅ DEBUG: Component mounted
-  console.log('[SudokuGame] ========== COMPONENT MOUNTED ==========');
-  console.log('[SudokuGame] Props received:');
-  console.log('[SudokuGame]   - challengeId:', challengeId, '(type:', typeof challengeId, ')');
-  console.log('[SudokuGame]   - difficulty:', difficulty);
-  console.log('[SudokuGame]   - puzzle.id:', puzzle?.id);
-  console.log('[SudokuGame] ===========================================');
-  
+  console.log("[SudokuGame] ========== COMPONENT MOUNTED ==========");
+  console.log("[SudokuGame] Props received:");
+  console.log(
+    "[SudokuGame]   - challengeId:",
+    challengeId,
+    "(type:",
+    typeof challengeId,
+    ")"
+  );
+  console.log("[SudokuGame]   - difficulty:", difficulty);
+  console.log("[SudokuGame]   - puzzle.id:", puzzle?.id);
+  console.log("[SudokuGame] ===========================================");
+
   const { refreshChallenges } = useChallenges();
-  const initialPuzzleString = difficulty === 'easy' ? puzzle.puzzle_string_easy : puzzle.puzzle_string_hard;
-  
-  const [grid, setGrid] = useState<SudokuCell[][]>(() => parseGrid(initialPuzzleString));
-  const [selectedCell, setSelectedCell] = useState<{ row: number, col: number } | null>(null);
+  const initialPuzzleString =
+    difficulty === "easy"
+      ? puzzle.puzzle_string_easy
+      : puzzle.puzzle_string_hard;
+
+  const [grid, setGrid] = useState<SudokuCell[][]>(() =>
+    parseGrid(initialPuzzleString)
+  );
+  const [selectedCell, setSelectedCell] = useState<{
+    row: number;
+    col: number;
+  } | null>(null);
   const [isNoteMode, setIsNoteMode] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
   const [gameResult, setGameResult] = useState<{
@@ -177,43 +196,63 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
       setCheckingSubmission(false);
       return;
     }
-    
-    console.log('[SudokuGame] ========== CHECKING SUBMISSION ==========');
-    console.log('[SudokuGame] challengeId:', challengeId);
+
+    console.log("[SudokuGame] ========== CHECKING SUBMISSION ==========");
+    console.log("[SudokuGame] challengeId:", challengeId);
     setCheckingSubmission(true);
-    
-    checkSubmissionExists('sudoku', puzzle.date_to_be_used, puzzle.id)
-      .then(async result => {
-        console.log('[SudokuGame] Submission check result:', result);
-        console.log('[SudokuGame] result.hasSubmitted:', result.hasSubmitted);
-        console.log('[SudokuGame] result.submissionId:', result.submissionId);
-        
+
+    checkSubmissionExists("sudoku", puzzle.date_to_be_used, puzzle.id)
+      .then(async (result) => {
+        console.log("[SudokuGame] Submission check result:", result);
+        console.log("[SudokuGame] result.hasSubmitted:", result.hasSubmitted);
+        console.log("[SudokuGame] result.submissionId:", result.submissionId);
+
         if (result.hasSubmitted) {
           setAlreadyCompleted(result);
           setIsGameOver(true);
-          
+
           // ✅ NEW: Auto-complete challenge if already submitted
-          console.log('[SudokuGame] ========== SHOULD COMPLETE CHALLENGE? ==========');
-          console.log('[SudokuGame] challengeId:', challengeId);
-          console.log('[SudokuGame] result.submissionId:', result.submissionId);
-          console.log('[SudokuGame] Both truthy?:', !!(challengeId && result.submissionId));
-          
+          console.log(
+            "[SudokuGame] ========== SHOULD COMPLETE CHALLENGE? =========="
+          );
+          console.log("[SudokuGame] challengeId:", challengeId);
+          console.log("[SudokuGame] result.submissionId:", result.submissionId);
+          console.log(
+            "[SudokuGame] Both truthy?:",
+            !!(challengeId && result.submissionId)
+          );
+
           if (challengeId && result.submissionId) {
-            console.log('[SudokuGame] ⚠️ User already submitted - completing challenge now!');
+            console.log(
+              "[SudokuGame] ⚠️ User already submitted - completing challenge now!"
+            );
             try {
-              console.log('[SudokuGame] ========== CHALLENGE COMPLETION START ==========');
-              const challengeResult = await completeChallenge(challengeId, { submission_id: result.submissionId });
-              console.log('[SudokuGame] ✅ Challenge completed automatically!');
-              await new Promise(resolve => setTimeout(resolve, 2000));
+              console.log(
+                "[SudokuGame] ========== CHALLENGE COMPLETION START =========="
+              );
+              const challengeResult = await completeChallenge(challengeId, {
+                submission_id: result.submissionId,
+              });
+              console.log("[SudokuGame] ✅ Challenge completed automatically!");
+              await new Promise((resolve) => setTimeout(resolve, 2000));
               await refreshChallenges();
-              console.log('[SudokuGame] ========== CHALLENGE COMPLETION END ==========');
+              console.log(
+                "[SudokuGame] ========== CHALLENGE COMPLETION END =========="
+              );
             } catch (error) {
-              console.error('[SudokuGame] ❌ Failed to auto-complete challenge:', error);
+              console.error(
+                "[SudokuGame] ❌ Failed to auto-complete challenge:",
+                error
+              );
             }
           } else {
-            console.log('[SudokuGame] ❌ NOT completing challenge because:');
-            if (!challengeId) console.log('[SudokuGame]   - challengeId is missing/falsy');
-            if (!result.submissionId) console.log('[SudokuGame]   - result.submissionId is missing/falsy');
+            console.log("[SudokuGame] ❌ NOT completing challenge because:");
+            if (!challengeId)
+              console.log("[SudokuGame]   - challengeId is missing/falsy");
+            if (!result.submissionId)
+              console.log(
+                "[SudokuGame]   - result.submissionId is missing/falsy"
+              );
           }
         }
       })
@@ -356,52 +395,6 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
   );
 
   // Event Handlers
-  const handleCellClick = (row: number, col: number) => {
-    if (isGameOver || grid[row][col].isGiven || alreadyCompleted?.hasSubmitted)
-      return;
-    setSelectedCell({ row, col });
-  };
-
-  const handleNumberClick = (num: number) => {
-    if (!selectedCell || isGameOver || alreadyCompleted?.hasSubmitted) return;
-    const { row, col } = selectedCell;
-    if (grid[row][col].isGiven) return;
-
-    const newGrid = grid.map((r, ri) =>
-      r.map((c, ci) => (ri === row && ci === col ? { ...c } : c))
-    );
-    const cell = newGrid[row][col];
-
-    if (isNoteMode) {
-      const noteIndex = cell.notes.indexOf(num);
-      if (noteIndex > -1) cell.notes.splice(noteIndex, 1);
-      else cell.notes.push(num);
-      cell.value = null;
-    } else {
-      cell.value = cell.value === num ? null : num;
-      cell.notes = [];
-    }
-
-    const checkedGrid = checkGridForErrors(newGrid);
-    setGrid(checkedGrid);
-    saveImmediately(checkedGrid);
-  };
-
-  const handleEraseClick = () => {
-    if (!selectedCell || isGameOver || alreadyCompleted?.hasSubmitted) return;
-    const { row, col } = selectedCell;
-    if (grid[row][col].isGiven) return;
-
-    const newGrid = grid.map((r, ri) =>
-      r.map((c, ci) => (ri === row && ci === col ? { ...c } : c))
-    );
-    newGrid[row][col].value = null;
-    newGrid[row][col].notes = [];
-
-    const checkedGrid = checkGridForErrors(newGrid);
-    setGrid(checkedGrid);
-    saveImmediately(checkedGrid);
-  };
 
   const handleSubmit = async () => {
     if (isGameOver || alreadyCompleted?.hasSubmitted) return;
@@ -413,8 +406,8 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
       return;
     }
 
-    console.log('[SudokuGame] ========== SUBMITTING PUZZLE ==========');
-    console.log('[SudokuGame] challengeId:', challengeId);
+    console.log("[SudokuGame] ========== SUBMITTING PUZZLE ==========");
+    console.log("[SudokuGame] challengeId:", challengeId);
 
     setIsGameOver(true);
     stopTimer();
@@ -475,28 +468,44 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
       submissionIdForResultModal = submissionResult.submissionId ?? null;
 
       // ✅ NEW: Complete challenge
-      console.log('[SudokuGame] ========== AFTER SUBMISSION ==========');
-      console.log('[SudokuGame] challengeId:', challengeId);
-      console.log('[SudokuGame] submissionIdForResultModal:', submissionIdForResultModal);
-      console.log('[SudokuGame] Both truthy?:', !!(challengeId && submissionIdForResultModal));
+      console.log("[SudokuGame] ========== AFTER SUBMISSION ==========");
+      console.log("[SudokuGame] challengeId:", challengeId);
+      console.log(
+        "[SudokuGame] submissionIdForResultModal:",
+        submissionIdForResultModal
+      );
+      console.log(
+        "[SudokuGame] Both truthy?:",
+        !!(challengeId && submissionIdForResultModal)
+      );
 
       if (challengeId && submissionIdForResultModal) {
         try {
-          console.log('[SudokuGame] ========== CHALLENGE COMPLETION START ==========');
-          const challengeResult = await completeChallenge(challengeId, { submission_id: submissionIdForResultModal });
-          console.log('[SudokuGame] ✅ Challenge API call succeeded!');
-          await new Promise(resolve => setTimeout(resolve, 3000));
+          console.log(
+            "[SudokuGame] ========== CHALLENGE COMPLETION START =========="
+          );
+          const challengeResult = await completeChallenge(challengeId, {
+            submission_id: submissionIdForResultModal,
+          });
+          console.log("[SudokuGame] ✅ Challenge API call succeeded!");
+          await new Promise((resolve) => setTimeout(resolve, 3000));
           await refreshChallenges();
-          console.log('[SudokuGame] ✅ Challenge flow complete!');
-          console.log('[SudokuGame] ========== CHALLENGE COMPLETION END ==========');
+          console.log("[SudokuGame] ✅ Challenge flow complete!");
+          console.log(
+            "[SudokuGame] ========== CHALLENGE COMPLETION END =========="
+          );
         } catch (challengeError) {
-          console.error('[SudokuGame] ❌ Challenge error:', challengeError);
+          console.error("[SudokuGame] ❌ Challenge error:", challengeError);
           await refreshChallenges();
         }
       } else {
-        console.log('[SudokuGame] ❌ NOT completing challenge because:');
-        if (!challengeId) console.log('[SudokuGame]   - challengeId is missing/falsy');
-        if (!submissionIdForResultModal) console.log('[SudokuGame]   - submissionIdForResultModal is missing/falsy');
+        console.log("[SudokuGame] ❌ NOT completing challenge because:");
+        if (!challengeId)
+          console.log("[SudokuGame]   - challengeId is missing/falsy");
+        if (!submissionIdForResultModal)
+          console.log(
+            "[SudokuGame]   - submissionIdForResultModal is missing/falsy"
+          );
       }
     } catch (err) {
       console.error("[SudokuGame] Error:", err);
@@ -512,6 +521,97 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
   //   setShowResumeModal(false);
   //   startTimer();
   // };
+  // ⭐️ NEW: Core function to handle all input (number, note, erase) ⭐️
+  const handleInputCore = useCallback(
+    (value: number | null) => {
+      if (!selectedCell || isGameOver || alreadyCompleted?.hasSubmitted) return;
+      const { row, col } = selectedCell;
+      const cell = grid[row][col];
+
+      if (cell.isGiven || cell.isHint) return; // Cannot modify given or hinted cells
+
+      // Create a deep copy of the grid for immutability
+      const newGrid = grid.map((r) => r.map((c) => ({ ...c })));
+      const targetCell = newGrid[row][col];
+
+      if (value === null) {
+        // --- Erase Logic (Handles 0, Delete, Backspace) ---
+        targetCell.value = null;
+        targetCell.notes = [];
+      } else if (isNoteMode) {
+        // --- Note Mode Logic ---
+        const noteIndex = targetCell.notes.indexOf(value);
+        if (noteIndex > -1) {
+          targetCell.notes.splice(noteIndex, 1); // Remove note
+        } else {
+          targetCell.notes.push(value); // Add note
+          targetCell.notes.sort((a, b) => a - b);
+        }
+        targetCell.value = null; // Clear value when toggling notes
+      } else {
+        // --- Value Mode Logic (Number Click) ---
+        targetCell.value = targetCell.value === value ? null : value;
+        targetCell.notes = [];
+      }
+
+      // Check and save the updated grid
+      const checkedGrid = checkGridForErrors(newGrid);
+      setGrid(checkedGrid);
+      // You should use the proper save function defined elsewhere in your component
+      // If your helper is `saveImmediately`, then use it here.
+      // saveImmediately(checkedGrid);
+
+      // Check for win condition and submit (This should also be in saveImmediately or a separate effect)
+      if (
+        countFilledCells(checkedGrid) === 81 &&
+        checkSolution(checkedGrid, puzzle.solution_string)
+      ) {
+        // If the grid is full and correct, trigger submission
+        handleSubmit();
+      }
+    },
+    [
+      selectedCell,
+      isGameOver,
+      alreadyCompleted,
+      grid,
+      isNoteMode,
+      checkGridForErrors,
+      countFilledCells,
+      puzzle.solution_string,
+      handleSubmit,
+      saveImmediately,
+    ]
+  );
+  keyboardInputSudoku({
+    grid,
+    selectedCell,
+    isGameOver,
+    isNoteMode,
+    alreadyCompleted, // Passed to hook
+    setSelectedCell, // Passed to hook
+    setIsNoteMode, // Passed to hook
+    handleInputCore, // Passed to hook
+  });
+
+  // ⭐️ MODIFIED: Existing button handlers now point to the core logic ⭐️
+  const handleNumberClick = (num: number) => {
+    handleInputCore(num);
+  };
+
+  const handleEraseClick = () => {
+    handleInputCore(null); // Erase is null input
+  };
+
+  // You can now REMOVE the original body of handleNumberClick and handleEraseClick.
+
+  // ... (your existing handleCellClick and handleSubmit remain the same)
+
+  const handleCellClick = (row: number, col: number) => {
+    if (isGameOver || grid[row][col].isGiven || alreadyCompleted?.hasSubmitted)
+      return;
+    setSelectedCell({ row, col });
+  };
 
   const handleGetHint = async () => {
     try {
