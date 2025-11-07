@@ -625,7 +625,7 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
             <button
               onClick={handleGetHint}
               disabled={isGameOver || hintsUsed >= maxHints}
-              className="mt-6 px-8 py-3 bg-yellow-500 text-white font-bold rounded-lg shadow-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="mt-6 px-8 py-3 bg-yellow-500 shadow-yellow-700 text-white font-bold rounded-lg shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Hint ({hintsUsed}/{maxHints})
             </button>
@@ -633,7 +633,7 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
             <button
               onClick={handleSubmit}
               disabled={isGameOver}
-              className="mt-6 px-8 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="mt-6 px-8 py-3 bg-green-600 shadow-green-900 text-white font-bold rounded-lg shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Submit
             </button>
