@@ -8,6 +8,7 @@ interface PostGameResultsModalProps {
   score: number;
   onClose: () => void;
   submissionId: number | null;
+  // currentStreak: number;
   gameType: 'wordle' | 'sudoku' | 'ernigram'; // ✅ NEW: Track which game
 }
 
@@ -15,6 +16,7 @@ export const PostGameResultsModal = ({
   score, 
   onClose, 
   submissionId,
+  // currentStreak,
   gameType 
 }: PostGameResultsModalProps) => {
   const [isChallengeModalOpen, setIsChallengeModalOpen] = useState(false);
@@ -52,6 +54,7 @@ export const PostGameResultsModal = ({
             {score}
             <Star size={30} className="text-yellow-500 fill-current" />
           </div>
+           {/* <p className="text-lg text-gray-700 mb-1">You are on a {currentStreak} day streak. Keep it up!</p> */}
 
           {/* ✅ Challenge Button */}
           <button

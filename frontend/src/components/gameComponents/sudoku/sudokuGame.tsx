@@ -643,6 +643,7 @@ export const SudokuGame = ({ puzzle, difficulty, challengeId }: SudokuGameProps)
             <PostGameResultsModal
               score={gameResult.score}
               submissionId={gameResult.submissionId}
+              // currentStreak={gameResult.currentStreak}
               gameType="sudoku"
               onClose={() => setGameResult(null)}
             />

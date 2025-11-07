@@ -39,7 +39,7 @@ const DifficultyToggle: React.FC<DifficultyToggleProps> = ({
       {/* Easy Label */}
       <span
         className={`text-lg font-semibold transition-colors ${
-          !isHard ? 'text-green-600' : 'text-gray-400'
+          !isHard ? 'text-primary-700' : 'text-gray-400'
         }`}
       >
         Easy
@@ -49,19 +49,19 @@ const DifficultyToggle: React.FC<DifficultyToggleProps> = ({
       <button
         onClick={handleToggle}
         disabled={disabled} // ✅ Disable the button
-        className={`relative w-16 h-8 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+        className={`relative w-16 h-8 rounded-full transition-all $ shadow-xs ${
           disabled
             ? 'cursor-not-allowed opacity-50 bg-gray-300' // ✅ Disabled styles
             : isHard
-            ? `${color} focus:ring-red-500`
-            : 'bg-green-500 focus:ring-green-500'
+            ? `bg-white `
+            : `bg-white `
         }`}
         aria-label={`Toggle difficulty to ${isHard ? 'easy' : 'hard'}`}
         title={disabled ? 'Difficulty locked for challenge' : undefined}
       >
         {/* Sliding Circle */}
         <span
-          className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow-md transform transition-transform ${
+          className={`absolute top-1 left-1 w-6 h-6 ${color} rounded-full shadow-md transform transition-transform ${
             isHard ? 'translate-x-8' : 'translate-x-0'
           }`}
         />
@@ -70,7 +70,7 @@ const DifficultyToggle: React.FC<DifficultyToggleProps> = ({
       {/* Hard Label */}
       <span
         className={`text-lg font-semibold transition-colors ${
-          isHard ? 'text-red-600' : 'text-gray-400'
+          isHard ? 'text-primary-700' : 'text-gray-400'
         }`}
       >
         Hard
