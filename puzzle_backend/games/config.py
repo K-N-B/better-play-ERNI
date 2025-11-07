@@ -12,6 +12,10 @@ WORDLE_HARD_TIME_LIMIT = 400000  # 7 minutes in milliseconds
 
 
 # SUDOKU Configuration
+SUDOKU_API_BASE_URL = "https://sudoku-api.vercel.app/api/dosuku"
+DEFAULT_EASY_BLANKS = 40
+DEFAULT_HARD_BLANKS = 50
+
 SUDOKU_EASY_BASE_POINT = 200
 SUDOKU_HARD_BASE_POINT = 400
 
@@ -34,12 +38,9 @@ ERNIGRAM_EASY_MISTAKE_LIMITS = 6
 ERNIGRAM_HARD_MISTAKE_LIMITS = 4
 
 
-# Sudoku API Configuration
-SUDOKU_API_BASE_URL = "https://sudoku-api.vercel.app/api/dosuku"
-DEFAULT_EASY_BLANKS = 40
-DEFAULT_HARD_BLANKS = 50
+
 
 
 NEWS_API_BASE_URL = "https://api.rss2json.com/v1/api.json"
-# NEWS_API_FEED_PARAM = "?rss_url=https%3A%2F%2Fwww.manilatimes.net%2Fnews%2Ffeed%2F"
+#NEWS_API_FEED_PARAM = "?rss_url=https%3A%2F%2Fwww.manilatimes.net%2Fnews%2Ffeed%2F"
 NEWS_API_FEED_PARAM = "?rss_url=https%3A%2F%2Fwww.rappler.com%2Ffeed%2F"
