@@ -30,7 +30,7 @@ export const NumberPad = ({ onNumberClick, onEraseClick, onNoteToggle, isNoteMod
             playClick();
             onNumberClick(num);
           }}
-          className="h-12 w-12 sm:h-14 sm:w-14 rounded-lg bg-blue-500 text-white text-xl font-bold hover:bg-blue-600"
+          className="h-12 w-12 sm:h-14 sm:w-14 rounded-lg bg-primary-500 shadow-primary-800 text-white text-xl font-bold shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all"
         >
           {num}
         </button>
@@ -38,19 +38,19 @@ export const NumberPad = ({ onNumberClick, onEraseClick, onNoteToggle, isNoteMod
       <button
         onClick={() =>{
           playClick();
-          onNoteToggle;
+          onNoteToggle();
         }}
         className={`h-12 w-12 sm:h-14 sm:w-14 rounded-lg text-lg font-bold 
-                    ${isNoteMode ? 'bg-yellow-400 text-black' : 'bg-gray-300 hover:bg-gray-400'}`}
+                    ${isNoteMode ? 'bg-yellow-400 shadow-yellow-600 shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all text-black' : 'bg-gray-300 shadow-gray-600 shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all'}`}
       >
         <Edit className="mx-auto" />
       </button>
       <button
         onClick={() =>{
           playClick();
-          onEraseClick;
+          onEraseClick();
         }}
-        className="h-12 w-12 sm:h-14 sm:w-14 rounded-lg bg-red-500 text-white text-lg font-bold hover:bg-red-600"
+        className="h-12 w-12 sm:h-14 sm:w-14 rounded-lg bg-red-500 shadow-red-800 text-white text-lg font-bold shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all"
       >
         <Eraser className="mx-auto" />
       </button>

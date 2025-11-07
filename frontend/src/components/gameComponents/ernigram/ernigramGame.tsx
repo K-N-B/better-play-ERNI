@@ -362,7 +362,7 @@ export const ErnigramGame = ({
           puzzle.id
         );
 
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        //await new Promise((resolve) => setTimeout(resolve, 500));
 
         const submissionData: SubmissionData = {
           puzzle_id: puzzle.id,
