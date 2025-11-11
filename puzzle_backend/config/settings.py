@@ -32,9 +32,9 @@ ENVIRONMENT = os.environ.get("ENVIRONMENT", "local")
 if ENVIRONMENT == "production":
     DEBUG = False
     ALLOWED_HOSTS = [
+        "140.245.52.155",
         "better-play-erni.onrender.com",
         "better-play-erni.vercel.app",
-        "140.245.52.155",
     ]
 else:
     DEBUG = True
