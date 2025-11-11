@@ -38,7 +38,7 @@ if ENVIRONMENT == "production":
     ]
 else:
     DEBUG = True
-    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+    ALLOWED_HOSTS = ["140.245.52.155", "localhost", "127.0.0.1"]
 
 # Application definition
 
@@ -141,20 +141,24 @@ CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent cross-origin
 # CORS Settings
 if ENVIRONMENT == "production":
     CORS_ALLOWED_ORIGINS = [
+        "140.245.52.155",
         "https://better-play-erni.onrender.com",
         "https://better-play-erni.vercel.app",
     ]
     CSRF_TRUSTED_ORIGINS = [
+        "140.245.52.155",
         "https://better-play-erni.onrender.com",
         "https://better-play-erni.vercel.app",
     ]
 else:
     CORS_ALLOWED_ORIGINS = [
+        "140.245.52.155",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:8000",  # add this for Postman/local API calls
     ]
     CSRF_TRUSTED_ORIGINS = [
+        "140.245.52.155",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:8000",  # add this for Postman/local API calls
@@ -239,9 +243,9 @@ REST_FRAMEWORK = {
 LOGIN_URL = "/auth/login/azuread-oauth2/"
 
 if ENVIRONMENT == "production":
-    LOGIN_REDIRECT_URL = "https://better-play-erni.vercel.app/auth-callback"
-    LOGOUT_REDIRECT_URL = "https://better-play-erni.vercel.app/login"
-    FRONTEND_BASE_URL = "https://better-play-erni.vercel.app"
+    LOGIN_REDIRECT_URL = "140.245.52.155/auth-callback"
+    LOGOUT_REDIRECT_URL = "140.245.52.155/login"
+    FRONTEND_BASE_URL = "140.245.52.155"
 else:
     LOGIN_REDIRECT_URL = "http://localhost:5173/auth-callback"
     LOGOUT_REDIRECT_URL = "http://localhost:5173/login"
