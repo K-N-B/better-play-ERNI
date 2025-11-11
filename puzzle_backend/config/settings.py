@@ -199,7 +199,7 @@ AZURE_AD_CLIENT_SECRET = os.environ.get("AZURE_AD_CLIENT_SECRET")
 AZURE_AD_TENANT_ID = os.environ.get("AZURE_AD_TENANT_ID")
 # This MUST match the 'Web' redirect URI in Azure App Registration AND users/urls.py path
 AZURE_AD_REDIRECT_URI = os.environ.get(
-    "AZURE_AD_REDIRECT_URI", "http://localhost:8000/auth/callback/"
+    "AZURE_AD_REDIRECT_URI", "http://140.245.52.155/auth/callback/"
 )
 
 
