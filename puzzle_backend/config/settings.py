@@ -32,13 +32,14 @@ ENVIRONMENT = os.environ.get("ENVIRONMENT", "local")
 if ENVIRONMENT == "production":
     DEBUG = False
     ALLOWED_HOSTS = [
+        "better-play-erni.duckdns.org",
         "140.245.52.155",
         "better-play-erni.onrender.com",
         "better-play-erni.vercel.app",
     ]
 else:
     DEBUG = True
-    ALLOWED_HOSTS = ["140.245.52.155", "localhost", "127.0.0.1"]
+    ALLOWED_HOSTS = ["better-play-erni.duckdns.org", "140.245.52.155", "localhost", "127.0.0.1"]
 
 # Application definition
 
@@ -141,23 +142,27 @@ CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent cross-origin
 # CORS Settings
 if ENVIRONMENT == "production":
     CORS_ALLOWED_ORIGINS = [
+        "better-play-erni.duckdns.org",
         "140.245.52.155",
         "https://better-play-erni.onrender.com",
         "https://better-play-erni.vercel.app",
     ]
     CSRF_TRUSTED_ORIGINS = [
+        "better-play-erni.duckdns.org",
         "140.245.52.155",
         "https://better-play-erni.onrender.com",
         "https://better-play-erni.vercel.app",
     ]
 else:
     CORS_ALLOWED_ORIGINS = [
+        "better-play-erni.duckdns.org",
         "140.245.52.155",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:8000",  # add this for Postman/local API calls
     ]
     CSRF_TRUSTED_ORIGINS = [
+        "better-play-erni.duckdns.org",
         "140.245.52.155",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
@@ -243,9 +248,9 @@ REST_FRAMEWORK = {
 LOGIN_URL = "/auth/login/azuread-oauth2/"
 
 if ENVIRONMENT == "production":
-    LOGIN_REDIRECT_URL = "140.245.52.155/auth-callback"
-    LOGOUT_REDIRECT_URL = "140.245.52.155/login"
-    FRONTEND_BASE_URL = "140.245.52.155"
+    LOGIN_REDIRECT_URL = "better-play-erni.duckdns.org/auth/callback"
+    LOGOUT_REDIRECT_URL = "better-play-erni.duckdns.org/login"
+    FRONTEND_BASE_URL = "better-play-erni.duckdns.org"
 else:
     LOGIN_REDIRECT_URL = "http://localhost:5173/auth-callback"
     LOGOUT_REDIRECT_URL = "http://localhost:5173/login"
