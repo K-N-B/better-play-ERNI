@@ -1,6 +1,6 @@
-import { mockApiCall } from "./api"; // Import helpers
+// import { mockApiCall } from "./api"; // Import helpers
 import { getCookie, API_URL } from "./authService";
-import { MOCK_REWARDS, MOCK_CLAIMED_REWARDS } from "../data/_mockData"; // Adjust path
+// import { MOCK_REWARDS, MOCK_CLAIMED_REWARDS } from "../data/_mockData"; // Adjust path
 import type { RewardItem, ClaimResponse, ClaimedReward } from "../types";
 
 const MOCK_MODE = false;
@@ -8,10 +8,10 @@ const MOCK_MODE = false;
  * Fetches the list of available rewards from the real backend.
  */
 export const getRewards = async (): Promise<RewardItem[]> => {
-  if (MOCK_MODE) {
-    console.log("Mock: Fetching rewards...");
-    return mockApiCall([...MOCK_REWARDS]);
-  }
+  // if (MOCK_MODE) {
+  //   console.log("Mock: Fetching rewards...");
+  //   return mockApiCall([...MOCK_REWARDS]);
+  // }
 
   // --- REAL API CALL ---
   try {
@@ -37,10 +37,10 @@ export const getRewards = async (): Promise<RewardItem[]> => {
  * Fetches the user's history of claimed rewards.
  */
 export const getClaimedRewards = async (): Promise<ClaimedReward[]> => {
-  if (MOCK_MODE) {
-    console.log("Mock: Fetching claimed rewards history...");
-    return mockApiCall([...MOCK_CLAIMED_REWARDS]);
-  }
+  // if (MOCK_MODE) {
+  //   console.log("Mock: Fetching claimed rewards history...");
+  //   return mockApiCall([...MOCK_CLAIMED_REWARDS]);
+  // }
 
   // --- REAL API CALL ---
   try {
@@ -68,16 +68,16 @@ export const getClaimedRewards = async (): Promise<ClaimedReward[]> => {
  */
 export const claimReward = async (rewardId: string | number): Promise<ClaimResponse> => {
   // We no longer pass currentUserPoints; the backend handles this.
-  if (MOCK_MODE) {
-    // ... (Mock logic can stay for fallback testing) ...
-    console.log(`Mock: Claiming reward ${rewardId}`);
-    const reward = MOCK_REWARDS.find((r) => r.id === rewardId);
-    if (reward && 1000 >= reward.cost) {
-      // Hardcoded 1000 points for mock
-      return mockApiCall({ success: true, message: `Mock claimed ${reward.name}!`, remainingPoints: 1000 - reward.cost });
-    }
-    return mockApiCall({ success: false, message: "Mock: Not enough points." });
-  }
+  // if (MOCK_MODE) {
+  //   // ... (Mock logic can stay for fallback testing) ...
+  //   console.log(`Mock: Claiming reward ${rewardId}`);
+  //   const reward = MOCK_REWARDS.find((r) => r.id === rewardId);
+  //   if (reward && 1000 >= reward.cost) {
+  //     // Hardcoded 1000 points for mock
+  //     return mockApiCall({ success: true, message: `Mock claimed ${reward.name}!`, remainingPoints: 1000 - reward.cost });
+  //   }
+  //   return mockApiCall({ success: false, message: "Mock: Not enough points." });
+  // }
 
   // --- REAL API CALL ---
   try {
