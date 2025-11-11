@@ -7,7 +7,7 @@ import LoginPage from "./pages/loginPage";
 import AuthCallback from "./pages/AuthCallback";
 import { HomePage } from "./pages/homePage";
 import { LeaderboardPage } from "./pages/leaderboardPage";
-//import { ProtectedRoute } from "./components/ui/protectedRoute";
+import { ProtectedRoute } from "./components/ui/protectedRoute";
 import { Layout } from "./components/layout/layout";
 import { GamePage } from "./pages/gamePage";
 import { ChallengePage } from "./pages/challengePage";
@@ -24,15 +24,15 @@ function App() {
           <Route path="/auth-callback" element={<AuthCallback />} />
 
           {/* Protected Routes */}
-          {/* <Route element={<ProtectedRoute />}> */}
-          <Route element={<Layout />}>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/leaderboards" element={<LeaderboardPage />} />
-            <Route path="/game/:gameType" element={<GamePage />} />
-            <Route path="/challenges" element={<ChallengePage />} />
-            <Route path="/shop" element={<ShopPage />} />
+          <Route element={<ProtectedRoute />}>
+            <Route element={<Layout />}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/leaderboards" element={<LeaderboardPage />} />
+              <Route path="/game/:gameType" element={<GamePage />} />
+              <Route path="/challenges" element={<ChallengePage />} />
+              <Route path="/shop" element={<ShopPage />} />
+            </Route>
           </Route>
-          {/* </Route> */}
         </Routes>
       </ChallengeProvider>
     </AuthProvider>
