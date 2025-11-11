@@ -1,7 +1,7 @@
 // frontend/src/api/authService.ts
 import type { Department, UserProfile } from "../types/user";
 
-export const API_URL = "http://localhost:8000";
+export const API_URL = "http://140.245.52.155";
 
 /**
  * Check if user has a valid session cookie

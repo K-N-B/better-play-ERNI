@@ -16,7 +16,7 @@ interface CompletedPuzzlesResponse {
 
 // Add this API call function (or add to gameService.ts)
 const getTodayCompletedPuzzles = async (): Promise<CompletedPuzzlesResponse> => {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const API_URL = 'http://140.245.52.155';
     
     const response = await fetch(`${API_URL}/api/gameplay/completed/today/`, {
         method: 'GET',
