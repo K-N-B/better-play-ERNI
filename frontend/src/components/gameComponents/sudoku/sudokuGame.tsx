@@ -34,6 +34,7 @@ import { LoadingSpinner } from "../../ui/loadingSpinner";
 import type { Difficulty } from "../../../pages/gamePage";
 import { getHint, getSudokuHintLimits } from "../../../api/gameService";
 import { useChallenges } from "../../../context/ChallengeContext";
+import { keyboardInputSudoku } from "./keyboardInputsSudoku";
 
 // Helper Functions
 const parseGrid = (puzzleString: string): SudokuCell[][] => {
@@ -394,52 +395,6 @@ export const SudokuGame = ({
   );
 
   // Event Handlers
-  const handleCellClick = (row: number, col: number) => {
-    if (isGameOver || grid[row][col].isGiven || alreadyCompleted?.hasSubmitted)
-      return;
-    setSelectedCell({ row, col });
-  };
-
-  const handleNumberClick = (num: number) => {
-    if (!selectedCell || isGameOver || alreadyCompleted?.hasSubmitted) return;
-    const { row, col } = selectedCell;
-    if (grid[row][col].isGiven) return;
-
-    const newGrid = grid.map((r, ri) =>
-      r.map((c, ci) => (ri === row && ci === col ? { ...c } : c))
-    );
-    const cell = newGrid[row][col];
-
-    if (isNoteMode) {
-      const noteIndex = cell.notes.indexOf(num);
-      if (noteIndex > -1) cell.notes.splice(noteIndex, 1);
-      else cell.notes.push(num);
-      cell.value = null;
-    } else {
-      cell.value = cell.value === num ? null : num;
-      cell.notes = [];
-    }
-
-    const checkedGrid = checkGridForErrors(newGrid);
-    setGrid(checkedGrid);
-    saveImmediately(checkedGrid);
-  };
-
-  const handleEraseClick = () => {
-    if (!selectedCell || isGameOver || alreadyCompleted?.hasSubmitted) return;
-    const { row, col } = selectedCell;
-    if (grid[row][col].isGiven) return;
-
-    const newGrid = grid.map((r, ri) =>
-      r.map((c, ci) => (ri === row && ci === col ? { ...c } : c))
-    );
-    newGrid[row][col].value = null;
-    newGrid[row][col].notes = [];
-
-    const checkedGrid = checkGridForErrors(newGrid);
-    setGrid(checkedGrid);
-    saveImmediately(checkedGrid);
-  };
 
   const handleSubmit = async () => {
     if (isGameOver || alreadyCompleted?.hasSubmitted) return;
@@ -566,6 +521,97 @@ export const SudokuGame = ({
   //   setShowResumeModal(false);
   //   startTimer();
   // };
+  // ⭐️ NEW: Core function to handle all input (number, note, erase) ⭐️
+  const handleInputCore = useCallback(
+    (value: number | null) => {
+      if (!selectedCell || isGameOver || alreadyCompleted?.hasSubmitted) return;
+      const { row, col } = selectedCell;
+      const cell = grid[row][col];
+
+      if (cell.isGiven || cell.isHint) return; // Cannot modify given or hinted cells
+
+      // Create a deep copy of the grid for immutability
+      const newGrid = grid.map((r) => r.map((c) => ({ ...c })));
+      const targetCell = newGrid[row][col];
+
+      if (value === null) {
+        // --- Erase Logic (Handles 0, Delete, Backspace) ---
+        targetCell.value = null;
+        targetCell.notes = [];
+      } else if (isNoteMode) {
+        // --- Note Mode Logic ---
+        const noteIndex = targetCell.notes.indexOf(value);
+        if (noteIndex > -1) {
+          targetCell.notes.splice(noteIndex, 1); // Remove note
+        } else {
+          targetCell.notes.push(value); // Add note
+          targetCell.notes.sort((a, b) => a - b);
+        }
+        targetCell.value = null; // Clear value when toggling notes
+      } else {
+        // --- Value Mode Logic (Number Click) ---
+        targetCell.value = targetCell.value === value ? null : value;
+        targetCell.notes = [];
+      }
+
+      // Check and save the updated grid
+      const checkedGrid = checkGridForErrors(newGrid);
+      setGrid(checkedGrid);
+      // You should use the proper save function defined elsewhere in your component
+      // If your helper is `saveImmediately`, then use it here.
+      // saveImmediately(checkedGrid);
+
+      // Check for win condition and submit (This should also be in saveImmediately or a separate effect)
+      if (
+        countFilledCells(checkedGrid) === 81 &&
+        checkSolution(checkedGrid, puzzle.solution_string)
+      ) {
+        // If the grid is full and correct, trigger submission
+        handleSubmit();
+      }
+    },
+    [
+      selectedCell,
+      isGameOver,
+      alreadyCompleted,
+      grid,
+      isNoteMode,
+      checkGridForErrors,
+      countFilledCells,
+      puzzle.solution_string,
+      handleSubmit,
+      saveImmediately,
+    ]
+  );
+  keyboardInputSudoku({
+    grid,
+    selectedCell,
+    isGameOver,
+    isNoteMode,
+    alreadyCompleted, // Passed to hook
+    setSelectedCell, // Passed to hook
+    setIsNoteMode, // Passed to hook
+    handleInputCore, // Passed to hook
+  });
+
+  // ⭐️ MODIFIED: Existing button handlers now point to the core logic ⭐️
+  const handleNumberClick = (num: number) => {
+    handleInputCore(num);
+  };
+
+  const handleEraseClick = () => {
+    handleInputCore(null); // Erase is null input
+  };
+
+  // You can now REMOVE the original body of handleNumberClick and handleEraseClick.
+
+  // ... (your existing handleCellClick and handleSubmit remain the same)
+
+  const handleCellClick = (row: number, col: number) => {
+    if (isGameOver || grid[row][col].isGiven || alreadyCompleted?.hasSubmitted)
+      return;
+    setSelectedCell({ row, col });
+  };
 
   const handleGetHint = async () => {
     try {
@@ -679,7 +725,7 @@ export const SudokuGame = ({
             <button
               onClick={handleGetHint}
               disabled={isGameOver || hintsUsed >= maxHints}
-              className="mt-6 px-8 py-3 bg-yellow-500 text-white font-bold rounded-lg shadow-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="mt-6 px-8 py-3 bg-yellow-500 shadow-yellow-700 text-white font-bold rounded-lg shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Hint ({hintsUsed}/{maxHints})
             </button>
@@ -687,7 +733,7 @@ export const SudokuGame = ({
             <button
               onClick={handleSubmit}
               disabled={isGameOver}
-              className="mt-6 px-8 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="mt-6 px-8 py-3 bg-green-600 shadow-green-900 text-white font-bold rounded-lg shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Submit
             </button>
@@ -697,6 +743,7 @@ export const SudokuGame = ({
             <PostGameResultsModal
               score={gameResult.score}
               submissionId={gameResult.submissionId}
+              // currentStreak={gameResult.currentStreak}
               gameType="sudoku"
               onClose={() => setGameResult(null)}
             />

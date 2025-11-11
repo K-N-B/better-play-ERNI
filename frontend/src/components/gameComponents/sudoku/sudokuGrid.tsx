@@ -21,42 +21,31 @@ export const SudokuGrid = ({
 }: SudokuGridProps) => {
   const getCellClasses = (row: number, col: number) => {
     const cell = grid[row][col];
+    const isSelected =
+      selectedCell && selectedCell.row === row && selectedCell.col === col;
+    const isSameRowOrCol =
+      selectedCell &&
+      !isSelected &&
+      (selectedCell.row === row || selectedCell.col === col);
 
-    // --- THIS IS THE FIX ---
-    // 1. REMOVED all 'border', 'border-t-4', 'border-l-4' classes from here.
-    // The parent 'divide-' classes will handle the thin lines.
-    // The parent 'border-6' handles the outer border.
-    const classes = clsx(
-      "flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 font-extrabold transition-colors",
+    return clsx(
+      "flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 font-extrabold transition-colors duration-150 ease-in-out",
 
-      // 2. We STILL add THICK borders for the 3x3 box lines.
-      // These will draw ON TOP of the parent's thin divide lines.
+      // --- 3x3 thicker lines ---
       row % 3 === 0 && row !== 0 && "border-t-4 border-t-gray-400",
       col % 3 === 0 && col !== 0 && "border-l-4 border-l-gray-400",
 
-      // ✅ NEW: Highlight hinted cells
+      // --- Cell types ---
+      cell.isGiven && "bg-gray-200 text-gray-900 font-extrabold",
+      !cell.isGiven && "bg-white text-blue-600 cursor-pointer hover:bg-blue-50",
       cell.isHint && "bg-yellow-200 text-black font-bold",
-      // Cell value type
-      cell.isGiven
-        ? "bg-gray-200 text-gray-900 font-extrabold"
-        : "bg-white text-blue-600 cursor-pointer hover:bg-blue-50",
+      cell.isError && "bg-red-200 text-red-700",
 
-      // Selected cell highlighting (no change)
-      selectedCell &&
-        selectedCell.row === row &&
-        selectedCell.col === col &&
-        "bg-blue-200",
-      selectedCell &&
-        (selectedCell.row === row || selectedCell.col === col) &&
-        "bg-blue-50",
-
-      // Show error (no change)
-      cell.isError && "bg-red-200 text-red-700"
-    );
-    // --- END FIX ---
-
-    return classes;
-  };
+      // --- Highlights ---
+      isSameRowOrCol && "!bg-blue-100",
+      isSelected && "!bg-blue-200 !z-10"
+  );
+};
 
   return (
     // --- THIS IS THE FIX ---
