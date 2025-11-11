@@ -213,6 +213,7 @@ if ENVIRONMENT == "production":
     CSRF_USE_SESSIONS = True  # ✅ store CSRF in session (safer for production)
     CSRF_COOKIE_HTTPONLY = True  # ✅ prevent JS access to CSRF cookie
     SESSION_COOKIE_HTTPONLY = True  # ✅ prevent JS access to session cookie
+    SESSION_COOKIE_DOMAIN = '.better-play-erni.onrender.com'
 else:
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
@@ -221,6 +222,7 @@ else:
     CSRF_USE_SESSIONS = False  # ✅ local dev convenience
     CSRF_COOKIE_HTTPONLY = False  # ✅ easier debugging
     SESSION_COOKIE_HTTPONLY = True  # still good practice even locally
+    SESSION_COOKIE_DOMAIN = None
 
 
 SESSION_COOKIE_AGE = 86400  # Session lasts 1 day (optional)
@@ -245,10 +247,13 @@ if ENVIRONMENT == "production":
     LOGIN_REDIRECT_URL = "https://erni-puzzle-frontend.onrender.com/auth-callback"
     LOGOUT_REDIRECT_URL = "https://erni-puzzle-frontend.onrender.com/login"
     FRONTEND_BASE_URL = "https://erni-puzzle-frontend.onrender.com"
+   
 else:
     LOGIN_REDIRECT_URL = "http://localhost:5173/auth-callback"
     LOGOUT_REDIRECT_URL = "http://localhost:5173/login"
     FRONTEND_BASE_URL = "http://localhost:5173"
+
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
