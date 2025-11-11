@@ -2,6 +2,7 @@
 # from rest_framework import generics
 # from datetime import date as date_type
 import datetime
+from datetime import timedelta
 
 # from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -71,28 +72,32 @@ class DailyPuzzlesView(APIView):
 
 @csrf_exempt
 def cron_generate_puzzles_view(request: HttpRequest):
-
-    # 1. SECURITY CHECK: Validate the secret key
+    # 1. SECURITY CHECK (Remains the same)
     expected_secret = os.environ.get('FASTCRON_SECRET')
     provided_secret = request.GET.get('secret')
 
-    # If the secret is missing or incorrect, deny access.
     if not provided_secret or provided_secret != expected_secret:
         return HttpResponse("Unauthorized Access", status=401)
 
-    # 2. METHOD CHECK: Ensure it's a GET request (as FastCron uses GET by default)
+    # 2. METHOD CHECK (Remains the same)
     if request.method != 'GET':
         return HttpResponse("Method Not Allowed", status=405)
 
     try:
         # 3. EXECUTE THE TASK
-        # Call your main puzzle generation function
-        generate_daily_puzzles()
+        
+        # ⭐️ CRITICAL FIX: Advance the date by one day ⭐️
+        target_date = timezone.now().date() + timedelta(days=1)
+        
+        print(f"CRON JOB: Running generation for target date (PHT's Today): {target_date}")
+        
+        # Call your main puzzle generation function with the correct date
+        generate_daily_puzzles(target_date)
 
         return HttpResponse("Daily puzzles generated successfully.", status=200)
 
     except Exception as e:
-        # 4. ERROR HANDLING: Return a server error if the task fails
+        # 4. ERROR HANDLING (Remains the same)
         print(f"CRON JOB ERROR: {e}")
         return HttpResponse(f"Internal Server Error during task execution: {e}", status=500)
 
