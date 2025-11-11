@@ -9,7 +9,7 @@ export default function AuthCallback() {
     // Just wait a moment and check auth status
     setTimeout(async () => {
       try {
-        const response = await fetch('http://localhost:8000/auth/check/', {
+        const response = await fetch('http://140.245.52.155/auth/check/', {
           credentials: 'include',
         });
         
