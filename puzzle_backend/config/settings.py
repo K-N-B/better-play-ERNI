@@ -34,6 +34,7 @@ if ENVIRONMENT == "production":
     ALLOWED_HOSTS = [
         "better-play-erni.onrender.com",
         "better-play-erni.vercel.app",
+        "140.245.52.155",
     ]
 else:
     DEBUG = True
@@ -293,8 +294,8 @@ DATE_INPUT_FORMATS = [
     "%m/%d/%Y",  # '11/06/2025'
     "%m/%d/%y",  # '11/06/25'
     "%b %d %Y",  # 'Nov 6 2025'
-    "%b. %d, %Y", # 'Nov. 6, 2025' <--- The format from your error
+    "%b. %d, %Y",  # 'Nov. 6, 2025' <--- The format from your error
     "%d %b %Y",  # '6 Nov 2025'
-    "%d %b, %Y", # '6 Nov, 2025'
+    "%d %b, %Y",  # '6 Nov, 2025'
 ]
 USE_L10N = True
