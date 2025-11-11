@@ -2,9 +2,9 @@ name: Django CI/CD - Backend Tests & Lint
 
 on:
   push:
-    branches: [ main, develop, 'features/**']
+    branches: [main, develop, "features/**"]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
   test:
