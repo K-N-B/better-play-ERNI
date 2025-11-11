@@ -34,6 +34,7 @@ if ENVIRONMENT == "production":
     ALLOWED_HOSTS = [
         "better-play-erni.onrender.com",
         "better-play-erni-nu.vercel.app",
+        "erni-puzzle-frontend.onrender.com"
     ]
 else:
     DEBUG = True
@@ -144,12 +145,14 @@ if ENVIRONMENT == "production":
     CORS_ALLOWED_ORIGINS = [
         "https://better-play-erni.onrender.com",
         "https://better-play-erni-nu.vercel.app",
-        "https://*.vercel.app",
+        "https://erni-puzzle-frontend.onrender.com"
+       
     ]
     CSRF_TRUSTED_ORIGINS = [
         "https://better-play-erni.onrender.com",
         "https://better-play-erni-nu.vercel.app",
-        "https://*.vercel.app",
+        "https://erni-puzzle-frontend.onrender.com"
+       
     ]
 else:
     CORS_ALLOWED_ORIGINS = [
@@ -242,9 +245,9 @@ REST_FRAMEWORK = {
 LOGIN_URL = "/auth/login/azuread-oauth2/"
 
 if ENVIRONMENT == "production":
-    LOGIN_REDIRECT_URL = "https://better-play-erni-nu.vercel.app/auth-callback"
-    LOGOUT_REDIRECT_URL = "https://better-play-erni-nu.vercel.app/login"
-    FRONTEND_BASE_URL = "https://better-play-erni-nu.vercel.app"
+    LOGIN_REDIRECT_URL = "https://erni-puzzle-frontend.onrender.com/auth-callback"
+    LOGOUT_REDIRECT_URL = "https://erni-puzzle-frontend.onrender.com/login"
+    FRONTEND_BASE_URL = "https://erni-puzzle-frontend.onrender.com"
 else:
     LOGIN_REDIRECT_URL = "http://localhost:5173/auth-callback"
     LOGOUT_REDIRECT_URL = "http://localhost:5173/login"
