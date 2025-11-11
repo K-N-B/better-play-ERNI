@@ -1,13 +1,15 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-imports */
 import type { UserProfile, Department } from "../types/user";
-import type { DailyPuzzleResponse } from "../types/game";
+
 import type {
   IndividualScoreEntry,
   DepartmentScoreEntry,
 } from "../types/leaderboard"; // Updated type name
 import type { ActivityHubResponse, OnlineUser } from "../types/activity";
-import type { Submission } from "../types/game";
+
 import type { Challenge } from "../types/challenge";
-import type { RewardItem, ClaimResponse, ClaimedReward } from "../types";
+import type { RewardItem, ClaimedReward } from "../types";
 
 import stickerImage from "../assets/images/stickers.jpg"; // Adjust path/filename
 import mugImage from "../assets/images/mug.jpg";
@@ -74,16 +76,24 @@ export const MOCK_USER_NEW: UserProfile = {
 // };
 
 export const MOCK_ONLINE_USERS: OnlineUser[] = [
-  { id: 1, username: "gavin_cii" }, // Example user
-  { id: 3, username: "jerome_B" }, // Example user
-  { id: 5, username: "alex_m" }, // Example user
+  { id: 1, username: "gavin_cii", profile_picture_url: null }, // Example user
+  {
+    id: 3,
+    username: "jerome_B",
+    profile_picture_url: null,
+  }, // Example user
+  { id: 5, username: "alex_m", profile_picture_url: null }, // Example user
 ];
 
 export const MOCK_ACTIVITY_HUB: ActivityHubResponse = {
   recent_activity: [
     {
       id: 105,
-      user: { id: 2, username: "Dayniel Caadiang" },
+      user: {
+        id: 2,
+        username: "Dayniel Caadiang",
+        profile_picture_url: null,
+      },
       puzzle_name: "Sudoku",
       difficulty: "easy",
       time_in_minutes: "4:98",
@@ -91,7 +101,11 @@ export const MOCK_ACTIVITY_HUB: ActivityHubResponse = {
     },
     {
       id: 104,
-      user: { id: 1, username: "gavin_cii" },
+      user: {
+        id: 1,
+        username: "gavin_cii",
+        profile_picture_url: null,
+      },
       puzzle_name: "Wordle",
       difficulty: "hard",
       time_in_minutes: "1:32",
@@ -99,7 +113,11 @@ export const MOCK_ACTIVITY_HUB: ActivityHubResponse = {
     },
     {
       id: 103,
-      user: { id: 3, username: "jerome_B" },
+      user: {
+        id: 3,
+        username: "jerome_B",
+        profile_picture_url: null,
+      },
       puzzle_name: "ERNIgram",
       difficulty: "easy",
       time_in_minutes: "2:15",
@@ -108,9 +126,21 @@ export const MOCK_ACTIVITY_HUB: ActivityHubResponse = {
     // ... add more as needed
   ],
   online_users: [
-    { id: 1, username: "gavin_cii" },
-    { id: 3, username: "jerome_B" },
-    { id: 2, username: "Dayniel Caadiang" },
+    {
+      id: 1,
+      username: "gavin_cii",
+      profile_picture_url: null,
+    },
+    {
+      id: 3,
+      username: "jerome_B",
+      profile_picture_url: null,
+    },
+    {
+      id: 2,
+      username: "Dayniel Caadiang",
+      profile_picture_url: null,
+    },
   ],
 };
 
@@ -161,6 +191,7 @@ export const MOCK_PENDING_CHALLENGES: Challenge[] = [
       points_awarded: 500,
       time_taken_ms: 65000,
       tries: 2,
+      difficulty: "easy",
     },
     recipient_submission: null,
     status: "PENDING",
@@ -178,6 +209,7 @@ export const MOCK_PENDING_CHALLENGES: Challenge[] = [
       points_awarded: 750,
       time_taken_ms: 250000,
       tries: 1,
+      difficulty: "easy",
     },
     recipient_submission: null,
     status: "PENDING",
@@ -198,12 +230,14 @@ export const MOCK_COMPLETED_CHALLENGES: Challenge[] = [
       points_awarded: 400,
       time_taken_ms: 90000,
       tries: 3,
+      difficulty: "easy",
     },
     recipient_submission: {
       id: 505,
       points_awarded: 450,
       time_taken_ms: 80000,
       tries: 2,
+      difficulty: "easy",
     },
     status: "COMPLETED",
     winner: { id: 1, username: "gavin_cii" }, // Gavin won
@@ -226,22 +260,38 @@ export const MOCK_USER_DAYNIEL: Pick<UserProfile, "id" | "username" | "email"> =
 
 export const MOCK_LEADERBOARD_INDIVIDUAL_WEEKLY: IndividualScoreEntry[] = [
   {
-    user: { id: MOCK_USER_MAIN.id, username: MOCK_USER_MAIN.username },
+    user: {
+      id: MOCK_USER_MAIN.id,
+      username: MOCK_USER_MAIN.username,
+      profile_picture_url: null,
+    },
     score: 1250,
     week_start_date: "2025-10-19",
   },
   {
-    user: { id: MOCK_USER_SARAH.id, username: MOCK_USER_SARAH.username },
+    user: {
+      id: MOCK_USER_SARAH.id,
+      username: MOCK_USER_SARAH.username,
+      profile_picture_url: null,
+    },
     score: 1100,
     week_start_date: "2025-10-19",
   },
   {
-    user: { id: MOCK_USER_MIKE.id, username: MOCK_USER_MIKE.username },
+    user: {
+      id: MOCK_USER_MIKE.id,
+      username: MOCK_USER_MIKE.username,
+      profile_picture_url: null,
+    },
     score: 980,
     week_start_date: "2025-10-19",
   },
   {
-    user: { id: MOCK_USER_DAYNIEL.id, username: MOCK_USER_DAYNIEL.username },
+    user: {
+      id: MOCK_USER_DAYNIEL.id,
+      username: MOCK_USER_DAYNIEL.username,
+      profile_picture_url: null,
+    },
     score: 950,
     week_start_date: "2025-10-19",
   },

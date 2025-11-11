@@ -1,5 +1,5 @@
 // src/components/ui/difficultyToggle.tsx - UPDATED WITH DISABLED STATE
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 interface DifficultyToggleProps {
   onToggle: (isHard: boolean) => void;
@@ -13,8 +13,7 @@ const DifficultyToggle: React.FC<DifficultyToggleProps> = ({
   onToggle,
   initialIsHard = false,
   disabled = false, // ✅ NEW: Default to false
-  color = 'bg-primary',
-  darkColor = 'bg-primary-dark',
+  color = "bg-primary",
 }) => {
   const [isHard, setIsHard] = useState(initialIsHard);
 
@@ -25,10 +24,10 @@ const DifficultyToggle: React.FC<DifficultyToggleProps> = ({
   const handleToggle = () => {
     // ✅ Don't toggle if disabled
     if (disabled) {
-      console.log('[DifficultyToggle] Toggle disabled');
+      console.log("[DifficultyToggle] Toggle disabled");
       return;
     }
-    
+
     const newValue = !isHard;
     setIsHard(newValue);
     onToggle(newValue);
@@ -39,7 +38,7 @@ const DifficultyToggle: React.FC<DifficultyToggleProps> = ({
       {/* Easy Label */}
       <span
         className={`text-lg font-semibold transition-colors ${
-          !isHard ? 'text-primary-700' : 'text-gray-400'
+          !isHard ? "text-primary-700" : "text-gray-400"
         }`}
       >
         Easy
@@ -51,18 +50,18 @@ const DifficultyToggle: React.FC<DifficultyToggleProps> = ({
         disabled={disabled} // ✅ Disable the button
         className={`relative w-16 h-8 rounded-full transition-all $ shadow-xs ${
           disabled
-            ? 'cursor-not-allowed opacity-50 bg-gray-300' // ✅ Disabled styles
+            ? "cursor-not-allowed opacity-50 bg-gray-300" // ✅ Disabled styles
             : isHard
-            ? `bg-white `
-            : `bg-white `
+              ? `bg-white `
+              : `bg-white `
         }`}
-        aria-label={`Toggle difficulty to ${isHard ? 'easy' : 'hard'}`}
-        title={disabled ? 'Difficulty locked for challenge' : undefined}
+        aria-label={`Toggle difficulty to ${isHard ? "easy" : "hard"}`}
+        title={disabled ? "Difficulty locked for challenge" : undefined}
       >
         {/* Sliding Circle */}
         <span
           className={`absolute top-1 left-1 w-6 h-6 ${color} rounded-full shadow-md transform transition-transform ${
-            isHard ? 'translate-x-8' : 'translate-x-0'
+            isHard ? "translate-x-8" : "translate-x-0"
           }`}
         />
       </button>
@@ -70,7 +69,7 @@ const DifficultyToggle: React.FC<DifficultyToggleProps> = ({
       {/* Hard Label */}
       <span
         className={`text-lg font-semibold transition-colors ${
-          isHard ? 'text-primary-700' : 'text-gray-400'
+          isHard ? "text-primary-700" : "text-gray-400"
         }`}
       >
         Hard

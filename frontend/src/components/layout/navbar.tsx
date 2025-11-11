@@ -1,18 +1,20 @@
 // /src/components/layout/Navbar.tsx
-import { useState, useEffect } from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import logo from '../../assets/logo.png';
-import PrimaryButton from '../ui/primaryButton';
-import UserProfileModal from '../features/userProfileModal';
-import { useAuth } from '../../hooks/authContext';
-import { navItems, shopNavStyle, notificationNavStyle } from '../../data/navItems'; // <-- IMPORT YOUR DATA
-import { ChallengeIcon } from '../features/challenge/challengeIcon';
-import { Store, Star, Menu, X, Mountain } from 'lucide-react';
-import clsx from 'clsx';
-
+import { useState, useEffect } from "react";
+import { useLocation, Link } from "react-router-dom";
+import logo from "../../assets/logo.png";
+import PrimaryButton from "../ui/primaryButton";
+import UserProfileModal from "../features/userProfileModal";
+import { useAuth } from "../../hooks/authContext";
+import {
+  navItems,
+  shopNavStyle,
+  notificationNavStyle,
+} from "../../data/navItems"; // <-- IMPORT YOUR DATA
+import { ChallengeIcon } from "../features/challenge/challengeIcon";
+import { Store, Star, Menu, X } from "lucide-react";
+import clsx from "clsx";
 
 export default function Navbar() {
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, isLoading: authLoading } = useAuth();
@@ -20,14 +22,13 @@ export default function Navbar() {
   const profileImageUrl = user?.profile_picture_url ?? null;
 
   const getUserInitial = () => {
-    if (!user) return '?';
+    if (!user) return "?";
     const name = user.username;
     return name.charAt(0).toUpperCase();
   };
 
   const currentPoints = user?.current_points ?? 0;
   const isShopActive = location.pathname === shopNavStyle.path;
-
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -45,9 +46,15 @@ export default function Navbar() {
           {/* Center: Navigation (This section is updated) */}
           <nav className="hidden lg:flex flex-grow justify-center items-center ">
             {navItems.map((item, idx) => {
-              if (item.name === '┃') {
+              if (item.name === "┃") {
                 return (
-                  <span key={`separator-${idx}`} className="font-semibold text-primary mx-2"> ┃ </span>
+                  <span
+                    key={`separator-${idx}`}
+                    className="font-semibold text-primary mx-2"
+                  >
+                    {" "}
+                    ┃{" "}
+                  </span>
                 );
               }
               if (item.path && item.activeClasses && item.hoverClasses) {
@@ -89,9 +96,10 @@ export default function Navbar() {
               // Conditionally apply classes using clsx
               className={clsx(
                 // Base styles for the icon button
-                'hidden md:inline-flex items-center justify-center h-10 w-10 m-0 rounded-lg transition-all duration-150',
+                "hidden md:inline-flex items-center justify-center h-10 w-10 m-0 rounded-lg transition-all duration-150",
                 // Active styles
-                isShopActive && `active:translate-y-[2px] active:shadow-[0_3px_0_0] ${shopNavStyle.activeClasses}`,
+                isShopActive &&
+                  `active:translate-y-[2px] active:shadow-[0_3px_0_0] ${shopNavStyle.activeClasses}`,
                 // Inactive styles
                 !isShopActive && `text-primary ${shopNavStyle.hoverClasses}` // Apply hover from nav data
               )}
@@ -110,13 +118,13 @@ export default function Navbar() {
               />
             </div>
 
-
-            {!authLoading && user && ( // Only show if user is loaded
-              <div className="hidden md:flex m-0 items-center space-x-1 bg-yellow-100 text-yellow-800 px-3 py-2 rounded-full text-lg font-bold shadow-inner">
-                <span>{currentPoints}</span>
-                <Star size={24} className="fill-current text-yellow-500" />
-              </div>
-            )}
+            {!authLoading &&
+              user && ( // Only show if user is loaded
+                <div className="hidden md:flex m-0 items-center space-x-1 bg-yellow-100 text-yellow-800 px-3 py-2 rounded-full text-lg font-bold shadow-inner">
+                  <span>{currentPoints}</span>
+                  <Star size={24} className="fill-current text-yellow-500" />
+                </div>
+              )}
             {/* Right: Profile button */}
             <div className="flex items-center m-0 ">
               {authLoading ? (
@@ -130,12 +138,12 @@ export default function Navbar() {
                       ? "bg-gray-200 hover:bg-gray-300 text-transparent"
                       : "bg-sky-400 hover:bg-sky-500 text-white"
                   )}
-                  title={user?.username || 'Profile'}
+                  title={user?.username || "Profile"}
                 >
                   {profileImageUrl ? (
                     <img
                       src={profileImageUrl}
-                      alt={`${user?.username || 'User'} profile picture`}
+                      alt={`${user?.username || "User"} profile picture`}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -163,7 +171,6 @@ export default function Navbar() {
             </button>
             {/* --- End Hamburger Menu Button --- */}
           </div>
-
         </div>
       </div>
 
@@ -184,7 +191,9 @@ export default function Navbar() {
           isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
         )}
       >
-        <div className="p-5 pt-16"> {/* Add padding top for close button */}
+        <div className="p-5 pt-16">
+          {" "}
+          {/* Add padding top for close button */}
           <button
             onClick={() => setIsMobileMenuOpen(false)}
             className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-700"
@@ -192,7 +201,9 @@ export default function Navbar() {
           >
             <X size={24} />
           </button>
-          <h2 className="text-lg text-center font-semibold mb-2 text-gray-800 pb-2">Menu</h2>
+          <h2 className="text-lg text-center font-semibold mb-2 text-gray-800 pb-2">
+            Menu
+          </h2>
           <nav className="flex flex-col space-y-1">
             {/* Map over main navItems */}
             {navItems.map((item) => {
@@ -213,7 +224,8 @@ export default function Navbar() {
                       // Base styles for all mobile links
                       "block px-3 py-2 rounded-md text-base font-medium transition-colors text-left", // Added text-center
                       // Apply activeClasses if isActive is true
-                      isActive && `active:translate-y-[2px] active:shadow-[0_3px_0_0] ${item.activeClasses}`,
+                      isActive &&
+                        `active:translate-y-[2px] active:shadow-[0_3px_0_0] ${item.activeClasses}`,
                       // Apply standard text + hoverClasses if inactive
                       !isActive && `text-primary ${item.hoverClasses}`
                     )}
@@ -228,8 +240,12 @@ export default function Navbar() {
             })}
             {/* Shop Link */}
             {[
-              { path: '/shop', name: 'Shop', style: shopNavStyle},
-              { path: '/challenges', name: 'Challenges', style: notificationNavStyle}
+              { path: "/shop", name: "Shop", style: shopNavStyle },
+              {
+                path: "/challenges",
+                name: "Challenges",
+                style: notificationNavStyle,
+              },
             ].map((linkItem) => {
               const isActive = location.pathname === linkItem.path;
               // Always render a Link
@@ -242,7 +258,8 @@ export default function Navbar() {
                     // Base styles
                     "flex items-center justify-start gap-2 px-3 py-2 rounded-md text-base font-medium transition-colors", // Added justify-center
                     // Active styles
-                    isActive && `active:translate-y-[2px] active:shadow-[0_3px_0_0] ${linkItem.style.activeClasses}`,
+                    isActive &&
+                      `active:translate-y-[2px] active:shadow-[0_3px_0_0] ${linkItem.style.activeClasses}`,
                     // Inactive styles
                     !isActive && `text-primary ${linkItem.style.hoverClasses}`
                   )}
