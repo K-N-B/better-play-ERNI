@@ -33,7 +33,7 @@ if ENVIRONMENT == "production":
     DEBUG = False
     ALLOWED_HOSTS = [
         "better-play-erni.onrender.com",
-        "better-play-erni.vercel.app",
+        "better-play-erni-nu.vercel.app",
     ]
 else:
     DEBUG = True
@@ -141,11 +141,11 @@ CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent cross-origin
 if ENVIRONMENT == "production":
     CORS_ALLOWED_ORIGINS = [
         "https://better-play-erni.onrender.com",
-        "https://better-play-erni.vercel.app",
+        "https://better-play-erni-nu.vercel.app",
     ]
     CSRF_TRUSTED_ORIGINS = [
         "https://better-play-erni.onrender.com",
-        "https://better-play-erni.vercel.app",
+        "https://better-play-erni-nu.vercel.app",
     ]
 else:
     CORS_ALLOWED_ORIGINS = [
