@@ -104,6 +104,7 @@ export const sendChallenge = async (data: CreateChallengeData): Promise<Challeng
                 id: data.submission_id,
                 points_awarded: 555,
                 time_taken_ms: 70000,
+                difficulty: 'hard',
                 tries: 3
             },
             created_at: new Date().toISOString(),

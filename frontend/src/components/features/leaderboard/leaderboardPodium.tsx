@@ -24,7 +24,7 @@ const PodiumItem: React.FC<{
   console.log(`[PodiumItem] Rank ${rank}, Type: ${type}, Entry:`, entry);
   
   let name = 'Unknown';
-  let id = rank;
+  let id;
   let profileImageUrl: string | null = null;
   
   // Extract user/department data and profile picture

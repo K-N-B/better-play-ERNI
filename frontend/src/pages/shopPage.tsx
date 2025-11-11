@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { useAuth } from '../hooks/authContext'; // Adjust path if needed
 import { useApi } from '../hooks/useApi'; // Adjust path if needed
 import { getRewards, claimReward, getClaimedRewards } from '../api/shopService'; // Adjust path if needed
-import type { RewardItem, ClaimResponse, ClaimedReward } from '../types'; // Adjust path if needed
+import type { RewardItem, ClaimResponse } from '../types'; // Adjust path if needed
 import { LoadingSpinner } from '../components/ui/loadingSpinner'; // Adjust path if needed
 import { ShopHistoryModal } from '../components/features/shop/shopHistoryModal';
 import { Store, Star, History } from 'lucide-react'; // Import icons
