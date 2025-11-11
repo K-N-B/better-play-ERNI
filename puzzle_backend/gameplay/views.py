@@ -832,15 +832,20 @@ class SearchUsersView(View):
             return JsonResponse({'error': str(e)}, status=500)
 
 
-@method_decorator(csrf_protect, name='dispatch')
-@method_decorator(login_required, name='get')
-class PendingChallengesView(View):
+# @method_decorator(csrf_protect, name='dispatch')
+
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+import traceback
+
+class PendingChallengesView(APIView):
     """
     GET /api/challenges/pending/
-    Get all pending challenges where the current user is the recipient
+    Uses DRF's authentication and permission system.
     """
+    permission_classes = [IsAuthenticated] # Enforces login check
 
-    def get(self, request):
+    def get(self, request, format=None):
         user = request.user
 
         try:
@@ -856,23 +861,15 @@ class PendingChallengesView(View):
                 .order_by('-created_at')
             )
 
-            # Serialize using DRF serializer
-            # from rest_framework.renderers import JSONRenderer
-
             serializer = ChallengeSerializer(challenges, many=True)
-
-            print(f"[PendingChallenges] Found {challenges.count()} pending for {user.username}")
-
-            # Return as JSON
-            # json_data = JSONRenderer().render(serializer.data)
-            return JsonResponse(serializer.data, safe=False)
+            # Use DRF Response for consistent API output
+            return Response(serializer.data) 
 
         except Exception as e:
             print(f"[PendingChallenges] Error: {e}")
-            import traceback
-
             traceback.print_exc()
-            return JsonResponse({'error': str(e)}, status=500)
+            # ⭐️ Use DRF Response for 500 status ⭐️
+            return Response({'error': str(e)}, status=500)
 
 
 @method_decorator(csrf_protect, name='dispatch')

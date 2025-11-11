@@ -142,10 +142,12 @@ if ENVIRONMENT == "production":
     CORS_ALLOWED_ORIGINS = [
         "https://better-play-erni.onrender.com",
         "https://better-play-erni-nu.vercel.app",
+        "https://*.vercel.app",
     ]
     CSRF_TRUSTED_ORIGINS = [
         "https://better-play-erni.onrender.com",
         "https://better-play-erni-nu.vercel.app",
+        "https://*.vercel.app",
     ]
 else:
     CORS_ALLOWED_ORIGINS = [
