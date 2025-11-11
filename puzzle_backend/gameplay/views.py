@@ -496,6 +496,14 @@ class SubmitPuzzleView(View):
             user.current_points = F('current_points') + points_awarded
             user.save(update_fields=['total_points_alltime', 'current_points'])
             user.refresh_from_db()
+            
+            # ✅ NEW: Update department all-time total in real-time
+            if user.department:
+                from users.models import Department
+                Department.objects.filter(id=user.department.id).update(
+                    total_points_alltime=F('total_points_alltime') + points_awarded
+                )
+                print(f"✅ Updated {user.department.name} all-time points: +{points_awarded}")
 
         # 9. UPDATE LEADERBOARDS (only if points > 0)
         if points_awarded > 0:
