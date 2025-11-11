@@ -238,9 +238,9 @@ REST_FRAMEWORK = {
 LOGIN_URL = "/auth/login/azuread-oauth2/"
 
 if ENVIRONMENT == "production":
-    LOGIN_REDIRECT_URL = "https://better-play-erni.vercel.app/auth-callback"
-    LOGOUT_REDIRECT_URL = "https://better-play-erni.vercel.app/login"
-    FRONTEND_BASE_URL = "https://better-play-erni.vercel.app"
+    LOGIN_REDIRECT_URL = "https://better-play-erni-nu.vercel.app/auth-callback"
+    LOGOUT_REDIRECT_URL = "https://better-play-erni-nu.vercel.app/login"
+    FRONTEND_BASE_URL = "https://better-play-erni-nu.vercel.app"
 else:
     LOGIN_REDIRECT_URL = "http://localhost:5173/auth-callback"
     LOGOUT_REDIRECT_URL = "http://localhost:5173/login"

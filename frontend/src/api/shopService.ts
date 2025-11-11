@@ -51,7 +51,9 @@ export const getClaimedRewards = async (): Promise<ClaimedReward[]> => {
       headers: { "Content-Type": "application/json" },
     });
     if (!response.ok) {
-      throw new Error(`Failed to fetch claimed rewards: ${response.statusText}`);
+      throw new Error(
+        `Failed to fetch claimed rewards: ${response.statusText}`
+      );
     }
     return await response.json();
   } catch (error) {
@@ -66,7 +68,9 @@ export const getClaimedRewards = async (): Promise<ClaimedReward[]> => {
  * @param {string | number} rewardId - The ID of the reward to claim.
  * @returns {Promise<ClaimResponse>} - Response indicating success/failure.
  */
-export const claimReward = async (rewardId: string | number): Promise<ClaimResponse> => {
+export const claimReward = async (
+  rewardId: string | number
+): Promise<ClaimResponse> => {
   // We no longer pass currentUserPoints; the backend handles this.
   if (MOCK_MODE) {
     // ... (Mock logic can stay for fallback testing) ...
@@ -74,7 +78,11 @@ export const claimReward = async (rewardId: string | number): Promise<ClaimRespo
     const reward = MOCK_REWARDS.find((r) => r.id === rewardId);
     if (reward && 1000 >= reward.cost) {
       // Hardcoded 1000 points for mock
-      return mockApiCall({ success: true, message: `Mock claimed ${reward.name}!`, remainingPoints: 1000 - reward.cost });
+      return mockApiCall({
+        success: true,
+        message: `Mock claimed ${reward.name}!`,
+        remainingPoints: 1000 - reward.cost,
+      });
     }
     return mockApiCall({ success: false, message: "Mock: Not enough points." });
   }
@@ -102,7 +110,9 @@ export const claimReward = async (rewardId: string | number): Promise<ClaimRespo
 
     if (!response.ok) {
       // Throw an error with the message from the backend
-      throw new Error(data.message || `Failed to claim reward: ${response.statusText}`);
+      throw new Error(
+        data.message || `Failed to claim reward: ${response.statusText}`
+      );
     }
 
     // Backend should return { success: true, message: "...", remainingPoints: ... }
