@@ -142,13 +142,15 @@ CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent cross-origin
 # CORS Settings
 if ENVIRONMENT == "production":
     CORS_ALLOWED_ORIGINS = [
+        "https://erni-puzzle-frontend.onrender.com",
         "https://better-play-erni.onrender.com",
-        "https://erni-puzzle-frontend.onrender.com"
+        
        
     ]
     CSRF_TRUSTED_ORIGINS = [
+        "https://erni-puzzle-frontend.onrender.com",
         "https://better-play-erni.onrender.com",
-        "https://erni-puzzle-frontend.onrender.com"
+        
        
     ]
 else:
