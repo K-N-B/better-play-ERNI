@@ -7,7 +7,7 @@ import LoginPage from "./pages/loginPage";
 import AuthCallback from "./pages/AuthCallback";
 import { HomePage } from "./pages/homePage";
 import { LeaderboardPage } from "./pages/leaderboardPage";
-import { ProtectedRoute } from "./components/ui/protectedRoute";
+//import { ProtectedRoute } from "./components/ui/protectedRoute";
 import { Layout } from "./components/layout/layout";
 import { GamePage } from "./pages/gamePage";
 import { ChallengePage } from "./pages/challengePage";
