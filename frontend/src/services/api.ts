@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8000/api';
+const API_BASE = 'http://140.245.52.155/api';
 
 export const puzzleApi = {
   getDailyPuzzle: async (gameType: string, difficulty: string = 'easy') => {

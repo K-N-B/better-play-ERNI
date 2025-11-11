@@ -6,7 +6,7 @@
 // } from '../data/_mockData';
 import type { LeaderboardData, LeaderboardPeriod, LeaderboardType } from '../types';
 
-const API_BASE_URL = "http://localhost:8000/api";
+const API_BASE_URL = "http://140.245.52.155/api";
 
 /**
  * Fetches leaderboard data for a specific period and type
