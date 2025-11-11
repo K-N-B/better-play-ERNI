@@ -1,28 +1,29 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { API_URL } from "../api/authService";
 
 export default function AuthCallback() {
-  const [status] = useState('Processing authentication...');
+  const [status] = useState("Processing authentication...");
   const navigate = useNavigate();
 
   useEffect(() => {
     // Just wait a moment and check auth status
     setTimeout(async () => {
       try {
-        const response = await fetch('http://localhost:8000/auth/check/', {
-          credentials: 'include',
+        const response = await fetch(`${API_URL}/auth/check/`, {
+          credentials: "include",
         });
-        
+
         const data = await response.json();
-        
+
         if (data.authenticated) {
-          navigate('/', { replace: true });
+          navigate("/", { replace: true });
         } else {
-          navigate('/login', { replace: true });
+          navigate("/login", { replace: true });
         }
       } catch (error) {
-        console.error('Auth check failed:', error);
-        navigate('/login', { replace: true });
+        console.error("Auth check failed:", error);
+        navigate("/login", { replace: true });
       }
     }, 100);
   }, [navigate]);
