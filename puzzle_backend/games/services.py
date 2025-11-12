@@ -1,4 +1,4 @@
-# /games/services.py
+# games/services.py
 import csv
 import datetime
 import json

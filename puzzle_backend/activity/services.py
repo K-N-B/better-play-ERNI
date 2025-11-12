@@ -1,4 +1,4 @@
-# activity/services.py - FIXED VERSION
+# activity/services.py
 
 from datetime import timedelta
 

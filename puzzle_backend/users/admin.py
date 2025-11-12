@@ -2,7 +2,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin  # Import base User admin
 
-from .models import Department, User  # Import your models
+from .models import Department, User  # Import  models
 
 
 # Customize the User display in the admin
@@ -29,7 +29,7 @@ class UserAdmin(BaseUserAdmin):
     )
     search_fields = ("username", "first_name", "last_name", "email")
     ordering = ("username",)
-    # Add your custom fields to the fieldsets displayed on the edit page
+    # Add custom fields to the fieldsets displayed on the edit page
     # This adds new sections for "Puzzle Profile" and "Stats"
     fieldsets = BaseUserAdmin.fieldsets + (
         ("Puzzle Profile", {"fields": ("department", "profile_complete", "is_admin")}),
@@ -51,11 +51,11 @@ class UserAdmin(BaseUserAdmin):
     readonly_fields = ("last_login", "date_joined", "last_active")
 
 
-# Register your custom User model with the customized admin class
+# Register  custom User model with the customized admin class
 admin.site.register(User, UserAdmin)
 
 
-# Register your Department model
+# Register  Department model
 @admin.register(Department)
 class DepartmentAdmin(admin.ModelAdmin):
     list_display = ("name", "total_points_alltime")  # Fields to show in the list view

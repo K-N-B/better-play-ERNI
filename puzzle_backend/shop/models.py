@@ -1,3 +1,4 @@
+# shop/models.py
 from django.conf import settings  # For AUTH_USER_MODEL
 from django.db import models
 from django.utils import timezone

@@ -1,4 +1,4 @@
-# /games/api_client.py
+# games/api_client.py
 import random
 
 import requests

@@ -1,4 +1,4 @@
-# activity/serializers.py - UPDATED WITH PROFILE PICTURES
+# activity/serializers.py
 
 from gameplay.models import Submission
 from rest_framework import serializers

@@ -1,4 +1,4 @@
-# gameplay/serializers.py - COMPLETE FILE WITH DIFFICULTY FIX
+# gameplay/serializers.py 
 from rest_framework import serializers
 from .models import Challenge, Submission
 from users.models import User

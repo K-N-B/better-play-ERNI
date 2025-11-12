@@ -1,4 +1,4 @@
-# gameplay/views.py - COMPLETE VERSION WITH ALL VIEWS
+# gameplay/views.py 
 
 import json
 import random
