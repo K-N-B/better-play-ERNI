@@ -214,7 +214,7 @@ if ENVIRONMENT == "production":
     CSRF_USE_SESSIONS = True  # ✅ store CSRF in session (safer for production)
     CSRF_COOKIE_HTTPONLY = True  # ✅ prevent JS access to CSRF cookie
     SESSION_COOKIE_HTTPONLY = True  # ✅ prevent JS access to session cookie
-    SESSION_COOKIE_DOMAIN = '.better-play-erni.onrender.com'
+    SESSION_COOKIE_DOMAIN = '.better-play-erni-1.onrender.com'
 else:
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
