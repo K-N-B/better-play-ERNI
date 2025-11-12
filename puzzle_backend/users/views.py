@@ -3,7 +3,8 @@ import logging  # For structured logging
 import mimetypes  # For deriving file extensions from content types
 import os  # For working with filesystem paths
 import urllib.parse  # For constructing redirect URLs with errors
-
+import cloudinary  
+import cloudinary.uploader 
 import msal  # For MSAL interaction
 import requests  # For calling Microsoft Graph API
 from django.conf import settings  # To access settings like AZURE_AD_CLIENT_ID
@@ -32,10 +33,11 @@ def get_msal_app():
 
 def fetch_and_store_profile_picture(access_token, azure_object_id, request):
     """
-    Fetches the user's profile photo from Microsoft Graph and stores it under MEDIA_ROOT/profile_pictures.
-    Returns an absolute URL to the stored image, or None if the photo could not be retrieved.
+    Fetches the user's profile photo from Microsoft Graph and stores it in cloud storage (Cloudinary)
+    or local filesystem as fallback. Returns a URL to the stored image, or None if unavailable.
     """
     photo_endpoint = "https://graph.microsoft.com/v1.0/me/photo/$value"
+    
     try:
         photo_response = requests.get(
             photo_endpoint,
@@ -47,7 +49,6 @@ def fetch_and_store_profile_picture(access_token, azure_object_id, request):
         return None
 
     if photo_response.status_code != 200 or not photo_response.content:
-        # A 404 is common when the user never uploaded a photo; don't treat it as an error.
         logger.info(
             "No profile photo available from Graph for user %s (status: %s)",
             azure_object_id,
@@ -55,6 +56,26 @@ def fetch_and_store_profile_picture(access_token, azure_object_id, request):
         )
         return None
 
+    if getattr(settings, 'USE_CLOUDINARY', False):
+        try:
+            # Upload directly to Cloudinary with public_id based on azure_object_id
+            upload_result = cloudinary.uploader.upload(
+                photo_response.content,
+                public_id=f"profile_pictures/{azure_object_id}",
+                overwrite=True,  # Replace existing photo
+                resource_type="image",
+                folder="erni_puzzle"  # Optional: organize in a folder
+            )
+            
+            cloudinary_url = upload_result.get('secure_url')
+            logger.info(f"✅ Uploaded profile picture to Cloudinary for user {azure_object_id}")
+            return cloudinary_url
+            
+        except Exception as exc:
+            logger.error(f"❌ Cloudinary upload failed for user {azure_object_id}: {exc}")
+            # Fall through to local storage as backup
+    
+    # ✅ FALLBACK: Local storage (original code)
     content_type = photo_response.headers.get("Content-Type", "image/jpeg")
     extension = mimetypes.guess_extension(content_type) or ".jpg"
     if extension in {".jpeg", ".jpe"}:
@@ -67,6 +88,7 @@ def fetch_and_store_profile_picture(access_token, azure_object_id, request):
 
     try:
         os.makedirs(profile_dir, exist_ok=True)
+        
         # Remove stale cached variants for this user
         for existing_name in os.listdir(profile_dir):
             if existing_name.startswith(azure_object_id) and existing_name != filename:
@@ -82,13 +104,17 @@ def fetch_and_store_profile_picture(access_token, azure_object_id, request):
 
         with open(file_path, "wb") as target_file:
             target_file.write(photo_response.content)
+            
+        logger.info(f"✅ Saved profile picture locally for user {azure_object_id}")
+        
     except OSError as exc:
         logger.error("Unable to store profile photo for user %s: %s", azure_object_id, exc)
         return None
 
-    # Build an absolute URL the frontend can consume (e.g. http://host/media/profile_pictures/abc.jpg).
+    # Build an absolute URL the frontend can consume
     relative_media_path = f"{settings.MEDIA_URL.rstrip('/')}/profile_pictures/{filename}"
     return request.build_absolute_uri(relative_media_path)
+
 
 
 @api_view(["GET"])
