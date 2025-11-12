@@ -1,15 +1,16 @@
-const API_BASE = 'http://140.245.52.155/api';
+
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const puzzleApi = {
   getDailyPuzzle: async (gameType: string, difficulty: string = 'easy') => {
-    const res = await fetch(`${API_BASE}/puzzles/daily/${gameType}/?difficulty=${difficulty}`, {
+    const res = await fetch(`${API_URL}/api/puzzles/daily/${gameType}/?difficulty=${difficulty}`, {
       credentials: 'include'
     });
     return res.json();
   },
 
   startPuzzle: async (puzzleId: number) => {
-    const res = await fetch(`${API_BASE}/puzzles/${puzzleId}/start/`, {
+    const res = await fetch(`${API_URL}/api/puzzles/${puzzleId}/start/`, {
       method: 'POST',
       credentials: 'include'
     });
@@ -17,7 +18,7 @@ export const puzzleApi = {
   },
 
   submitGuess: async (attemptId: number, guess: string) => {
-    const res = await fetch(`${API_BASE}/puzzles/attempts/${attemptId}/guess/`, {
+    const res = await fetch(`${API_URL}/api/puzzles/attempts/${attemptId}/guess/`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -27,7 +28,7 @@ export const puzzleApi = {
   },
 
   requestHint: async (attemptId: number) => {
-    const res = await fetch(`${API_BASE}/puzzles/attempts/${attemptId}/hint/`, {
+    const res = await fetch(`${API_URL}/api/puzzles/attempts/${attemptId}/hint/`, {
       method: 'POST',
       credentials: 'include'
     });
@@ -35,21 +36,21 @@ export const puzzleApi = {
   },
 
   getLeaderboard: async (period: string) => {
-    const res = await fetch(`${API_BASE}/leaderboards/${period}/`, {
+    const res = await fetch(`${API_URL}/api/leaderboards/${period}/`, {
       credentials: 'include'
     });
     return res.json();
   },
 
   getTop3: async (period: string) => {
-    const res = await fetch(`${API_BASE}/leaderboards/${period}/top3/`, {
+    const res = await fetch(`${API_URL}/api/leaderboards/${period}/top3/`, {
       credentials: 'include'
     });
     return res.json();
   },
 
   getDashboard: async () => {
-    const res = await fetch(`${API_BASE}/user/dashboard/`, {
+    const res = await fetch(`${API_URL}/api/user/dashboard/`, {
       credentials: 'include'
     });
     return res.json();

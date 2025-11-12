@@ -8,7 +8,7 @@
 import type { Challenge, CreateChallengeData, CompleteChallengeData } from '../types/challenge';
 import type { UserProfile } from '../types/user';
 
-const API_URL = 'http://140.245.52.155';
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 /* -----------------------------
    Helper: Get CSRF token

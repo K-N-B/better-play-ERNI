@@ -61,7 +61,7 @@ export default function LoginPage() {
             {/* Error Message */}
             {error && (
               <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4 flex gap-3">
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                 <div className="text-sm text-red-700">{error}</div>
               </div>
             )}
@@ -102,7 +102,7 @@ export default function LoginPage() {
             {/* Info Box */}
             <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
               <div className="flex gap-3">
-                <Shield className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5" />
+                <Shield className="w-5 h-5 text-primary-500 shrink-0 mt-0.5" />
                 <div className="text-sm">
                   <p className="text-gray-700 font-medium mb-1">
                     Personal Single Sign-On (For now)

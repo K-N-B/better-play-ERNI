@@ -15,7 +15,6 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -31,15 +30,10 @@ ENVIRONMENT = os.environ.get("ENVIRONMENT", "local")
 
 if ENVIRONMENT == "production":
     DEBUG = False
-    ALLOWED_HOSTS = [
-        "better-play-erni.duckdns.org",
-        "140.245.52.155",
-        "better-play-erni.onrender.com",
-        "better-play-erni.vercel.app",
-    ]
+    ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost").split(",")
 else:
     DEBUG = True
-    ALLOWED_HOSTS = ["better-play-erni.duckdns.org", "140.245.52.155", "localhost", "127.0.0.1"]
+    ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost").split(",")
 
 # Application definition
 
@@ -142,36 +136,26 @@ CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent cross-origin
 # CORS Settings
 if ENVIRONMENT == "production":
     CORS_ALLOWED_ORIGINS = [
-        "better-play-erni.duckdns.org",
-        "140.245.52.155",
-        "https://better-play-erni.onrender.com",
-        "https://better-play-erni.vercel.app",
+        origin.strip()
+        for origin in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+        if origin
     ]
     CSRF_TRUSTED_ORIGINS = [
-        "better-play-erni.duckdns.org",
-        "140.245.52.155",
-        "https://better-play-erni.onrender.com",
-        "https://better-play-erni.vercel.app",
+        origin.strip()
+        for origin in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+        if origin
     ]
 else:
     CORS_ALLOWED_ORIGINS = [
-        "better-play-erni.duckdns.org",
-        "140.245.52.155",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:8000",  # add this for Postman/local API calls
+        origin.strip()
+        for origin in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+        if origin
     ]
     CSRF_TRUSTED_ORIGINS = [
-        "better-play-erni.duckdns.org",
-        "140.245.52.155",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:8000",  # add this for Postman/local API calls
+        origin.strip()
+        for origin in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+        if origin
     ]
-
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
 
 
 AUTH_USER_MODEL = "users.User"
@@ -248,13 +232,14 @@ REST_FRAMEWORK = {
 LOGIN_URL = "/auth/login/azuread-oauth2/"
 
 if ENVIRONMENT == "production":
-    LOGIN_REDIRECT_URL = "better-play-erni.duckdns.org/auth/callback"
-    LOGOUT_REDIRECT_URL = "better-play-erni.duckdns.org/login"
-    FRONTEND_BASE_URL = "better-play-erni.duckdns.org"
+    FRONTEND_BASE_URL = os.getenv("DJANGO_BASE_URL", "https://better-play-erni.duckdns.org")
+    LOGIN_REDIRECT_URL = f"{FRONTEND_BASE_URL}/auth/callback"
+    LOGOUT_REDIRECT_URL = f"{FRONTEND_BASE_URL}/login"
 else:
-    LOGIN_REDIRECT_URL = "http://localhost:5173/auth-callback"
-    LOGOUT_REDIRECT_URL = "http://localhost:5173/login"
-    FRONTEND_BASE_URL = "http://localhost:5173"
+    FRONTEND_BASE_URL = os.getenv("DJANGO_BASE_URL", "http://localhost:5173")
+    LOGIN_REDIRECT_URL = f"{FRONTEND_BASE_URL}/auth-callback"
+    LOGOUT_REDIRECT_URL = f"{FRONTEND_BASE_URL}/login"
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -269,8 +254,6 @@ USE_I18N = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
-
-STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

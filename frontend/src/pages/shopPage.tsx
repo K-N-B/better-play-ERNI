@@ -76,7 +76,7 @@ export const ShopPage = () => {
         <div className="flex gap-2">
           <button
             onClick={() => setIsHistoryModalOpen(true)} // Open modal
-            className="flex gap-2 flex-shrink-0 p-4 text-sky-600 hover:text-primary font-semibold rounded-full hover:bg-gray-100 transition-colors"
+            className="flex gap-2 shrink-0 p-4 text-sky-600 hover:text-primary font-semibold rounded-full hover:bg-gray-100 transition-colors"
             title="View Claim History"
           >
             <History size={20} /> Claim History

@@ -6,7 +6,7 @@
 // } from '../data/_mockData';
 import type { LeaderboardData, LeaderboardPeriod, LeaderboardType } from '../types';
 
-const API_BASE_URL = "http://140.245.52.155/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 /**
  * Fetches leaderboard data for a specific period and type
@@ -45,7 +45,7 @@ export const getLeaderboard = async (
             params.append('date', date);
         }
 
-        const url = `${API_BASE_URL}/leaderboard/?${params.toString()}`;
+        const url = `${API_BASE_URL}/api/leaderboard/?${params.toString()}`;
         console.log(`[getLeaderboard] Request URL: ${url}`);
 
         const response = await fetch(url, {
