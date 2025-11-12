@@ -31,7 +31,6 @@ class ActivityHubView(APIView):
             )
 
 
-@method_decorator(csrf_exempt, name='dispatch')  # ✅ Exempt from CSRF
 class HeartbeatView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -39,18 +38,14 @@ class HeartbeatView(APIView):
         try:
             user = request.user
             print(f"💓 [Heartbeat] Received from: {user.username}")
-
             ActivityService.update_user_heartbeat(user)
-
             print(f"✅ [Heartbeat] Updated for: {user.username}")
             return Response(
-                {'success': True, 'message': 'Heartbeat recorded'}, status=status.HTTP_200_OK
+                {'success': True, 'message': 'Heartbeat recorded'}, 
+                status=status.HTTP_200_OK
             )
         except Exception as e:
             print(f"❌ [Heartbeat] Error: {str(e)}")
-            import traceback
-
-            traceback.print_exc()
             return Response(
                 {'error': f'Failed to record heartbeat: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,

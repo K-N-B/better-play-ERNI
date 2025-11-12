@@ -82,6 +82,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "activity.middleware.DisableCSRFForHeartbeat",  
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -241,6 +242,9 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
 }
+CSRF_EXEMPT_URLS = [
+    r'^api/heartbeat/$',
+]
 
 LOGIN_URL = "/auth/login/azuread-oauth2/"
 

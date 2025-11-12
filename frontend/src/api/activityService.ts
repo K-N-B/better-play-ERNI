@@ -76,43 +76,14 @@ export const sendHeartbeat = async (): Promise<void> => {
   }
 
   try {
-    // Try to get CSRF token
-    let csrfToken = getCookie("csrftoken");
-
-    // If no token, try to fetch it first
-    if (!csrfToken || csrfToken.length < 10) {
-      console.log("[sendHeartbeat] 🔄 No valid CSRF token, fetching...");
-      try {
-        await fetch(`${API_URL}/auth/csrf/`, {
-          credentials: "include",
-        });
-        csrfToken = getCookie("csrftoken");
-      } catch (error) {
-        console.warn("[sendHeartbeat] ⚠️ Could not fetch CSRF token:", error);
-      }
-    }
-
-    // If still no token, skip CSRF header (backend should be csrf_exempt for heartbeat anyway)
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-    };
-
-    if (csrfToken && csrfToken.length >= 10) {
-      headers["X-CSRFToken"] = csrfToken;
-      console.log(
-        "[sendHeartbeat] 🔑 Using CSRF token (length:",
-        csrfToken.length,
-        ")"
-      );
-    } else {
-      console.log("[sendHeartbeat] ⚠️ No valid CSRF token, sending without");
-    }
-
     console.log("[sendHeartbeat] 💓 Sending heartbeat...");
     const response = await fetch(`${API_URL}/api/heartbeat/`, {
       method: "POST",
-      credentials: "include",
-      headers,
+      credentials: "include", // Session cookie will authenticate
+      headers: {
+        "Content-Type": "application/json",
+        // No CSRF token needed - middleware exempts this endpoint
+      },
       body: JSON.stringify({}),
     });
 
