@@ -33,7 +33,10 @@ if ENVIRONMENT == "production":
     DEBUG = False
     ALLOWED_HOSTS = [
         "better-play-erni.onrender.com",
-        "erni-puzzle-frontend.onrender.com"
+        # "erni-puzzle-frontend.onrender.com",
+        "better-play-erni-1.onrender.com",
+
+
     ]
 else:
     DEBUG = True
@@ -139,15 +142,13 @@ CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent cross-origin
 if ENVIRONMENT == "production":
     CORS_ALLOWED_ORIGINS = [
         "https://erni-puzzle-frontend.onrender.com",
-        "https://better-play-erni.onrender.com",
-        
-       
+        # "https://better-play-erni.onrender.com",
+        "https://better-play-erni-1.onrender.com",
     ]
     CSRF_TRUSTED_ORIGINS = [
         "https://erni-puzzle-frontend.onrender.com",
-        "https://better-play-erni.onrender.com",
-        
-       
+        # "https://better-play-erni.onrender.com",
+        "https://better-play-erni-1.onrender.com",
     ]
 else:
     CORS_ALLOWED_ORIGINS = [
