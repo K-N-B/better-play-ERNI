@@ -30,7 +30,7 @@ ENVIRONMENT = os.environ.get("ENVIRONMENT", "local")
 
 if ENVIRONMENT == "production":
     DEBUG = False
-    ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost").split(",")
+    ALLOWED_HOSTS = ["better-play-erni.duckdns.org"]
 else:
     DEBUG = True
     ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost").split(",")
@@ -135,16 +135,8 @@ CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent cross-origin
 
 # CORS Settings
 if ENVIRONMENT == "production":
-    CORS_ALLOWED_ORIGINS = [
-        origin.strip()
-        for origin in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
-        if origin
-    ]
-    CSRF_TRUSTED_ORIGINS = [
-        origin.strip()
-        for origin in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
-        if origin
-    ]
+    CORS_ALLOWED_ORIGINS = ["https://better-play-erni.duckdns.org"]
+    CSRF_TRUSTED_ORIGINS = ["https://better-play-erni.duckdns.org"]
 else:
     CORS_ALLOWED_ORIGINS = [
         origin.strip()
@@ -200,8 +192,8 @@ if ENVIRONMENT == "production":
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SAMESITE = None
     CSRF_COOKIE_SAMESITE = None
-    CSRF_USE_SESSIONS = True  # ✅ store CSRF in session (safer for production)
-    CSRF_COOKIE_HTTPONLY = True  # ✅ prevent JS access to CSRF cookie
+    CSRF_USE_SESSIONS = False  # ✅ store CSRF in session (safer for production)
+    CSRF_COOKIE_HTTPONLY = False  # ✅ prevent JS access to CSRF cookie
     SESSION_COOKIE_HTTPONLY = True  # ✅ prevent JS access to session cookie
 else:
     SESSION_COOKIE_SECURE = False
