@@ -68,6 +68,7 @@ export const getActivityHub = async (): Promise<ActivityHubResponse> => {
  * Sends a heartbeat signal to update user's last_active timestamp
  * POST /api/heartbeat/
  */
+
 export const sendHeartbeat = async (): Promise<void> => {
   if (MOCK_MODE) {
     console.log("Mock: Sending heartbeat...");
@@ -75,29 +76,51 @@ export const sendHeartbeat = async (): Promise<void> => {
   }
 
   try {
-    const csrfToken = getCookie("csrftoken");
+    // Try to get CSRF token
+    let csrfToken = getCookie("csrftoken");
 
-    if (!csrfToken) {
-      console.warn("[sendHeartbeat] ⚠️ No CSRF token found");
+    // If no token, try to fetch it first
+    if (!csrfToken || csrfToken.length < 10) {
+      console.log("[sendHeartbeat] 🔄 No valid CSRF token, fetching...");
+      try {
+        await fetch(`${API_URL}/auth/csrf/`, {
+          credentials: "include",
+        });
+        csrfToken = getCookie("csrftoken");
+      } catch (error) {
+        console.warn("[sendHeartbeat] ⚠️ Could not fetch CSRF token:", error);
+      }
+    }
+
+    // If still no token, skip CSRF header (backend should be csrf_exempt for heartbeat anyway)
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+    };
+
+    if (csrfToken && csrfToken.length >= 10) {
+      headers["X-CSRFToken"] = csrfToken;
+      console.log(
+        "[sendHeartbeat] 🔑 Using CSRF token (length:",
+        csrfToken.length,
+        ")"
+      );
+    } else {
+      console.log("[sendHeartbeat] ⚠️ No valid CSRF token, sending without");
     }
 
     console.log("[sendHeartbeat] 💓 Sending heartbeat...");
     const response = await fetch(`${API_URL}/api/heartbeat/`, {
       method: "POST",
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrfToken || "",
-      },
-      body: JSON.stringify({}), // Send empty body
+      headers,
+      body: JSON.stringify({}),
     });
-
-    console.log(`[sendHeartbeat] Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`[sendHeartbeat] ❌ Error response: ${errorText}`);
-      throw new Error(`Heartbeat failed: ${response.statusText}`);
+      // Don't throw - heartbeat failures shouldn't break the app
+      return;
     }
 
     const result = await response.json();
