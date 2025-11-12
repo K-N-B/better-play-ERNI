@@ -4,6 +4,20 @@ import type { Department, UserProfile } from "../types/user";
 export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 /**
+ * Initialize CSRF token by calling the backend
+ * This ensures the csrftoken cookie is set
+ */
+export const initializeCSRF = async (): Promise<void> => {
+  try {
+    await fetch(`${API_URL}/auth/csrf/`, {
+      credentials: "include",
+    });
+  } catch (error) {
+    console.error("[initializeCSRF] Failed to get CSRF token:", error);
+  }
+};
+
+/**
  * Check if user has a valid session cookie
  * GET /auth/check/
  */

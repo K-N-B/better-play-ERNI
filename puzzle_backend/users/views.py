@@ -300,6 +300,18 @@ class CompleteProfileView(generics.GenericAPIView):
             )
 
 
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from django.middleware.csrf import get_token
+
+@require_http_methods(["GET"])
+def get_csrf_token(request):
+    """
+    Endpoint to get CSRF token.
+    This will set the csrftoken cookie in the response.
+    """
+    csrf_token = get_token(request)
+    return JsonResponse({'csrfToken': csrf_token})
 # from .serializers import DepartmentSerializer, UserProfileSerializer, AssignDepartmentSerializer
 # class AssignDepartmentView(generics.GenericAPIView):
 #     """

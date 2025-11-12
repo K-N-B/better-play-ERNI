@@ -12,8 +12,22 @@ import { Layout } from "./components/layout/layout";
 import { GamePage } from "./pages/gamePage";
 import { ChallengePage } from "./pages/challengePage";
 import { ShopPage } from "./pages/shopPage";
+import { useEffect } from "react";
+import { initializeCSRF } from "./api/authService";
 
 function App() {
+  useEffect(() => {
+    const setupCSRF = async () => {
+      try {
+        await initializeCSRF();
+        console.log("[App] CSRF token initialized");
+      } catch (error) {
+        console.error("[App] Failed to initialize CSRF token:", error);
+      }
+    };
+
+    setupCSRF();
+  }, []); // Empty dependency array = runs once on mount
   return (
     <AuthProvider>
       {/* ✅ WRAP WITH CHALLENGE PROVIDER AFTER AUTH PROVIDER */}

@@ -6,6 +6,7 @@ from . import views
 urlpatterns = [
     # --- Authentication Endpoints ---
     path('login/', views.get_auth_url, name='auth-login-url'),
+    path('auth/csrf/', views.get_csrf_token, name='csrf_token'), # for frontend to fetch CSRF token
     path('callback/', views.auth_callback, name='auth-callback'),
     path('check/', views.check_auth, name='auth-check'),
     path('logout/', views.logout_view, name='auth-logout'),
