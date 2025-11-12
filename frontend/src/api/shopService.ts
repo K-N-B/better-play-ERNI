@@ -3,7 +3,7 @@ import { getCookie, API_URL } from "./authService";
 // import { MOCK_REWARDS, MOCK_CLAIMED_REWARDS } from "../data/_mockData"; // Adjust path
 import type { RewardItem, ClaimResponse, ClaimedReward } from "../types";
 
-// const MOCK_MODE = false;
+const MOCK_MODE = false;
 /**
  * Fetches the list of available rewards from the real backend.
  */
