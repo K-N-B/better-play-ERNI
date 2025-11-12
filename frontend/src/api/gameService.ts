@@ -29,7 +29,7 @@ function getCookie(name: string): string | null {
 // ✅ Fetch daily puzzles
 export const getDailyPuzzles = async (): Promise<DailyPuzzleResponse> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/games/daily/`, {
+    const response = await fetch(`${API_BASE_URL}/api/games/daily/`, {
       method: "GET",
       credentials: "include",
       headers: { Accept: "application/json" },
