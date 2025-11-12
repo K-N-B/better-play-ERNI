@@ -32,9 +32,10 @@ ENVIRONMENT = os.environ.get("ENVIRONMENT", "local")
 if ENVIRONMENT == "production":
     DEBUG = False
     ALLOWED_HOSTS = [
-        "better-play-erni.onrender.com",
-        # "erni-puzzle-frontend.onrender.com",
+        # "better-play-erni.onrender.com",
         "better-play-erni-1.onrender.com",
+        "erni-puzzle-frontend.onrender.com",
+        
 
 
     ]
