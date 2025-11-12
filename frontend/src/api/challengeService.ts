@@ -62,6 +62,9 @@ export const getPendingChallenges = async (): Promise<Challenge[]> => {
 
     const response = await fetch(`${API_URL}/api/challenges/pending/`, {
         method: 'GET',
+        headers: {
+            "Content-Type": "application/json",
+        },
         credentials: 'include',
     });
 
