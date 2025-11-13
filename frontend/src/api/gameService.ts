@@ -276,7 +276,7 @@ export const getHint = async (
 export const getSudokuHintLimits = async (): Promise<{
   HINT_LIMITS: Record<string, number>;
 }> => {
-  const response = await fetch(`${API_BASE_URL}/api/games/hint-limits/sudoku/`, {
+  const response = await fetch(`${API_BASE_URL}/games/hint-limits/sudoku/`, {
     method: "GET",
     credentials: "include",
     headers: { Accept: "application/json" },
