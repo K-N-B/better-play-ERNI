@@ -745,6 +745,8 @@ export const SudokuGame = ({
               submissionId={gameResult.submissionId}
               // currentStreak={gameResult.currentStreak}
               gameType="sudoku"
+              puzzleId={puzzle.id}
+              dailyPuzzleDate={puzzle.date_to_be_used}
               onClose={() => setGameResult(null)}
             />
           )}

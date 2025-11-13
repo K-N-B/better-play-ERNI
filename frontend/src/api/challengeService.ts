@@ -230,3 +230,21 @@ export const completeChallenge = async (
 
     return response.json();
 };
+
+export const listAllUsers = async (): Promise<Pick<UserProfile, 'id' | 'username' | 'email'>[]> => {
+    if (MOCK_MODE) {
+        console.log("Mock: Listing all users...");
+        return mockApiCall([...MOCK_USERS_SEARCH]);
+    }
+
+    const response = await fetch(
+        `${API_URL}/api/challenges/list-users/`,
+        {
+            method: 'GET',
+            credentials: 'include',
+        }
+    );
+
+    if (!response.ok) throw new Error('Failed to list users');
+    return response.json();
+};
