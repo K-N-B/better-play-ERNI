@@ -8,7 +8,7 @@ import type {
   SubmissionResult, // ✅ Import complete type
 } from "../types/game";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = "http://localhost:8000/api";
 
 // ✅ Utility: Get CSRF token
 function getCookie(name: string): string | null {
@@ -29,7 +29,7 @@ function getCookie(name: string): string | null {
 // ✅ Fetch daily puzzles
 export const getDailyPuzzles = async (): Promise<DailyPuzzleResponse> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/games/daily/`, {
+    const response = await fetch(`${API_BASE_URL}/games/daily/`, {
       method: "GET",
       credentials: "include",
       headers: { Accept: "application/json" },

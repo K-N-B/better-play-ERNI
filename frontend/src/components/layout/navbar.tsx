@@ -7,7 +7,7 @@ import UserProfileModal from '../features/userProfileModal';
 import { useAuth } from '../../hooks/authContext';
 import { navItems, shopNavStyle, notificationNavStyle } from '../../data/navItems'; // <-- IMPORT YOUR DATA
 import { ChallengeIcon } from '../features/challenge/challengeIcon';
-import { Store, Star, Menu, X } from 'lucide-react';
+import { Store, Star, Menu, X, Mountain } from 'lucide-react';
 import clsx from 'clsx';
 
 

@@ -1,7 +1,7 @@
 // frontend/src/api/authService.ts
 import type { Department, UserProfile } from "../types/user";
 
-export const API_URL = import.meta.env.VITE_API_BASE_URL;
+export const API_URL = "http://localhost:8000";
 
 /**
  * Check if user has a valid session cookie
@@ -13,22 +13,15 @@ export const checkAuth = async (): Promise<{
 }> => {
   try {
     const response = await fetch(`${API_URL}/auth/check/`, {
-      credentials: "include",
+      credentials: "include", // This sends the session cookie
     });
 
-    const contentType = response.headers.get("content-type");
-
-    if (contentType?.includes("application/json")) {
-      // Only parse JSON if backend really sent JSON
-      const data = await response.json();
-      return data;
-    } else {
-      // Probably HTML (login page or redirect)
-      const text = await response.text();
-      console.warn("[checkAuth] Expected JSON but got HTML:", text.substring(0, 200));
+    if (!response.ok) {
       return { authenticated: false, user: null };
     }
 
+    const data = await response.json();
+    return data;
   } catch (err) {
     console.error('[checkAuth] Error:', err);
     return { authenticated: false, user: null };

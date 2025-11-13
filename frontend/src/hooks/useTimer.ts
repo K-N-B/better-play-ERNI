@@ -1,6 +1,6 @@
 // A custom hook to manage a stopwatch.
 // What you need to do: Use useState for time and useRef for the setInterval ID. Expose functions like startTimer(), stopTimer(), resetTimer(), and the current time value.
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 export const useTimer = (startTimeMs: number = 0) => {
   const [time, setTime] = useState(startTimeMs);
@@ -42,13 +42,10 @@ export const useTimer = (startTimeMs: number = 0) => {
   }, [stopTimer]);
 
   // setSavedTime is stable
-  const setSavedTime = useCallback(
-    (savedTimeMs: number) => {
-      stopTimer();
-      setTime(savedTimeMs);
-    },
-    [stopTimer]
-  );
+  const setSavedTime = useCallback((savedTimeMs: number) => {
+     stopTimer();
+     setTime(savedTimeMs);
+  }, [stopTimer]);
 
   // Cleanup effect is stable
   useEffect(() => {
