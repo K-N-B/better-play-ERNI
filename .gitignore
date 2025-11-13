@@ -1,0 +1,77 @@
+# --- Environments ---
+venv/
+env/
+__pycache__/
+*.pyc
+.env # CRITICAL: Ignore file with secrets (DB password, Azure keys, SECRET_KEY)
+
+# --- Django ---
+*.log
+db.sqlite3 # Ignore default SQLite database if not used
+db.sqlite3-journal
+/staticfiles/ # Ignore collected static files (run collectstatic on deploy)
+
+
+# --- Operating System Files ---
+.DS_Store # macOS
+Thumbs.db # Windows
+ehthumbs.db # Windows
+
+# --- IDEs / Editors ---
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw? # Vim swap files
+
+# --- Python ---
+*.egg-info/
+dist/
+build/
+*.egg
+
+# --- Other ---
+# Add any other specific files or directories you want to ignore
+# e.g., local_settings.py if you use it
+
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+
+# Virtual environments
+venv/
+env/
+
+# Django stuff
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+db.sqlite3
+# media/
+staticfiles/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Optional: ignore virtual environment
+venv/
+.env/
