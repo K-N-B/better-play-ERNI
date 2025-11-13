@@ -7,6 +7,7 @@ import { AlreadyPlayedScreen } from '../components/gameComponents/shared/already
 import { ResumeGameScreen } from '../components/gameComponents/shared/resumeGameScreen';
 import { LoadingSpinner } from '../components/ui/loadingSpinner';
 import GameIntro from '../components/features/games/gameIntro';
+import { X, CircleQuestionMark, Star } from 'lucide-react';
 
 // Import your game components
 import { WordleGame } from '../components/gameComponents/wordle/wordleGame';
@@ -24,6 +25,7 @@ const introContent = {
     pointsInfo: 'Earn points based on how many tries you take. Fewer tries = more points!',
     hintInfo: 'Hard mode gives you fewer tries!',
     color: 'bg-emerald-500',
+    textColor: 'text-emerald-900',
     darkColor: 'shadow-emerald-900',
     bgColor: 'bg-emerald-100',
   },
@@ -34,6 +36,7 @@ const introContent = {
     pointsInfo: 'Earn points based on how quickly you solve the puzzle.',
     hintInfo: 'Hard mode gives you fewer starting numbers.',
     color: 'bg-pink-400',
+    textColor: 'text-pink-800',
     darkColor: 'shadow-pink-800',
     bgColor: 'bg-pink-100',
   },
@@ -44,6 +47,7 @@ const introContent = {
     pointsInfo: 'Earn points based on remaining attempts and time.',
     hintInfo: 'Hard mode gives you significantly fewer attempts!',
     color: 'bg-sky-400',
+    textColor: 'text-sky-800',
     darkColor: 'shadow-sky-800',
     bgColor: 'bg-sky-100',
   },
@@ -52,14 +56,15 @@ const introContent = {
 
 const InstructionsModal: React.FC<{
   title: string;
+  description: string;
   howToPlay: string;
   onClose: () => void;
-}> = ({ title, howToPlay, onClose }) => {
+}> = ({ title, description, howToPlay, onClose }) => {
   return (
     <Fragment>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/60 z-40"
+        className="fixed inset-0 bg-black/50 z-40"
         onClick={onClose}
         aria-hidden="true"
       ></div>
@@ -71,51 +76,37 @@ const InstructionsModal: React.FC<{
         aria-modal="true"
         aria-labelledby="modal-title"
       >
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[80vh] flex flex-col">
-          {/* Modal Header */}
-          <div className="flex justify-between items-center p-4 border-b">
-            <h2 id="modal-title" className="text-xl font-bold text-gray-800">
-              How to Play: {title}
-            </h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 p-1 rounded-full"
-              aria-label="Close"
-            >
-              {/* Simple 'X' icon */}
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
+        <div className="bg-white rounded-3xl w-full max-w-sm p-6">
+          <div className="flex justify-end items-center ">
+            
+            <button onClick={onClose} className="text-red-500 hover:text-red-700">
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Body */}
+          <div className="pt-2 flex flex-col justify-center items-center">
+            <h3 className="text-lg font-semibold">How to play {title}</h3>
+            <div className="p-4 overflow-y-auto text-center">
+              <div
+                className="prose prose-sm max-w-none text-gray-700 space-y-3 mb-4"
+                dangerouslySetInnerHTML={{ __html: description }}
+              />
+              <div
+                className="prose prose-sm max-w-none text-gray-700 space-y-3"
+                dangerouslySetInnerHTML={{ __html: howToPlay }}
+              />
+            </div>
+            
+            <div className="">
+              <button
+                onClick={onClose}
+                className="w-full px-4 py-2 bg-primary text-white font-semibold rounded-lg shadow-primary-900 shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                ></path>
-              </svg>
-            </button>
-          </div>
+                Got It!
+              </button>
+            </div>
           
-          {/* Modal Body */}
-          <div className="p-6 overflow-y-auto">
-            <div
-              className="prose prose-sm max-w-none text-gray-700 space-y-3"
-              dangerouslySetInnerHTML={{ __html: howToPlay }}
-            />
-          </div>
-          
-          {/* Modal Footer */}
-          <div className="p-4 border-t bg-gray-50 rounded-b-lg">
-            <button
-              onClick={onClose}
-              className="w-full px-4 py-2 bg-primary text-white font-semibold rounded-lg shadow hover:bg-primary-dark"
-            >
-              Got It!
-            </button>
           </div>
         </div>
       </div>
@@ -401,9 +392,15 @@ export const GamePage = () => {
             {/* This button is passed as a child and rendered by GameIntro on mobile */}
             <button
               onClick={() => setShowInstructions(true)}
-              className="w-full px-6 py-3 bg-white text-primary border border-primary font-semibold rounded-lg shadow-md hover:bg-gray-50"
+              className={`font-semibold text-primary text-xl leading-none px-4 py-4 rounded-full ${introData.color} ${introData.darkColor} text-white shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all`}
             >
-              How to Play
+              <CircleQuestionMark size={30} strokeWidth={2.5}/>
+            </button>
+            <button
+              onClick={() => setShowInstructions(true)}
+              className={`font-semibold text-primary text-xl leading-none px-4 ms-4 py-4 rounded-full ${introData.color} ${introData.darkColor} text-white shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all`}
+            >
+              <Star size={30} strokeWidth={2.5}/>
             </button>
           </GameIntro>
           
@@ -411,6 +408,7 @@ export const GamePage = () => {
           {showInstructions && (
             <InstructionsModal
               title={introData.title}
+              description={introData.description}
               howToPlay={introData.howToPlay}
               onClose={() => setShowInstructions(false)}
             />
