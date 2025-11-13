@@ -1,7 +1,7 @@
 // src/context/ChallengeContext.tsx
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { getPendingChallenges } from '../api/challengeService';
-import { useAuth } from '../hooks/authContext';
+// import { useAuth } from '../hooks/authContext';
 
 interface ChallengeContextType {
     pendingCount: number;

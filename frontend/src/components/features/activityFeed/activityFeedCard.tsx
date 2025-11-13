@@ -1,6 +1,6 @@
 
 import { ActivityFeed } from './activityFeed'; // Your existing component
-import { ChevronDown, Zap } from 'lucide-react';
+import { Zap } from 'lucide-react';
 
 export const ActivityFeedCard = () => {
     return (
@@ -13,7 +13,7 @@ export const ActivityFeedCard = () => {
                 </h3>
             </div>
             {/* Embed the existing ActivityFeed component */}
-            <div className="flex-grow overflow-y-auto pr-2 -mr-2"> {/* Add padding for scrollbar */}
+            <div className=" overflow-y-auto pr-2 -mr-2"> {/* Add padding for scrollbar */}
                  <ActivityFeed />
             </div>
         </div>

@@ -16,7 +16,6 @@ import cloudinary
 import cloudinary.uploader
 from dotenv import load_dotenv
 
-load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -32,13 +31,10 @@ ENVIRONMENT = os.environ.get("ENVIRONMENT", "local")
 
 if ENVIRONMENT == "production":
     DEBUG = False
-    ALLOWED_HOSTS = [
-        "better-play-erni.onrender.com",
-        "better-play-erni.vercel.app",
-    ]
+    ALLOWED_HOSTS = ["better-play-erni.duckdns.org"]
 else:
     DEBUG = True
-    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+    ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost").split(",")
 
 # Application definition
 
@@ -140,24 +136,18 @@ CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent cross-origin
 
 # CORS Settings
 if ENVIRONMENT == "production":
-    CORS_ALLOWED_ORIGINS = [
-        "https://better-play-erni.onrender.com",
-        "https://better-play-erni.vercel.app",
-    ]
-    CSRF_TRUSTED_ORIGINS = [
-        "https://better-play-erni.onrender.com",
-        "https://better-play-erni.vercel.app",
-    ]
+    CORS_ALLOWED_ORIGINS = ["https://better-play-erni.duckdns.org"]
+    CSRF_TRUSTED_ORIGINS = ["https://better-play-erni.duckdns.org"]
 else:
     CORS_ALLOWED_ORIGINS = [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:8000",  # add this for Postman/local API calls
+        origin.strip()
+        for origin in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+        if origin
     ]
     CSRF_TRUSTED_ORIGINS = [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:8000",  # add this for Postman/local API calls
+        origin.strip()
+        for origin in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+        if origin
     ]
 
 
@@ -211,7 +201,7 @@ AZURE_AD_CLIENT_SECRET = os.environ.get("AZURE_AD_CLIENT_SECRET")
 AZURE_AD_TENANT_ID = os.environ.get("AZURE_AD_TENANT_ID")
 # This MUST match the 'Web' redirect URI in Azure App Registration AND users/urls.py path
 AZURE_AD_REDIRECT_URI = os.environ.get(
-    "AZURE_AD_REDIRECT_URI", "http://localhost:8000/auth/callback/"
+    "AZURE_AD_REDIRECT_URI", "http://140.245.52.155/auth/callback/"
 )
 
 
@@ -223,8 +213,8 @@ if ENVIRONMENT == "production":
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SAMESITE = None
     CSRF_COOKIE_SAMESITE = None
-    CSRF_USE_SESSIONS = True  # ✅ store CSRF in session (safer for production)
-    CSRF_COOKIE_HTTPONLY = True  # ✅ prevent JS access to CSRF cookie
+    CSRF_USE_SESSIONS = False  # ✅ store CSRF in session (safer for production)
+    CSRF_COOKIE_HTTPONLY = False  # ✅ prevent JS access to CSRF cookie
     SESSION_COOKIE_HTTPONLY = True  # ✅ prevent JS access to session cookie
 else:
     SESSION_COOKIE_SECURE = False
@@ -255,13 +245,14 @@ REST_FRAMEWORK = {
 LOGIN_URL = "/auth/login/azuread-oauth2/"
 
 if ENVIRONMENT == "production":
-    LOGIN_REDIRECT_URL = "https://better-play-erni.vercel.app/auth-callback"
-    LOGOUT_REDIRECT_URL = "https://better-play-erni.vercel.app/login"
-    FRONTEND_BASE_URL = "https://better-play-erni.vercel.app"
+    FRONTEND_BASE_URL = os.getenv("DJANGO_BASE_URL", "https://better-play-erni.duckdns.org")
+    LOGIN_REDIRECT_URL = f"{FRONTEND_BASE_URL}/auth/callback"
+    LOGOUT_REDIRECT_URL = f"{FRONTEND_BASE_URL}/login"
 else:
-    LOGIN_REDIRECT_URL = "http://localhost:5173/auth-callback"
-    LOGOUT_REDIRECT_URL = "http://localhost:5173/login"
     FRONTEND_BASE_URL = "http://localhost:5173"
+    LOGIN_REDIRECT_URL = f"{FRONTEND_BASE_URL}/auth-callback"
+    LOGOUT_REDIRECT_URL = f"{FRONTEND_BASE_URL}/login"
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -276,8 +267,6 @@ USE_I18N = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
-
-STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -310,8 +299,8 @@ DATE_INPUT_FORMATS = [
     "%m/%d/%Y",  # '11/06/2025'
     "%m/%d/%y",  # '11/06/25'
     "%b %d %Y",  # 'Nov 6 2025'
-    "%b. %d, %Y", # 'Nov. 6, 2025' <--- The format from your error
+    "%b. %d, %Y",  # 'Nov. 6, 2025' <--- The format from your error
     "%d %b %Y",  # '6 Nov 2025'
-    "%d %b, %Y", # '6 Nov, 2025'
+    "%d %b, %Y",  # '6 Nov, 2025'
 ]
 USE_L10N = True

@@ -26,6 +26,7 @@ const PodiumItem: React.FC<{
   let name = 'Unknown';
   let id = rank;
   let profileImageUrl: string | null = null;
+  console.log(`[PodiumItem] Initial values - Name: ${name}, ID: ${id}`);
   
   // Extract user/department data and profile picture
   if (type === 'department') {

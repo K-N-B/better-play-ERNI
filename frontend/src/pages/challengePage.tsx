@@ -1,5 +1,5 @@
 // src/pages/ChallengePage.tsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getPendingChallenges, getCompletedChallenges } from '../api/challengeService';
 import { useChallenges } from '../context/ChallengeContext'; // NEW
 import type { Challenge } from '../types/challenge';
