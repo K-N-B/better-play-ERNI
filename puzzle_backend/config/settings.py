@@ -249,7 +249,7 @@ if ENVIRONMENT == "production":
     LOGIN_REDIRECT_URL = f"{FRONTEND_BASE_URL}/auth/callback"
     LOGOUT_REDIRECT_URL = f"{FRONTEND_BASE_URL}/login"
 else:
-    FRONTEND_BASE_URL = os.getenv("DJANGO_BASE_URL", "http://localhost:5173")
+    FRONTEND_BASE_URL = "http://localhost:5173"
     LOGIN_REDIRECT_URL = f"{FRONTEND_BASE_URL}/auth-callback"
     LOGOUT_REDIRECT_URL = f"{FRONTEND_BASE_URL}/login"
 

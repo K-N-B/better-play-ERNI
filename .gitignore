@@ -76,3 +76,4 @@ __pycache__/
 # Optional: ignore virtual environment
 venv/
 .env/
+.env
