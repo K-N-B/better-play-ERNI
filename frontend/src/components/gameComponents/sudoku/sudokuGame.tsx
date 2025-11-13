@@ -210,7 +210,7 @@ export const SudokuGame = ({
 
         if (result.hasSubmitted) {
           setAlreadyCompleted(result);
-          setIsGameOver(true);
+          // setIsGameOver(true);
 
           // ✅ NEW: Auto-complete challenge if already submitted
           console.log(
@@ -299,7 +299,7 @@ export const SudokuGame = ({
 
         // Check if grid is already solved
         loadedIsGameOver = checkSolution(savedGrid, puzzle.solution_string);
-        setIsGameOver(loadedIsGameOver);
+        // setIsGameOver(loadedIsGameOver);
 
         // Show resume modal if user has made progress
         const filledCells = countFilledCells(savedGrid);
@@ -393,7 +393,7 @@ export const SudokuGame = ({
           console.error("[SudokuGame] ❌ Immediate save failed:", err)
         );
     },
-    [puzzle, time, difficulty, isGameOver, alreadyCompleted]
+    [puzzle, time, difficulty, isGameOver, alreadyCompleted, hintsUsed]
   );
 
   // Event Handlers
@@ -562,16 +562,7 @@ export const SudokuGame = ({
       setGrid(checkedGrid);
       // You should use the proper save function defined elsewhere in your component
       // If your helper is `saveImmediately`, then use it here.
-      // saveImmediately(checkedGrid);
-
-      // Check for win condition and submit (This should also be in saveImmediately or a separate effect)
-      if (
-        countFilledCells(checkedGrid) === 81 &&
-        checkSolution(checkedGrid, puzzle.solution_string)
-      ) {
-        // If the grid is full and correct, trigger submission
-        handleSubmit();
-      }
+      saveImmediately(checkedGrid);
     },
     [
       selectedCell,
