@@ -1,4 +1,4 @@
-# gameplay/urls.py - FIXED URL PATTERNS
+# gameplay/urls.py
 
 from django.urls import path
 

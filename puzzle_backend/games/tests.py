@@ -1,3 +1,4 @@
+# games/tests.py
 import datetime
 import pytz
 from django.test import TestCase

@@ -73,10 +73,10 @@ class LeaderboardAggregator:
                 department_id=dept_id, date=submission_date, defaults={'score': score}
             )
 
-            # Also update department's all-time total
-            dept = Department.objects.get(id=dept_id)
-            dept.total_points_alltime = F('total_points_alltime') + 0  # Recalculate
-            dept.save()
+        for dept_id, score in dept_scores.items():
+            DailyDepartmentScore.objects.update_or_create(
+                department_id=dept_id, date=submission_date, defaults={'score': score}
+            )
 
         print(f"  ✓ Updated {len(dept_scores)} department daily scores")
 

@@ -1,9 +1,5 @@
 # games/views.py
-# from rest_framework import generics
-# from datetime import date as date_type
 import datetime
-
-# from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from games.utils.timezone_helpers import get_local_today
 from rest_framework import status
@@ -15,7 +11,6 @@ from .services import generate_daily_puzzles
 
 from .models import DailyPuzzle
 
-# from .models import DailyPuzzle, WordlePuzzle, SudokuPuzzle, ErnigramPuzzle
 from .serializers import DailyPuzzleSerializer
 import os
 from django.http import HttpRequest, HttpResponse

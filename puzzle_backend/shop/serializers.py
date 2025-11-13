@@ -1,3 +1,4 @@
+# shop/serializers.py
 from rest_framework import serializers
 from users.serializers import UserNestedSerializer
 
