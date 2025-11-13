@@ -1,5 +1,5 @@
 // frontend/src/pages/gamePage.tsx - COMPLETE FILE WITH DIFFICULTY FIX
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Fragment } from 'react';
 import { useParams, Navigate, useSearchParams } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
 import { getDailyPuzzles, checkSubmissionExists, getSavedAttempt } from '../api/gameService';
@@ -49,6 +49,81 @@ const introContent = {
   },
 };
 
+
+const InstructionsModal: React.FC<{
+  title: string;
+  howToPlay: string;
+  onClose: () => void;
+}> = ({ title, howToPlay, onClose }) => {
+  return (
+    <Fragment>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/60 z-40"
+        onClick={onClose}
+        aria-hidden="true"
+      ></div>
+
+      {/* Modal Panel */}
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+      >
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[80vh] flex flex-col">
+          {/* Modal Header */}
+          <div className="flex justify-between items-center p-4 border-b">
+            <h2 id="modal-title" className="text-xl font-bold text-gray-800">
+              How to Play: {title}
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 p-1 rounded-full"
+              aria-label="Close"
+            >
+              {/* Simple 'X' icon */}
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
+              </svg>
+            </button>
+          </div>
+          
+          {/* Modal Body */}
+          <div className="p-6 overflow-y-auto">
+            <div
+              className="prose prose-sm max-w-none text-gray-700 space-y-3"
+              dangerouslySetInnerHTML={{ __html: howToPlay }}
+            />
+          </div>
+          
+          {/* Modal Footer */}
+          <div className="p-4 border-t bg-gray-50 rounded-b-lg">
+            <button
+              onClick={onClose}
+              className="w-full px-4 py-2 bg-primary text-white font-semibold rounded-lg shadow hover:bg-primary-dark"
+            >
+              Got It!
+            </button>
+          </div>
+        </div>
+      </div>
+    </Fragment>
+  );
+};
+// +++ END OF NEW COMPONENT +++
+
 export type Difficulty = "easy" | "hard";
 
 // --- Helper Function ---
@@ -92,6 +167,8 @@ export const GamePage = () => {
   const [lockedDifficulty, setLockedDifficulty] = useState<Difficulty | null>(
     difficultyFromUrl || null
   );
+
+  const [showInstructions, setShowInstructions] = useState(false);
   const [hasStarted, setHasStarted] = useState(false); 
   const { data: puzzles, loading: loadingPuzzles, error: error } = useApi(getDailyPuzzles);
   
@@ -307,19 +384,38 @@ export const GamePage = () => {
       );
     } else {
       content = (
-        <GameIntro
-          title={introData.title}
-          description={introData.description}
-          howToPlay={introData.howToPlay}
-          pointsInfo={introData.pointsInfo}
-          hintInfo={introData.hintInfo}
-          onStart={() => setHasStarted(true)}
-          onDifficultyChange={setSelectedDifficulty}
-          initialDifficulty={activeDifficulty}
-          disableDifficultyChange={!!challengeId}
-          color={introData.color}
-          darkColor={introData.darkColor}
-        />
+        <>
+          <GameIntro
+            title={introData.title}
+            description={introData.description}
+            howToPlay={introData.howToPlay}
+            pointsInfo={introData.pointsInfo}
+            hintInfo={introData.hintInfo}
+            onStart={() => setHasStarted(true)}
+            onDifficultyChange={setSelectedDifficulty}
+            initialDifficulty={activeDifficulty}
+            disableDifficultyChange={!!challengeId}
+            color={introData.color}
+            darkColor={introData.darkColor}
+          >
+            {/* This button is passed as a child and rendered by GameIntro on mobile */}
+            <button
+              onClick={() => setShowInstructions(true)}
+              className="w-full px-6 py-3 bg-white text-primary border border-primary font-semibold rounded-lg shadow-md hover:bg-gray-50"
+            >
+              How to Play
+            </button>
+          </GameIntro>
+          
+          {/* Conditionally render the modal */}
+          {showInstructions && (
+            <InstructionsModal
+              title={introData.title}
+              howToPlay={introData.howToPlay}
+              onClose={() => setShowInstructions(false)}
+            />
+          )}
+        </>
       );
     }
   }

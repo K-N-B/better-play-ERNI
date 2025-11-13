@@ -35,10 +35,10 @@ export const HomePage = () => { // Use default export if that's your convention
         {/* --- Column 3: Leaderboard & Who's Online --- */}
         {/* Add 'h-full' and 'flex flex-col' */}
         <div className="lg:col-span-1 flex flex-col gap-6 h-full">
-          <div className="grow"> {/* Wrapper to allow GamesSection to grow */}
+          <div className=""> {/* Wrapper to allow GamesSection to grow */}
             <LeaderboardPreviewCard /> {/* Ensure GamesSection uses h-full internally */}
           </div>
-          <div className="grow"> {/* Wrapper to allow GamesSection to grow */}
+          <div className=""> {/* Wrapper to allow GamesSection to grow */}
             <WhosOnlineCard /> {/* Ensure GamesSection uses h-full internally */}
           </div>
         </div>

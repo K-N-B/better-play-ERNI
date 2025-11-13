@@ -7,7 +7,7 @@ import type { IndividualScoreEntry } from "../../../types/leaderboard";
 import { Trophy } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const PREVIEW_LIMIT = 10;
+const PREVIEW_LIMIT = 5;
 
 export const LeaderboardPreviewCard = () => {
   const fetchPreviewData = React.useCallback(
@@ -31,7 +31,7 @@ export const LeaderboardPreviewCard = () => {
 
   return (
     <div className="bg-white p-6 rounded-4xl shadow-md border border-gray-100 flex flex-col h-full">
-      <div className="flex justify-between items-center flex-shrink-0 mb-3">
+      <div className="flex justify-between items-center shrink-0 mb-3">
         <h3 className="text-xl font-semibold flex items-center space-x-3">
           <Trophy size={22} strokeWidth={2.5} />
           <div className="text-xl font-semibold text-black">
@@ -40,7 +40,7 @@ export const LeaderboardPreviewCard = () => {
         </h3>
       </div>
 
-      <div className="flex-grow overflow-y-auto">
+      <div className="grow overflow-y-auto">
         {loading && (
           <div className="text-center py-4">
             <LoadingSpinner />
@@ -62,7 +62,7 @@ export const LeaderboardPreviewCard = () => {
 
       <Link
         to="/leaderboards"
-        className="block text-center text-sm text-primary mt-4 hover:underline flex-shrink-0"
+        className="block text-center text-sm text-primary mt-4 hover:underline shrink-0"
       >
         View All Rankings
       </Link>
