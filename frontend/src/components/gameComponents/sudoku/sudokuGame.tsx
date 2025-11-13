@@ -179,6 +179,7 @@ export const SudokuGame = ({
     fetchLimits();
   }, [difficulty]);
 
+  const [isHintLoading, setIsHintLoading] = useState(false);
   // const [showResumeModal, setShowResumeModal] = useState(false);
   const [alreadyCompleted, setAlreadyCompleted] = useState<{
     hasSubmitted: boolean;
@@ -488,7 +489,7 @@ export const SudokuGame = ({
           const challengeResult = await completeChallenge(challengeId, {
             submission_id: submissionIdForResultModal,
           });
-          console.log(challengeResult)
+          console.log(challengeResult);
           console.log("[SudokuGame] ✅ Challenge API call succeeded!");
           await new Promise((resolve) => setTimeout(resolve, 3000));
           await refreshChallenges();
@@ -605,10 +606,6 @@ export const SudokuGame = ({
     handleInputCore(null); // Erase is null input
   };
 
-  // You can now REMOVE the original body of handleNumberClick and handleEraseClick.
-
-  // ... (your existing handleCellClick and handleSubmit remain the same)
-
   const handleCellClick = (row: number, col: number) => {
     if (isGameOver || grid[row][col].isGiven || alreadyCompleted?.hasSubmitted)
       return;
@@ -616,7 +613,9 @@ export const SudokuGame = ({
   };
 
   const handleGetHint = async () => {
+    if (isHintLoading) return;
     try {
+      setIsHintLoading(true);
       const dataPayload: PuzzleAttemptData = {
         puzzle_id: puzzle.id,
         puzzle_type: "sudoku",
@@ -665,6 +664,8 @@ export const SudokuGame = ({
     } catch (error) {
       console.error("[handleGetHint] Failed to get hint:", error);
       alert(`Failed to get hint: ${(error as Error).message}`);
+    } finally {
+      setIsHintLoading(false); // 4. Reset loading state
     }
   };
 

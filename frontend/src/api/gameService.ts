@@ -87,7 +87,7 @@ export const saveProgress = async (
 ): Promise<PuzzleAttemptResponse> => {
   try {
     const csrfToken = getCookie("csrftoken");
-    const url = `${API_BASE_URL}/gameplay/save/${dailyPuzzleDate}/${data.puzzle_type}puzzle/${puzzleId}/`;
+    const url = `${API_BASE_URL}/api/gameplay/save/${dailyPuzzleDate}/${data.puzzle_type}puzzle/${puzzleId}/`;
     console.log("[saveProgress] Saving to:", url);
 
     const response = await fetch(url, {
@@ -203,7 +203,7 @@ export const checkSubmissionExists = async (
   score?: number;
   submittedAt?: string;
   submissionId?: number;
-  difficulty?: string; 
+  difficulty?: string;
 }> => {
   try {
     const url = `${API_BASE_URL}/gameplay/check-submission/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/`;
@@ -242,7 +242,7 @@ export const getHint = async (
 }> => {
   try {
     const csrfToken = getCookie("csrftoken");
-    const url = `${API_BASE_URL}/gameplay/hint/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/`;
+    const url = `${API_BASE_URL}/api/gameplay/hint/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/`;
 
     console.log("[getHint] Requesting hint from:", url);
 
@@ -276,11 +276,14 @@ export const getHint = async (
 export const getSudokuHintLimits = async (): Promise<{
   HINT_LIMITS: Record<string, number>;
 }> => {
-  const response = await fetch(`${API_BASE_URL}/games/hint-limits/sudoku/`, {
-    method: "GET",
-    credentials: "include",
-    headers: { Accept: "application/json" },
-  });
+  const response = await fetch(
+    `${API_BASE_URL}/api/games/hint-limits/sudoku/`,
+    {
+      method: "GET",
+      credentials: "include",
+      headers: { Accept: "application/json" },
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Failed to fetch Sudoku hint limits");
