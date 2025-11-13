@@ -32,7 +32,7 @@ Welcome to the ERNI Puzzle Platform, a full-stack web application designed to fo
 * **Backend:** Django, Django REST Framework, Python
 * **Database:** PostgreSQL 
 * **Authentication:** Custom Microsoft Azure AD (MSAL) flow with Django sessions.
-* **Hosting:** Supabase (Database), Vercel (Frontend), Render (Database)
+* **Hosting:** Oracle Cloud Infra VM, Render (Database)
 
 ---
 
