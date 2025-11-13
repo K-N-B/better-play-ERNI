@@ -22,10 +22,10 @@ interface keyboardInputSudokuProps {
 }
 
 export const keyboardInputSudoku = ({
-  grid,
+  // grid,
   selectedCell,
   isGameOver,
-  isNoteMode,
+  // isNoteMode,
   alreadyCompleted,
   setSelectedCell,
   setIsNoteMode,

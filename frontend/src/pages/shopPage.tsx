@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { useAuth } from '../hooks/authContext'; // Adjust path if needed
 import { useApi } from '../hooks/useApi'; // Adjust path if needed
 import { getRewards, claimReward, getClaimedRewards } from '../api/shopService'; // Adjust path if needed
-import type { RewardItem, ClaimResponse, ClaimedReward } from '../types'; // Adjust path if needed
+import type { RewardItem, ClaimResponse } from '../types'; // Adjust path if needed
 import { LoadingSpinner } from '../components/ui/loadingSpinner'; // Adjust path if needed
 import { ShopHistoryModal } from '../components/features/shop/shopHistoryModal';
 import { Store, Star, History } from 'lucide-react'; // Import icons
@@ -76,7 +76,7 @@ export const ShopPage = () => {
         <div className="flex gap-2">
           <button
             onClick={() => setIsHistoryModalOpen(true)} // Open modal
-            className="flex gap-2 flex-shrink-0 p-4 text-sky-600 hover:text-primary font-semibold rounded-full hover:bg-gray-100 transition-colors"
+            className="flex gap-2 shrink-0 p-4 text-sky-600 hover:text-primary font-semibold rounded-full hover:bg-gray-100 transition-colors"
             title="View Claim History"
           >
             <History size={20} /> Claim History

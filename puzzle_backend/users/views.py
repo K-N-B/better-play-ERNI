@@ -17,6 +17,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response  # DRF response object
 from users.models import Department, User  
 from users.serializers import DepartmentSerializer, UserProfileSerializer
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 logger = logging.getLogger(__name__)
 
@@ -248,6 +249,7 @@ def auth_callback(request):
 
 
 @api_view(["GET"])
+@ensure_csrf_cookie
 @permission_classes([IsAuthenticated])  # Secure this endpoint: requires valid session cookie
 def check_auth(request):
     """
