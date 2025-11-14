@@ -36,7 +36,7 @@ export const getActivityHub = async (): Promise<ActivityHubResponse> => {
     // Real API call
     try {
         console.log('[getActivityHub] 🔄 Fetching activity hub...');
-        const response = await fetch(`${API_BASE_URL}/activity-hub/`, {
+        const response = await fetch(`${API_BASE_URL}/api/activity-hub/`, {
             method: 'GET',
             credentials: 'include',
             headers: {
@@ -80,7 +80,7 @@ export const sendHeartbeat = async (): Promise<void> => {
         }
         
         console.log('[sendHeartbeat] 💓 Sending heartbeat...');
-        const response = await fetch(`${API_BASE_URL}/heartbeat/`, {
+        const response = await fetch(`${API_BASE_URL}/api/heartbeat/`, {
             method: 'POST',
             credentials: 'include',
             headers: {

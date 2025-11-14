@@ -45,7 +45,7 @@ export const getLeaderboard = async (
             params.append('date', date);
         }
 
-        const url = `${API_BASE_URL}/leaderboard/?${params.toString()}`;
+        const url = `${API_BASE_URL}/api/leaderboard/?${params.toString()}`;
         console.log(`[getLeaderboard] Request URL: ${url}`);
 
         const response = await fetch(url, {

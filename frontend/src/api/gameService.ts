@@ -29,7 +29,7 @@ function getCookie(name: string): string | null {
 // ✅ Fetch daily puzzles
 export const getDailyPuzzles = async (): Promise<DailyPuzzleResponse> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/games/daily/`, {
+    const response = await fetch(`${API_BASE_URL}/api/games/daily/`, {
       method: "GET",
       credentials: "include",
       headers: { Accept: "application/json" },
@@ -53,7 +53,7 @@ export const getSavedAttempt = async (
   puzzleId: string
 ): Promise<PuzzleAttemptResponse | null> => {
   try {
-    const url = `${API_BASE_URL}/gameplay/progress/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/`;
+    const url = `${API_BASE_URL}/api/gameplay/progress/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/`;
     console.log("[getSavedAttempt] Fetching:", url);
 
     const response = await fetch(url, {
@@ -87,7 +87,7 @@ export const saveProgress = async (
 ): Promise<PuzzleAttemptResponse> => {
   try {
     const csrfToken = getCookie("csrftoken");
-    const url = `${API_BASE_URL}/gameplay/save/${dailyPuzzleDate}/${data.puzzle_type}puzzle/${puzzleId}/`;
+    const url = `${API_BASE_URL}/api/gameplay/save/${dailyPuzzleDate}/${data.puzzle_type}puzzle/${puzzleId}/`;
     console.log("[saveProgress] Saving to:", url);
 
     const response = await fetch(url, {
@@ -129,7 +129,7 @@ export const submitPuzzle = async (
 ): Promise<SubmissionResult> => {
   try {
     const csrfToken = getCookie("csrftoken");
-    const url = `${API_BASE_URL}/gameplay/submit/${dailyPuzzleDate}/${data.puzzle_type}puzzle/${puzzleId}/`;
+    const url = `${API_BASE_URL}/api/gameplay/submit/${dailyPuzzleDate}/${data.puzzle_type}puzzle/${puzzleId}/`;
 
     console.log("[submitPuzzle] Submitting to:", url);
     console.log("[submitPuzzle] Data:", { difficulty: data.difficulty });
@@ -174,7 +174,7 @@ export const submitPuzzle = async (
 export const getTodaySubmissions = async (): Promise<Submission[]> => {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/gameplay/submissions/today/`,
+      `${API_BASE_URL}/api/gameplay/submissions/today/`,
       {
         method: "GET",
         credentials: "include",
@@ -206,7 +206,7 @@ export const checkSubmissionExists = async (
   difficulty?: string; 
 }> => {
   try {
-    const url = `${API_BASE_URL}/gameplay/check-submission/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/`;
+    const url = `${API_BASE_URL}/api/gameplay/check-submission/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/`;
     console.log("[checkSubmissionExists] Checking:", url);
 
     const response = await fetch(url, {
@@ -242,7 +242,7 @@ export const getHint = async (
 }> => {
   try {
     const csrfToken = getCookie("csrftoken");
-    const url = `${API_BASE_URL}/gameplay/hint/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/`;
+    const url = `${API_BASE_URL}/api/gameplay/hint/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/`;
 
     console.log("[getHint] Requesting hint from:", url);
 
@@ -276,7 +276,7 @@ export const getHint = async (
 export const getSudokuHintLimits = async (): Promise<{
   HINT_LIMITS: Record<string, number>;
 }> => {
-  const response = await fetch(`${API_BASE_URL}/games/hint-limits/sudoku/`, {
+  const response = await fetch(`${API_BASE_URL}/api/games/hint-limits/sudoku/`, {
     method: "GET",
     credentials: "include",
     headers: { Accept: "application/json" },
@@ -305,7 +305,7 @@ export const checkUserSubmissionExists = async (
   difficulty?: string;
 }> => {
   try {
-    const url = `${API_BASE_URL}/gameplay/check-user-submission/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/?user_id=${userId}`;
+    const url = `${API_BASE_URL}/api/gameplay/check-user-submission/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/?user_id=${userId}`;
     console.log("[checkUserSubmissionExists] Checking:", url);
 
     const response = await fetch(url, {
