@@ -62,14 +62,42 @@ export type Difficulty = "easy" | "hard";
 // --- Helper Function ---
 const hasResumableProgress = (attempt: PuzzleAttemptData | null, gameType: string) => {
   if (!attempt) return false;
-  
+
+  // Base check: some time spent
   let hasProgress = attempt.time_spent_ms > 5000; // 5 seconds
-  
-  if (gameType === 'wordle') {
-    const wordleProgress = attempt.progress_data as WordleProgress;
-    hasProgress = hasProgress || (wordleProgress?.guesses?.length > 0 && !wordleProgress?.isGameOver);
+
+  switch (gameType) {
+    case 'wordle': {
+      const wordleProgress = attempt.progress_data as WordleProgress;
+      hasProgress =
+        hasProgress ||
+        (!!wordleProgress?.guesses?.length && !wordleProgress?.isGameOver);
+      break;
+    }
+
+    case 'sudoku': {
+      const sudokuProgress = attempt.progress_data as any; // define a SudokuProgress type if you have one
+      // Resume if at least one cell is filled
+      hasProgress =
+        hasProgress ||
+        (!!sudokuProgress?.filledCells?.length && !sudokuProgress?.isCompleted);
+      break;
+    }
+
+    case 'ernigram': {
+      const ernigramProgress = attempt.progress_data as any; // define a ErnigramProgress type if you have one
+      // Resume if at least one letter has been guessed and game not over
+      hasProgress =
+        hasProgress ||
+        (!!ernigramProgress?.guessedLetters?.length && !ernigramProgress?.isGameOver);
+      break;
+    }
+
+    default:
+      // For unknown games, fallback to time spent only
+      break;
   }
-  
+
   return hasProgress;
 };
 
