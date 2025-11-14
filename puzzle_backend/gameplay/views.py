@@ -16,6 +16,8 @@ from django.views import View
 from django.views.decorators.csrf import csrf_protect
 from games.models import DailyPuzzle, ErnigramPuzzle, SudokuPuzzle, WordlePuzzle
 from leaderboards.services import LeaderboardAggregator
+from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 
 from django.views.decorators.csrf import csrf_exempt
 
@@ -35,6 +37,7 @@ from .serializers import (
 # Import the streak utility function
 from .streak_utils import update_daily_activity_streak
 
+User = get_user_model()
 
 # ============================================================================
 # VIEW 1: SaveProgressView - Save/Update Game State
@@ -337,6 +340,74 @@ class CheckSubmissionView(View):
             traceback.print_exc()
             return JsonResponse({'error': str(e)}, status=500)
 
+
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(login_required, name='get')
+class CheckUserSubmissionView(View):
+    """
+    GET /api/gameplay/check-user-submission/{daily_puzzle_date}/{puzzle_model_name}/{puzzle_id}/?user_id=<int>
+    Check if a SPECIFIC user has submitted this puzzle (for challenge modal)
+    """
+
+    def get(self, request, daily_puzzle_date, puzzle_model_name, puzzle_id):
+        # Get the target user ID from query params
+        target_user_id = request.GET.get('user_id')
+        
+        if not target_user_id:
+            return JsonResponse({'error': 'user_id query parameter required'}, status=400)
+        
+        try:
+            target_user = get_object_or_404(User, pk=int(target_user_id))
+        except (ValueError, User.DoesNotExist):
+            return JsonResponse({'error': 'Invalid user_id'}, status=404)
+
+        try:
+            # Determine puzzle model
+            puzzle_model_name_lower = puzzle_model_name.lower()
+            if puzzle_model_name_lower == "wordlepuzzle":
+                PuzzleModel = WordlePuzzle
+            elif puzzle_model_name_lower == "sudokupuzzle":
+                PuzzleModel = SudokuPuzzle
+            elif puzzle_model_name_lower == "ernigrampuzzle":
+                PuzzleModel = ErnigramPuzzle
+            else:
+                return JsonResponse({"error": "Unknown puzzle type."}, status=400)
+
+            puzzle_instance = get_object_or_404(PuzzleModel, pk=puzzle_id)
+            puzzle_content_type = ContentType.objects.get_for_model(puzzle_instance)
+
+            # Check for submissions by the TARGET user, not the requester
+            submission = Submission.objects.filter(
+                user=target_user,
+                content_type=puzzle_content_type,
+                object_id=puzzle_instance.pk
+            ).first()
+
+            if submission:
+                print(
+                    f"[CheckUserSubmission] ✅ User {target_user.username} (ID: {target_user_id}) HAS submitted puzzle {puzzle_id}"
+                )
+                return JsonResponse(
+                    {
+                        'hasSubmitted': True,
+                        'userId': target_user.id,
+                        'username': target_user.username,
+                        'score': submission.points_awarded,
+                        'submittedAt': submission.created_at.isoformat(),
+                        'difficulty': submission.difficulty,
+                    }
+                )
+
+            print(
+                f"[CheckUserSubmission] ℹ️ User {target_user.username} (ID: {target_user_id}) has NOT submitted puzzle {puzzle_id}"
+            )
+            return JsonResponse({'hasSubmitted': False, 'userId': target_user.id})
+
+        except Exception as e:
+            print(f"[CheckUserSubmission] Error: {e}")
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({'error': str(e)}, status=500)
 
 # ============================================================================
 # VIEW 4: SubmitPuzzleView - Submit Completed Puzzle
@@ -1190,5 +1261,33 @@ class CompleteChallengeView(View):
             print(f"[CompleteChallenge] ❌ Unexpected error: {e}")
             import traceback
 
+            traceback.print_exc()
+            return JsonResponse({'error': str(e)}, status=500)
+
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(login_required, name='get')
+class ListAllUsersView(View):
+    """
+    GET /api/challenges/list-users/
+    Get all users except the current user (for challenge modal)
+    """
+
+    def get(self, request):
+        try:
+            # Get all users except the current user, ordered alphabetically
+            users = (
+                User.objects.exclude(id=request.user.id)
+                .values('id', 'username', 'email')
+                .order_by('username')
+            )
+
+            users_list = list(users)
+            print(f"[ListAllUsers] Returning {len(users_list)} users")
+
+            return JsonResponse(users_list, safe=False)
+
+        except Exception as e:
+            print(f"[ListAllUsers] Error: {e}")
+            import traceback
             traceback.print_exc()
             return JsonResponse({'error': str(e)}, status=500)

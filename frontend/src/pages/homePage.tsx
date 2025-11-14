@@ -20,7 +20,7 @@ export const HomePage = () => { // Use default export if that's your convention
         <div className="lg:col-span-1 flex flex-col gap-6 h-full">
           <WelcomeMessage />
           {/* Add 'flex-grow' to GamesSection's *wrapper* if you want it to take remaining space */}
-          <div className="grow"> {/* Wrapper to allow GamesSection to grow */}
+          <div className="flex-grow"> {/* Wrapper to allow GamesSection to grow */}
             <GamesSection /> {/* Ensure GamesSection uses h-full internally */}
           </div>
         </div>

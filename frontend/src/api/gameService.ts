@@ -8,7 +8,7 @@ import type {
   SubmissionResult, // ✅ Import complete type
 } from "../types/game";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // ✅ Utility: Get CSRF token
 function getCookie(name: string): string | null {
@@ -29,7 +29,7 @@ function getCookie(name: string): string | null {
 // ✅ Fetch daily puzzles
 export const getDailyPuzzles = async (): Promise<DailyPuzzleResponse> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/games/daily/`, {
+    const response = await fetch(`${API_BASE_URL}/games/daily/`, {
       method: "GET",
       credentials: "include",
       headers: { Accept: "application/json" },
@@ -289,4 +289,41 @@ export const getSudokuHintLimits = async (): Promise<{
   const data = await response.json();
   console.log("[getSudokuHintLimits] Response:", data);
   return data;
+};
+
+export const checkUserSubmissionExists = async (
+  userId: number,
+  puzzleType: string,
+  dailyPuzzleDate: string,
+  puzzleId: number
+): Promise<{
+  hasSubmitted: boolean;
+  userId: number;
+  username?: string;
+  score?: number;
+  submittedAt?: string;
+  difficulty?: string;
+}> => {
+  try {
+    const url = `${API_BASE_URL}/gameplay/check-user-submission/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/?user_id=${userId}`;
+    console.log("[checkUserSubmissionExists] Checking:", url);
+
+    const response = await fetch(url, {
+      method: "GET",
+      credentials: "include",
+      headers: { Accept: "application/json" },
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return { hasSubmitted: false, userId };
+      }
+      throw new Error(`Failed to check user submission: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("[checkUserSubmissionExists] Error:", error);
+    return { hasSubmitted: false, userId };
+  }
 };

@@ -233,7 +233,6 @@ export const SudokuGame = ({
               const challengeResult = await completeChallenge(challengeId, {
                 submission_id: result.submissionId,
               });
-              console.log(challengeResult);
               console.log("[SudokuGame] ✅ Challenge completed automatically!");
               await new Promise((resolve) => setTimeout(resolve, 2000));
               await refreshChallenges();
@@ -488,7 +487,6 @@ export const SudokuGame = ({
           const challengeResult = await completeChallenge(challengeId, {
             submission_id: submissionIdForResultModal,
           });
-          console.log(challengeResult)
           console.log("[SudokuGame] ✅ Challenge API call succeeded!");
           await new Promise((resolve) => setTimeout(resolve, 3000));
           await refreshChallenges();
@@ -747,6 +745,8 @@ export const SudokuGame = ({
               submissionId={gameResult.submissionId}
               // currentStreak={gameResult.currentStreak}
               gameType="sudoku"
+              puzzleId={puzzle.id}
+              dailyPuzzleDate={puzzle.date_to_be_used}
               onClose={() => setGameResult(null)}
             />
           )}

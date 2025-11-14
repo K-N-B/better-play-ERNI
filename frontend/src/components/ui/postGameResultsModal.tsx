@@ -1,4 +1,4 @@
-// src/components/ui/postGameResultsModal.tsx - COMPLETE VERSION
+// src/components/ui/postGameResultsModal.tsx - UPDATED WITH CHALLENGE PROPS
 import { useState } from 'react';
 import { X, Trophy, Star, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -8,25 +8,26 @@ interface PostGameResultsModalProps {
   score: number;
   onClose: () => void;
   submissionId: number | null;
-  // currentStreak: number;
-  gameType: 'wordle' | 'sudoku' | 'ernigram'; // ✅ NEW: Track which game
+  gameType: 'wordle' | 'sudoku' | 'ernigram';
+  puzzleId?: number; // Add this
+  dailyPuzzleDate?: string; // Add this
 }
 
 export const PostGameResultsModal = ({ 
   score, 
   onClose, 
   submissionId,
-  // currentStreak,
-  gameType 
+  gameType,
+  puzzleId,
+  dailyPuzzleDate
 }: PostGameResultsModalProps) => {
   const [isChallengeModalOpen, setIsChallengeModalOpen] = useState(false);
   const navigate = useNavigate();
   const effectiveSubmissionId = submissionId;
 
-  // ✅ NEW: Handler to return home
   const handleReturnHome = () => {
-    onClose(); // Close modal first
-    navigate('/'); // Then navigate
+    onClose();
+    navigate('/');
   };
 
   return (
@@ -44,7 +45,6 @@ export const PostGameResultsModal = ({
           <Trophy className="mx-auto text-yellow-500 mb-3" size={48} />
           <h2 className="text-xl font-bold mb-3 text-gray-800">Puzzle Complete!</h2>
           
-          {/* ✅ ENHANCED: Show game type */}
           <p className="text-sm text-gray-600 mb-1">
             {gameType.charAt(0).toUpperCase() + gameType.slice(1)} • Completed
           </p>
@@ -54,19 +54,18 @@ export const PostGameResultsModal = ({
             {score}
             <Star size={30} className="text-yellow-500 fill-current" />
           </div>
-           {/* <p className="text-lg text-gray-700 mb-1">You are on a {currentStreak} day streak. Keep it up!</p> */}
 
-          {/* ✅ Challenge Button */}
+          {/* Challenge Button */}
           <button
             onClick={() => setIsChallengeModalOpen(true)}
-            disabled={!effectiveSubmissionId}
+            disabled={!effectiveSubmissionId || !puzzleId || !dailyPuzzleDate}
             className="w-full px-6 py-3 mb-2 text-base text-white bg-primary rounded-lg shadow hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             title={!effectiveSubmissionId ? "Submission failed, cannot challenge" : "Challenge a colleague"}
           >
             Challenge a Colleague!
           </button>
 
-          {/* ✅ NEW: Return Home Button */}
+          {/* Return Home Button */}
           <button
             onClick={handleReturnHome}
             className="w-full px-6 py-3 text-base text-primary bg-white border-2 border-primary rounded-lg shadow hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
@@ -77,11 +76,14 @@ export const PostGameResultsModal = ({
         </div>
       </div>
 
-      {effectiveSubmissionId !== null && (
+      {effectiveSubmissionId !== null && puzzleId && dailyPuzzleDate && (
         <ChallengeModal
           isOpen={isChallengeModalOpen}
           onClose={() => setIsChallengeModalOpen(false)}
           submissionId={effectiveSubmissionId}
+          puzzleType={gameType}
+          puzzleId={puzzleId}
+          dailyPuzzleDate={dailyPuzzleDate}
         />
       )}
     </>
