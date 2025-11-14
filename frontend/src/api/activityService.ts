@@ -1,9 +1,9 @@
 // frontend/src/api/activityService.ts
 import { MOCK_MODE, mockApiCall } from './api';
-// import { MOCK_ACTIVITY_HUB } from '../data/_mockData';
+import { MOCK_ACTIVITY_HUB } from '../data/_mockData';
 import type { ActivityHubResponse } from '../types/activity';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 /**
  * Helper function to get CSRF token from cookies
@@ -28,15 +28,15 @@ function getCookie(name: string): string | null {
  * GET /api/activity-hub/
  */
 export const getActivityHub = async (): Promise<ActivityHubResponse> => {
-    // if (MOCK_MODE) {
-    //     console.log('Mock: Fetching activity hub data...');
-    //     return mockApiCall({ ...MOCK_ACTIVITY_HUB });
-    // }
+    if (MOCK_MODE) {
+        console.log('Mock: Fetching activity hub data...');
+        return mockApiCall({ ...MOCK_ACTIVITY_HUB });
+    }
 
     // Real API call
     try {
         console.log('[getActivityHub] 🔄 Fetching activity hub...');
-        const response = await fetch(`${API_BASE_URL}/activity-hub/`, {
+        const response = await fetch(`${API_BASE_URL}/api/activity-hub/`, {
             method: 'GET',
             credentials: 'include',
             headers: {
@@ -80,7 +80,7 @@ export const sendHeartbeat = async (): Promise<void> => {
         }
         
         console.log('[sendHeartbeat] 💓 Sending heartbeat...');
-        const response = await fetch(`${API_BASE_URL}/heartbeat/`, {
+        const response = await fetch(`${API_BASE_URL}/api/heartbeat/`, {
             method: 'POST',
             credentials: 'include',
             headers: {

@@ -632,6 +632,8 @@ export const ErnigramGame = ({
               // streakUpdatedToday={gameResult.streakUpdatedToday}
               // message={gameResult.message}
               gameType="ernigram"
+              puzzleId={puzzle.id}
+              dailyPuzzleDate={puzzle.date_to_be_used}
               onClose={() => setGameResult(null)}
             />
           )}

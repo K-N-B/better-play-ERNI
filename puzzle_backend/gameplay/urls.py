@@ -11,6 +11,8 @@ from .views import (
     SaveProgressView,
     SubmitPuzzleView,
     get_user_streak_data,
+    CheckUserSubmissionView,
+    ListAllUsersView,
 )
 
 
@@ -63,4 +65,12 @@ urlpatterns = [
         name="today_submissions",
     ),
     path('streak/', get_user_streak_data, name='user_streak_data'),
+
+        path(
+        "check-user-submission/<str:daily_puzzle_date>/<str:puzzle_model_name>/<int:puzzle_id>/",
+        CheckUserSubmissionView.as_view(),
+        name="check_user_submission",
+    ),
+
+    path('list-users/', ListAllUsersView.as_view(), name='list_all_users'),
 ]

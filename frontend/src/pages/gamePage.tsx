@@ -7,13 +7,15 @@ import { AlreadyPlayedScreen } from '../components/gameComponents/shared/already
 import { ResumeGameScreen } from '../components/gameComponents/shared/resumeGameScreen';
 import { LoadingSpinner } from '../components/ui/loadingSpinner';
 import GameIntro from '../components/features/games/gameIntro';
-
+import { CircleQuestionMark, Star } from 'lucide-react';
+import { InstructionsModal } from '../components/features/games/instructionsModal';
 // Import your game components
 import { WordleGame } from '../components/gameComponents/wordle/wordleGame';
 import { SudokuGame } from '../components/gameComponents/sudoku/sudokuGame';
 import { ErnigramGame } from '../components/gameComponents/ernigram/ernigramGame';
 
 import type { PuzzleAttemptData, WordleProgress } from '../types';
+import { PointsComputationModal } from '../components/features/games/pointsComputationModal';
 
 // Define game intro content
 const introContent = {
@@ -22,8 +24,10 @@ const introContent = {
     description: 'Guess the hidden <strong>5-letter word</strong>.',
     howToPlay: `You have a set number of tries to guess the word.\nType a 5-letter word and press Enter.\nTiles change color to show how close your guess was:\n<strong class="text-emerald-500">Green</strong>: Correct letter, correct spot.\n<strong class="text-yellow-400">Yellow</strong>: Correct letter, wrong spot.\n<strong class="text-gray-600">Gray</strong>: Letter not in the word.`,
     pointsInfo: 'Earn points based on how many tries you take. Fewer tries = more points!',
+    pointsCalculation: 'Points are all about how well (and how fast!) you play. You’ll get [base points] for every correct answer or completed round. On top of that, [bonus points] are added for things like quick responses, perfect streaks, and tougher challenges. Some games even throw in [extra multipliers] or [special bonuses] to keep things exciting. Play smart, play fast — and watch your score climb up the leaderboard!',
     hintInfo: 'Hard mode gives you fewer tries!',
     color: 'bg-emerald-500',
+    textColor: 'text-emerald-900',
     darkColor: 'shadow-emerald-900',
     bgColor: 'bg-emerald-100',
   },
@@ -32,8 +36,10 @@ const introContent = {
     description: 'Fill the <strong>9x9 grid</strong> so each row, column, and 3x3 box contains digits 1-9 without repeating.',
     howToPlay: `Click a cell to select it.\nUse the number pad to enter digits.\nToggle "Note Mode" (<span class="inline-block align-middle mx-1">📝</span>) to pencil in possibilities.\nCells will turn <strong class="text-red-500">red</strong> if they conflict with another number.`,
     pointsInfo: 'Earn points based on how quickly you solve the puzzle.',
+    pointsCalculation: 'Points are all about how well (and how fast!) you play. You’ll get [base points] for every correct answer or completed round. On top of that, [bonus points] are added for things like quick responses, perfect streaks, and tougher challenges. Some games even throw in [extra multipliers] or [special bonuses] to keep things exciting. Play smart, play fast — and watch your score climb up the leaderboard!',
     hintInfo: 'Hard mode gives you fewer starting numbers.',
     color: 'bg-pink-400',
+    textColor: 'text-pink-800',
     darkColor: 'shadow-pink-800',
     bgColor: 'bg-pink-100',
   },
@@ -42,8 +48,10 @@ const introContent = {
     description: 'Guess the hidden phrase related to <strong>ERNI culture, values, or tools</strong>.',
     howToPlay: `Guess letters one by one using the keyboard.\nEach incorrect guess reduces your remaining attempts.\nTry to solve the phrase before you run out of guesses!`,
     pointsInfo: 'Earn points based on remaining attempts and time.',
+    pointsCalculation: 'Points are all about how well (and how fast!) you play. You’ll get [base points] for every correct answer or completed round. On top of that, [bonus points] are added for things like quick responses, perfect streaks, and tougher challenges. Some games even throw in [extra multipliers] or [special bonuses] to keep things exciting. Play smart, play fast — and watch your score climb up the leaderboard!',
     hintInfo: 'Hard mode gives you significantly fewer attempts!',
     color: 'bg-sky-400',
+    textColor: 'text-sky-800',
     darkColor: 'shadow-sky-800',
     bgColor: 'bg-sky-100',
   },
@@ -51,19 +59,36 @@ const introContent = {
 
 export type Difficulty = "easy" | "hard";
 
-// --- Helper Function ---
 const hasResumableProgress = (attempt: PuzzleAttemptData | null, gameType: string) => {
   if (!attempt) return false;
-  
-  let hasProgress = attempt.time_spent_ms > 5000; // 5 seconds
-  
-  if (gameType === 'wordle') {
-    const wordleProgress = attempt.progress_data as WordleProgress;
-    hasProgress = hasProgress || (wordleProgress?.guesses?.length > 0 && !wordleProgress?.isGameOver);
+
+  switch (gameType) {
+    case 'wordle': {
+      const wordleProgress = attempt.progress_data as WordleProgress;
+      return (
+        (wordleProgress?.guesses?.length ?? 0) > 0 && !wordleProgress?.isGameOver
+      );
+    }
+
+    case 'sudoku': {
+      const sudokuProgress = attempt.progress_data as any;
+      // Check if any cell in any row is non-empty
+      const hasAnyCellFilled = sudokuProgress?.grid?.some(
+        (row: any[]) => row.some(cell => cell !== null && cell !== 0)
+      );
+      return hasAnyCellFilled ?? false;
+    }
+
+    case 'ernigram': {
+      const ernigramProgress = attempt.progress_data as any; // use ErnigramProgress type if defined
+      return (!!ernigramProgress?.guessedLetters?.length && !ernigramProgress?.isGameOver);
+    }
+
+    default:
+      return false; // unknown games: never resume
   }
-  
-  return hasProgress;
 };
+
 
 export const GamePage = () => {
   const { gameType } = useParams<{ gameType: string }>();
@@ -92,6 +117,9 @@ export const GamePage = () => {
   const [lockedDifficulty, setLockedDifficulty] = useState<Difficulty | null>(
     difficultyFromUrl || null
   );
+
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [showPointsComputation, setShowPointsComputation] = useState(false);
   const [hasStarted, setHasStarted] = useState(false); 
   const { data: puzzles, loading: loadingPuzzles, error: error } = useApi(getDailyPuzzles);
   
@@ -307,19 +335,53 @@ export const GamePage = () => {
       );
     } else {
       content = (
-        <GameIntro
-          title={introData.title}
-          description={introData.description}
-          howToPlay={introData.howToPlay}
-          pointsInfo={introData.pointsInfo}
-          hintInfo={introData.hintInfo}
-          onStart={() => setHasStarted(true)}
-          onDifficultyChange={setSelectedDifficulty}
-          initialDifficulty={activeDifficulty}
-          disableDifficultyChange={!!challengeId}
-          color={introData.color}
-          darkColor={introData.darkColor}
-        />
+        <>
+          <GameIntro
+            title={introData.title}
+            description={introData.description}
+            howToPlay={introData.howToPlay}
+            pointsInfo={introData.pointsInfo}
+            hintInfo={introData.hintInfo}
+            onStart={() => setHasStarted(true)}
+            onDifficultyChange={setSelectedDifficulty}
+            initialDifficulty={activeDifficulty}
+            disableDifficultyChange={!!challengeId}
+            color={introData.color}
+            darkColor={introData.darkColor}
+          >
+            {/* This button is passed as a child and rendered by GameIntro on mobile */}
+            <button
+              onClick={() => setShowInstructions(true)}
+              className={`font-semibold text-primary text-xl leading-none px-4 py-4 rounded-full ${introData.color} ${introData.darkColor} text-white shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all`}
+            >
+              <CircleQuestionMark size={30} strokeWidth={2.5}/>
+            </button>
+            <button
+              onClick={() => setShowPointsComputation(true)}
+              className={`font-semibold text-primary text-xl leading-none px-4 ms-4 py-4 rounded-full ${introData.color} ${introData.darkColor} text-white shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all`}
+            >
+              <Star size={30} strokeWidth={2.5}/>
+            </button>
+          </GameIntro>
+          
+          {/* Conditionally render the modal */}
+          {showInstructions && (
+            <InstructionsModal
+              title={introData.title}
+              description={introData.description}
+              howToPlay={introData.howToPlay}
+              onClose={() => setShowInstructions(false)}
+            />
+          )}
+
+          {showPointsComputation && (
+            <PointsComputationModal
+              title={introData.title}
+              computation={introData.pointsCalculation}
+              onClose={() => setShowPointsComputation(false)}
+            />
+          )}
+        </>
       );
     }
   }
