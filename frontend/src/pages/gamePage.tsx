@@ -59,47 +59,36 @@ const introContent = {
 
 export type Difficulty = "easy" | "hard";
 
-// --- Helper Function ---
 const hasResumableProgress = (attempt: PuzzleAttemptData | null, gameType: string) => {
   if (!attempt) return false;
-
-  // Base check: some time spent
-  let hasProgress = attempt.time_spent_ms > 5000; // 5 seconds
 
   switch (gameType) {
     case 'wordle': {
       const wordleProgress = attempt.progress_data as WordleProgress;
-      hasProgress =
-        hasProgress ||
-        (!!wordleProgress?.guesses?.length && !wordleProgress?.isGameOver);
-      break;
+      return (
+        (wordleProgress?.guesses?.length ?? 0) > 0 && !wordleProgress?.isGameOver
+      );
     }
 
     case 'sudoku': {
-      const sudokuProgress = attempt.progress_data as any; // define a SudokuProgress type if you have one
-      // Resume if at least one cell is filled
-      hasProgress =
-        hasProgress ||
-        (!!sudokuProgress?.filledCells?.length && !sudokuProgress?.isCompleted);
-      break;
+      const sudokuProgress = attempt.progress_data as any;
+      // Check if any cell in any row is non-empty
+      const hasAnyCellFilled = sudokuProgress?.grid?.some(
+        (row: any[]) => row.some(cell => cell !== null && cell !== 0)
+      );
+      return hasAnyCellFilled ?? false;
     }
 
     case 'ernigram': {
-      const ernigramProgress = attempt.progress_data as any; // define a ErnigramProgress type if you have one
-      // Resume if at least one letter has been guessed and game not over
-      hasProgress =
-        hasProgress ||
-        (!!ernigramProgress?.guessedLetters?.length && !ernigramProgress?.isGameOver);
-      break;
+      const ernigramProgress = attempt.progress_data as any; // use ErnigramProgress type if defined
+      return (!!ernigramProgress?.guessedLetters?.length && !ernigramProgress?.isGameOver);
     }
 
     default:
-      // For unknown games, fallback to time spent only
-      break;
+      return false; // unknown games: never resume
   }
-
-  return hasProgress;
 };
+
 
 export const GamePage = () => {
   const { gameType } = useParams<{ gameType: string }>();
