@@ -1,9 +1,4 @@
 // frontend/src/api/leaderboardService.ts
-import { MOCK_MODE, mockApiCall } from "./api";
-import {
-  MOCK_LEADERBOARD_INDIVIDUAL_WEEKLY,
-  MOCK_LEADERBOARD_DEPARTMENT_WEEKLY,
-} from "../data/_mockData";
 import type {
   LeaderboardData,
   LeaderboardPeriod,
@@ -21,22 +16,6 @@ export const getLeaderboard = async (
   type: LeaderboardType,
   date?: string
 ): Promise<LeaderboardData> => {
-  if (MOCK_MODE) {
-    console.log(
-      `Mock: Fetching leaderboard - Period: ${period}, Type: ${type}, Date: ${date}`
-    );
-
-    // Return mock data based on type
-    if (type === "individual") {
-      return mockApiCall(MOCK_LEADERBOARD_INDIVIDUAL_WEEKLY);
-    } else if (type === "department") {
-      return mockApiCall(MOCK_LEADERBOARD_DEPARTMENT_WEEKLY);
-    } else {
-      console.warn(`Mock: Unknown leaderboard type requested: ${type}`);
-      return mockApiCall([]);
-    }
-  }
-
   // Real API call
   try {
     // Build query parameters
