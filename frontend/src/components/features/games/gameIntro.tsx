@@ -14,7 +14,6 @@ export interface PuzzleIntroProps {
   disableDifficultyChange?: boolean; // ✅ NEW: Disable difficulty selection for challenges
   color?: string; // Tailwind color for the toggle knob, e.g. "bg-sky-500"
   darkColor?: string;
-  children?: React.ReactNode; // +++ ADD THIS LINE +++
 }
 
 export default function GameIntro({
@@ -29,7 +28,6 @@ export default function GameIntro({
   disableDifficultyChange = false, // ✅ NEW: Default to false
   color = "bg-primary-500", // default color
   darkColor = "bg-primary-900",
-  children,
 }: PuzzleIntroProps) {
   
   // ✅ Handle difficulty change with disabled check
@@ -44,7 +42,7 @@ export default function GameIntro({
   return (
     <div id="gameIntro" className="h-full text-center grid grid-cols-1 lg:grid-cols-2">
       {/* LEFT SIDE */}
-      <div className="hidden lg:block place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
+      <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
         <div
           className="font-medium"
           dangerouslySetInnerHTML={{ __html: description }}
@@ -104,10 +102,6 @@ export default function GameIntro({
             >
               Start
             </button>
-          </div>
-
-          <div className="mt-6 lg:hidden">
-            {children}
           </div>
         </div>
       </div>

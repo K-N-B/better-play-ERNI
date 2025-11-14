@@ -46,12 +46,12 @@ export const LeaderboardCard: React.FC<LeaderboardCardProps> = ({
 
       {/* Content */}
       {loading && (
-        <div className="grow flex items-center justify-center">
+        <div className="flex-grow flex items-center justify-center">
           <LoadingSpinner />
         </div>
       )}
       {error && (
-        <p className="grow flex items-center justify-center text-red-600">
+        <p className="flex-grow flex items-center justify-center text-red-600">
           Failed to load data.
         </p>
       )}
@@ -77,7 +77,7 @@ export const LeaderboardCard: React.FC<LeaderboardCardProps> = ({
       )}
 
       {!loading && !error && leaderboardArray.length === 0 && (
-        <p className="grow flex items-center justify-center text-gray-500">
+        <p className="flex-grow flex items-center justify-center text-gray-500">
           No data available.
         </p>
       )}

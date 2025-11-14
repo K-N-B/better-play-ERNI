@@ -62,7 +62,7 @@ export const LeaderboardStack: React.FC<TopThreeProps> = ({ topThree, type }) =>
             className={clsx("flex items-center gap-3 p-3 rounded-lg", styles.bg)}
           >
             {/* Crown + Rank */}
-            <div className="flex flex-col items-center w-8 shrink-0">
+            <div className="flex flex-col items-center w-8 flex-shrink-0">
               <Crown size={20} className={clsx(styles.iconColor)} />
               <span className={clsx("font-bold text-lg", styles.textColor)}>
                 {rank}
@@ -71,7 +71,7 @@ export const LeaderboardStack: React.FC<TopThreeProps> = ({ topThree, type }) =>
             
             {/* Profile Picture/Avatar - Only for individual leaderboards */}
             {type === 'individual' && (
-              <div className="w-10 h-10 rounded-full overflow-hidden shrink-0">
+              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                 {profileImageUrl ? (
                   <img
                     src={profileImageUrl}
@@ -89,7 +89,7 @@ export const LeaderboardStack: React.FC<TopThreeProps> = ({ topThree, type }) =>
             {/* Name and Score */}
             <div className="flex-grow flex justify-between items-center min-w-0">
                <span className="text-primary-800 font-medium text-base sm:text-lg truncate">{name}</span>
-               <div className="text-primary-700 text-sm sm:text-base xl:text-lg italic shrink-0 ml-2">
+               <div className="text-primary-700 text-sm sm:text-base xl:text-lg italic flex-shrink-0 ml-2">
                  <span className="font-semibold">{entry.score}</span> pts
                </div>
             </div>

@@ -46,13 +46,13 @@ export const LeaderboardListItem: React.FC<LeaderboardListItemProps> = ({ entry,
       {/* Left side: Rank + Profile Picture (if individual) + Name */}
       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         {/* Rank */}
-        <span className={clsx("font-bold text-lg sm:text-xl w-6 text-left shrink-0", rankColor)}>
+        <span className={clsx("font-bold text-lg sm:text-xl w-6 text-left flex-shrink-0", rankColor)}>
           {rank}
         </span>
         
         {/* Profile Picture - Only for individual leaderboards */}
         {type === 'individual' && (
-          <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
+          <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
             {profileImageUrl ? (
               <img
                 src={profileImageUrl}
@@ -74,7 +74,7 @@ export const LeaderboardListItem: React.FC<LeaderboardListItemProps> = ({ entry,
       </div>
 
       {/* Right side: Score */}
-      <div className="text-primary-700 text-sm sm:text-base xl:text-lg italic shrink-0">
+      <div className="text-primary-700 text-sm sm:text-base xl:text-lg italic flex-shrink-0">
         <span className="font-semibold">{score}</span> pts
       </div>
     </li>

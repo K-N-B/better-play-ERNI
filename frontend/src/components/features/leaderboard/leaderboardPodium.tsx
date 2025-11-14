@@ -24,14 +24,14 @@ const PodiumItem: React.FC<{
   console.log(`[PodiumItem] Rank ${rank}, Type: ${type}, Entry:`, entry);
   
   let name = 'Unknown';
-  // let id = rank;
+  let id = rank;
   let profileImageUrl: string | null = null;
   
   // Extract user/department data and profile picture
   if (type === 'department') {
     if ('department' in entry && entry.department) {
       name = entry.department.name || 'Unknown Dept';
-      // id = entry.department.id || rank;
+      id = entry.department.id || rank;
       console.log(`[PodiumItem] Extracted department name: ${name}`);
     } else {
       console.error(`[PodiumItem] Department type but no department data:`, entry);
@@ -39,7 +39,7 @@ const PodiumItem: React.FC<{
   } else if (type === 'individual') {
     if ('user' in entry && entry.user) {
       name = entry.user.username || 'Unknown User';
-      // id = entry.user.id || rank;
+      id = entry.user.id || rank;
       profileImageUrl = entry.user.profile_picture_url || null;
       console.log(`[PodiumItem] Extracted username: ${name}, Profile URL: ${profileImageUrl}`);
     } else {

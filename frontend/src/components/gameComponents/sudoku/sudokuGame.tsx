@@ -8,7 +8,7 @@ import {
   saveProgress,
   checkSubmissionExists,
 } from "../../../api/gameService";
-// import { completeChallenge } from "../../../api/challengeService";
+import { completeChallenge } from "../../../api/challengeService";
 import type {
   SudokuPuzzle,
   PuzzleAttemptData,
@@ -179,7 +179,6 @@ export const SudokuGame = ({
     fetchLimits();
   }, [difficulty]);
 
-  const [isHintLoading, setIsHintLoading] = useState(false);
   // const [showResumeModal, setShowResumeModal] = useState(false);
   const [alreadyCompleted, setAlreadyCompleted] = useState<{
     hasSubmitted: boolean;
@@ -210,7 +209,7 @@ export const SudokuGame = ({
 
         if (result.hasSubmitted) {
           setAlreadyCompleted(result);
-          // setIsGameOver(true);
+          setIsGameOver(true);
 
           // ✅ NEW: Auto-complete challenge if already submitted
           console.log(
@@ -231,9 +230,9 @@ export const SudokuGame = ({
               console.log(
                 "[SudokuGame] ========== CHALLENGE COMPLETION START =========="
               );
-              // const challengeResult = await completeChallenge(challengeId, {
-              //   submission_id: result.submissionId,
-              // });
+              const challengeResult = await completeChallenge(challengeId, {
+                submission_id: result.submissionId,
+              });
               console.log("[SudokuGame] ✅ Challenge completed automatically!");
               await new Promise((resolve) => setTimeout(resolve, 2000));
               await refreshChallenges();
@@ -298,7 +297,7 @@ export const SudokuGame = ({
 
         // Check if grid is already solved
         loadedIsGameOver = checkSolution(savedGrid, puzzle.solution_string);
-        // setIsGameOver(loadedIsGameOver);
+        setIsGameOver(loadedIsGameOver);
 
         // Show resume modal if user has made progress
         const filledCells = countFilledCells(savedGrid);
@@ -392,7 +391,7 @@ export const SudokuGame = ({
           console.error("[SudokuGame] ❌ Immediate save failed:", err)
         );
     },
-    [puzzle, time, difficulty, isGameOver, alreadyCompleted, hintsUsed]
+    [puzzle, time, difficulty, isGameOver, alreadyCompleted]
   );
 
   // Event Handlers
@@ -485,9 +484,9 @@ export const SudokuGame = ({
           console.log(
             "[SudokuGame] ========== CHALLENGE COMPLETION START =========="
           );
-          // const challengeResult = await completeChallenge(challengeId, {
-          //   submission_id: submissionIdForResultModal,
-          // });
+          const challengeResult = await completeChallenge(challengeId, {
+            submission_id: submissionIdForResultModal,
+          });
           console.log("[SudokuGame] ✅ Challenge API call succeeded!");
           await new Promise((resolve) => setTimeout(resolve, 3000));
           await refreshChallenges();
@@ -560,7 +559,16 @@ export const SudokuGame = ({
       setGrid(checkedGrid);
       // You should use the proper save function defined elsewhere in your component
       // If your helper is `saveImmediately`, then use it here.
-      saveImmediately(checkedGrid);
+      // saveImmediately(checkedGrid);
+
+      // Check for win condition and submit (This should also be in saveImmediately or a separate effect)
+      if (
+        countFilledCells(checkedGrid) === 81 &&
+        checkSolution(checkedGrid, puzzle.solution_string)
+      ) {
+        // If the grid is full and correct, trigger submission
+        handleSubmit();
+      }
     },
     [
       selectedCell,
@@ -595,6 +603,10 @@ export const SudokuGame = ({
     handleInputCore(null); // Erase is null input
   };
 
+  // You can now REMOVE the original body of handleNumberClick and handleEraseClick.
+
+  // ... (your existing handleCellClick and handleSubmit remain the same)
+
   const handleCellClick = (row: number, col: number) => {
     if (isGameOver || grid[row][col].isGiven || alreadyCompleted?.hasSubmitted)
       return;
@@ -602,9 +614,7 @@ export const SudokuGame = ({
   };
 
   const handleGetHint = async () => {
-    if (isHintLoading) return;
     try {
-      setIsHintLoading(true);
       const dataPayload: PuzzleAttemptData = {
         puzzle_id: puzzle.id,
         puzzle_type: "sudoku",
@@ -653,8 +663,6 @@ export const SudokuGame = ({
     } catch (error) {
       console.error("[handleGetHint] Failed to get hint:", error);
       alert(`Failed to get hint: ${(error as Error).message}`);
-    } finally {
-      setIsHintLoading(false); // 4. Reset loading state
     }
   };
 

@@ -33,7 +33,7 @@ export const ClaimedRewardItem: React.FC<{ claim: ClaimedReward }> = ({ claim })
     return (
         <div className="bg-white p-4 rounded-2xl shadow-md border border-gray-100 flex items-start space-x-4">
             {/* Icon */}
-            <div className="shrink-0 pt-1">
+            <div className="flex-shrink-0 pt-1">
                 {claim.status === 'FULFILLED' || claim.status === 'CLAIMED' ? (
                     <CheckCircle className="text-green-500" />
                 ) : (
@@ -64,7 +64,7 @@ export const ClaimedRewardItem: React.FC<{ claim: ClaimedReward }> = ({ claim })
                 <img
                     src={imageUrl}
                     alt={claim.reward.name}
-                    className="w-16 h-16 rounded-md object-cover shrink-0 bg-gray-100"
+                    className="w-16 h-16 rounded-md object-cover flex-shrink-0 bg-gray-100"
                     onError={(e) => { e.currentTarget.style.display = 'none'; }} // Hide if image fails
                 />
             )}

@@ -1,5 +1,5 @@
 // src/components/features/challenge/challengeModal.tsx - WITH AUTO-DISPLAYED USERS
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { listAllUsers, sendChallenge } from '../../../api/challengeService';
 import { checkUserSubmissionExists } from '../../../api/gameService';
 import type { UserProfile, CreateChallengeData } from '../../../types';
@@ -20,26 +20,21 @@ interface ColleagueWithStatus extends Pick<UserProfile, 'id' | 'username' | 'ema
   isChecking: boolean;
 }
 
-interface ColleagueWithStatus extends Pick<UserProfile, 'id' | 'username' | 'email'> {
-  hasCompleted: boolean;
-  isChecking: boolean;
+function debounce<F extends (...args: any[]) => any>(func: F, wait: number): (...args: Parameters<F>) => void {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  return function(this: ThisParameterType<F>, ...args: Parameters<F>) {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+    timeoutId = setTimeout(() => {
+      func.apply(this, args);
+    }, wait);
+  };
 }
 
-// function debounce<F extends (...args: any[]) => any>(func: F, wait: number): (...args: Parameters<F>) => void {
-//   let timeoutId: ReturnType<typeof setTimeout> | null = null;
-//   return function(this: ThisParameterType<F>, ...args: Parameters<F>) {
-//     if (timeoutId) {
-//       clearTimeout(timeoutId);
-//     }
-//     timeoutId = setTimeout(() => {
-//       func.apply(this, args);
-//     }, wait);
-//   };
-// }
-
-export const ChallengeModal: React.FC<ChallengeModalProps> = ({
-  isOpen,
-  onClose,
+export const ChallengeModal: React.FC<ChallengeModalProps> = ({ 
+  isOpen, 
+  onClose, 
   submissionId,
   puzzleType,
   puzzleId,
@@ -67,22 +62,22 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
         // Use a wildcard search to get all users (adjust based on your backend)
         // You might want to create a dedicated endpoint for this
         const users = await listAllUsers(); // Gets users with 'a' in name/email
-
+        
         console.log('[ChallengeModal] Found users:', users.length);
-
+        
         // Initialize with loading status
         const usersWithStatus: ColleagueWithStatus[] = users.map(user => ({
           ...user,
           hasCompleted: false,
           isChecking: true,
         }));
-
+        
         setAllUsers(usersWithStatus);
         setFilteredUsers(usersWithStatus);
 
         // Check completion status for each user
         console.log('[ChallengeModal] Checking completion status...');
-
+        
         const statusChecks = users.map(async (user, index) => {
           try {
             const result = await checkUserSubmissionExists(
@@ -91,7 +86,7 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
               dailyPuzzleDate,
               puzzleId
             );
-
+            
             return {
               index,
               hasCompleted: result.hasSubmitted,
@@ -106,7 +101,7 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
         });
 
         const results = await Promise.all(statusChecks);
-
+        
         // Update users with completion status
         setAllUsers(prev => {
           const updated = [...prev];
@@ -157,11 +152,11 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
     }
 
     const lowerSearch = searchTerm.toLowerCase();
-    const filtered = allUsers.filter(user =>
-      user.username.toLowerCase().includes(lowerSearch) ||
+    const filtered = allUsers.filter(user => 
+      user.username.toLowerCase().includes(lowerSearch) || 
       user.email.toLowerCase().includes(lowerSearch)
     );
-
+    
     setFilteredUsers(filtered);
   }, [searchTerm, allUsers]);
 
@@ -171,7 +166,7 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
     setIsSending(true);
     setError('');
     setSuccessMessage('');
-
+    
     try {
       const challengeData: CreateChallengeData = {
         recipient_id: selectedUser.id,
@@ -181,20 +176,20 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
       console.log('[ChallengeModal] Sending challenge:', challengeData);
 
       const result = await sendChallenge(challengeData);
-
+      
       console.log('[ChallengeModal] Challenge sent successfully:', result);
 
       setSuccessMessage(`Challenge sent to ${selectedUser.username}!`);
       setSelectedUser(null);
       setSearchTerm('');
-
+      
       setTimeout(onClose, 2500);
     } catch (err) {
       console.error('[ChallengeModal] Error sending challenge:', err);
-
+      
       if (err instanceof Error) {
         const errorMessage = err.message;
-
+        
         if (errorMessage.includes('Validation failed')) {
           setError('Unable to send challenge. Please check your selection and try again.');
         } else {
@@ -225,7 +220,7 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-white p-6 rounded-3xl shadow-xl w-full max-w-md relative mx-4" onClick={e => e.stopPropagation()}>
         <button
           onClick={onClose}
@@ -234,7 +229,7 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
         >
           <X size={24} />
         </button>
-
+        
         <h2 className="text-xl font-semibold mb-4 text-gray-800">Challenge a Colleague</h2>
 
         {/* Search Input */}
@@ -256,7 +251,7 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
         </div>
 
         {/* Users List */}
-        <div className="mb-4 min-h-48">
+        <div className="mb-4 min-h-[12rem]">
           {isLoadingUsers ? (
             <div className="text-center py-8 text-gray-500">
               <LoadingSpinner />
@@ -267,16 +262,17 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
               <ul className="divide-y divide-gray-200">
                 {filteredUsers.map(user => {
                   const isDisabled = user.hasCompleted || user.isChecking;
-
+                  
                   return (
                     <li key={user.id}>
                       <button
                         onClick={() => !isDisabled && setSelectedUser(user)}
                         disabled={isDisabled || isSending || !!successMessage}
-                        className={`w-full text-left px-3 py-3 flex justify-between items-center transition-colors ${isDisabled
-                            ? 'opacity-50 cursor-not-allowed bg-gray-100'
+                        className={`w-full text-left px-3 py-3 flex justify-between items-center transition-colors ${
+                          isDisabled 
+                            ? 'opacity-50 cursor-not-allowed bg-gray-100' 
                             : 'hover:bg-gray-100 cursor-pointer'
-                          }`}
+                        }`}
                       >
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
@@ -285,13 +281,13 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
                               <span className="text-xs text-gray-400">(checking...)</span>
                             )}
                             {user.hasCompleted && !user.isChecking && (
-                              <CheckCircle size={16} className="text-green-500 shrink-0" />
+                              <CheckCircle size={16} className="text-green-500 flex-shrink-0" />
                             )}
                           </div>
                           <span className="text-xs text-gray-500 block truncate">{user.email}</span>
                         </div>
-
-                        <div className="ml-2 shrink-0">
+                        
+                        <div className="ml-2 flex-shrink-0">
                           {user.isChecking ? (
                             <div className="flex items-center gap-1 text-xs text-gray-400">
                               <Clock size={14} />
@@ -326,14 +322,14 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
             <div className="bg-blue-50 p-3 rounded-md flex justify-between items-center border border-blue-100">
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-blue-800 flex items-center gap-1">
-                  <UserCheck size={16} className="shrink-0" />
+                  <UserCheck size={16} className="flex-shrink-0" />
                   <span className="truncate">Challenging: {selectedUser.username}</span>
                 </p>
                 <p className="text-xs text-blue-600 ml-5 truncate">{selectedUser.email}</p>
               </div>
               <button
                 onClick={handleSendChallenge}
-                className="ml-2 px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 disabled:bg-gray-400 flex items-center space-x-1 shrink-0"
+                className="ml-2 px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 disabled:bg-gray-400 flex items-center space-x-1 flex-shrink-0"
                 disabled={isSending}
               >
                 {isSending ? <LoadingSpinner /> : <Send size={16} />}
