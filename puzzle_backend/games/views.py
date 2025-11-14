@@ -20,9 +20,6 @@ from django.http import JsonResponse
 from django.views import View
 from .models import SudokuPuzzle
 
-# Import your new service function
-# from .services import generate_daily_puzzles
-
 
 class DailyPuzzlesView(APIView):
     """
