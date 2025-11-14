@@ -1,12 +1,12 @@
 // src/components/gameComponents/shared/alreadyPlayedScreen.tsx
 // COMPLETE FILE WITH DIFFICULTY FIX
 
-import { CheckCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import type { Difficulty } from '../../../pages/gamePage';
+import { CheckCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import type { Difficulty } from "../../../pages/gamePage";
 
 interface AlreadyPlayedScreenProps {
-  gameType: 'wordle' | 'sudoku' | 'ernigram';
+  gameType: "wordle" | "sudoku" | "ernigram";
   score: number;
   submittedAt: string;
   difficulty: Difficulty;
@@ -21,35 +21,28 @@ export const AlreadyPlayedScreen = ({
   const navigate = useNavigate();
 
   // ✅ FIXED: Properly format difficulty for display
-  const displayDifficulty = (difficulty || 'easy').toUpperCase();
-
-  console.log('[AlreadyPlayedScreen] Rendering with:', {
-    gameType,
-    score,
-    difficulty,
-    displayDifficulty,
-  });
+  const displayDifficulty = (difficulty || "easy").toUpperCase();
 
   const gameColors = {
-    wordle: 'bg-emerald-100 border-emerald-300 text-emerald-800',
-    sudoku: 'bg-pink-100 border-pink-300 text-pink-800',
-    ernigram: 'bg-sky-100 border-sky-300 text-sky-800',
+    wordle: "bg-emerald-100 border-emerald-300 text-emerald-800",
+    sudoku: "bg-pink-100 border-pink-300 text-pink-800",
+    ernigram: "bg-sky-100 border-sky-300 text-sky-800",
   };
 
   const gameTitles = {
-    wordle: 'Wordle',
-    sudoku: 'Sudoku',
-    ernigram: 'ERNIgram',
+    wordle: "Wordle",
+    sudoku: "Sudoku",
+    ernigram: "ERNIgram",
   };
 
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
-    return date.toLocaleString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
+    return date.toLocaleString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
       hour12: true,
     });
   };
@@ -65,14 +58,12 @@ export const AlreadyPlayedScreen = ({
         </div>
 
         {/* Title */}
-        <h1 className="text-4xl font-bold mb-4">
-          Already Completed!
-        </h1>
+        <h1 className="text-4xl font-bold mb-4">Already Completed!</h1>
 
         {/* Message */}
         <p className="text-lg mb-6">
-          You've already completed today's{' '}
-          <strong>{gameTitles[gameType]}</strong> puzzle on{' '}
+          You've already completed today's{" "}
+          <strong>{gameTitles[gameType]}</strong> puzzle on{" "}
           <strong>{displayDifficulty}</strong> difficulty.
         </p>
 
@@ -91,13 +82,13 @@ export const AlreadyPlayedScreen = ({
         {/* Action Buttons */}
         <div className="flex flex-col gap-3">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate("/")}
             className="w-full py-3 px-6 bg-gray-800 text-white font-semibold rounded-lg hover:bg-gray-700 transition"
           >
             Back to Home
           </button>
           <button
-            onClick={() => navigate('/leaderboards')}
+            onClick={() => navigate("/leaderboards")}
             className="w-full py-3 px-6 bg-white text-gray-800 font-semibold rounded-lg border-2 border-gray-300 hover:bg-gray-50 transition"
           >
             View Leaderboards

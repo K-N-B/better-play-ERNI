@@ -1,11 +1,10 @@
 // frontend/src/api/challengeService.ts
-// import { MOCK_MODE, mockApiCall } from './api';
-// import {
-//     MOCK_USERS_SEARCH,
-//     MOCK_PENDING_CHALLENGES,
-//     MOCK_COMPLETED_CHALLENGES
-// } from '../data/_mockData';
-import type { Challenge, CreateChallengeData, CompleteChallengeData } from "../types/challenge";
+
+import type {
+  Challenge,
+  CreateChallengeData,
+  CompleteChallengeData,
+} from "../types/challenge";
 import type { UserProfile } from "../types/user";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
@@ -26,7 +25,9 @@ function getCsrfToken(): string | null {
 /* -----------------------------
    User Search
 ----------------------------- */
-export const searchUsers = async (query: string): Promise<Pick<UserProfile, "id" | "username" | "email">[]> => {
+export const searchUsers = async (
+  query: string
+): Promise<Pick<UserProfile, "id" | "username" | "email">[]> => {
   // if (MOCK_MODE) {
   //     console.log(`Mock: Searching users with query "${query}"...`);
   //     const lowerQuery = query.toLowerCase();
@@ -37,10 +38,13 @@ export const searchUsers = async (query: string): Promise<Pick<UserProfile, "id"
   //     return mockApiCall(results);
   // }
 
-  const response = await fetch(`${API_URL}/api/challenges/search-users/?q=${encodeURIComponent(query)}`, {
-    method: "GET",
-    credentials: "include",
-  });
+  const response = await fetch(
+    `${API_URL}/api/challenges/search-users/?q=${encodeURIComponent(query)}`,
+    {
+      method: "GET",
+      credentials: "include",
+    }
+  );
 
   if (!response.ok) throw new Error("Failed to search users");
   return response.json();
@@ -85,34 +89,9 @@ export const getCompletedChallenges = async (): Promise<Challenge[]> => {
 /* -----------------------------
    Send Challenge
 ----------------------------- */
-export const sendChallenge = async (data: CreateChallengeData): Promise<Challenge> => {
-  // if (MOCK_MODE) {
-  //     console.log("Mock: Sending challenge...", data);
-  //     const recipient = MOCK_USERS_SEARCH.find(u => u.id === data.recipient_id);
-  //     const newChallenge: Challenge = {
-  //         id: Math.floor(Math.random() * 10000),
-  //         recipient: recipient
-  //             ? { id: recipient.id, username: recipient.username }
-  //             : { id: 99, username: 'Unknown' },
-  //         challenger: { id: 1, username: 'gavin_cii' },
-  //         challenger_submission: {
-  //             id: data.submission_id,
-  //             points_awarded: 555,
-  //             time_taken_ms: 70000,
-  //             tries: 3,
-  //             difficulty: 'easy',
-  //         },
-  //         created_at: new Date().toISOString(),
-  //         status: 'PENDING',
-  //         recipient_submission: null,
-  //         winner: null,
-  //         puzzle_type: 'wordle',
-  //         puzzle_id: 101,
-  //     };
-  //     MOCK_PENDING_CHALLENGES.push(newChallenge);
-  //     return mockApiCall(newChallenge);
-  // }
-
+export const sendChallenge = async (
+  data: CreateChallengeData
+): Promise<Challenge> => {
   const csrfToken = getCsrfToken();
 
   console.log("[sendChallenge] CSRF Token:", csrfToken); // Debug log
@@ -141,7 +120,10 @@ export const sendChallenge = async (data: CreateChallengeData): Promise<Challeng
       throw new Error(error.error || "Failed to send challenge");
     } else {
       const text = await response.text();
-      console.error("[sendChallenge] Server returned HTML:", text.substring(0, 500)); // Show first 500 chars
+      console.error(
+        "[sendChallenge] Server returned HTML:",
+        text.substring(0, 500)
+      ); // Show first 500 chars
       throw new Error("Server returned an error page. Check backend console.");
     }
   }
@@ -152,7 +134,10 @@ export const sendChallenge = async (data: CreateChallengeData): Promise<Challeng
 /* -----------------------------
    Complete Challenge
 ----------------------------- */
-export const completeChallenge = async (challengeId: number, data: CompleteChallengeData): Promise<Challenge> => {
+export const completeChallenge = async (
+  challengeId: number,
+  data: CompleteChallengeData
+): Promise<Challenge> => {
   // if (MOCK_MODE) {
   //     console.log(`Mock: Completing challenge ${challengeId}...`, data);
   //     const idx = MOCK_PENDING_CHALLENGES.findIndex(c => c.id === challengeId);
@@ -194,15 +179,18 @@ export const completeChallenge = async (challengeId: number, data: CompleteChall
   console.log("[completeChallenge] CSRF Token:", csrfToken); // Debug log
   console.log("[completeChallenge] Sending data:", data); // Debug log
 
-  const response = await fetch(`${API_URL}/api/challenges/${challengeId}/complete/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(csrfToken && { "X-CSRFToken": csrfToken }),
-    },
-    credentials: "include",
-    body: JSON.stringify(data),
-  });
+  const response = await fetch(
+    `${API_URL}/api/challenges/${challengeId}/complete/`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(csrfToken && { "X-CSRFToken": csrfToken }),
+      },
+      credentials: "include",
+      body: JSON.stringify(data),
+    }
+  );
 
   console.log("[completeChallenge] Response status:", response.status); // Debug log
 
@@ -216,7 +204,10 @@ export const completeChallenge = async (challengeId: number, data: CompleteChall
       throw new Error(error.error || "Failed to complete challenge");
     } else {
       const text = await response.text();
-      console.error("[completeChallenge] Server returned HTML:", text.substring(0, 500));
+      console.error(
+        "[completeChallenge] Server returned HTML:",
+        text.substring(0, 500)
+      );
       throw new Error("Server returned an error page. Check backend console.");
     }
   }
@@ -224,7 +215,9 @@ export const completeChallenge = async (challengeId: number, data: CompleteChall
   return response.json();
 };
 
-export const listAllUsers = async (): Promise<Pick<UserProfile, "id" | "username" | "email">[]> => {
+export const listAllUsers = async (): Promise<
+  Pick<UserProfile, "id" | "username" | "email">[]
+> => {
   // if (MOCK_MODE) {
   //     console.log("Mock: Listing all users...");
   //     return mockApiCall([...MOCK_USERS_SEARCH]);

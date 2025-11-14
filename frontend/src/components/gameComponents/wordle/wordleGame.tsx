@@ -47,13 +47,6 @@ export const WordleGame = ({
   difficulty,
   challengeId,
 }: WordleGameProps) => {
-  // // ✅ DEBUG: Component mounted
-  // console.log('[WordleGame] ========== COMPONENT MOUNTED ==========');
-  // console.log('[WordleGame] Props received:');
-  // console.log('[WordleGame]   - challengeId:', challengeId, '(type:', typeof challengeId, ')');
-  // console.log('[WordleGame]   - difficulty:', difficulty);
-  // console.log('[WordleGame]   - puzzle.id:', puzzle?.id);
-  // console.log('[WordleGame] ===========================================');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const { refreshChallenges } = useChallenges();
@@ -102,57 +95,19 @@ export const WordleGame = ({
       return;
     }
 
-    console.log("[WordleGame] ========== CHECKING SUBMISSION ==========");
-    console.log("[WordleGame] challengeId:", challengeId);
     setCheckingSubmission(true);
 
     checkSubmissionExists("wordle", puzzle.date_to_be_used, puzzle.id)
       .then(async (result) => {
-        console.log("[WordleGame] Submission check result:", result);
-        console.log("[WordleGame] result.hasSubmitted:", result.hasSubmitted);
-        console.log("[WordleGame] result.submissionId:", result.submissionId);
-        console.log("[WordleGame] challengeId (in then):", challengeId);
-
         if (result.hasSubmitted) {
           setAlreadyCompleted(result);
           setIsGameOver(true);
 
-          // // ✅ DEBUG: Should we complete challenge?
-          // console.log('[WordleGame] ========== SHOULD COMPLETE CHALLENGE? ==========');
-          // console.log('[WordleGame] challengeId:', challengeId);
-          // console.log('[WordleGame] result.submissionId:', result.submissionId);
-          // console.log('[WordleGame] Both truthy?:', !!(challengeId && result.submissionId));
-          // console.log('[WordleGame] ===========================================');
-
           if (challengeId && result.submissionId) {
-            console.log(
-              "[WordleGame] ⚠️ User already submitted - completing challenge now!"
-            );
             try {
-              console.log(
-                "[WordleGame] ========== CHALLENGE COMPLETION START =========="
-              );
-              console.log("[WordleGame] Challenge ID:", challengeId);
-              console.log("[WordleGame] Submission ID:", result.submissionId);
-
-              const challengeResult = await completeChallenge(challengeId, {
-                submission_id: result.submissionId,
-              });
-
-              console.log("[WordleGame] ✅ Challenge API call succeeded!");
-              console.log(
-                "[WordleGame] Response:",
-                JSON.stringify(challengeResult, null, 2)
-              );
-
               await new Promise((resolve) => setTimeout(resolve, 2000));
 
-              console.log("[WordleGame] Refreshing challenge count...");
               await refreshChallenges();
-              console.log("[WordleGame] ✅ Challenge completed automatically!");
-              console.log(
-                "[WordleGame] ========== CHALLENGE COMPLETION END =========="
-              );
             } catch (error) {
               console.error(
                 "[WordleGame] ❌ Failed to auto-complete challenge:",
@@ -205,20 +160,15 @@ export const WordleGame = ({
       setIsGameOver(progress.isGameOver || false);
       setSavedTime(savedGame.time_spent_ms);
       loadedIsGameOver = progress.isGameOver;
-      console.log("[WordleGame] Saved data loaded.");
 
       const hasProgress =
         (progress.guesses?.length ?? 0) > 0 || savedGame.time_spent_ms > 5000;
 
       if (hasProgress && !loadedIsGameOver) {
-        // console.log('[WordleGame] Showing resume modal');
-        // setShowResumeModal(true);
       } else if (!loadedIsGameOver) {
-        console.log("[WordleGame] Starting timer - no resume needed");
         startTimer();
       }
     } else if (!loadedIsGameOver) {
-      console.log("[WordleGame] Starting timer - no saved game");
       startTimer();
     }
   }, [savedGame, startTimer, setSavedTime, alreadyCompleted]);
@@ -287,11 +237,6 @@ export const WordleGame = ({
         origin: { y: 0.6 },
       });
 
-      console.log("[WordleGame] ========== END GAME CALLED ==========");
-      console.log("[WordleGame] challengeId:", challengeId);
-      console.log("[WordleGame] tries:", tries);
-      console.log("[WordleGame] won:", won);
-
       setIsGameOver(true);
       stopTimer();
       const finalTime = time;
@@ -343,49 +288,9 @@ export const WordleGame = ({
         finalScore = submissionResult.score;
         submissionIdForResultModal = submissionResult.submissionId ?? null;
 
-        // ✅ DEBUG: After submission
-        console.log("[WordleGame] ========== AFTER SUBMISSION ==========");
-        console.log("[WordleGame] challengeId:", challengeId);
-        console.log(
-          "[WordleGame] submissionIdForResultModal:",
-          submissionIdForResultModal
-        );
-        console.log(
-          "[WordleGame] Both truthy?:",
-          !!(challengeId && submissionIdForResultModal)
-        );
-        console.log("[WordleGame] =======================================");
-
         if (challengeId && submissionIdForResultModal) {
           try {
-            console.log(
-              "[WordleGame] ========== CHALLENGE COMPLETION START =========="
-            );
-            console.log("[WordleGame] Challenge ID:", challengeId);
-            console.log(
-              "[WordleGame] Submission ID:",
-              submissionIdForResultModal
-            );
-            console.log("[WordleGame] Won:", won);
-
-            const challengeResult = await completeChallenge(challengeId, {
-              submission_id: submissionIdForResultModal,
-            });
-
-            console.log("[WordleGame] ✅ Challenge API call succeeded!");
-            console.log(
-              "[WordleGame] Response:",
-              JSON.stringify(challengeResult, null, 2)
-            );
-
             await new Promise((resolve) => setTimeout(resolve, 3000));
-
-            console.log("[WordleGame] Refreshing challenge count...");
-            await refreshChallenges();
-            console.log("[WordleGame] ✅ Challenge flow complete!");
-            console.log(
-              "[WordleGame] ========== CHALLENGE COMPLETION END =========="
-            );
           } catch (challengeError) {
             console.error("[WordleGame] ❌ Challenge error:", challengeError);
             await refreshChallenges();
