@@ -1,7 +1,7 @@
 // frontend/src/api/authService.ts
 import type { Department, UserProfile } from "../types/user";
 
-export const API_URL = "http://localhost:8000";
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 /**
  * Check if user has a valid session cookie

@@ -8,7 +8,7 @@ import type {
   SubmissionResult, // ✅ Import complete type
 } from "../types/game";
 
-const API_BASE_URL = "http://localhost:8000/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // ✅ Utility: Get CSRF token
 function getCookie(name: string): string | null {
