@@ -231,9 +231,9 @@ export const SudokuGame = ({
               console.log(
                 "[SudokuGame] ========== CHALLENGE COMPLETION START =========="
               );
-              const challengeResult = await completeChallenge(challengeId, {
-                submission_id: result.submissionId,
-              });
+              // const challengeResult = await completeChallenge(challengeId, {
+              //   submission_id: result.submissionId,
+              // });
               console.log("[SudokuGame] ✅ Challenge completed automatically!");
               await new Promise((resolve) => setTimeout(resolve, 2000));
               await refreshChallenges();
@@ -485,9 +485,9 @@ export const SudokuGame = ({
           console.log(
             "[SudokuGame] ========== CHALLENGE COMPLETION START =========="
           );
-          const challengeResult = await completeChallenge(challengeId, {
-            submission_id: submissionIdForResultModal,
-          });
+          // const challengeResult = await completeChallenge(challengeId, {
+          //   submission_id: submissionIdForResultModal,
+          // });
           console.log("[SudokuGame] ✅ Challenge API call succeeded!");
           await new Promise((resolve) => setTimeout(resolve, 3000));
           await refreshChallenges();

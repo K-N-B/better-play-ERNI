@@ -1,5 +1,5 @@
 // src/components/features/challenge/challengeModal.tsx - WITH AUTO-DISPLAYED USERS
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { listAllUsers, sendChallenge } from '../../../api/challengeService';
 import { checkUserSubmissionExists } from '../../../api/gameService';
 import type { UserProfile, CreateChallengeData } from '../../../types';
@@ -20,17 +20,17 @@ interface ColleagueWithStatus extends Pick<UserProfile, 'id' | 'username' | 'ema
   isChecking: boolean;
 }
 
-function debounce<F extends (...args: any[]) => any>(func: F, wait: number): (...args: Parameters<F>) => void {
-  let timeoutId: ReturnType<typeof setTimeout> | null = null;
-  return function(this: ThisParameterType<F>, ...args: Parameters<F>) {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-    timeoutId = setTimeout(() => {
-      func.apply(this, args);
-    }, wait);
-  };
-}
+// function debounce<F extends (...args: any[]) => any>(func: F, wait: number): (...args: Parameters<F>) => void {
+//   let timeoutId: ReturnType<typeof setTimeout> | null = null;
+//   return function(this: ThisParameterType<F>, ...args: Parameters<F>) {
+//     if (timeoutId) {
+//       clearTimeout(timeoutId);
+//     }
+//     timeoutId = setTimeout(() => {
+//       func.apply(this, args);
+//     }, wait);
+//   };
+// }
 
 export const ChallengeModal: React.FC<ChallengeModalProps> = ({ 
   isOpen, 
