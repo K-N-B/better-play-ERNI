@@ -13,7 +13,7 @@ export const HomePage = () => {
   const [showWhosOnline, setShowWhosOnline] = useState(false);
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto px-4">
       {/* --- MOBILE LAYOUT --- */}
       <div className="block lg:hidden space-y-6">
         {/* Welcome Message */}
