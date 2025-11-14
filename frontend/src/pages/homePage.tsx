@@ -47,7 +47,7 @@ export const HomePage = () => {
       </div>
 
       {/* --- DESKTOP LAYOUT (3-column) --- */}
-      <div className="hidden lg:grid lg:grid-cols-4 lg:gap-6 lg:min-h-screen lg:mt-6">
+      <div className="hidden lg:grid lg:grid-cols-4 lg:gap-6 lg:min-h-screen">
         {/* Column 1 */}
         <div className="lg:col-span-1 flex flex-col gap-6 h-full">
           <WelcomeMessage />
