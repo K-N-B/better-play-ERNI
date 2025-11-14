@@ -1,6 +1,6 @@
 // frontend/src/api/activityService.ts
-import { MOCK_MODE, mockApiCall } from './api';
-import { MOCK_ACTIVITY_HUB } from '../data/_mockData';
+// import { MOCK_MODE, mockApiCall } from './api';
+// import { MOCK_ACTIVITY_HUB } from '../data/_mockData';
 import type { ActivityHubResponse } from '../types/activity';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -28,10 +28,10 @@ function getCookie(name: string): string | null {
  * GET /api/activity-hub/
  */
 export const getActivityHub = async (): Promise<ActivityHubResponse> => {
-    if (MOCK_MODE) {
-        console.log('Mock: Fetching activity hub data...');
-        return mockApiCall({ ...MOCK_ACTIVITY_HUB });
-    }
+    // if (MOCK_MODE) {
+    //     console.log('Mock: Fetching activity hub data...');
+    //     return mockApiCall({ ...MOCK_ACTIVITY_HUB });
+    // }
 
     // Real API call
     try {
@@ -67,10 +67,10 @@ export const getActivityHub = async (): Promise<ActivityHubResponse> => {
  * POST /api/heartbeat/
  */
 export const sendHeartbeat = async (): Promise<void> => {
-    if (MOCK_MODE) {
-        console.log('Mock: Sending heartbeat...');
-        return mockApiCall(undefined);
-    }
+    // if (MOCK_MODE) {
+    //     console.log('Mock: Sending heartbeat...');
+    //     return mockApiCall(undefined);
+    // }
 
     try {
         const csrfToken = getCookie('csrftoken');
