@@ -591,6 +591,8 @@ export const WordleGame = ({
               score={gameResult.score}
               submissionId={gameResult.submissionId}
               gameType="wordle"
+              puzzleId={puzzle.id}
+              dailyPuzzleDate={puzzle.date_to_be_used}
               onClose={() => setGameResult(null)}
             />
           )}

@@ -166,10 +166,10 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
         secure=True
     )
     USE_CLOUDINARY = True
-    print("✅ Cloudinary configured successfully")
+    print("âœ… Cloudinary configured successfully")
 else:
     USE_CLOUDINARY = False
-    print("⚠️ Cloudinary credentials not found. Using local storage for profile pictures.")
+    print("âš ï¸ Cloudinary credentials not found. Using local storage for profile pictures.")
 
 AUTH_USER_MODEL = "users.User"
 
@@ -213,16 +213,16 @@ if ENVIRONMENT == "production":
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SAMESITE = None
     CSRF_COOKIE_SAMESITE = None
-    CSRF_USE_SESSIONS = False  # ✅ store CSRF in session (safer for production)
-    CSRF_COOKIE_HTTPONLY = False  # ✅ prevent JS access to CSRF cookie
-    SESSION_COOKIE_HTTPONLY = True  # ✅ prevent JS access to session cookie
+    CSRF_USE_SESSIONS = False  # âœ… store CSRF in session (safer for production)
+    CSRF_COOKIE_HTTPONLY = False  # âœ… prevent JS access to CSRF cookie
+    SESSION_COOKIE_HTTPONLY = True  # âœ… prevent JS access to session cookie
 else:
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
     SESSION_COOKIE_SAMESITE = "Lax"
     CSRF_COOKIE_SAMESITE = "Lax"
-    CSRF_USE_SESSIONS = False  # ✅ local dev convenience
-    CSRF_COOKIE_HTTPONLY = False  # ✅ easier debugging
+    CSRF_USE_SESSIONS = False  # âœ… local dev convenience
+    CSRF_COOKIE_HTTPONLY = False  # âœ… easier debugging
     SESSION_COOKIE_HTTPONLY = True  # still good practice even locally
 
 
@@ -291,7 +291,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
 
 
-print(f"⚙️ Running in {ENVIRONMENT.upper()} mode | DEBUG={DEBUG}")
+print(f"âš™ï¸ Running in {ENVIRONMENT.upper()} mode | DEBUG={DEBUG}")
 
 
 DATE_INPUT_FORMATS = [

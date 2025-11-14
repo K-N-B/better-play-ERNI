@@ -8,7 +8,7 @@ import type {
   SubmissionResult, // ✅ Import complete type
 } from "../types/game";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // ✅ Utility: Get CSRF token
 function getCookie(name: string): string | null {
@@ -53,7 +53,7 @@ export const getSavedAttempt = async (
   puzzleId: string
 ): Promise<PuzzleAttemptResponse | null> => {
   try {
-    const url = `${API_BASE_URL}/gameplay/progress/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/`;
+    const url = `${API_BASE_URL}/api/gameplay/progress/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/`;
     console.log("[getSavedAttempt] Fetching:", url);
 
     const response = await fetch(url, {
@@ -129,7 +129,7 @@ export const submitPuzzle = async (
 ): Promise<SubmissionResult> => {
   try {
     const csrfToken = getCookie("csrftoken");
-    const url = `${API_BASE_URL}/gameplay/submit/${dailyPuzzleDate}/${data.puzzle_type}puzzle/${puzzleId}/`;
+    const url = `${API_BASE_URL}/api/gameplay/submit/${dailyPuzzleDate}/${data.puzzle_type}puzzle/${puzzleId}/`;
 
     console.log("[submitPuzzle] Submitting to:", url);
     console.log("[submitPuzzle] Data:", { difficulty: data.difficulty });
@@ -174,7 +174,7 @@ export const submitPuzzle = async (
 export const getTodaySubmissions = async (): Promise<Submission[]> => {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/gameplay/submissions/today/`,
+      `${API_BASE_URL}/api/gameplay/submissions/today/`,
       {
         method: "GET",
         credentials: "include",
@@ -206,7 +206,7 @@ export const checkSubmissionExists = async (
   difficulty?: string;
 }> => {
   try {
-    const url = `${API_BASE_URL}/gameplay/check-submission/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/`;
+    const url = `${API_BASE_URL}/api/gameplay/check-submission/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/`;
     console.log("[checkSubmissionExists] Checking:", url);
 
     const response = await fetch(url, {
@@ -276,14 +276,11 @@ export const getHint = async (
 export const getSudokuHintLimits = async (): Promise<{
   HINT_LIMITS: Record<string, number>;
 }> => {
-  const response = await fetch(
-    `${API_BASE_URL}/api/games/hint-limits/sudoku/`,
-    {
-      method: "GET",
-      credentials: "include",
-      headers: { Accept: "application/json" },
-    }
-  );
+  const response = await fetch(`${API_BASE_URL}/api/games/hint-limits/sudoku/`, {
+    method: "GET",
+    credentials: "include",
+    headers: { Accept: "application/json" },
+  });
 
   if (!response.ok) {
     throw new Error("Failed to fetch Sudoku hint limits");
@@ -292,4 +289,41 @@ export const getSudokuHintLimits = async (): Promise<{
   const data = await response.json();
   console.log("[getSudokuHintLimits] Response:", data);
   return data;
+};
+
+export const checkUserSubmissionExists = async (
+  userId: number,
+  puzzleType: string,
+  dailyPuzzleDate: string,
+  puzzleId: number
+): Promise<{
+  hasSubmitted: boolean;
+  userId: number;
+  username?: string;
+  score?: number;
+  submittedAt?: string;
+  difficulty?: string;
+}> => {
+  try {
+    const url = `${API_BASE_URL}/api/gameplay/check-user-submission/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/?user_id=${userId}`;
+    console.log("[checkUserSubmissionExists] Checking:", url);
+
+    const response = await fetch(url, {
+      method: "GET",
+      credentials: "include",
+      headers: { Accept: "application/json" },
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return { hasSubmitted: false, userId };
+      }
+      throw new Error(`Failed to check user submission: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("[checkUserSubmissionExists] Error:", error);
+    return { hasSubmitted: false, userId };
+  }
 };
