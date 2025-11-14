@@ -8,7 +8,7 @@ import type {
   SubmissionResult, // ✅ Import complete type
 } from "../types/game";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 // ✅ Utility: Get CSRF token
 function getCookie(name: string): string | null {
@@ -203,7 +203,7 @@ export const checkSubmissionExists = async (
   score?: number;
   submittedAt?: string;
   submissionId?: number;
-  difficulty?: string; 
+  difficulty?: string;
 }> => {
   try {
     const url = `${API_BASE_URL}/api/gameplay/check-submission/${dailyPuzzleDate}/${puzzleType}puzzle/${puzzleId}/`;
@@ -276,11 +276,14 @@ export const getHint = async (
 export const getSudokuHintLimits = async (): Promise<{
   HINT_LIMITS: Record<string, number>;
 }> => {
-  const response = await fetch(`${API_BASE_URL}/api/games/hint-limits/sudoku/`, {
-    method: "GET",
-    credentials: "include",
-    headers: { Accept: "application/json" },
-  });
+  const response = await fetch(
+    `${API_BASE_URL}/api/games/hint-limits/sudoku/`,
+    {
+      method: "GET",
+      credentials: "include",
+      headers: { Accept: "application/json" },
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Failed to fetch Sudoku hint limits");
@@ -318,7 +321,9 @@ export const checkUserSubmissionExists = async (
       if (response.status === 404) {
         return { hasSubmitted: false, userId };
       }
-      throw new Error(`Failed to check user submission: ${response.statusText}`);
+      throw new Error(
+        `Failed to check user submission: ${response.statusText}`
+      );
     }
 
     return await response.json();
