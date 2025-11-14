@@ -12,7 +12,7 @@ export const HomePage = () => { // Use default export if that's your convention
       {/* --- MAIN 3-COLUMN LAYOUT GRID --- */}
       {/* On large screens (lg:), create a 3-column grid */}
       {/* The 'grid' automatically makes columns in the same row equal height */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-screen items-stretch">
 
         {/* --- Column 1: Welcome & Games --- */}
         {/* 'flex flex-col' allows items to stack and fill height */}
@@ -20,7 +20,7 @@ export const HomePage = () => { // Use default export if that's your convention
         <div className="lg:col-span-1 flex flex-col gap-6 h-full">
           <WelcomeMessage />
           {/* Add 'flex-grow' to GamesSection's *wrapper* if you want it to take remaining space */}
-          <div className="flex-grow"> {/* Wrapper to allow GamesSection to grow */}
+          <div className=""> {/* Wrapper to allow GamesSection to grow */}
             <GamesSection /> {/* Ensure GamesSection uses h-full internally */}
           </div>
         </div>
@@ -35,10 +35,10 @@ export const HomePage = () => { // Use default export if that's your convention
         {/* --- Column 3: Leaderboard & Who's Online --- */}
         {/* Add 'h-full' and 'flex flex-col' */}
         <div className="lg:col-span-1 flex flex-col gap-6 h-full">
-          <div className="grow-1"> {/* Wrapper to allow GamesSection to grow */}
+          <div className=""> {/* Wrapper to allow GamesSection to grow */}
             <LeaderboardPreviewCard /> {/* Ensure GamesSection uses h-full internally */}
           </div>
-          <div className="grow-1"> {/* Wrapper to allow GamesSection to grow */}
+          <div className=""> {/* Wrapper to allow GamesSection to grow */}
             <WhosOnlineCard /> {/* Ensure GamesSection uses h-full internally */}
           </div>
         </div>
