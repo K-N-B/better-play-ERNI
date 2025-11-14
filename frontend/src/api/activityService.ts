@@ -1,6 +1,3 @@
-// frontend/src/api/activityService.ts
-// import { MOCK_MODE, mockApiCall } from './api';
-// import { MOCK_ACTIVITY_HUB } from '../data/_mockData';
 import type { ActivityHubResponse } from "../types/activity";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
@@ -28,14 +25,7 @@ function getCookie(name: string): string | null {
  * GET /api/activity-hub/
  */
 export const getActivityHub = async (): Promise<ActivityHubResponse> => {
-  // if (MOCK_MODE) {
-  //     console.log('Mock: Fetching activity hub data...');
-  //     return mockApiCall({ ...MOCK_ACTIVITY_HUB });
-  // }
-
-  // Real API call
   try {
-    console.log("[getActivityHub] 🔄 Fetching activity hub...");
     const response = await fetch(`${API_BASE_URL}/api/activity-hub/`, {
       method: "GET",
       credentials: "include",
@@ -44,8 +34,6 @@ export const getActivityHub = async (): Promise<ActivityHubResponse> => {
       },
     });
 
-    console.log(`[getActivityHub] Response status: ${response.status}`);
-
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`[getActivityHub] ❌ Error: ${errorText}`);
@@ -53,8 +41,6 @@ export const getActivityHub = async (): Promise<ActivityHubResponse> => {
     }
 
     const data: ActivityHubResponse = await response.json();
-    console.log("[getActivityHub] ✅ Success:", data);
-    console.log("[getActivityHub] 👥 Online users count:", data.online_users.length);
     return data;
   } catch (error) {
     console.error("[getActivityHub] ❌ Error:", error);
@@ -79,7 +65,6 @@ export const sendHeartbeat = async (): Promise<void> => {
       console.warn("[sendHeartbeat] ⚠️ No CSRF token found");
     }
 
-    console.log("[sendHeartbeat] 💓 Sending heartbeat...");
     const response = await fetch(`${API_BASE_URL}/api/heartbeat/`, {
       method: "POST",
       credentials: "include",
@@ -90,16 +75,11 @@ export const sendHeartbeat = async (): Promise<void> => {
       body: JSON.stringify({}), // Send empty body
     });
 
-    console.log(`[sendHeartbeat] Response status: ${response.status}`);
-
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`[sendHeartbeat] ❌ Error response: ${errorText}`);
       throw new Error(`Heartbeat failed: ${response.statusText}`);
     }
-
-    const result = await response.json();
-    console.log("[sendHeartbeat] ✅ Success:", result);
   } catch (error) {
     console.error("[sendHeartbeat] ❌ Error:", error);
     // Don't throw - heartbeat failures shouldn't break the app

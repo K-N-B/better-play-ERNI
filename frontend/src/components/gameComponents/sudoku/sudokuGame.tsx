@@ -125,20 +125,6 @@ export const SudokuGame = ({
   difficulty,
   challengeId,
 }: SudokuGameProps) => {
-  // ✅ DEBUG: Component mounted
-  console.log("[SudokuGame] ========== COMPONENT MOUNTED ==========");
-  console.log("[SudokuGame] Props received:");
-  console.log(
-    "[SudokuGame]   - challengeId:",
-    challengeId,
-    "(type:",
-    typeof challengeId,
-    ")"
-  );
-  console.log("[SudokuGame]   - difficulty:", difficulty);
-  console.log("[SudokuGame]   - puzzle.id:", puzzle?.id);
-  console.log("[SudokuGame] ===========================================");
-
   const { refreshChallenges } = useChallenges();
   const initialPuzzleString =
     difficulty === "easy"
@@ -198,48 +184,17 @@ export const SudokuGame = ({
       return;
     }
 
-    console.log("[SudokuGame] ========== CHECKING SUBMISSION ==========");
-    console.log("[SudokuGame] challengeId:", challengeId);
     setCheckingSubmission(true);
 
     checkSubmissionExists("sudoku", puzzle.date_to_be_used, puzzle.id)
       .then(async (result) => {
-        console.log("[SudokuGame] Submission check result:", result);
-        console.log("[SudokuGame] result.hasSubmitted:", result.hasSubmitted);
-        console.log("[SudokuGame] result.submissionId:", result.submissionId);
-
         if (result.hasSubmitted) {
           setAlreadyCompleted(result);
-          // setIsGameOver(true);
 
           // ✅ NEW: Auto-complete challenge if already submitted
-          console.log(
-            "[SudokuGame] ========== SHOULD COMPLETE CHALLENGE? =========="
-          );
-          console.log("[SudokuGame] challengeId:", challengeId);
-          console.log("[SudokuGame] result.submissionId:", result.submissionId);
-          console.log(
-            "[SudokuGame] Both truthy?:",
-            !!(challengeId && result.submissionId)
-          );
 
           if (challengeId && result.submissionId) {
-            console.log(
-              "[SudokuGame] ⚠️ User already submitted - completing challenge now!"
-            );
             try {
-              console.log(
-                "[SudokuGame] ========== CHALLENGE COMPLETION START =========="
-              );
-              // const challengeResult = await completeChallenge(challengeId, {
-              //   submission_id: result.submissionId,
-              // });
-              console.log("[SudokuGame] ✅ Challenge completed automatically!");
-              await new Promise((resolve) => setTimeout(resolve, 2000));
-              await refreshChallenges();
-              console.log(
-                "[SudokuGame] ========== CHALLENGE COMPLETION END =========="
-              );
             } catch (error) {
               console.error(
                 "[SudokuGame] ❌ Failed to auto-complete challenge:",
@@ -307,10 +262,7 @@ export const SudokuGame = ({
           savedGame.time_spent_ms > 5000;
 
         if (hasProgress && !loadedIsGameOver) {
-          // console.log("[SudokuGame] Showing resume modal");
-          // setShowResumeModal(true);
         } else if (!loadedIsGameOver) {
-          console.log("[SudokuGame] Starting timer - no resume needed");
           startTimer();
         }
       }
@@ -346,7 +298,6 @@ export const SudokuGame = ({
         difficulty: difficulty,
       };
 
-      console.log("[SudokuGame] Auto-saving progress...");
       saveProgress(dataPayload, puzzle.date_to_be_used, puzzle.id)
         .then(() => console.log("[SudokuGame] ✅ Auto-save successful"))
         .catch((err) =>

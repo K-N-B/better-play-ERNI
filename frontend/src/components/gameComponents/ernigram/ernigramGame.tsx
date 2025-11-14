@@ -56,19 +56,6 @@ export const ErnigramGame = ({
   challengeId,
   dailyPuzzleDate,
 }: ErnigramGameProps) => {
-  console.log("[ErnigramGame] ========== COMPONENT MOUNTED ==========");
-  console.log("[ErnigramGame] Props received:");
-  console.log(
-    "[ErnigramGame]   - challengeId:",
-    challengeId,
-    "(type:",
-    typeof challengeId,
-    ")"
-  );
-  console.log("[ErnigramGame]   - difficulty:", difficulty);
-  console.log("[ErnigramGame]   - puzzle.id:", puzzle?.id);
-  console.log("[ErnigramGame] ===========================================");
-
   const { refreshChallenges } = useChallenges();
   const [solution] = useState(puzzle.solution_phrase.toUpperCase());
   const maxAttemptsForDifficulty = MAX_ATTEMPTS(difficulty);
@@ -116,53 +103,22 @@ export const ErnigramGame = ({
       return;
     }
 
-    console.log("[ErnigramGame] ========== CHECKING SUBMISSION ==========");
-    console.log("[ErnigramGame] challengeId:", challengeId);
     setCheckingSubmission(true);
 
     checkSubmissionExists("ernigram", dailyPuzzleDate, puzzleID)
       .then(async (result) => {
-        console.log("[ErnigramGame] Submission check result:", result);
-        console.log("[ErnigramGame] result.hasSubmitted:", result.hasSubmitted);
-        console.log("[ErnigramGame] result.submissionId:", result.submissionId);
-        console.log("[ErnigramGame] result.difficulty:", result.difficulty);
-
         if (result.hasSubmitted) {
           setAlreadyCompleted(result);
           setIsGameOver(true);
 
-          console.log(
-            "[ErnigramGame] ========== SHOULD COMPLETE CHALLENGE? =========="
-          );
-          console.log("[ErnigramGame] challengeId:", challengeId);
-          console.log(
-            "[ErnigramGame] result.submissionId:",
-            result.submissionId
-          );
-          console.log(
-            "[ErnigramGame] Both truthy?:",
-            !!(challengeId && result.submissionId)
-          );
-
           if (challengeId && result.submissionId) {
-            console.log(
-              "[ErnigramGame] ⚠️ User already submitted - completing challenge now!"
-            );
             try {
-              console.log(
-                "[ErnigramGame] ========== CHALLENGE COMPLETION START =========="
-              );
               await completeChallenge(challengeId, {
                 submission_id: result.submissionId,
               });
-              console.log(
-                "[ErnigramGame] ✅ Challenge completed automatically!"
-              );
+
               await new Promise((resolve) => setTimeout(resolve, 2000));
               await refreshChallenges();
-              console.log(
-                "[ErnigramGame] ========== CHALLENGE COMPLETION END =========="
-              );
             } catch (error) {
               console.error(
                 "[ErnigramGame] ❌ Failed to auto-complete challenge:",
@@ -310,10 +266,6 @@ export const ErnigramGame = ({
   // ✅ 5. endGame function with challenge support
   const endGame = useCallback(
     async (won: boolean) => {
-      console.log("[ErnigramGame] ========== END GAME CALLED ==========");
-      console.log("[ErnigramGame] challengeId:", challengeId);
-      console.log("[ErnigramGame] won:", won);
-
       setIsGameOver(true);
       if (won) {
         setIsWon(true);
@@ -381,32 +333,14 @@ export const ErnigramGame = ({
         finalScore = submissionResult.score;
         submissionIdForResultModal = submissionResult.submissionId ?? null;
 
-        console.log("[ErnigramGame] ========== AFTER SUBMISSION ==========");
-        console.log("[ErnigramGame] challengeId:", challengeId);
-        console.log(
-          "[ErnigramGame] submissionIdForResultModal:",
-          submissionIdForResultModal
-        );
-        console.log(
-          "[ErnigramGame] Both truthy?:",
-          !!(challengeId && submissionIdForResultModal)
-        );
-
         if (challengeId && submissionIdForResultModal) {
           try {
-            console.log(
-              "[ErnigramGame] ========== CHALLENGE COMPLETION START =========="
-            );
             await completeChallenge(challengeId, {
               submission_id: submissionIdForResultModal,
             });
-            console.log("[ErnigramGame] ✅ Challenge API call succeeded!");
+
             await new Promise((resolve) => setTimeout(resolve, 3000));
             await refreshChallenges();
-            console.log("[ErnigramGame] ✅ Challenge flow complete!");
-            console.log(
-              "[ErnigramGame] ========== CHALLENGE COMPLETION END =========="
-            );
           } catch (challengeError) {
             console.error("[ErnigramGame] ❌ Challenge error:", challengeError);
             await refreshChallenges();
