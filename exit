@@ -1,0 +1,970 @@
+* [33m8638926d[m[33m ([m[1;36mHEAD -> [m[1;32mdeployment[m[33m)[m Another working setup merged
+* [33me9a42cc4[m Revert "Working setup"
+* [33m22bfb164[m[33m ([m[1;31morigin/deployment[m[33m)[m Updated django version
+* [33m8a1f12e5[m Renewed venv
+*   [33mfc9b543b[m Merge: Main to deployment
+[32m|[m[33m\[m  
+[32m|[m * [33mc48abff5[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m chineck ko lang po comments
+[32m|[m * [33m5ffa39a0[m profile pics
+* [33m|[m   [33mfd7ed55e[m Merge branch 'deployment' of https://github.com/K-N-B/better-play-ERNI into deployment
+[34m|[m[35m\[m [33m\[m  
+[34m|[m * [33m|[m [33m10ff6a9b[m Revert "added api to sudoku limits"
+* [35m|[m [33m|[m [33me0436eb8[m Added gitignore
+[35m|[m[35m/[m [33m/[m  
+* [33m|[m [33mdfbeca7c[m Fix: Removed file with invalid path
+* [33m|[m [33m62f8cebb[m Working setup
+* [33m|[m [33m0cb0d2e1[m Deployment for oracle
+* [33m|[m [33mc56fb65a[m added api to sudoku limits
+* [33m|[m [33m78293343[m Updated cookies in settings.py
+* [33m|[m [33m815eb5eb[m Added api to fetch
+* [33m|[m [33m21d15506[m Added ensure cookie
+* [33m|[m [33mc93711f0[m Removed extra daily ur
+* [33m|[m [33md1c2c4f9[m Updated checkAuth with checking
+* [33m|[m [33m9d1e0d65[m Added headers to challenge pending
+* [33m|[m [33md406ced8[m Changed env to production
+* [33m|[m [33m61f7756a[m Added global variable for API_URL
+* [33m|[m [33m41ff3d98[m Revert "Commented out mocks"
+* [33m|[m [33m5f090b19[m Changed to duckdns
+* [33m|[m [33mccac4a09[m Sana working
+* [33m|[m [33m7dc8d5be[m Updated apii lnks
+* [33m|[m [33mcdbeb944[m Updated apii lnks
+* [33m|[m [33md12d15f5[m Added IP address to allowed links
+* [33m|[m [33ma199ed72[m Updated API URLs
+* [33m|[m [33mecb3f7b7[m Updated allowed hosts
+* [33m|[m [33m448fb538[m Added allowed host
+* [33m|[m [33m39894d09[m Commented out mocks
+* [33m|[m [33m3be83da2[m Commented out mocks
+* [33m|[m [33mef512a20[m Commented out mocks
+* [33m|[m [33me67ddb27[m Clean code for deployment
+[35m|[m [33m|[m * [33mc8214d34[m[33m ([m[1;31morigin/feature/new-deployment-2[m[33m)[m Added all gameplay url to except middleware
+[35m|[m [33m|[m * [33me39fe669[m Remove duplicate cookies
+[35m|[m [33m|[m * [33m7af0a836[m configuration update
+[35m|[m [33m|[m * [33med61a566[m Added except middleware
+[35m|[m [33m|[m * [33m4cc54a02[m Modify hearbeat
+[35m|[m [33m|[m * [33m55a6abad[m Configure domain
+[35m|[m [33m|[m * [33m7f9496d6[m Configuration update
+[35m|[m [33m|[m * [33m39839b11[m Configuration update for deployment 2
+[35m|[m [33m|[m * [33m9442aa1f[m Cofiguration for new deployment
+[35m|[m [33m|[m * [33m9a9dae52[m[33m ([m[1;31morigin/feature/new-deployment[m[33m)[m Added endpoint for saving cookies and initializing
+[35m|[m [33m|[m * [33m5d979eef[m Configuration update
+[35m|[m [33m|[m * [33m6731c447[m revert configuration
+[35m|[m [33m|[m * [33mecaa1696[m Allow all onrender.com
+[35m|[m [33m|[m * [33m41d3315a[m Configuration update with cors origin
+[35m|[m [33m|[m * [33mc57cce46[m Cookie domain added
+[35m|[m [33m|[m * [33meba55117[m Configuration: Completely remove link of vercel
+[35m|[m [33m|[m * [33m060e4d2b[m Configuration for render fronend and backend
+[35m|[m [33m|[m * [33m5890223e[m Revert to protected routes
+[35m|[m [33m|[m * [33m13dc9601[m Configuration additional middleware
+[35m|[m [33m|[m * [33ma72bd4b0[m Added social django for cookies
+[35m|[m [33m|[m * [33maaf9071e[m Modify challenge to APIView
+[35m|[m [33m|[m * [33m287e9e76[m Modify challenge to APIView
+[35m|[m [33m|[m * [33ma623a34a[m Added vercel file
+[35m|[m [33m|[m * [33mbef435bf[m Conguration update
+[35m|[m [33m|[m * [33mcbc8c705[m Configuration update
+[35m|[m [33m|[m * [33mb5f3c28a[m Configuration auth
+[35m|[m [33m|[m * [33m6e81c619[m Configuration for connecting FE and BE
+[35m|[m [33m|[m * [33m2eaf3566[m Connecting frontend configuration
+[35m|[m [33m|[m * [33m4cfc956d[m Removed unused variable in preperation of frontend deployment
+[35m|[m [33m|[m * [33m363eb7ff[m Remove unused variable for frontend deployment
+[35m|[m [33m|[m * [33mfa7fcb61[m Initial commit
+[35m|[m [33m|[m *   [33m43376563[m merge from main
+[35m|[m [33m|[m [1;31m|[m[35m\[m  
+[35m|[m [33m|[m[35m_[m[1;31m|[m[35m/[m  
+[35m|[m[35m/[m[33m|[m [1;31m|[m   
+[35m|[m [33m|[m * [33m24fdc53d[m requirements dependecies
+[35m|[m [33m|[m [1;32m|[m * [33mc274b144[m[33m ([m[1;35mrefs/stash[m[33m)[m WIP on main: ed23e40 Leaderboards All-time fixed
+[35m|[m [33m|[m [1;32m|[m[33m/[m[1;34m|[m 
+[35m|[m [33m|[m[33m/[m[1;32m|[m [1;34m|[m 
+[35m|[m [33m|[m [1;32m|[m * [33m807bf049[m index on main: ed23e40 Leaderboards All-time fixed
+[35m|[m [33m|[m [1;32m|[m[33m/[m  
+[35m|[m [33m|[m[33m/[m[1;32m|[m   
+[35m|[m * [1;32m|[m [33med23e402[m[33m ([m[1;32mmain[m[33m)[m Leaderboards All-time fixed
+[35m|[m[35m/[m [1;32m/[m  
+* [1;32m|[m   [33m20db2e80[m[33m ([m[1;31morigin/features/caadiang/improvements[m[33m)[m Merge pull request #23 from K-N-B/features/points
+[1;35m|[m[1;36m\[m [1;32m\[m  
+[1;35m|[m * [1;32m\[m   [33mc7afd7c9[m[33m ([m[1;31morigin/features/points[m[33m)[m Merge in main
+[1;35m|[m [31m|[m[32m\[m [1;32m\[m  
+[1;35m|[m * [32m\[m [1;32m\[m   [33m6eaddfb1[m Merge from main
+[1;35m|[m [33m|[m[34m\[m [32m\[m [1;32m\[m  
+[1;35m|[m * [34m|[m [32m|[m [1;32m|[m [33mb77b7ff5[m Fix keyboard inputs and added sounds
+* [34m|[m [34m|[m [32m|[m [1;32m|[m [33m2b9e556b[m[33m ([m[1;31morigin/features/frontend[m[33m)[m Modified keyboard
+[32m|[m [34m|[m[32m_[m[34m|[m[32m/[m [1;32m/[m  
+[32m|[m[32m/[m[34m|[m [34m|[m [1;32m|[m   
+* [34m|[m [34m|[m [1;32m|[m [33m6309a807[m Edited styling of sudoku numpad and added highlighting to selected cells and same rows/columns
+[34m|[m [34m|[m[34m/[m [1;32m/[m  
+[34m|[m[34m/[m[34m|[m [1;32m|[m   
+* [34m|[m [1;32m|[m [33m440cde44[m Fixed some warnings. Aligned difficulty toggle to theme
+* [34m|[m [1;32m|[m [33ma4844267[m Moved wordlists folder
+[34m|[m[34m/[m [1;32m/[m  
+* [1;32m|[m [33m5fc50c94[m Added new word lists
+* [1;32m|[m   [33m1a4d8e5d[m hmm
+[35m|[m[36m\[m [1;32m\[m  
+[35m|[m * [1;32m|[m [33m90403d46[m[33m ([m[1;31morigin/features/challenges-2[m[33m)[m fix 2
+* [36m|[m [1;32m|[m   [33m1531ae51[m Merge pull request #22 from K-N-B/feature/new-deployment
+[36m|[m[1;32m\[m [36m\[m [1;32m\[m  
+[36m|[m [1;32m|[m[36m/[m [1;32m/[m  
+[36m|[m[36m/[m[1;32m|[m [1;32m/[m   
+[36m|[m [1;32m|[m[1;32m/[m    
+[36m|[m * [33m49ee414e[m updated
+[36m|[m[36m/[m  
+* [33m8f6ed8ca[m hello
+* [33m1e873072[m ayoko na
+* [33m14ef8882[m hayss
+* [33m7cf70ff6[m geh
+*   [33m855ec5b1[m geh
+[1;33m|[m[1;34m\[m  
+[1;33m|[m * [33mdc58a3a8[m[33m ([m[1;31morigin/features/sfx[m[33m)[m Added confetti
+[1;33m|[m * [33ma932376a[m Added sfx for sudoku typing
+[1;33m|[m *   [33m00be44a9[m Merge branch 'main' of https://github.com/K-N-B/better-play-ERNI into features/sfx
+[1;33m|[m [1;35m|[m[1;36m\[m  
+[1;33m|[m [1;35m|[m *   [33me6630c69[m Merge pull request #21 from K-N-B/features/hints
+[1;33m|[m [1;35m|[m [31m|[m[32m\[m  
+[1;33m|[m [1;35m|[m [31m|[m * [33m9c630181[m[33m ([m[1;31morigin/features/hints[m[33m)[m Implemented keyboard input
+[1;33m|[m * [31m|[m [32m|[m [33m084000b1[m Minor changes
+[1;33m|[m * [31m|[m [32m|[m [33m56565d72[m Added sfx to num pad, keyboard, wordle, & ernigram
+[1;33m|[m [31m|[m[31m/[m [32m/[m  
+* [31m|[m [32m|[m [33m2ded9fc9[m Pag eto nawala pa
+* [31m|[m [32m|[m [33m00f7a35a[m commit na ulit sakit
+* [31m|[m [32m|[m   [33m236a9329[m Merge pull request #20 from K-N-B/sanagumana
+[33m|[m[34m\[m [31m\[m [32m\[m  
+[33m|[m * [31m\[m [32m\[m   [33m37019c52[m[33m ([m[1;31morigin/sanagumana[m[33m)[m Merge branch 'features/challenges-2' into sanagumana
+[33m|[m [31m|[m[33m\[m [31m\[m [32m\[m  
+[33m|[m [31m|[m[33m/[m [31m/[m [32m/[m  
+[33m|[m[33m/[m[31m|[m [31m/[m [32m/[m   
+[33m|[m [31m|[m[31m/[m [32m/[m    
+* [31m|[m [32m|[m [33me2a654a5[m basta
+* [31m|[m [32m|[m   [33m1e05e9a1[m completeChallenge
+[1;31m|[m[1;32m\[m [31m\[m [32m\[m  
+[1;31m|[m * [31m\[m [32m\[m   [33mf47eea47[m Merge branch 'main' of https://github.com/K-N-B/better-play-ERNI
+[1;31m|[m [1;33m|[m[1;34m\[m [31m\[m [32m\[m  
+[1;31m|[m * [1;34m|[m [31m|[m [32m|[m [33m6900f551[m Merge branch 'main' of https://github.com/K-N-B/better-play-ERNI
+* [1;34m|[m [1;34m|[m [31m|[m [32m|[m [33m296e9446[m[33m ([m[1;31morigin/features/challenge[m[33m)[m No testing sana gumana
+* [1;34m|[m [1;34m|[m [31m|[m [32m|[m [33m44bd6232[m Merge branch 'main' into features/challenge
+[1;35m|[m[1;34m\[m[1;34m|[m [1;34m|[m [31m|[m [32m|[m 
+[1;35m|[m * [1;34m|[m [31m|[m [32m|[m [33m86c9b0df[m Modified yml
+[1;35m|[m * [1;34m|[m [31m|[m [32m|[m [33mcf37ff2c[m Modified yml
+[1;35m|[m * [1;34m|[m [31m|[m [32m|[m [33mc776596c[m Modified yml
+[1;35m|[m * [1;34m|[m [31m|[m [32m|[m [33m39b37ccb[m Modified yml
+[1;35m|[m * [1;34m|[m [31m|[m [32m|[m [33ma1798fdb[m Modified yml
+[1;35m|[m * [1;34m|[m [31m|[m [32m|[m [33m5df3ff58[m Modified yml
+[1;35m|[m * [1;34m|[m [31m|[m [32m|[m [33m89558975[m Modified yml
+[1;35m|[m * [1;34m|[m [31m|[m [32m|[m [33mc4b7beb1[m Modified yml
+[1;35m|[m * [1;34m|[m [31m|[m [32m|[m [33mcd03c1a1[m Modified yml
+[1;35m|[m * [1;34m|[m [31m|[m [32m|[m [33mecfaba51[m Fix auth env?
+[1;35m|[m * [1;34m|[m [31m|[m [32m|[m [33maef81bf4[m Cleared flake8 errors
+* [1;36m|[m [1;34m|[m [31m|[m [32m|[m [33ma9e2888f[m[33m ([m[1;31morigin/gweafaeda[m[33m)[m side quest
+* [1;36m|[m [1;34m|[m [31m|[m [32m|[m [33m2cb1fb3e[m Merge branch 'main' into features/challenge
+[31m|[m[1;36m\[m[1;36m|[m [1;34m|[m [31m|[m [32m|[m 
+[31m|[m * [1;34m|[m [31m|[m [32m|[m   [33m94dde6da[m Merge
+[31m|[m [33m|[m[34m\[m [1;34m\[m [31m\[m [32m\[m  
+* [33m|[m [34m|[m [1;34m|[m [31m|[m [32m|[m [33m5e91e245[m Update serializers.py
+* [33m|[m [34m|[m [1;34m|[m [31m|[m [32m|[m [33m0b370d94[m Merge branch 'main' into features/challenge
+* [33m|[m [34m|[m [1;34m|[m [31m|[m [32m|[m [33me71fc950[m Merge branch 'main' into features/challenge
+[34m|[m [33m|[m [34m|[m [1;34m|[m * [32m|[m [33m5e6c9ddd[m Merge pull request #19 from K-N-B/features/hints
+[34m|[m [33m|[m [34m|[m [1;34m|[m[1;34m/[m[32m|[m [32m|[m 
+[34m|[m [33m|[m [34m|[m [1;34m|[m [32m|[m[32m/[m  
+[34m|[m [33m|[m [34m|[m [1;34m|[m [32m|[m * [33m7bfa7db7[m[33m ([m[1;31morigin/features/frontend_testing[m[33m)[m Minor change
+[34m|[m [33m|[m [34m|[m [1;34m|[m [32m|[m *   [33m87a08c29[m Merge branch 'features/hints' into features/frontend_testing
+[34m|[m [33m|[m [34m|[m [1;34m|[m [32m|[m [1;32m|[m[32m\[m  
+[34m|[m [33m|[m [34m|[m [1;34m|[m [32m|[m [1;32m|[m[32m/[m  
+[34m|[m [33m|[m [34m|[m [1;34m|[m [32m|[m[32m/[m[1;32m|[m   
+[34m|[m [33m|[m [34m|[m [1;34m|[m * [1;32m|[m   [33m6a2e5f25[m Merge branch 'main' of https://github.com/K-N-B/better-play-ERNI into features/hints
+[34m|[m [33m|[m [34m|[m [1;34m|[m [1;34m|[m[1;34m\[m [1;32m\[m  
+[34m|[m [33m|[m [34m|[m [1;34m|[m [1;34m|[m[1;34m/[m [1;32m/[m  
+[34m|[m [33m|[m [34m|[m [1;34m|[m[1;34m/[m[1;34m|[m [1;32m|[m   
+[34m|[m [33m|[m [34m|[m [1;34m|[m * [1;32m|[m [33m4e012c8f[m Added submision hints
+[34m|[m [33m|[m [34m|[m [1;34m|[m * [1;32m|[m [33m7a470425[m Implemented penalty for hint used in sudoku
+[34m|[m [33m|[m [34m|[m [1;34m|[m * [1;32m|[m   [33m90c8922a[m Merge hints and integrate in saved progress data
+[34m|[m [33m|[m [34m|[m [1;34m|[m [1;36m|[m[31m\[m [1;32m\[m  
+[34m|[m [33m|[m [34m|[m [1;34m|[m * [31m|[m [1;32m|[m [33m1a0f9682[m Merge fix
+[34m|[m [33m|[m [34m|[m [1;34m|[m * [31m|[m [1;32m|[m [33m4079592c[m Integrated to puzzle progress
+[34m|[m [33m|[m [34m|[m [1;34m|[m [31m|[m [31m|[m * [33mece4b4f4[m updated package lock
+[34m|[m [33m|[m [34m|[m [1;34m|[m [31m|[m [31m|[m * [33m7b5a32b5[m Cleaned lint
+[34m|[m [33m|[m [34m|[m [1;34m|[m [31m|[m [31m|[m * [33m24e9de7e[m Test lint-staged
+[34m|[m [33m|[m [34m|[m [1;34m|[m [31m|[m [31m|[m * [33mce934555[m test husky lint-staged
+[34m|[m [33m|[m [34m|[m [1;34m|[m [31m|[m [31m|[m * [33m4946e25f[m Configure husky
+[34m|[m [33m|[m [34m|[m [1;34m|[m [31m|[m [31m|[m * [33m724be312[m Linting/formatting
+[34m|[m [33m|[m [34m|[m [1;34m|[m [31m|[m[1;34m_[m[31m|[m[1;34m/[m  
+[34m|[m [33m|[m [34m|[m [1;34m|[m[1;34m/[m[31m|[m [31m|[m   
+[34m|[m [33m|[m [34m|[m * [31m|[m [31m|[m   [33mdf9df129[m Merge pull request #18 from K-N-B/features/wordle_checking
+[34m|[m [33m|[m [34m|[m [31m|[m[33m\[m [31m\[m [31m\[m  
+[34m|[m [33m|[m [34m|[m [31m|[m [33m|[m[31m_[m[31m|[m[31m/[m  
+[34m|[m [33m|[m [34m|[m [31m|[m[31m/[m[33m|[m [31m|[m   
+[34m|[m [33m|[m [34m|[m [31m|[m * [31m|[m [33m1351785b[m[33m ([m[1;31morigin/features/wordle_checking[m[33m)[m Added wordle word validation
+[34m|[m [33m|[m [34m|[m [31m|[m * [31m|[m [33mbbdef582[m Removed duplicate resume modal in game
+[34m|[m [33m|[m [34m|[m [31m|[m[31m/[m [31m/[m  
+[34m|[m [33m|[m [34m|[m * [31m|[m [33m17d3a0d7[m[33m ([m[1;31morigin/features/testing[m[33m)[m omit hint tests for now
+[34m|[m [33m|[m [34m|[m * [31m|[m [33m5f9602bb[m Updated gameplay serializers
+[34m|[m [33m|[m [34m|[m * [31m|[m [33m693e229c[m Removed mockgeneratedaily from urls
+[34m|[m [33m|[m [34m|[m * [31m|[m [33m9ac76cac[m Changed coverage report to 75
+[34m|[m [33m|[m [34m|[m * [31m|[m   [33m9a46dd43[m Merge branch 'main' into features/testing
+[34m|[m [33m|[m [34m|[m [34m|[m[35m\[m [31m\[m  
+[34m|[m [33m|[m [34m|[m [34m|[m * [31m|[m [33m1d1901a4[m Added hint feature
+[34m|[m [33m|[m [34m|[m[33m_[m[34m|[m[33m/[m[31m|[m [31m|[m 
+[34m|[m [33m|[m[33m/[m[34m|[m [34m|[m [31m|[m[31m/[m  
+[34m|[m [33m|[m [34m|[m [34m|[m * [33m3a8f0e69[m Added Hint for sudoku
+[34m|[m [33m|[m [34m|[m[33m_[m[34m|[m[33m/[m  
+[34m|[m [33m|[m[33m/[m[34m|[m [34m|[m   
+[34m|[m [33m|[m [34m|[m * [33m6eba9141[m basta
+[34m|[m [33m|[m [34m|[m * [33m241ee249[m Merged main
+[34m|[m [33m|[m [34m|[m[34m/[m[33m|[m 
+[34m|[m [33m|[m [34m|[m[33m/[m  
+[34m|[m [33m|[m[33m/[m[34m|[m   
+[34m|[m * [34m|[m [33m63d10fa1[m View conflic fix
+[34m|[m * [34m|[m   [33m11c2b250[m Streak count logic implemented
+[34m|[m [1;34m|[m[1;35m\[m [34m\[m  
+[34m|[m [1;34m|[m * [34m\[m   [33mc10bc251[m[33m ([m[1;31morigin/features/streakcount[m[33m)[m Added Streak Counter Logic
+[34m|[m [1;34m|[m [1;36m|[m[1;34m\[m [34m\[m  
+[34m|[m [1;34m|[m [1;36m|[m[1;34m/[m [34m/[m  
+[34m|[m [1;34m|[m[1;34m/[m[1;36m|[m [34m|[m   
+[34m|[m * [1;36m|[m [34m|[m [33m63dc551e[m Modified yml life
+[34m|[m[34m/[m [1;36m/[m [34m/[m  
+* [1;36m|[m [34m|[m   [33m0af93f83[m Merge branch 'main' into features/challenge
+[32m|[m[33m\[m [1;36m\[m [34m\[m  
+* [33m|[m [1;36m|[m [34m|[m [33m8405f462[m malas
+* [33m|[m [1;36m|[m [34m|[m [33m1010856c[m checkpoint 1
+[33m|[m [33m|[m * [34m|[m [33me50b456c[m Added Streak logic
+[33m|[m [33m|[m[33m/[m [34m/[m  
+[33m|[m * [34m|[m   [33mdff1a8b5[m Merge branch 'feature/new-deployment'
+[33m|[m [34m|[m[35m\[m [34m\[m  
+[33m|[m [34m|[m * [34m|[m [33m3b0e460b[m Added requirements unicorn
+[33m|[m * [35m|[m [34m|[m [33m29527dd2[m Fresh start
+[33m|[m [36m|[m[35m\[m[35m|[m [34m|[m 
+[33m|[m [36m|[m * [34m|[m [33m14e3b278[m Merge pull request #14 from K-N-B/feature/new-deployment
+[33m|[m [36m|[m[33m/[m[1;33m|[m [34m|[m 
+[33m|[m[33m/[m[36m|[m [1;33m|[m [34m|[m 
+[33m|[m [36m|[m * [34m|[m   [33m734eb095[m Cron for daily puzzle
+[33m|[m [36m|[m [1;34m|[m[33m\[m [34m\[m  
+[33m|[m [36m|[m[33m_[m[1;34m|[m[33m/[m [34m/[m  
+[33m|[m[33m/[m[36m|[m [1;34m|[m [34m|[m   
+[33m|[m [36m|[m * [34m|[m [33m9d2a3ae3[m Configuration update
+[33m|[m [36m|[m * [34m|[m [33m444f81e8[m Configuration update
+[33m|[m [36m|[m * [34m|[m [33mc608254e[m restoration
+[33m|[m [36m|[m * [34m|[m [33m48d5de4b[m Configuration update
+[33m|[m [36m|[m * [34m|[m [33mf1375a24[m Configuration update
+[33m|[m [36m|[m * [34m|[m [33mdc6fc449[m Configuration
+[33m|[m [36m|[m * [34m|[m [33m4b0d575d[m Setting configuration update
+[33m|[m [36m|[m * [34m|[m [33ma54cd9e4[m Setting configuration cookies
+[33m|[m [36m|[m * [34m|[m [33mc4a60e9d[m Pycache
+[33m|[m [36m|[m * [34m|[m [33mc37cb5c1[m Configure urls
+[33m|[m [36m|[m * [34m|[m [33m28cd148a[m Added Helth check url
+[33m|[m [36m|[m * [34m|[m [33mf5fdd241[m Test small fix
+[33m|[m [36m|[m * [34m|[m [33m340753f0[m Frontend url update
+[33m|[m * [1;35m|[m [34m|[m [33ma977cdc0[m Conflict mitigate
+[33m|[m * [1;35m|[m [34m|[m   [33m03b3cc25[m conflict fix
+[33m|[m [1;36m|[m[33m\[m [1;35m\[m [34m\[m  
+[33m|[m [1;36m|[m[33m/[m [1;35m/[m [34m/[m  
+[33m|[m[33m/[m[1;36m|[m [1;35m|[m [34m|[m   
+[33m|[m [1;36m|[m [1;35m|[m * [33m922d17a8[m Updated coveragerc
+[33m|[m [1;36m|[m [1;35m|[m * [33m53ee42ee[m Updated coveragerc
+[33m|[m [1;36m|[m [1;35m|[m * [33m80cc2e63[m Updated htmlcov artifact
+[33m|[m [1;36m|[m [1;35m|[m * [33m0353544a[m modified yml file
+[33m|[m [1;36m|[m [1;35m|[m * [33me54c7920[m modified yml file
+[33m|[m [1;36m|[m [1;35m|[m * [33m13b12d19[m Configured .coveragerc
+[33m|[m [1;36m|[m [1;35m|[m * [33mbb85f6a2[m modified yml file
+[33m|[m [1;36m|[m [1;35m|[m * [33m559c78cc[m Modified yml file
+[33m|[m [1;36m|[m [1;35m|[m * [33me16ab6f1[m Removed settings config for tests
+[33m|[m [1;36m|[m [1;35m|[m * [33mca063837[m Updated workflow yml file
+[33m|[m [1;36m|[m [1;35m|[m * [33m76ae74fc[m Added test caes for shop, leaderboard, and for remaining files. 81.86% coverage
+[33m|[m [1;36m|[m [1;35m|[m * [33m7f0234be[m Added test cases for games and activity apps, fixed errors from testing
+[33m|[m [1;36m|[m [1;35m|[m * [33m89affc7e[m Added gameplay test cases with all tests passed
+[33m|[m [1;36m|[m [1;35m|[m *   [33m44cdeaee[m Merge branch main
+[33m|[m [1;36m|[m [1;35m|[m [32m|[m[33m\[m  
+[33m|[m [1;36m|[m[33m_[m[1;35m|[m[33m_[m[32m|[m[33m/[m  
+[33m|[m[33m/[m[1;36m|[m [1;35m|[m [32m|[m   
+* [1;36m|[m [1;35m|[m [32m|[m [33mc38a1ec3[m working na
+[33m|[m [1;36m|[m [1;35m|[m * [33m04052003[m Added initial tests for gameplay module
+[33m|[m [1;36m|[m [1;35m|[m * [33m3dc951ed[m Configure testing for user module.
+[33m|[m [1;36m|[m[33m_[m[1;35m|[m[33m/[m  
+[33m|[m[33m/[m[1;36m|[m [1;35m|[m   
+* [1;36m|[m [1;35m|[m   [33mabcbeec1[m Merge branch 'main' into bbm
+[34m|[m[35m\[m [1;36m\[m [1;35m\[m  
+[34m|[m * [1;36m|[m [1;35m|[m [33me7e83a3a[m Changed to another project for supabase for region change
+* [35m|[m [1;36m|[m [1;35m|[m [33mfaba9667[m ma'am tapos na po
+* [35m|[m [1;36m|[m [1;35m|[m [33mfa636315[m Update models.py
+[35m|[m[35m/[m [1;36m/[m [1;35m/[m  
+[35m|[m [1;36m|[m [1;35m|[m * [33m9ca58760[m[33m ([m[1;31morigin/deployment-yughie[m[33m)[m setting update
+[35m|[m [1;36m|[m [1;35m|[m[1;36m/[m  
+[35m|[m [1;36m|[m[1;36m/[m[1;35m|[m   
+[35m|[m * [1;35m|[m [33m4d32b8c4[m Small code fix
+[35m|[m * [1;35m|[m   [33mff2a2152[m Main pull request
+[35m|[m [1;31m|[m[35m\[m [1;35m\[m  
+[35m|[m [1;31m|[m[35m/[m [1;35m/[m  
+[35m|[m[35m/[m[1;31m|[m [1;35m|[m   
+* [1;31m|[m [1;35m|[m [33mad41cd26[m pwede nato
+* [1;31m|[m [1;35m|[m   [33m5e8e6112[m Merge branch 'main' into bounce-na-ko-g
+[1;33m|[m[1;34m\[m [1;31m\[m [1;35m\[m  
+[1;33m|[m * [1;31m|[m [1;35m|[m [33m7c67c098[m[33m ([m[1;31morigin/features/yna[m[33m)[m Updated Resume Game Screen component.
+[1;33m|[m * [1;31m|[m [1;35m|[m [33m0541c46f[m Moved results game screen to game page
+[1;33m|[m * [1;31m|[m [1;35m|[m [33m89eafa52[m Moved already played screen to game page
+* [1;34m|[m [1;31m|[m [1;35m|[m [33me38d3bef[m first commit
+[1;34m|[m [1;34m|[m * [1;35m|[m   [33mffd058e8[m pull request
+[1;34m|[m [1;34m|[m [1;35m|[m[1;34m\[m [1;35m\[m  
+[1;34m|[m [1;34m|[m [1;35m|[m[1;34m/[m [1;35m/[m  
+[1;34m|[m [1;34m|[m[1;34m/[m[1;35m|[m [1;35m|[m   
+[1;34m|[m [1;34m|[m * [1;35m|[m [33m67cf7320[m Cleanup pycache
+[1;34m|[m [1;34m|[m [1;36m|[m [1;35m|[m * [33m4e5011fa[m[33m ([m[1;31morigin/features/deployment[m[33m)[m Frontend base Url
+[1;34m|[m [1;34m|[m [1;36m|[m [1;35m|[m * [33ma5b7408b[m Endpoint optimize
+[1;34m|[m [1;34m|[m [1;36m|[m [1;35m|[m * [33me6a0cdbd[m Debug set to false
+[1;34m|[m [1;34m|[m [1;36m|[m [1;35m|[m * [33m4a8c3de7[m Authentication configuration
+[1;34m|[m [1;34m|[m [1;36m|[m [1;35m|[m[1;35m/[m  
+[1;34m|[m [1;34m|[m [1;36m|[m * [33mdd48278e[m Deployment configuration
+[1;34m|[m [1;34m|[m [1;36m|[m * [33m9b2be0a9[m added gunicorn
+[1;34m|[m [1;34m|[m [1;36m|[m * [33m67f3f50d[m deployment configuration
+[1;34m|[m [1;34m|[m [1;36m|[m *   [33med8ba78f[m Deployment update
+[1;34m|[m [1;34m|[m [1;36m|[m [32m|[m[1;34m\[m  
+[1;34m|[m [1;34m|[m [1;36m|[m[1;34m_[m[32m|[m[1;34m/[m  
+[1;34m|[m [1;34m|[m[1;34m/[m[1;36m|[m [32m|[m   
+[1;34m|[m * [1;36m|[m [32m|[m [33m287b6036[m Moved requirements.txt
+[1;34m|[m * [1;36m|[m [32m|[m [33m4b60721e[m added som files
+[1;34m|[m[1;34m/[m [1;36m/[m [32m/[m  
+* [1;36m|[m [32m|[m   [33mf00808af[m Merge branch 'final-na-final-na-final-na'
+[34m|[m[35m\[m [1;36m\[m [32m\[m  
+[34m|[m * [1;36m|[m [32m|[m [33m782eaedd[m[33m ([m[1;31morigin/final-na-final-na-final-na[m[33m)[m Merge branch 'main' into final-na-final-na-final-na
+[34m|[m [36m|[m[1;36m\[m[1;36m|[m [32m|[m 
+[34m|[m * [1;36m|[m [32m|[m [33m8269b7f9[m gumana na haahah
+[34m|[m * [1;36m|[m [32m|[m [33md5397777[m PLEASE
+[34m|[m * [1;36m|[m [32m|[m [33mac1370c8[m 50/50 safe
+[34m|[m * [1;36m|[m [32m|[m [33mbec2475c[m ayoko na
+[34m|[m * [1;36m|[m [32m|[m [33me6a27bc3[m ewan muna
+[34m|[m * [1;36m|[m [32m|[m [33m5526c8b4[m eto talaga
+* [1;31m|[m [1;36m|[m [32m|[m [33m775eafa2[m Update README.md
+[1;36m|[m [1;31m|[m[1;36m/[m [32m/[m  
+[1;36m|[m[1;36m/[m[1;31m|[m [32m|[m   
+[1;36m|[m [1;31m|[m * [33m8159b6e5[m accept incoming
+[1;36m|[m [1;31m|[m * [33mfceb305b[m Setting configuration update
+[1;36m|[m [1;31m|[m *   [33mff01d6ce[m Remove __pycache__ files from version control
+[1;36m|[m [1;31m|[m [1;32m|[m[1;36m\[m  
+[1;36m|[m [1;31m|[m[1;36m_[m[1;32m|[m[1;36m/[m  
+[1;36m|[m[1;36m/[m[1;31m|[m [1;32m|[m   
+* [1;31m|[m [1;32m|[m [33m40214bde[m Moved obsolete games folder to obsolete folder and fixed ernigram page on displaying ëmployee to guess if not using employee image for the day
+* [1;31m|[m [1;32m|[m   [33m1f42e560[m[33m ([m[1;31morigin/features/byyags2[m[33m)[m Merge branch 'main' of https://github.com/K-N-B/better-play-ERNI
+[1;34m|[m[1;35m\[m [1;31m\[m [1;32m\[m  
+[1;34m|[m * [1;31m\[m [1;32m\[m   [33m158d229a[m Merge pull request #13 from K-N-B/features/deployment
+[1;34m|[m [1;36m|[m[31m\[m [1;31m\[m [1;32m\[m  
+* [1;36m|[m [31m|[m [1;31m|[m [1;32m|[m [33mfd43cefa[m merge to main
+* [1;36m|[m [31m|[m [1;31m|[m [1;32m|[m   [33m748369dd[m Merge branch 'features/byyags2'
+[1;36m|[m[33m\[m [1;36m\[m [31m\[m [1;31m\[m [1;32m\[m  
+[1;36m|[m [33m|[m[1;36m/[m [31m/[m [1;31m/[m [1;32m/[m  
+[1;36m|[m[1;36m/[m[33m|[m [31m|[m [1;31m|[m [1;32m|[m   
+[1;36m|[m * [31m|[m [1;31m|[m [1;32m|[m [33m14a3bbb6[m commit changes
+[1;36m|[m * [31m|[m [1;31m|[m [1;32m|[m [33mab109878[m commit changes
+[1;36m|[m * [31m|[m [1;31m|[m [1;32m|[m [33md146082e[m merge
+[1;36m|[m * [31m|[m [1;31m|[m [1;32m|[m   [33m3776da07[m Merge remote-tracking branch 'origin' into features/byyags2
+[1;36m|[m [34m|[m[35m\[m [31m\[m [1;31m\[m [1;32m\[m  
+[1;36m|[m * [35m|[m [31m|[m [1;31m|[m [1;32m|[m [33m143b1e0f[m merge
+[1;36m|[m * [35m|[m [31m|[m [1;31m|[m [1;32m|[m [33m30421e56[m trying to add profile pic
+[1;36m|[m * [35m|[m [31m|[m [1;31m|[m [1;32m|[m [33m9ff416e5[m streak tests completed
+[1;36m|[m * [35m|[m [31m|[m [1;31m|[m [1;32m|[m [33me31e6be0[m localhost 8000
+[1;36m|[m * [35m|[m [31m|[m [1;31m|[m [1;32m|[m   [33m02bd05c7[m Merge branch 'features/byyags2' of https://github.com/K-N-B/better-play-ERNI into features/byyags2
+[1;36m|[m [36m|[m[1;31m\[m [35m\[m [31m\[m [1;31m\[m [1;32m\[m  
+[1;36m|[m [36m|[m * [35m|[m [31m|[m [1;31m|[m [1;32m|[m [33mf1e9faf6[m streak count integration
+[1;36m|[m [36m|[m * [35m|[m [31m|[m [1;31m|[m [1;32m|[m [33m399c0109[m localhost 8080
+[1;36m|[m [36m|[m [1;31m|[m [35m|[m [31m|[m [1;31m|[m * [33md7354b1b[m git ignore update
+[1;36m|[m [36m|[m [1;31m|[m [35m|[m [31m|[m [1;31m|[m * [33m5baea8d1[m Modify fixed clue for ernigram employee
+[1;36m|[m [36m|[m [1;31m|[m [35m|[m [31m|[m [1;31m|[m * [33m489fad95[m Added cron job
+[1;36m|[m [36m|[m [1;31m|[m [35m|[m [31m|[m [1;31m|[m * [33m5fc6de6f[m Allowed host issue update
+[1;36m|[m [36m|[m [1;31m|[m [35m|[m [31m|[m [1;31m|[m * [33m8c1c88be[m Fix ALLOWED_HOSTS and CSRF_TRUSTED_ORIGINS for Render
+[1;36m|[m [36m|[m [1;31m|[m [35m|[m [31m|[m [1;31m|[m * [33m10b4d22d[m Configuration deployment setting
+[1;36m|[m [36m|[m [1;31m|[m [35m|[m [31m|[m [1;31m|[m * [33m1c209f9c[m Configuration deployment setting
+[1;36m|[m [36m|[m [1;31m|[m [35m|[m [31m|[m [1;31m|[m * [33m40cb6299[m added allowed cors
+[1;36m|[m [36m|[m [1;31m|[m [35m|[m [31m|[m [1;31m|[m * [33m7f06c846[m added gunicorn
+[1;36m|[m [36m|[m [1;31m|[m [35m|[m [31m|[m [1;31m|[m * [33m794f38ac[m Setting static configuration
+[1;36m|[m [36m|[m [1;31m|[m [35m|[m [31m|[m [1;31m|[m * [33m28883495[m Moved and modify build.sh
+[1;36m|[m [36m|[m [1;31m|[m [35m|[m [31m|[m [1;31m|[m * [33mc092a106[m Add executable build script for Render
+[1;36m|[m [36m|[m [1;31m|[m [35m|[m [31m|[m [1;31m|[m[31m/[m  
+[1;36m|[m [36m|[m [1;31m|[m [35m|[m [31m|[m[31m/[m[1;31m|[m   
+[1;36m|[m [36m|[m [1;31m|[m [35m|[m * [1;31m|[m [33mcfeb1308[m moved requirements to backend folder
+[1;36m|[m [36m|[m[1;36m_[m[1;31m|[m[1;36m_[m[35m|[m[1;36m/[m [1;31m/[m  
+[1;36m|[m[1;36m/[m[36m|[m [1;31m|[m [35m|[m [1;31m|[m   
+[1;36m|[m [36m|[m [1;31m|[m [35m|[m [1;31m|[m * [33mae00abe4[m[33m ([m[1;31morigin/mallstano[m[33m)[m checkpoint 1.5
+[1;36m|[m [36m|[m [1;31m|[m [35m|[m [1;31m|[m[1;31m/[m  
+[1;36m|[m [36m|[m [1;31m|[m [35m|[m * [33m88180a91[m medjo gumagana
+[1;36m|[m [36m|[m [1;31m|[m [35m|[m * [33m316e3609[m maybe
+[1;36m|[m [36m|[m [1;31m|[m [35m|[m * [33maffb428e[m hello
+[1;36m|[m [36m|[m [1;31m|[m [35m|[m *   [33m343e1cd7[m Merge branch 'main' into mallstano
+[1;36m|[m [36m|[m [1;31m|[m [35m|[m [1;33m|[m[1;36m\[m  
+[1;36m|[m [36m|[m[1;36m_[m[1;31m|[m[1;36m_[m[35m|[m[1;36m_[m[1;33m|[m[1;36m/[m  
+[1;36m|[m[1;36m/[m[36m|[m [1;31m|[m [35m|[m [1;33m|[m   
+* [36m|[m [1;31m|[m [35m|[m [1;33m|[m [33m1297bd61[m[33m ([m[1;31morigin/feature/scoring[m[33m)[m Fixed easy and hard suoku generation
+* [36m|[m [1;31m|[m [35m|[m [1;33m|[m   [33m2cb9fb0b[m Merge pull request #12 from K-N-B/features/merge
+[35m|[m[1;36m\[m [36m\[m [1;31m\[m [35m\[m [1;33m\[m  
+[35m|[m [1;36m|[m[35m_[m[36m|[m[35m_[m[1;31m|[m[35m/[m [1;33m/[m  
+[35m|[m[35m/[m[1;36m|[m [36m|[m [1;31m|[m [1;33m|[m   
+[35m|[m * [36m|[m [1;31m|[m [1;33m|[m [33m5f107df2[m Optimize game generation
+[35m|[m * [36m|[m [1;31m|[m [1;33m|[m   [33maaf71241[m Merge branch 'main' of https://github.com/K-N-B/better-play-ERNI into features/merge
+[35m|[m [31m|[m[35m\[m [36m\[m [1;31m\[m [1;33m\[m  
+[35m|[m [31m|[m[35m/[m [36m/[m [1;31m/[m [1;33m/[m  
+[35m|[m[35m/[m[31m|[m [36m|[m [1;31m|[m [1;33m|[m   
+* [31m|[m [36m|[m [1;31m|[m [1;33m|[m   [33m8919c3a0[m Merge pull request #11 from K-N-B/features/merge
+[36m|[m[34m\[m [31m\[m [36m\[m [1;31m\[m [1;33m\[m  
+[36m|[m [34m|[m[36m_[m[31m|[m[36m/[m [1;31m/[m [1;33m/[m  
+[36m|[m[36m/[m[34m|[m [31m|[m [1;31m|[m [1;33m|[m   
+[36m|[m [34m|[m * [1;31m|[m [1;33m|[m [33m13121784[m Optimize puzzle generation
+[36m|[m [34m|[m[34m/[m [1;31m/[m [1;33m/[m  
+[36m|[m * [1;31m|[m [1;33m|[m [33mc426e6c8[m Games and Session save Progress update
+[36m|[m * [1;31m|[m [1;33m|[m [33m60c53a0b[m Fixed RSS
+[36m|[m * [1;31m|[m [1;33m|[m   [33m87f090b1[m Merge branch 'features/integration' of https://github.com/K-N-B/better-play-ERNI into features/integration
+[36m|[m [35m|[m[36m\[m [1;31m\[m [1;33m\[m  
+[36m|[m [35m|[m * [1;31m|[m [1;33m|[m [33m0d194d81[m AI PROMTING AND ERNIGRAM IMAGE
+[36m|[m [35m|[m[36m/[m [1;31m/[m [1;33m/[m  
+[36m|[m[36m/[m[35m|[m [1;31m|[m [1;33m|[m   
+[36m|[m * [1;31m|[m [1;33m|[m [33m9f847546[m Modified README.md for documentation and configured tests for main branch only
+[36m|[m * [1;31m|[m [1;33m|[m [33m58e036d1[m Removed test folder from flake8
+[36m|[m * [1;31m|[m [1;33m|[m [33m71010c44[m Changed cd on tests.yml
+[36m|[m * [1;31m|[m [1;33m|[m [33ma6694f8a[m Changed installed apps
+[36m|[m * [1;31m|[m [1;33m|[m [33m9a689fbf[m Commented out test.py flags from gflake8
+[36m|[m * [1;31m|[m [1;33m|[m [33mf84e61a4[m Ignore test files for flake for some errors
+[36m|[m * [1;31m|[m [1;33m|[m [33meffd0882[m Ignore test files for flake for some errors
+[36m|[m * [1;31m|[m [1;33m|[m [33me2f1c5a0[m Ignore test files for flake for some errors
+[36m|[m * [1;31m|[m [1;33m|[m [33maa4da0d5[m Ignore test files for flake for some errors
+[36m|[m * [1;31m|[m [1;33m|[m [33meff4d1ea[m Ignore test files for flake for some errors
+[36m|[m * [1;31m|[m [1;33m|[m [33m8bae4a2c[m Tried fixing flake8 flags
+[36m|[m * [1;31m|[m [1;33m|[m [33mf9675a63[m Moved requirements.txt
+[36m|[m * [1;31m|[m [1;33m|[m [33mcf7dc94e[m Add GitHub Actions workflow
+[36m|[m * [1;31m|[m [1;33m|[m [33m79cbc6d1[m Changed workflow dir
+[36m|[m * [1;31m|[m [1;33m|[m [33m32522cf8[m Changed workflow dir
+[36m|[m * [1;31m|[m [1;33m|[m [33md9de8988[m Test GitHub Actions workflow
+[36m|[m * [1;31m|[m [1;33m|[m [33mecafb0b5[m Test GitHub Actions workflow
+[36m|[m * [1;31m|[m [1;33m|[m [33maaf82ccd[m Modified test.yml to run for all branch push
+[36m|[m * [1;31m|[m [1;33m|[m [33mf94d1952[m Add CI workflow for linting and tests
+[36m|[m * [1;31m|[m [1;33m|[m [33mc46060e3[m Updated with pre-commits
+[36m|[m * [1;31m|[m [1;33m|[m [33m0254b9dc[m Revised README
+[36m|[m * [1;31m|[m [1;33m|[m [33m0dffa528[m Added tests for other apps and pytests
+[36m|[m * [1;31m|[m [1;33m|[m [33m06a3ae89[m pytest testing setup
+[36m|[m * [1;31m|[m [1;33m|[m [33m1e92b25d[m Added linting and formatting for backend
+[36m|[m[36m/[m [1;31m/[m [1;33m/[m  
+[36m|[m [1;31m|[m * [33m06838101[m Merge branch 'main' into licanold-
+[36m|[m [1;31m|[m * [33m69eed0b4[m Working to
+[36m|[m [1;31m|[m * [33m576a8e21[m Merge branch 'impediments' into licanold-
+[36m|[m [1;31m|[m[36m/[m[1;32m|[m 
+[36m|[m[36m/[m[1;31m|[m [1;32m|[m 
+* [1;31m|[m [1;32m|[m [33m476cdb3f[m Added media directory to push
+[1;31m|[m[1;31m/[m [1;32m/[m  
+* [1;32m|[m [33md7c98a70[m Slight changes
+* [1;32m|[m   [33m52c23a19[m Merge branch 'main' of https://github.com/K-N-B/better-play-ERNI
+[1;33m|[m[1;34m\[m [1;32m\[m  
+[1;33m|[m * [1;32m\[m   [33mce9d7a40[m Merge pull request #10 from K-N-B/features/integration
+[1;33m|[m [1;35m|[m[1;36m\[m [1;32m\[m  
+[1;33m|[m [1;35m|[m * [1;32m|[m [33m47e3779d[m Debug success for session save
+[1;33m|[m * [1;36m|[m [1;32m|[m [33m278f54c8[m Gample debug completed
+[1;33m|[m [31m|[m[1;36m\[m[1;36m|[m [1;32m|[m 
+[1;33m|[m [31m|[m * [1;32m|[m [33m2b22692c[m Debug complete
+[1;33m|[m [31m|[m[31m/[m [1;32m/[m  
+* [31m/[m [1;32m/[m [33m7f6a0715[m Other change
+[31m|[m[31m/[m [1;32m/[m  
+* [1;32m|[m [33m11bdf5ff[m Add image for ernigram
+* [1;32m|[m [33m56b83624[m migration of feature save session
+* [1;32m|[m [33mb7c7f3ab[m Add model colum for ernigram image
+* [1;32m|[m [33m4c28f715[m Prettier format
+[32m|[m [1;32m|[m * [33m18ad765f[m[33m ([m[1;31morigin/features/yughie2[m[33m)[m ignore .enb
+[32m|[m [1;32m|[m * [33m628bd277[m Merge branch 'main' of into features/yughie
+[32m|[m [1;32m|[m *   [33m45212b98[m Save session merge
+[32m|[m [1;32m|[m [34m|[m[35m\[m  
+[32m|[m [1;32m|[m [34m|[m * [33m2192ba22[m feat: Add .env to gitignore
+[32m|[m [1;32m|[m [34m|[m * [33mf334f369[m Remove .env and add to .gitignore
+[32m|[m [1;32m|[m [34m|[m * [33m0fafe8a6[m moved gitignore file
+[32m|[m [1;32m|[m [34m|[m * [33m64b8ce8a[m moved gitignore file
+[32m|[m [1;32m|[m [34m|[m *   [33m28122ac2[m Deleted obsolete backend
+[32m|[m [1;32m|[m [34m|[m [36m|[m[1;31m\[m  
+[32m|[m [1;32m|[m [34m|[m * [1;31m|[m [33m5d929230[m Successfully added the hint for sudoku
+[32m|[m [1;32m|[m [34m|[m * [1;31m|[m   [33m2cbcdf35[m Implemented session save endpoints
+[32m|[m [1;32m|[m [34m|[m [1;32m|[m[1;33m\[m [1;31m\[m  
+[32m|[m [1;32m|[m * [1;32m|[m [1;33m|[m [1;31m|[m [33ma05f0c00[m Freeze Requirement
+[32m|[m [1;32m|[m * [1;32m|[m [1;33m|[m [1;31m|[m   [33md373872b[m Pull from main
+[32m|[m [1;32m|[m [1;34m|[m[1;31m\[m [1;32m\[m [1;33m\[m [1;31m\[m  
+[32m|[m [1;32m|[m [1;34m|[m [1;31m|[m [1;32m|[m[1;31m_[m[1;33m|[m[1;31m/[m  
+[32m|[m [1;32m|[m [1;34m|[m [1;31m|[m[1;31m/[m[1;32m|[m [1;33m|[m   
+[32m|[m [1;32m|[m [1;34m|[m * [1;32m|[m [1;33m|[m [33me3653c22[m Wordle grid handles up to 10 letters now
+[32m|[m [1;32m|[m [1;34m|[m * [1;32m|[m [1;33m|[m [33mb5dcf30c[m Already fetching daily puzzles. Needs submission and puzzle attempt asap. Needs handling for wordle.
+[32m|[m [1;32m|[m [1;34m|[m * [1;32m|[m [1;33m|[m [33macc0c3aa[m Connected GET api/games/daily to gameService.ts
+[32m|[m [1;32m|[m [1;34m|[m * [1;32m|[m [1;33m|[m [33mfcb4f4cc[m Added claimed rewards/shop history feature
+[32m|[m [1;32m|[m [1;34m|[m * [1;32m|[m [1;33m|[m [33mf76e8068[m Fixed picture handling for rewards card. Other responsive changes.
+[32m|[m [1;32m|[m [1;34m|[m * [1;32m|[m [1;33m|[m [33meed76d19[m Connected shop app endpoints to shop frontend
+[32m|[m [1;32m|[m [1;34m|[m * [1;32m|[m [1;33m|[m [33ma946ba81[m Added rewards and claimedRewards models and endpoints
+[32m|[m [1;32m|[m [1;34m|[m [1;33m|[m [1;32m|[m[1;33m/[m  
+[32m|[m [1;32m|[m [1;34m|[m [1;33m|[m[1;33m/[m[1;32m|[m   
+[32m|[m [1;32m|[m * [1;33m|[m [1;32m|[m [33mcc369627[m Freeze requirements
+[32m|[m [1;32m|[m * [1;33m|[m [1;32m|[m   [33m3b5d7c2f[m Resolve psc merge issue
+[32m|[m [1;32m|[m [1;36m|[m[1;32m\[m [1;33m\[m [1;32m\[m  
+[32m|[m [1;32m|[m [1;36m|[m [1;32m|[m [1;33m|[m[1;32m/[m  
+[32m|[m [1;32m|[m [1;36m|[m [1;32m|[m[1;32m/[m[1;33m|[m   
+[32m|[m [1;32m|[m [1;36m|[m * [1;33m|[m [33m247c2433[m Integrated Erni webscrape Content to Ernigram
+[32m|[m [1;32m|[m * [31m|[m [1;33m|[m   [33m3162647e[m Resolve conflict
+[32m|[m [1;32m|[m [32m|[m[1;33m\[m [31m\[m [1;33m\[m  
+[32m|[m [1;32m|[m [32m|[m [1;33m|[m [31m|[m[1;33m/[m  
+[32m|[m [1;32m|[m [32m|[m [1;33m|[m[1;33m/[m[31m|[m   
+[32m|[m [1;32m|[m [32m|[m * [31m|[m [33m1a06ecf1[m Cleaned game pages, postGameResults modal, Challenge modal
+[32m|[m [1;32m|[m [32m|[m * [31m|[m [33ma2a65af7[m Changed font to poppins + other repsonsiveness
+[32m|[m [1;32m|[m [32m|[m * [31m|[m [33m27c13746[m Add mobile responsiveness for leaderboard page
+[32m|[m [1;32m|[m [32m|[m * [31m|[m [33md041b21c[m Updated challenge page. Added handling for leaderboard preview in the home page
+[32m|[m [1;32m|[m [32m|[m * [31m|[m [33m210aabcc[m Adjusted challenge page and items
+[32m|[m [1;32m|[m [32m|[m * [31m|[m [33m96d5d493[m Handling of game card/section for smaller view
+[32m|[m [1;32m|[m [32m|[m * [31m|[m [33meed14490[m Mobile responsive nav bar
+[32m|[m [1;32m|[m [32m|[m [31m|[m[31m/[m  
+[32m|[m [1;32m|[m [32m|[m * [33md0009589[m Updated challenge modal and page. Need to update challenge item later
+[32m|[m [1;32m|[m [32m|[m * [33mc2e04df3[m Refined rewards card and navbar
+[32m|[m [1;32m|[m [32m|[m *   [33m54c9a3cc[m Merge branch 'features/yna'
+[32m|[m [1;32m|[m [32m|[m [34m|[m[35m\[m  
+[32m|[m [1;32m|[m [32m|[m [34m|[m * [33m46adaeb7[m Updated shop
+[32m|[m [1;32m|[m [32m|[m [34m|[m * [33m48cd959a[m Added shop page. Modified users model to have current_points
+[32m|[m [1;32m|[m [32m|[m * [35m|[m [33m9067a00f[m Requirements added
+[32m|[m [1;32m|[m [32m|[m * [35m|[m [33m5aea5800[m Clean up ignored files and apply .gitignore
+[32m|[m [1;32m|[m [32m|[m [36m|[m[35m\[m[35m|[m 
+[32m|[m [1;32m|[m [32m|[m [36m|[m * [33me33bbd70[m Revised leaderboard look
+[32m|[m [1;32m|[m [32m|[m * [1;31m|[m [33mb3f796c2[m Ernigram AI generator implemented
+[32m|[m [1;32m|[m [32m|[m * [1;31m|[m [33mf7cf81ea[m Implemented Sudoku backend data generation
+[32m|[m [1;32m|[m [32m|[m * [1;31m|[m [33m1f56ba61[m Freeeze dpendencies
+[32m|[m [1;32m|[m [32m|[m * [1;31m|[m [33m7831fb2e[m Integrated AI for generating wordle word game
+[32m|[m [1;32m|[m [32m|[m * [1;31m|[m [33m09d3495a[m added url endpoint for daily puzzles
+[32m|[m [1;32m|[m [32m|[m * [1;31m|[m [33m9069410b[m Remove cached pyc files and update .gitignore
+[32m|[m [1;32m|[m [32m|[m [1;31m|[m[1;31m/[m  
+[32m|[m [1;32m|[m [32m|[m * [33mf6e48423[m Minor config changes
+[32m|[m [1;32m|[m [32m|[m * [33m0a649bf9[m Added all models/tables
+[32m|[m [1;32m|[m [32m|[m *   [33m0b55218a[m Merge branch 'features/database'
+[32m|[m [1;32m|[m [32m|[m [1;32m|[m[1;33m\[m  
+[32m|[m [1;32m|[m [32m|[m [1;32m|[m * [33me084ab23[m Migrated to supabase from GCP
+[32m|[m [1;32m|[m [32m|[m * [1;33m|[m [33mcbd9bbaf[m Clean working
+[32m|[m [1;32m|[m * [1;33m|[m [1;33m|[m [33med03a1b0[m merge main
+[32m|[m [1;32m|[m [1;33m|[m[1;33m/[m [1;33m/[m  
+[32m|[m [1;32m|[m * [1;33m|[m [33m49e4c60b[m Deleted obsolete folders/files
+[32m|[m [1;32m|[m * [1;33m|[m [33m84f80cf7[m Backend files
+[32m|[m [1;32m|[m [1;33m|[m[1;33m/[m  
+[32m|[m [1;32m|[m * [33mab60e97c[m Fixed completeProfile endpoint
+[32m|[m [1;32m|[m * [33m68989dc2[m Migrate leaderboard table
+[32m|[m [1;32m|[m * [33m9706fcb7[m Added leaderboards app and models
+[32m|[m [1;32m|[m * [33mf28df152[m created games, gameplay models
+[32m|[m [1;32m|[m * [33m3b4fa399[m Connected first time modal for department setup to POST endpoint
+[32m|[m [1;32m|[m * [33m0a11063c[m Created get departments function
+[32m|[m [1;32m|[m * [33mc20ec200[m DepartmentLiist update
+[32m|[m [1;32m|[m *   [33m01a3963d[m Resolved merge conflicts and added post department endpoint
+[32m|[m [1;32m|[m [1;34m|[m[1;35m\[m  
+[32m|[m [1;32m|[m [1;34m|[m * [33m27533f6c[m Updated user auth. Working?
+[32m|[m [1;32m|[m * [1;35m|[m [33m394fe16c[m added department post endpoint
+[32m|[m [1;32m|[m [1;35m|[m[1;35m/[m  
+[32m|[m [1;32m|[m * [33m0a55a278[m freezed dependencies
+[32m|[m [1;32m|[m * [33m6dc6cb5b[m .
+[32m|[m [1;32m|[m * [33m4e1d8da1[m Updated requirements.txt and .gitignore
+[32m|[m [1;32m|[m * [33mcfb08bc7[m Initial connections with user auth
+[32m|[m [1;32m|[m * [33maee1f875[m Connected to Google Cloud SQL for hosting database
+[32m|[m [1;32m|[m * [33mdc34b24c[m Added urls, views, and serializers
+[32m|[m [1;32m|[m * [33m917e00c8[m Added auth to urls.py
+[32m|[m [1;32m|[m * [33m68e6a911[m Started on Azure auth
+[32m|[m [1;32m|[m * [33m278474ce[m Added initial django and database
+[32m|[m [1;32m|[m *   [33m69591c39[m Merge branch 'backend/yughie' of https://github.com/K-N-B/better-play-ERNI into backend/yughie
+[32m|[m [1;32m|[m [1;36m|[m[31m\[m  
+[32m|[m [1;32m|[m [1;36m|[m *   [33mfa30d1d4[m "Spectacular added"
+[32m|[m [1;32m|[m [1;36m|[m [32m|[m[33m\[m  
+[32m|[m [1;32m|[m [1;36m|[m [32m|[m * [33md9074f79[m added spectacular
+[32m|[m [1;32m|[m [1;36m|[m * [33m|[m [33maeacf1c6[m Backend data integrated to frontend
+[32m|[m [1;32m|[m [1;36m|[m [33m|[m[33m/[m  
+[32m|[m [1;32m|[m [1;36m|[m * [33mc58c32c6[m Added updated requirements
+[32m|[m [1;32m|[m [1;36m|[m *   [33ma2b725c5[m Leaderboard data and AI itegrating and generating word for wordle
+[32m|[m [1;32m|[m [1;36m|[m [34m|[m[35m\[m  
+[32m|[m [1;32m|[m [1;36m|[m [34m|[m * [33m202dc62e[m Integrated AI to generate wordle game
+[32m|[m [1;32m|[m * [34m|[m [35m|[m [33m8dd4d733[m Added initial challenge and notif components
+[32m|[m [1;32m|[m [34m|[m[34m/[m [35m/[m  
+[32m|[m [1;32m|[m * [35m|[m [33m9b58329d[m Minor edits on data
+[32m|[m [1;32m|[m * [35m|[m   [33mf20a3bb7[m Merge branch 'main' into features/yna
+[32m|[m [1;32m|[m [36m|[m[1;31m\[m [35m\[m  
+[32m|[m [1;32m|[m [36m|[m * [35m|[m [33m227108dd[m backend
+[32m|[m [1;32m|[m [36m|[m [35m|[m[35m/[m  
+[32m|[m [1;32m|[m * [35m|[m [33mdb2661d4[m Minor ui updates
+[32m|[m [1;32m|[m * [35m|[m [33m471668df[m Big UI update on the homepage and components breakdown
+[32m|[m [1;32m|[m * [35m|[m [33mcb66afeb[m Merge
+[32m|[m [1;32m|[m [1;32m|[m[35m\[m[35m|[m 
+[32m|[m [1;32m|[m [1;32m|[m * [33m4e76c56e[m Added Ignore file
+[32m|[m [1;32m|[m [1;32m|[m * [33m40cdc594[m backend
+[32m|[m [1;32m|[m [1;32m|[m *   [33mb53c965d[m Merge branch 'be/yughie'
+[32m|[m [1;32m|[m [1;32m|[m [1;34m|[m[1;35m\[m  
+[32m|[m [1;32m|[m [1;32m|[m [1;34m|[m * [33md262b0ad[m backend stuff
+[32m|[m [1;32m|[m [1;32m|[m [1;34m|[m *   [33m07494be5[m Merged successful yayy
+[32m|[m [1;32m|[m [1;32m|[m [1;34m|[m [1;36m|[m[31m\[m  
+[32m|[m [1;32m|[m [1;32m|[m [1;34m|[m [1;36m|[m * [33m42e32d28[m backend stuff
+[32m|[m [1;32m|[m [1;32m|[m [1;34m|[m * [31m|[m [33mbcc1fe80[m Progress update
+[32m|[m [1;32m|[m [1;32m|[m [1;34m|[m * [31m|[m [33mddcb6b28[m hello world
+[32m|[m [1;32m|[m [1;32m|[m [1;34m|[m * [31m|[m [33m756a03ba[m wait lang
+[32m|[m [1;32m|[m [1;32m|[m [1;34m|[m * [31m|[m [33mdcf09746[m may ng yayari na
+[32m|[m [1;32m|[m [1;32m|[m [1;34m|[m * [31m|[m [33mae26a1ae[m try lang po
+[32m|[m [1;32m|[m [1;32m|[m * [31m|[m [31m|[m [33m3c0ce9cb[m backend stuff
+[32m|[m [1;32m|[m [1;32m|[m [31m|[m[31m/[m [31m/[m  
+[32m|[m [1;32m|[m * [31m|[m [31m/[m [33m9438de65[m backend
+[32m|[m [1;32m|[m [31m|[m [31m|[m[31m/[m  
+[32m|[m [1;32m|[m [31m|[m[31m/[m[31m|[m   
+[32m|[m [1;32m|[m * [31m|[m [33medec642d[m Updated game cards design
+[32m|[m [1;32m|[m * [31m|[m [33m507b351b[m Updated leaderboard look
+[32m|[m [1;32m|[m * [31m|[m [33m591f997d[m Leaderboards with filters
+[32m|[m [1;32m|[m * [31m|[m [33md5c2a1f1[m Added leaderboard and community hub
+[32m|[m [1;32m|[m * [31m|[m [33m9bf7886b[m Changed mock values and lowered mockApiCall delay
+[32m|[m [1;32m|[m * [31m|[m [33mde6bfac7[m Removed extra space on navbar
+[32m|[m [1;32m|[m * [31m|[m [33m7a8a1261[m Takes notes of difficulty independently of the game
+[32m|[m [1;32m|[m * [31m|[m [33mc1eb359b[m Updated game UI to have the initial game intros and difficulty toggle. Needs more refining
+[32m|[m [1;32m|[m * [31m|[m [33m73f98030[m Working mechanics of 3 games with timer and saved progress
+[32m|[m [1;32m|[m * [31m|[m [33m8e11f8e4[m Routing and page for games. Initial page for wordle
+[32m|[m [1;32m|[m * [31m|[m [33m2df33ee4[m Moved obsolete files
+[32m|[m [1;32m|[m * [31m|[m [33m20f457e2[m Moved obsolete files
+[32m|[m [1;32m|[m * [31m|[m [33mbed65d82[m Revised login and navbar to look like before design
+[32m|[m [1;32m|[m * [31m|[m [33m37623e4e[m Connected existing login page with reworked structure
+[32m|[m [1;32m|[m * [31m|[m [33m603673ec[m Reworking from scratch. Login with department. Existing pages not used for now.
+[32m|[m [1;32m|[m * [31m|[m [33m39cbbc31[m Backend auth files
+[32m|[m [1;32m|[m [31m|[m[31m/[m  
+[32m|[m [1;32m|[m * [33m1b6c7aff[m Updated directory for frontend/src for restructuring of code components
+[32m|[m [1;32m|[m * [33med1372d6[m Alignment change on ernigram battery
+[32m|[m [1;32m|[m *   [33mf8edb954[m Merge branch 'main' of https://github.com/K-N-B/better-play-ERNI
+[32m|[m [1;32m|[m [32m|[m[33m\[m  
+[32m|[m [1;32m|[m [32m|[m *   [33m949d6251[m Merge pull request #6 from K-N-B/fix/ui-responsive-layout
+[32m|[m [1;32m|[m [32m|[m [34m|[m[35m\[m  
+[32m|[m [1;32m|[m [32m|[m [34m|[m * [33m9fcd6baa[m UI Uniformized
+[32m|[m [1;32m|[m [32m|[m [34m|[m[34m/[m  
+[32m|[m [1;32m|[m * [34m/[m [33m4f755a1c[m Adjusted text
+[32m|[m [1;32m|[m [34m|[m[34m/[m  
+[32m|[m [1;32m|[m * [33m4b99a631[m Changed ernigram icon
+[32m|[m [1;32m|[m * [33m43261887[m Fixed classes for app.jsx for sudoku
+[32m|[m [1;32m|[m *   [33mdcbaa7f5[m Merge branch 'main' of https://github.com/K-N-B/better-play-ERNI
+[32m|[m [1;32m|[m [36m|[m[1;31m\[m  
+[32m|[m [1;32m|[m [36m|[m *   [33m45409a2a[m Merge pull request #4 from K-N-B/fix/ui-responsive-layout
+[32m|[m [1;32m|[m [36m|[m [1;32m|[m[1;33m\[m  
+[32m|[m [1;32m|[m [36m|[m [1;32m|[m * [33m79990f38[m Sudoku game intro
+[32m|[m [1;32m|[m [36m|[m * [1;33m|[m [33m58233e70[m Merge pull request #3 from K-N-B/fix/ui-responsive-layout
+[32m|[m [1;32m|[m [36m|[m [1;34m|[m[1;33m\[m[1;33m|[m 
+[32m|[m [1;32m|[m [36m|[m [1;34m|[m *   [33m4991daed[m Temporary commit change branch
+[32m|[m [1;32m|[m [36m|[m [1;34m|[m [1;36m|[m[1;34m\[m  
+[32m|[m [1;32m|[m [36m|[m [1;34m|[m [1;36m|[m[1;34m/[m  
+[32m|[m [1;32m|[m [36m|[m [1;34m|[m[1;34m/[m[1;36m|[m   
+[32m|[m [1;32m|[m [36m|[m [1;34m|[m * [33mc85521fa[m WIP: temporary changes before pulling main
+[32m|[m [1;32m|[m [36m|[m [1;34m|[m * [33m2f16d091[m Sudoku introduction to game update
+[32m|[m [1;32m|[m * [1;34m|[m [31m|[m [33mc04be867[m Minor text size changes
+[32m|[m [1;32m|[m [1;34m|[m[1;34m/[m [31m/[m  
+[32m|[m [1;32m|[m * [31m|[m   [33m5f5ebf90[m Merge branch 'main' into features/yna
+[32m|[m [1;32m|[m [32m|[m[33m\[m [31m\[m  
+[32m|[m [1;32m|[m [32m|[m * [31m|[m [33m37b7a01c[m Backend files
+[32m|[m [1;32m|[m [32m|[m [31m|[m[31m/[m  
+[32m|[m [1;32m|[m [32m|[m * [33m5c130cee[m Logout functionality
+[32m|[m [1;32m|[m * [33m|[m [33m17cba83f[m Updated wordle code structure and wordle game intro to use game intro component
+[32m|[m [1;32m|[m [33m|[m[33m/[m  
+[32m|[m [1;32m|[m * [33m1d650260[m Profile Modal connection
+[32m|[m [1;32m|[m * [33m272684c7[m Implemented user profile modal component, accessible by clicking profile icon
+[32m|[m [1;32m|[m * [33m9188d020[m Removed obsolete tsx files
+[32m|[m [1;32m|[m * [33m8bc26199[m Added UnderConstruction component for undeveloped pages.
+[32m|[m [1;32m|[m * [33m9243dc49[m Updated ERNIgram UI. Hangman.jsx is outdated.
+[32m|[m [1;32m|[m *   [33mfa096e0d[m Merge remote-tracking branch 'origin/main' into features/yna
+[32m|[m [1;32m|[m [34m|[m[35m\[m  
+[32m|[m [1;32m|[m [34m|[m *   [33m70e27492[m Merge pull request #2 from K-N-B/add/feature/wordleGame
+[32m|[m [1;32m|[m [34m|[m [36m|[m[1;31m\[m  
+[32m|[m [1;32m|[m [34m|[m [36m|[m * [33m82e1517b[m Implemented wordle game
+[32m|[m [1;32m|[m [34m|[m [36m|[m[36m/[m  
+[32m|[m [1;32m|[m * [36m/[m [33m4e37dbaa[m Implemented DifficultyToggle and GameIntro components. Please see Hangman.jsx for usage sample.
+[32m|[m [1;32m|[m [36m|[m[36m/[m  
+[32m|[m [1;32m|[m * [33mf3eddea9[m Update .env file
+[32m|[m [1;32m|[m * [33m8482eef1[m minor
+[32m|[m [1;32m|[m *   [33m172ce677[m Merge branch 'main' into feature/SSO
+[32m|[m [1;32m|[m [1;32m|[m[1;33m\[m  
+[32m|[m [1;32m|[m [1;32m|[m * [33mbb11efaf[m Updated UI Front for ERNIgram
+[32m|[m [1;32m|[m * [1;33m|[m [33m2dc2b138[m Merged with main
+[32m|[m [1;32m|[m * [1;33m|[m [33m1b386a2f[m Merge branch 'main' into feature/SSO
+[32m|[m [1;32m|[m [1;34m|[m[1;33m\[m[1;33m|[m 
+[32m|[m [1;32m|[m [1;34m|[m * [33meae68356[m Added components for game button and primary button
+[32m|[m [1;32m|[m [1;34m|[m *   [33m400a1a8e[m Merge pull request #1 from K-N-B/fix/ui-responsive-layout
+[32m|[m [1;32m|[m [1;34m|[m [1;36m|[m[31m\[m  
+[32m|[m [1;32m|[m [1;34m|[m [1;36m|[m * [33m2ebf2249[m Responsiveness update and bug fix
+[32m|[m [1;32m|[m [1;34m|[m [1;36m|[m[1;36m/[m  
+[32m|[m [1;32m|[m [1;34m|[m * [33m170b4a36[m Changed background for game pages
+[32m|[m [1;32m|[m [1;34m|[m * [33ma5411c9a[m Added redirects to game pages from the home page game cards
+[32m|[m [1;32m|[m [1;34m|[m * [33m2771573d[m Removed extra code
+[32m|[m [1;32m|[m [1;34m|[m * [33mb0152328[m Added handling for overflow of leaderboard on smaller screens
+[32m|[m [1;32m|[m [1;34m|[m * [33m26c4b85f[m Minor fixes to top 3 banners
+[32m|[m [1;32m|[m [1;34m|[m * [33mb2e15012[m Finished base leaderboard page design
+[32m|[m [1;32m|[m [1;34m|[m * [33mbe7295b6[m Fixed layout for page, proper grids
+[32m|[m [1;32m|[m [1;34m|[m * [33m59b29e6b[m base flag
+[32m|[m [1;32m|[m [1;34m|[m * [33maf6dbaa0[m minor changes to base page
+[32m|[m [1;32m|[m * [31m|[m [33m5b2c7f6e[m working SSO
+[32m|[m [1;32m|[m * [31m|[m [33m08d6398b[m Commit
+[32m|[m [1;32m|[m [31m|[m[31m/[m  
+[32m|[m [1;32m|[m * [33m01ac8cdb[m Customized navbar to have the background on active page with the colors
+[32m|[m [1;32m|[m * [33md84ebfe4[m Moved navbar to App.tsx so it will appear for all pages
+[32m|[m [1;32m|[m *   [33m13328ab1[m Fixed merge conflicts
+[32m|[m [1;32m|[m [32m|[m[33m\[m  
+[32m|[m [1;32m|[m [32m|[m * [33m479f7b85[m color fixed
+[32m|[m [1;32m|[m [32m|[m * [33m3ec04f51[m add feature hangman
+[32m|[m [1;32m|[m [32m|[m * [33m5b2d242e[m sudoku integration completed
+[32m|[m [1;32m|[m * [33m|[m [33md4082cda[m Removed flowbite from css
+[32m|[m [1;32m|[m * [33m|[m [33m4324b4f9[m Polished home page looks with additional assets
+[32m|[m [1;32m|[m * [33m|[m [33m1ac86658[m Base home page done
+[32m|[m [1;32m|[m * [33m|[m [33m80d5e462[m Removed duplicate nodes/npm installs on parent folder. Should be within frontend directory only
+[32m|[m [1;32m|[m [33m|[m[33m/[m  
+[32m|[m [1;32m|[m * [33me91a644b[m added erni logo
+[32m|[m [1;32m|[m * [33mc3ccb6b2[m added a template home page from tailwind CSS
+[32m|[m [1;32m|[m * [33m578b2f06[m Moved requirements.txt to backend folder
+[32m|[m [1;32m|[m * [33m42788986[m Established framework for the project. Please read README for some specific instructions.
+[32m|[m [1;32m|[m * [33m99b7cc97[m Initial commit
+[32m|[m [1;32m|[m * [33m609f6625[m[33m ([m[1;31morigin/features/backend-leaderboards1[m[33m)[m Merge branch 'main' into features/backend-leaderboards1
+[32m|[m [1;32m|[m[1;32m/[m[32m|[m 
+[32m|[m [1;32m|[m[32m/[m  
+[32m|[m[32m/[m[1;32m|[m   
+* [1;32m|[m [33mecd72b02[m Wordle grid handles up to 10 letters now
+* [1;32m|[m [33m89c29897[m Already fetching daily puzzles. Needs submission and puzzle attempt asap. Needs handling for wordle.
+* [1;32m|[m [33m11ac31d0[m Connected GET api/games/daily to gameService.ts
+* [1;32m|[m [33m449ea85f[m Added claimed rewards/shop history feature
+* [1;32m|[m [33m3754dec1[m Fixed picture handling for rewards card. Other responsive changes.
+* [1;32m|[m [33mcd260a43[m Connected shop app endpoints to shop frontend
+* [1;32m|[m [33m273f701a[m Added rewards and claimedRewards models and endpoints
+* [1;32m|[m [33mbd328d0d[m Cleaned game pages, postGameResults modal, Challenge modal
+* [1;32m|[m [33m957c8aea[m Changed font to poppins + other repsonsiveness
+* [1;32m|[m [33m2432b6aa[m Add mobile responsiveness for leaderboard page
+* [1;32m|[m [33mef090201[m Updated challenge page. Added handling for leaderboard preview in the home page
+* [1;32m|[m [33me0b352b2[m Adjusted challenge page and items
+* [1;32m|[m [33m01931dd4[m Handling of game card/section for smaller view
+* [1;32m|[m [33mda2b560a[m Mobile responsive nav bar
+[35m|[m * [33mda7d631f[m[33m ([m[1;31morigin/features/backend-leaderboard3-backup-hahahah[m[33m, [m[1;31morigin/features/backend-leaderboard2-backup-hahahha[m[33m)[m 5
+[35m|[m * [33mf771f701[m 4
+[35m|[m * [33m428f9f52[m 3
+[35m|[m * [33m30f4a413[m 2
+[35m|[m * [33m276690c8[m 1
+[35m|[m * [33mda9735f5[m 1
+[35m|[m[35m/[m  
+* [33mb373cc5d[m[33m ([m[1;31morigin/features/database-leaderboard1[m[33m)[m Updated challenge modal and page. Need to update challenge item later
+* [33m6357632a[m Refined rewards card and navbar
+*   [33me47af8ab[m Merge branch 'features/yna'
+[36m|[m[1;31m\[m  
+[36m|[m * [33m0053ec08[m Updated shop
+[36m|[m * [33mf8553c5a[m Added shop page. Modified users model to have current_points
+* [1;31m|[m [33m1fb42809[m Requirements added
+* [1;31m|[m [33m962eeab7[m Clean up ignored files and apply .gitignore
+[1;32m|[m[1;31m\[m[1;31m|[m 
+[1;32m|[m * [33mf7eb0fb7[m Revised leaderboard look
+* [1;33m|[m [33m240240f0[m Ernigram AI generator implemented
+* [1;33m|[m [33ma7104024[m Implemented Sudoku backend data generation
+* [1;33m|[m [33m25c38497[m Freeeze dpendencies
+* [1;33m|[m [33ma3470705[m Integrated AI for generating wordle word game
+* [1;33m|[m [33m560893ac[m added url endpoint for daily puzzles
+* [1;33m|[m [33m7e94c079[m Remove cached pyc files and update .gitignore
+[1;33m|[m[1;33m/[m  
+* [33m6bc602bf[m Minor config changes
+* [33m773827fb[m Added all models/tables
+*   [33m0b1e97ea[m Merge branch 'features/database'
+[1;34m|[m[1;35m\[m  
+[1;34m|[m * [33m8275ca4b[m[33m ([m[1;31morigin/features/database[m[33m)[m Migrated to supabase from GCP
+* [1;35m|[m [33me28dba50[m Clean working
+[1;35m|[m [1;35m|[m * [33m6db52e24[m[33m ([m[1;31morigin/features/database-games[m[33m)[m yes
+[1;35m|[m [1;35m|[m *   [33md8924c3d[m Merge branch 'main' of https://github.com/K-N-B/better-play-ERNI into features/database-games
+[1;35m|[m [1;35m|[m [31m|[m[1;35m\[m  
+[1;35m|[m [1;35m|[m[1;35m_[m[31m|[m[1;35m/[m  
+[1;35m|[m[1;35m/[m[1;35m|[m [31m|[m   
+* [1;35m|[m [31m|[m [33mdf701e5c[m Deleted obsolete folders/files
+* [1;35m|[m [31m|[m [33mbc127fc8[m Backend files
+[1;35m|[m[1;35m/[m [31m/[m  
+* [31m|[m [33mc124c3f1[m Fixed completeProfile endpoint
+[32m|[m * [33mce1042a6[m added post department endpoint
+[32m|[m * [33md86dae54[m added game app
+[32m|[m [32m|[m * [33mf2b63af1[m[33m ([m[1;31morigin/features/byyags[m[33m)[m features/byyags
+[32m|[m [32m|[m [33m|[m *   [33mf7c6e529[m[33m ([m[1;31morigin/features/database-leaderboard[m[33m)[m Merge branch 'features/database-leaderboard' of https://github.com/K-N-B/better-play-ERNI into features/database-leaderboard
+[32m|[m [32m|[m [33m|[m [34m|[m[35m\[m  
+[32m|[m [32m|[m [33m|[m [34m|[m * [33m0f7a9982[m database leaderboard progress 1
+[32m|[m [32m|[m[32m_[m[33m|[m[32m_[m[34m|[m[32m/[m  
+[32m|[m[32m/[m[32m|[m [33m|[m [34m|[m   
+[32m|[m [32m|[m [33m|[m * [33m9c24b808[m Updated leaderboards page design
+[32m|[m [32m|[m[32m_[m[33m|[m[32m/[m  
+[32m|[m[32m/[m[32m|[m [33m|[m   
+* [32m|[m [33m|[m [33m0227765a[m Migrate leaderboard table
+* [32m|[m [33m|[m [33m028706e4[m Added leaderboards app and models
+[32m|[m[32m/[m [33m/[m  
+* [33m|[m [33m2c36a30d[m[33m ([m[1;31morigin/features/datebase/leaderboards[m[33m)[m created games, gameplay models
+* [33m|[m [33m50168406[m Connected first time modal for department setup to POST endpoint
+* [33m|[m [33m5c4d2d11[m Created get departments function
+* [33m|[m [33mdc041522[m DepartmentLiist update
+* [33m|[m   [33m34af7c43[m Resolved merge conflicts and added post department endpoint
+[36m|[m[1;31m\[m [33m\[m  
+[36m|[m * [33m|[m [33ma4a81d65[m Updated user auth. Working?
+* [1;31m|[m [33m|[m [33m474912ef[m added department post endpoint
+[1;31m|[m[1;31m/[m [33m/[m  
+* [33m|[m [33me3681b3c[m freezed dependencies
+* [33m|[m [33m9e892b58[m .
+* [33m|[m [33mb84c3883[m Updated requirements.txt and .gitignore
+* [33m|[m [33m9229564c[m Initial connections with user auth
+* [33m|[m [33mf266b5d0[m Connected to Google Cloud SQL for hosting database
+* [33m|[m [33m810d318f[m Added urls, views, and serializers
+* [33m|[m [33m2e52877c[m Added auth to urls.py
+* [33m|[m [33m7eaeba0b[m Started on Azure auth
+* [33m|[m [33mb606932f[m Added initial django and database
+* [33m|[m   [33m0c16388a[m[33m ([m[1;31morigin/backend/yughie[m[33m)[m Merge branch 'backend/yughie' of https://github.com/K-N-B/better-play-ERNI into backend/yughie
+[1;32m|[m[1;33m\[m [33m\[m  
+[1;32m|[m * [33m\[m   [33mfa8f5895[m "Spectacular added"
+[1;32m|[m [1;34m|[m[1;35m\[m [33m\[m  
+[1;32m|[m [1;34m|[m * [33m|[m [33m9165a7ec[m added spectacular
+[1;32m|[m * [1;35m|[m [33m|[m [33m4dc3f834[m Backend data integrated to frontend
+[1;32m|[m [1;35m|[m[1;35m/[m [33m/[m  
+* [1;35m|[m [33m/[m [33m4f3f4ac6[m Added initial challenge and notif components
+[33m|[m [1;35m|[m[33m/[m  
+[33m|[m[33m/[m[1;35m|[m   
+[33m|[m [1;35m|[m * [33m31d93c45[m[33m ([m[1;31morigin/Hmm[m[33m)[m bruh
+[33m|[m [1;35m|[m * [33mf86ffb3e[m bahala na
+[33m|[m [1;35m|[m * [33m1fbac56f[m Hmm
+[33m|[m [1;35m|[m * [33m3fb6d760[m progress
+[33m|[m [1;35m|[m * [33mf7a05e65[m[33m ([m[1;31morigin/final-na-talaga[m[33m)[m Revert "legit check"
+[33m|[m [1;35m|[m * [33m63ca1185[m legit check
+[33m|[m [1;35m|[m * [33macaa1cd2[m[33m ([m[1;31morigin/test-2[m[33m)[m Gusto ko na mag ka iphone
+[33m|[m [1;35m|[m[1;35m/[m  
+[33m|[m * [33mdace1552[m Added updated requirements
+[33m|[m * [33m699e54ad[m Leaderboard data and AI itegrating and generating word for wordle
+[33m|[m[33m/[m[32m|[m 
+[33m|[m * [33m93f3159a[m Integrated AI to generate wordle game
+* [32m|[m [33m6cca4b96[m Minor edits on data
+* [32m|[m   [33me9476e5d[m Merge branch 'main' into features/yna
+[33m|[m[34m\[m [32m\[m  
+[33m|[m * [32m|[m [33m00f01893[m backend
+[33m|[m [32m|[m[32m/[m  
+* [32m|[m [33m2cb9eed9[m Minor ui updates
+* [32m|[m [33m96c65edf[m Big UI update on the homepage and components breakdown
+* [32m|[m [33m569eb950[m Merge
+[35m|[m[32m\[m[32m|[m 
+[35m|[m * [33m4b139129[m Added Ignore file
+[35m|[m * [33m1648ce7f[m backend
+[35m|[m *   [33m6455ae2f[m Merge branch 'be/yughie'
+[35m|[m [1;31m|[m[1;32m\[m  
+[35m|[m [1;31m|[m * [33mc404f979[m backend stuff
+[35m|[m [1;31m|[m *   [33m1ee98f60[m Merged successful yayy
+[35m|[m [1;31m|[m [1;33m|[m[1;34m\[m  
+[35m|[m [1;31m|[m [1;33m|[m * [33m26156557[m backend stuff
+[35m|[m [1;31m|[m * [1;34m|[m [33mef12d660[m[33m ([m[1;31morigin/be/yughie[m[33m)[m Progress update
+[35m|[m * [1;34m|[m [1;34m|[m [33ma798ae0d[m backend stuff
+* [1;34m|[m [1;34m|[m [1;34m|[m [33m97b6bce5[m backend
+[1;34m|[m [1;34m|[m[1;34m_[m[1;34m|[m[1;34m/[m  
+[1;34m|[m[1;34m/[m[1;34m|[m [1;34m|[m   
+* [1;34m|[m [1;34m|[m [33m0b3cb25b[m Updated game cards design
+* [1;34m|[m [1;34m|[m [33mbde0cc32[m Updated leaderboard look
+* [1;34m|[m [1;34m|[m [33m430a95d8[m Leaderboards with filters
+* [1;34m|[m [1;34m|[m [33m4592cb1f[m Added leaderboard and community hub
+* [1;34m|[m [1;34m|[m [33md1938454[m Changed mock values and lowered mockApiCall delay
+* [1;34m|[m [1;34m|[m [33m7e6218ae[m Removed extra space on navbar
+* [1;34m|[m [1;34m|[m [33m8eb594ad[m Takes notes of difficulty independently of the game
+* [1;34m|[m [1;34m|[m [33m5c8d6b45[m Updated game UI to have the initial game intros and difficulty toggle. Needs more refining
+* [1;34m|[m [1;34m|[m [33mdfb621b2[m Working mechanics of 3 games with timer and saved progress
+* [1;34m|[m [1;34m|[m [33m781f9d1a[m Routing and page for games. Initial page for wordle
+* [1;34m|[m [1;34m|[m [33md2c7d107[m Moved obsolete files
+* [1;34m|[m [1;34m|[m [33m6f1a5a35[m Moved obsolete files
+* [1;34m|[m [1;34m|[m [33mbf23b99f[m Revised login and navbar to look like before design
+* [1;34m|[m [1;34m|[m [33m208753b4[m Connected existing login page with reworked structure
+* [1;34m|[m [1;34m|[m [33m88d1c127[m Reworking from scratch. Login with department. Existing pages not used for now.
+* [1;34m|[m [1;34m|[m [33m9dd74a76[m Backend auth files
+[1;34m|[m[1;34m/[m [1;34m/[m  
+[1;34m|[m [1;34m|[m * [33m22bd114e[m[33m ([m[1;31morigin/try-lang-po[m[33m)[m uhm
+[1;34m|[m [1;34m|[m * [33m706899b7[m hello world
+[1;34m|[m [1;34m|[m * [33mf14cc8c2[m hello
+[1;34m|[m [1;34m|[m[1;34m/[m  
+[1;34m|[m * [33m2f218e1e[m hello world
+[1;34m|[m * [33m7b326dc6[m wait lang
+[1;34m|[m * [33mabc0950e[m may ng yayari na
+[1;34m|[m * [33m10efa9f2[m try lang po
+[1;34m|[m[1;34m/[m  
+* [33m53d2c79e[m Updated directory for frontend/src for restructuring of code components
+* [33m24d84adb[m Alignment change on ernigram battery
+*   [33m3df25fa7[m Merge branch 'main' of https://github.com/K-N-B/better-play-ERNI
+[1;36m|[m[31m\[m  
+[1;36m|[m *   [33m96234efc[m Merge pull request #6 from K-N-B/fix/ui-responsive-layout
+[1;36m|[m [32m|[m[33m\[m  
+[1;36m|[m [32m|[m * [33mf233032a[m[33m ([m[1;31morigin/fix/ui-responsive-layout[m[33m)[m UI Uniformized
+[1;36m|[m [32m|[m[32m/[m  
+* [32m/[m [33meef722c9[m Adjusted text
+[32m|[m[32m/[m  
+* [33md45b669d[m Changed ernigram icon
+* [33m6204941f[m Fixed classes for app.jsx for sudoku
+*   [33m7de9d615[m Merge branch 'main' of https://github.com/K-N-B/better-play-ERNI
+[34m|[m[35m\[m  
+[34m|[m *   [33m129e8d3c[m Merge pull request #4 from K-N-B/fix/ui-responsive-layout
+[34m|[m [36m|[m[1;31m\[m  
+[34m|[m [36m|[m * [33mef10f0ae[m Sudoku game intro
+[34m|[m * [1;31m|[m [33mc0857e58[m Merge pull request #3 from K-N-B/fix/ui-responsive-layout
+[34m|[m [1;32m|[m[1;31m\[m[1;31m|[m 
+[34m|[m [1;32m|[m *   [33mbdb20f26[m Temporary commit change branch
+[34m|[m [1;32m|[m [1;34m|[m[1;32m\[m  
+[34m|[m [1;32m|[m [1;34m|[m[1;32m/[m  
+[34m|[m [1;32m|[m[1;32m/[m[1;34m|[m   
+[34m|[m [1;32m|[m * [33m6e7840c7[m WIP: temporary changes before pulling main
+[34m|[m [1;32m|[m * [33ma87280f8[m Sudoku introduction to game update
+* [1;32m|[m [1;35m|[m [33m6ab4cb76[m Minor text size changes
+[1;32m|[m[1;32m/[m [1;35m/[m  
+* [1;35m|[m   [33m54f72ab8[m Merge branch 'main' into features/yna
+[1;36m|[m[31m\[m [1;35m\[m  
+[1;36m|[m * [1;35m|[m [33md92e11ce[m Backend files
+[1;36m|[m [1;35m|[m[1;35m/[m  
+[1;36m|[m * [33m2b1bd4d5[m Logout functionality
+* [31m|[m [33macd6c98b[m Updated wordle code structure and wordle game intro to use game intro component
+[31m|[m[31m/[m  
+* [33m4c871e02[m Profile Modal connection
+* [33mbf317a5f[m Implemented user profile modal component, accessible by clicking profile icon
+* [33mac2bf332[m Removed obsolete tsx files
+* [33mc25c322a[m Added UnderConstruction component for undeveloped pages.
+* [33mfaf15da5[m Updated ERNIgram UI. Hangman.jsx is outdated.
+*   [33m7e509b3e[m Merge remote-tracking branch 'origin/main' into features/yna
+[32m|[m[33m\[m  
+[32m|[m *   [33m74164bb5[m Merge pull request #2 from K-N-B/add/feature/wordleGame
+[32m|[m [34m|[m[35m\[m  
+[32m|[m [34m|[m * [33md109ba9c[m[33m ([m[1;31morigin/add/feature/wordleGame[m[33m)[m Implemented wordle game
+[32m|[m [34m|[m[34m/[m  
+* [34m/[m [33m29c1b0c6[m Implemented DifficultyToggle and GameIntro components. Please see Hangman.jsx for usage sample.
+[34m|[m[34m/[m  
+* [33m439d3d91[m Update .env file
+* [33mf809e57b[m minor
+*   [33m5b644391[m[33m ([m[1;31morigin/feature/SSO[m[33m)[m Merge branch 'main' into feature/SSO
+[36m|[m[1;31m\[m  
+[36m|[m * [33me3adf330[m Updated UI Front for ERNIgram
+* [1;31m|[m [33mac2842bd[m Merged with main
+* [1;31m|[m [33m92a85efd[m Merge branch 'main' into feature/SSO
+[1;32m|[m[1;31m\[m[1;31m|[m 
+[1;32m|[m * [33m8b557d44[m Added components for game button and primary button
+* [1;33m|[m [33m227014f2[m working SSO
+* [1;33m|[m [33mb01aaf7d[m Commit
+[1;33m|[m [1;33m|[m * [33m447febbd[m[33m ([m[1;31morigin/feature/SSO2[m[33m)[m SSO2
+[1;33m|[m [1;33m|[m[1;33m/[m  
+[1;33m|[m *   [33mcc4b3d10[m Merge pull request #1 from K-N-B/fix/ui-responsive-layout
+[1;33m|[m [1;35m|[m[1;36m\[m  
+[1;33m|[m [1;35m|[m * [33m9af0da0b[m Responsiveness update and bug fix
+[1;33m|[m [1;35m|[m[1;35m/[m  
+[1;33m|[m * [33mad6e6251[m Changed background for game pages
+[1;33m|[m * [33mbc5b1899[m Added redirects to game pages from the home page game cards
+[1;33m|[m [1;36m|[m * [33m0cf7a9e5[m[33m ([m[1;31morigin/wordle/fixedUI[m[33m)[m added wordle game folder
+[1;33m|[m [1;36m|[m[1;36m/[m  
+[1;33m|[m [1;36m|[m * [33m7789106f[m[33m ([m[1;31morigin/feature/SSO1[m[33m)[m SSO Checkpoint 1
+[1;33m|[m [1;36m|[m[1;33m/[m  
+[1;33m|[m[1;33m/[m[1;36m|[m   
+[1;33m|[m [1;36m|[m *   [33m85c5e97e[m[33m ([m[1;31morigin/add/feature/wordle[m[33m)[m Merge branch 'main' into add/feature/wordle
+[1;33m|[m [1;36m|[m [33m|[m[1;36m\[m  
+[1;33m|[m [1;36m|[m [33m|[m[1;36m/[m  
+[1;33m|[m [1;36m|[m[1;36m/[m[33m|[m   
+[1;33m|[m * [33m|[m [33m4a5766b3[m Removed extra code
+[1;33m|[m * [33m|[m [33m92c3b594[m Added handling for overflow of leaderboard on smaller screens
+[1;33m|[m [34m|[m * [33ma3318edd[m Minor fixes
+[1;33m|[m [34m|[m *   [33m5d0aa240[m Merged from main
+[1;33m|[m [34m|[m [35m|[m[34m\[m  
+[1;33m|[m [34m|[m [35m|[m[34m/[m  
+[1;33m|[m [34m|[m[34m/[m[35m|[m   
+[1;33m|[m * [35m|[m [33mfe474950[m Minor fixes to top 3 banners
+[1;33m|[m * [35m|[m [33mcf17a479[m Finished base leaderboard page design
+[1;33m|[m * [35m|[m [33m86e5d275[m Fixed layout for page, proper grids
+[1;33m|[m * [35m|[m [33m07f4f38b[m base flag
+[1;33m|[m * [35m|[m [33mbb628f2b[m minor changes to base page
+[1;33m|[m[1;33m/[m [35m/[m  
+[1;33m|[m * [33m910ce067[m features added
+[1;33m|[m * [33m03bc4fed[m added sudoku features
+[1;33m|[m * [33m62548a13[m[33m ([m[1;31morigin/add/feature/hangman[m[33m)[m added keystroke and retain feature
+[1;33m|[m[1;33m/[m  
+* [33mee28c871[m Customized navbar to have the background on active page with the colors
+* [33maa0f51cc[m Moved navbar to App.tsx so it will appear for all pages
+*   [33m1b4c3769[m Fixed merge conflicts
+[1;31m|[m[1;32m\[m  
+[1;31m|[m * [33m6c048a52[m color fixed
+[1;31m|[m * [33m31dca84d[m add feature hangman
+[1;31m|[m * [33mf1d34ab7[m[33m ([m[1;31morigin/add/feature/sudoku[m[33m)[m sudoku integration completed
+* [1;32m|[m [33m8a9be43e[m Removed flowbite from css
+* [1;32m|[m [33m795495fb[m Polished home page looks with additional assets
+* [1;32m|[m [33mf72b68b9[m Base home page done
+* [1;32m|[m [33ma9a5aa9b[m Removed duplicate nodes/npm installs on parent folder. Should be within frontend directory only
+[1;32m|[m[1;32m/[m  
+* [33mb56daaf4[m added erni logo
+* [33m4f7943a6[m added a template home page from tailwind CSS
+[1;32m|[m * [33m36517e7c[m[33m ([m[1;31morigin/feature/caadiang[m[33m)[m  Email Validation
+[1;32m|[m * [33m87e053a0[m Checkpoint 1
+[1;32m|[m[1;32m/[m  
+* [33m517da325[m Moved requirements.txt to backend folder
+* [33m07fa3863[m Established framework for the project. Please read README for some specific instructions.
+* [33m11529851[m Initial commit

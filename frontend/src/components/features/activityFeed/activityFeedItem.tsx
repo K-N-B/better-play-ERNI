@@ -32,7 +32,7 @@ export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ event }) => 
     <div className={clsx("flex items-center space-x-4 p-3 sm:p-4 rounded-xl", styles.bg)}>
 
       {/* Avatar Circle with Profile Picture */}
-      <div className="flex-shrink-0 w-10 h-10 rounded-full overflow-hidden">
+      <div className="shrink-0 w-10 h-10 rounded-full overflow-hidden">
         {profileImageUrl ? (
           <img
             src={profileImageUrl}
