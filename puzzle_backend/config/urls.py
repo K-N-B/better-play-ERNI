@@ -38,10 +38,6 @@ urlpatterns = [
     path('api/challenges/', include('gameplay.challenge_urls')),
     path('api/v1/cron/generate-puzzles/', cron_generate_puzzles_view, name='cron_task'),
     path('healthz/', health_check, name='health-check'),  # Health check endpoint wakeup URL
-    
-    
-    path("gameplay/", include("gameplay.urls")),
-    path("", include("activity.urls")), # This will catch /activity-hub/ and /heartbeat/
 ]
 
 if settings.DEBUG:

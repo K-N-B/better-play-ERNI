@@ -14,7 +14,7 @@ const DifficultyToggle: React.FC<DifficultyToggleProps> = ({
   initialIsHard = false,
   disabled = false, // ✅ NEW: Default to false
   color = 'bg-primary',
-  // darkColor = 'bg-primary-dark',
+  darkColor = 'bg-primary-dark',
 }) => {
   const [isHard, setIsHard] = useState(initialIsHard);
 

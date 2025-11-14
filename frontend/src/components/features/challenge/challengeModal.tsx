@@ -1,13 +1,23 @@
+// src/components/features/challenge/challengeModal.tsx - WITH AUTO-DISPLAYED USERS
 import React, { useState, useEffect, useCallback } from 'react';
-import { searchUsers, sendChallenge } from '../../../api/challengeService';
+import { listAllUsers, sendChallenge } from '../../../api/challengeService';
+import { checkUserSubmissionExists } from '../../../api/gameService';
 import type { UserProfile, CreateChallengeData } from '../../../types';
 import { LoadingSpinner } from '../../ui/loadingSpinner';
-import { X, Send, Search, UserCheck } from 'lucide-react';
+import { X, Send, Search, UserCheck, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 
 interface ChallengeModalProps {
   isOpen: boolean;
   onClose: () => void;
   submissionId: number;
+  puzzleType: string;
+  puzzleId: number;
+  dailyPuzzleDate: string;
+}
+
+interface ColleagueWithStatus extends Pick<UserProfile, 'id' | 'username' | 'email'> {
+  hasCompleted: boolean;
+  isChecking: boolean;
 }
 
 function debounce<F extends (...args: any[]) => any>(func: F, wait: number): (...args: Parameters<F>) => void {
@@ -22,42 +32,133 @@ function debounce<F extends (...args: any[]) => any>(func: F, wait: number): (..
   };
 }
 
-export const ChallengeModal: React.FC<ChallengeModalProps> = ({ isOpen, onClose, submissionId }) => {
+export const ChallengeModal: React.FC<ChallengeModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  submissionId,
+  puzzleType,
+  puzzleId,
+  dailyPuzzleDate
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState<Pick<UserProfile, 'id' | 'username' | 'email'>[]>([]);
-  const [selectedUser, setSelectedUser] = useState<Pick<UserProfile, 'id' | 'username' | 'email'> | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
+  const [allUsers, setAllUsers] = useState<ColleagueWithStatus[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<ColleagueWithStatus[]>([]);
+  const [selectedUser, setSelectedUser] = useState<ColleagueWithStatus | null>(null);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  const debouncedSearch = useCallback(
-    debounce(async (term: string) => {
-      if (!term.trim() || term.length < 2) {
-        setSearchResults([]);
-        setIsSearching(false);
-        return;
-      }
-      setIsSearching(true);
-      setError('');
-      try {
-        const results = await searchUsers(term);
-        setSearchResults(results);
-      } catch (err) {
-        setError('Failed to search users.');
-        setSearchResults([]);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 500),
-    []
-  );
-
+  // Fetch all users when modal opens
   useEffect(() => {
-    setSelectedUser(null);
-    setSuccessMessage('');
-    debouncedSearch(searchTerm);
-  }, [searchTerm, debouncedSearch]);
+    if (!isOpen) return;
+
+    const fetchAllUsers = async () => {
+      console.log('[ChallengeModal] Fetching all users...');
+      setIsLoadingUsers(true);
+      setError('');
+
+      try {
+        // Use a wildcard search to get all users (adjust based on your backend)
+        // You might want to create a dedicated endpoint for this
+        const users = await listAllUsers(); // Gets users with 'a' in name/email
+        
+        console.log('[ChallengeModal] Found users:', users.length);
+        
+        // Initialize with loading status
+        const usersWithStatus: ColleagueWithStatus[] = users.map(user => ({
+          ...user,
+          hasCompleted: false,
+          isChecking: true,
+        }));
+        
+        setAllUsers(usersWithStatus);
+        setFilteredUsers(usersWithStatus);
+
+        // Check completion status for each user
+        console.log('[ChallengeModal] Checking completion status...');
+        
+        const statusChecks = users.map(async (user, index) => {
+          try {
+            const result = await checkUserSubmissionExists(
+              user.id,
+              puzzleType,
+              dailyPuzzleDate,
+              puzzleId
+            );
+            
+            return {
+              index,
+              hasCompleted: result.hasSubmitted,
+            };
+          } catch (err) {
+            console.error(`[ChallengeModal] Error checking user ${user.username}:`, err);
+            return {
+              index,
+              hasCompleted: false,
+            };
+          }
+        });
+
+        const results = await Promise.all(statusChecks);
+        
+        // Update users with completion status
+        setAllUsers(prev => {
+          const updated = [...prev];
+          results.forEach(({ index, hasCompleted }) => {
+            if (updated[index]) {
+              updated[index] = {
+                ...updated[index],
+                hasCompleted,
+                isChecking: false,
+              };
+            }
+          });
+          return updated;
+        });
+
+        setFilteredUsers(prev => {
+          const updated = [...prev];
+          results.forEach(({ index, hasCompleted }) => {
+            if (updated[index]) {
+              updated[index] = {
+                ...updated[index],
+                hasCompleted,
+                isChecking: false,
+              };
+            }
+          });
+          return updated;
+        });
+
+      } catch (err) {
+        console.error('[ChallengeModal] Error fetching users:', err);
+        setError('Failed to load users. Please try again.');
+        setAllUsers([]);
+        setFilteredUsers([]);
+      } finally {
+        setIsLoadingUsers(false);
+      }
+    };
+
+    fetchAllUsers();
+  }, [isOpen, puzzleType, puzzleId, dailyPuzzleDate]);
+
+  // Filter users based on search term
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setFilteredUsers(allUsers);
+      return;
+    }
+
+    const lowerSearch = searchTerm.toLowerCase();
+    const filtered = allUsers.filter(user => 
+      user.username.toLowerCase().includes(lowerSearch) || 
+      user.email.toLowerCase().includes(lowerSearch)
+    );
+    
+    setFilteredUsers(filtered);
+  }, [searchTerm, allUsers]);
 
   const handleSendChallenge = async () => {
     if (!selectedUser || !submissionId) return;
@@ -81,19 +182,14 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({ isOpen, onClose,
       setSuccessMessage(`Challenge sent to ${selectedUser.username}!`);
       setSelectedUser(null);
       setSearchTerm('');
-      setSearchResults([]);
       
-      // Close modal after a short delay
       setTimeout(onClose, 2500);
     } catch (err) {
       console.error('[ChallengeModal] Error sending challenge:', err);
       
-      // ✅ Better error handling - check error type
       if (err instanceof Error) {
-        // Extract the actual error message
         const errorMessage = err.message;
         
-        // Check if it's a validation error with details
         if (errorMessage.includes('Validation failed')) {
           setError('Unable to send challenge. Please check your selection and try again.');
         } else {
@@ -111,9 +207,10 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({ isOpen, onClose,
   useEffect(() => {
     if (!isOpen) {
       setSearchTerm('');
-      setSearchResults([]);
+      setAllUsers([]);
+      setFilteredUsers([]);
       setSelectedUser(null);
-      setIsSearching(false);
+      setIsLoadingUsers(false);
       setIsSending(false);
       setError('');
       setSuccessMessage('');
@@ -132,75 +229,126 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({ isOpen, onClose,
         >
           <X size={24} />
         </button>
+        
         <h2 className="text-xl font-semibold mb-4 text-gray-800">Challenge a Colleague</h2>
 
+        {/* Search Input */}
         <div className="relative mb-4">
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by name or email (min 2 chars)..."
+            placeholder="Search by name or email..."
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary pl-10"
-            disabled={isSending || !!successMessage}
+            disabled={isSending || !!successMessage || isLoadingUsers}
           />
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-          {isSearching && (
+          {isLoadingUsers && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
               <LoadingSpinner />
             </div>
           )}
         </div>
 
-        <div className="mb-4 min-h-[6rem]">
-          {!isSearching && !selectedUser && searchResults.length > 0 && (
-            <div className="max-h-48 overflow-y-auto border rounded-md bg-gray-50">
+        {/* Users List */}
+        <div className="mb-4 min-h-[12rem]">
+          {isLoadingUsers ? (
+            <div className="text-center py-8 text-gray-500">
+              <LoadingSpinner />
+              <p className="text-sm mt-2">Loading users...</p>
+            </div>
+          ) : !selectedUser && filteredUsers.length > 0 ? (
+            <div className="max-h-64 overflow-y-auto border rounded-md bg-gray-50">
               <ul className="divide-y divide-gray-200">
-                {searchResults.map(user => (
-                  <li key={user.id}>
-                    <button
-                      onClick={() => setSelectedUser(user)}
-                      className="w-full text-left px-3 py-2 hover:bg-gray-100 flex justify-between items-center transition-colors"
-                      disabled={isSending || !!successMessage}
-                    >
-                      <div>
-                        <span className="font-medium">{user.username}</span>
-                        <span className="text-xs text-gray-500 block">{user.email}</span>
-                      </div>
-                      <span className="text-xs text-primary font-medium">Select</span>
-                    </button>
-                  </li>
-                ))}
+                {filteredUsers.map(user => {
+                  const isDisabled = user.hasCompleted || user.isChecking;
+                  
+                  return (
+                    <li key={user.id}>
+                      <button
+                        onClick={() => !isDisabled && setSelectedUser(user)}
+                        disabled={isDisabled || isSending || !!successMessage}
+                        className={`w-full text-left px-3 py-3 flex justify-between items-center transition-colors ${
+                          isDisabled 
+                            ? 'opacity-50 cursor-not-allowed bg-gray-100' 
+                            : 'hover:bg-gray-100 cursor-pointer'
+                        }`}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium truncate">{user.username}</span>
+                            {user.isChecking && (
+                              <span className="text-xs text-gray-400">(checking...)</span>
+                            )}
+                            {user.hasCompleted && !user.isChecking && (
+                              <CheckCircle size={16} className="text-green-500 flex-shrink-0" />
+                            )}
+                          </div>
+                          <span className="text-xs text-gray-500 block truncate">{user.email}</span>
+                        </div>
+                        
+                        <div className="ml-2 flex-shrink-0">
+                          {user.isChecking ? (
+                            <div className="flex items-center gap-1 text-xs text-gray-400">
+                              <Clock size={14} />
+                              <span>Checking...</span>
+                            </div>
+                          ) : user.hasCompleted ? (
+                            <span className="text-xs text-gray-500 font-medium">Completed</span>
+                          ) : (
+                            <span className="text-xs text-primary font-medium">Challenge</span>
+                          )}
+                        </div>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
-          )}
-          
-          {!isSearching && !selectedUser && searchTerm.length >= 2 && searchResults.length === 0 && (
-            <p className="text-sm text-gray-500 text-center py-4">No users found matching "{searchTerm}".</p>
-          )}
+          ) : !selectedUser && searchTerm && filteredUsers.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <AlertCircle size={48} className="mx-auto mb-2 text-gray-400" />
+              <p className="text-sm">No colleagues found matching "{searchTerm}".</p>
+            </div>
+          ) : !selectedUser && !searchTerm && filteredUsers.length === 0 ? (
+            <div className="text-center py-8 text-gray-400">
+              <Search size={48} className="mx-auto mb-2" />
+              <p className="text-sm">No users available to challenge</p>
+            </div>
+          ) : null}
 
+          {/* Selected User Display */}
           {selectedUser && !successMessage && (
             <div className="bg-blue-50 p-3 rounded-md flex justify-between items-center border border-blue-100">
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-blue-800 flex items-center gap-1">
-                  <UserCheck size={16} />
-                  Challenging: {selectedUser.username}
+                  <UserCheck size={16} className="flex-shrink-0" />
+                  <span className="truncate">Challenging: {selectedUser.username}</span>
                 </p>
-                <p className="text-xs text-blue-600 ml-5">{selectedUser.email}</p>
+                <p className="text-xs text-blue-600 ml-5 truncate">{selectedUser.email}</p>
               </div>
               <button
                 onClick={handleSendChallenge}
-                className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 disabled:bg-gray-400 flex items-center space-x-1"
+                className="ml-2 px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 disabled:bg-gray-400 flex items-center space-x-1 flex-shrink-0"
                 disabled={isSending}
               >
                 {isSending ? <LoadingSpinner /> : <Send size={16} />}
-                <span>{isSending ? 'Sending...' : 'Send Challenge'}</span>
+                <span>{isSending ? 'Sending...' : 'Send'}</span>
               </button>
             </div>
           )}
         </div>
 
-        {error && <p className="text-sm text-red-600 mt-2 text-center">{error}</p>}
-        {successMessage && <p className="text-sm text-green-600 mt-2 text-center font-medium">{successMessage}</p>}
+        {error && (
+          <div className="mb-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-600 text-center">
+            {error}
+          </div>
+        )}
+        {successMessage && (
+          <div className="mb-2 p-2 bg-green-50 border border-green-200 rounded text-sm text-green-600 text-center font-medium">
+            {successMessage}
+          </div>
+        )}
       </div>
     </div>
   );

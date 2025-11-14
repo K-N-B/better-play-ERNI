@@ -16,6 +16,8 @@ from django.views import View
 from django.views.decorators.csrf import csrf_protect
 from games.models import DailyPuzzle, ErnigramPuzzle, SudokuPuzzle, WordlePuzzle
 from leaderboards.services import LeaderboardAggregator
+from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 
 from django.views.decorators.csrf import csrf_exempt
 
@@ -35,6 +37,7 @@ from .serializers import (
 # Import the streak utility function
 from .streak_utils import update_daily_activity_streak
 
+User = get_user_model()
 
 # ============================================================================
 # VIEW 1: SaveProgressView - Save/Update Game State
@@ -338,6 +341,74 @@ class CheckSubmissionView(View):
             return JsonResponse({'error': str(e)}, status=500)
 
 
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(login_required, name='get')
+class CheckUserSubmissionView(View):
+    """
+    GET /api/gameplay/check-user-submission/{daily_puzzle_date}/{puzzle_model_name}/{puzzle_id}/?user_id=<int>
+    Check if a SPECIFIC user has submitted this puzzle (for challenge modal)
+    """
+
+    def get(self, request, daily_puzzle_date, puzzle_model_name, puzzle_id):
+        # Get the target user ID from query params
+        target_user_id = request.GET.get('user_id')
+        
+        if not target_user_id:
+            return JsonResponse({'error': 'user_id query parameter required'}, status=400)
+        
+        try:
+            target_user = get_object_or_404(User, pk=int(target_user_id))
+        except (ValueError, User.DoesNotExist):
+            return JsonResponse({'error': 'Invalid user_id'}, status=404)
+
+        try:
+            # Determine puzzle model
+            puzzle_model_name_lower = puzzle_model_name.lower()
+            if puzzle_model_name_lower == "wordlepuzzle":
+                PuzzleModel = WordlePuzzle
+            elif puzzle_model_name_lower == "sudokupuzzle":
+                PuzzleModel = SudokuPuzzle
+            elif puzzle_model_name_lower == "ernigrampuzzle":
+                PuzzleModel = ErnigramPuzzle
+            else:
+                return JsonResponse({"error": "Unknown puzzle type."}, status=400)
+
+            puzzle_instance = get_object_or_404(PuzzleModel, pk=puzzle_id)
+            puzzle_content_type = ContentType.objects.get_for_model(puzzle_instance)
+
+            # Check for submissions by the TARGET user, not the requester
+            submission = Submission.objects.filter(
+                user=target_user,
+                content_type=puzzle_content_type,
+                object_id=puzzle_instance.pk
+            ).first()
+
+            if submission:
+                print(
+                    f"[CheckUserSubmission] ✅ User {target_user.username} (ID: {target_user_id}) HAS submitted puzzle {puzzle_id}"
+                )
+                return JsonResponse(
+                    {
+                        'hasSubmitted': True,
+                        'userId': target_user.id,
+                        'username': target_user.username,
+                        'score': submission.points_awarded,
+                        'submittedAt': submission.created_at.isoformat(),
+                        'difficulty': submission.difficulty,
+                    }
+                )
+
+            print(
+                f"[CheckUserSubmission] ℹ️ User {target_user.username} (ID: {target_user_id}) has NOT submitted puzzle {puzzle_id}"
+            )
+            return JsonResponse({'hasSubmitted': False, 'userId': target_user.id})
+
+        except Exception as e:
+            print(f"[CheckUserSubmission] Error: {e}")
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({'error': str(e)}, status=500)
+
 # ============================================================================
 # VIEW 4: SubmitPuzzleView - Submit Completed Puzzle
 # ============================================================================
@@ -557,12 +628,11 @@ class GetHintView(View):
     def post(self, request, daily_puzzle_date, puzzle_model_name, puzzle_id):
         user = request.user
 
-        # 1. Validation and Data Retrieval
+        # 1. Initial Validation and Data Retrieval (outside the lock)
         try:
             data = json.loads(request.body)
             difficulty = data.get("difficulty", "EASY").upper()
 
-            # Parse date string to date object
             try:
                 puzzle_date = datetime.strptime(daily_puzzle_date, '%Y-%m-%d').date()
             except ValueError:
@@ -581,73 +651,81 @@ class GetHintView(View):
             puzzle_instance = get_object_or_404(PuzzleModel, pk=puzzle_id)
             puzzle_content_type = ContentType.objects.get_for_model(puzzle_instance)
 
-            attempt = PuzzleAttempt.objects.get(
-                user=user,
-                daily_puzzle=daily_puzzle,
-                content_type=puzzle_content_type,
-                object_id=puzzle_instance.pk,
-            )
+        except (ValueError, json.JSONDecodeError) as e:
+            return JsonResponse({"error": f"Invalid request data: {e}"}, status=400)
+        except DailyPuzzle.DoesNotExist:
+            return JsonResponse({"error": "Daily puzzle not found."}, status=404)
+        except PuzzleModel.DoesNotExist:
+            return JsonResponse({"error": "Puzzle not found."}, status=404)
+        except Exception as e:
+            print(f"[GetHintView] Initial Error: {e}")
+            return JsonResponse({"error": "An internal error occurred during setup."}, status=500)
 
-        except (SudokuPuzzle.DoesNotExist, PuzzleAttempt.DoesNotExist, json.JSONDecodeError) as e:
-            print(f"[GetHintView] Error: {e}")
-            return JsonResponse({"error": "Invalid game state or puzzle reference."}, status=400)
-
-        # 2. Hint Limit Check
-        hints_used = attempt.progress_data.get("hints_used", 0)
-        max_hints = puzzle_instance.HINT_LIMITS.get(difficulty)
-
-        if max_hints is None:
-            return JsonResponse({"error": "Difficulty config missing HINT_LIMITS."}, status=500)
-
-        if hints_used >= max_hints:
-            return JsonResponse({"error": f"Maximum of {max_hints} hints exceeded."}, status=403)
-
-        # 3. Find Available Hint (RANDOMIZED)
-        solution_string = puzzle_instance.solution_string
-
-        # ✅ Handle grid format (wrapped in {"grid": ...})
-        progress_data = attempt.progress_data
-        if "grid" in progress_data:
-            # Convert grid to string format
-            grid = progress_data["grid"]
-            current_grid = ""
-            for row in grid:
-                for cell in row:
-                    current_grid += str(cell.get("value", 0) or 0)
-        else:
-            current_grid = progress_data.get("final_grid", "0" * 81)
-
-        empty_indices = [i for i, char in enumerate(current_grid) if char == "0"]
-
-        if not empty_indices:
-            return JsonResponse({"error": "Puzzle appears to be complete."}, status=400)
-
-        hint_index = random.choice(empty_indices)
-        hint_value = solution_string[hint_index]
-
-        # 4. Prepare Response
+        # 2. ATOMIC TRANSACTION START (CRITICAL FIX FOR RACE CONDITION)
         try:
-            # Call the manager method using the PuzzleAttempt's objects manager
-            hints_used_new = PuzzleAttempt.objects.record_hint_usage(attempt.pk)
+            with transaction.atomic():
+                # Lock the attempt row for the duration of this transaction
+                attempt = PuzzleAttempt.objects.select_for_update().get(
+                    user=user,
+                    daily_puzzle=daily_puzzle,
+                    content_type=puzzle_content_type,
+                    object_id=puzzle_instance.pk,
+                )
+
+                # Hint Limit Check (inside the lock)
+                hints_used = attempt.progress_data.get("hints_used", 0)
+                max_hints = puzzle_instance.HINT_LIMITS.get(difficulty)
+
+                if max_hints is None:
+                    return JsonResponse({"error": "Difficulty config missing HINT_LIMITS."}, status=500)
+
+                if hints_used >= max_hints:
+                    return JsonResponse({"error": f"Maximum of {max_hints} hints exceeded."}, status=403)
+
+                # Find Available Hint (RANDOMIZED)
+                solution_string = puzzle_instance.solution_string
+
+                progress_data = attempt.progress_data
+                if "grid" in progress_data:
+                    grid = progress_data["grid"]
+                    # Simplified conversion for the current grid state
+                    current_grid = "".join(str(cell.get("value", 0) or 0) for row in grid for cell in row)
+                else:
+                    current_grid = progress_data.get("final_grid", "0" * 81)
+
+                empty_indices = [i for i, char in enumerate(current_grid) if char == "0"]
+
+                if not empty_indices:
+                    return JsonResponse({"error": "Puzzle appears to be complete."}, status=400)
+
+                hint_index = random.choice(empty_indices)
+                hint_value = solution_string[hint_index]
+
+                # Record Hint Usage (Update the locked object directly)
+                hints_used_new = hints_used + 1
+                attempt.progress_data["hints_used"] = hints_used_new
+                attempt.save(update_fields=['progress_data']) # Explicitly save the updated field
+
+                print(
+                    f"[GetHintView] ✅ Hint granted and recorded to {user.username}. New count: {hints_used_new}"
+                )
+
+                # Prepare Response
+                return JsonResponse(
+                    {
+                        "message": "Hint granted.",
+                        "hint_index": hint_index,
+                        "hint_value": hint_value,
+                        "hints_used_new": hints_used_new,
+                    },
+                    status=200,
+                )
+
         except PuzzleAttempt.DoesNotExist:
-            return JsonResponse({"error": "Attempt disappeared during processing."}, status=404)
-        except Exception:
-            return JsonResponse({"error": "Failed to record hint usage in database."}, status=500)
-
-        print(
-            f"[GetHintView] ✅ Hint granted and recorded to {user.username}. New count: {hints_used_new}"
-        )
-
-        # 5. Prepare Response
-        return JsonResponse(
-            {
-                "message": "Hint granted.",
-                "hint_index": hint_index,
-                "hint_value": hint_value,
-                "hints_used_new": hints_used_new,  # Return the guaranteed saved value
-            },
-            status=200,
-        )
+            return JsonResponse({"error": "No attempt found for this puzzle/user."}, status=404)
+        except Exception as e:
+            print(f"[GetHintView] Transaction Error: {e}")
+            return JsonResponse({"error": "Failed to process hint request due to internal error."}, status=500)
 
 
 # ============================================================================
@@ -1190,5 +1268,33 @@ class CompleteChallengeView(View):
             print(f"[CompleteChallenge] ❌ Unexpected error: {e}")
             import traceback
 
+            traceback.print_exc()
+            return JsonResponse({'error': str(e)}, status=500)
+
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(login_required, name='get')
+class ListAllUsersView(View):
+    """
+    GET /api/challenges/list-users/
+    Get all users except the current user (for challenge modal)
+    """
+
+    def get(self, request):
+        try:
+            # Get all users except the current user, ordered alphabetically
+            users = (
+                User.objects.exclude(id=request.user.id)
+                .values('id', 'username', 'email')
+                .order_by('username')
+            )
+
+            users_list = list(users)
+            print(f"[ListAllUsers] Returning {len(users_list)} users")
+
+            return JsonResponse(users_list, safe=False)
+
+        except Exception as e:
+            print(f"[ListAllUsers] Error: {e}")
+            import traceback
             traceback.print_exc()
             return JsonResponse({'error': str(e)}, status=500)

@@ -7,6 +7,7 @@ from .views import (
     PendingChallengesView,
     SearchUsersView,
     SendChallengeView,
+    ListAllUsersView,
 )
 
 urlpatterns = [
@@ -15,6 +16,7 @@ urlpatterns = [
     path('search-users/', SearchUsersView.as_view(), name='search_users'),
     # Get pending challenges (where current user is recipient)
     # GET /api/challenges/pending/
+    path('list-users/', ListAllUsersView.as_view(), name='list_all_users'),
     path('pending/', PendingChallengesView.as_view(), name='pending_challenges'),
     # Get completed challenges (involving current user)
     # GET /api/challenges/completed/
