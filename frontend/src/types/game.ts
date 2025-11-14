@@ -128,6 +128,7 @@ export interface GameCardData {
   title: string;
   subtitle: string;
   bgColor: string;
+  textColor: string;
   shadowColor: string;
   IconComponent: LucideIcon;
   path: string;

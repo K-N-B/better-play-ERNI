@@ -7,7 +7,7 @@ import type { IndividualScoreEntry } from "../../../types/leaderboard";
 import { Trophy } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const PREVIEW_LIMIT = 5;
+const PREVIEW_LIMIT = 10;
 
 export const LeaderboardPreviewCard = () => {
   const fetchPreviewData = React.useCallback(

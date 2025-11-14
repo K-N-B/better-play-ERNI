@@ -4,6 +4,7 @@ import { Outlet } from 'react-router-dom';
 import { useAuth } from '../../hooks/authContext';
 import { FirstTimeSetupModal } from '../ui/firstTimeSetupModal';
 import Navbar from './navbar';
+import { FloatingChangelogButton } from '../ui/floatingChangelogButton';
 
 export const Layout = () => {
   const { user } = useAuth();
@@ -15,6 +16,7 @@ export const Layout = () => {
           <div className="h-full w-full p-4 md:p-10">
           {/* Render the current page (e.g., HomePage) */}
           <Outlet />
+          <FloatingChangelogButton />
           </div>
       </main>
 

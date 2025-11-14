@@ -118,38 +118,39 @@ export const WelcomeMessage = () => {
                     {/* Visual Progress Tracker */}
                     <div className="mt-4 space-y-2">
                         <p className="text-sm font-medium text-gray-700">Today's Progress:</p>
-                        <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-1">
-                                {gameStatus.wordle ? (
+                            <div className="flex flex-wrap items-center gap-3">
+                                <div className="flex items-center gap-1">
+                                    {gameStatus.wordle ? (
                                     <CheckCircle2 size={20} className="text-emerald-500" />
-                                ) : (
+                                    ) : (
                                     <Circle size={20} className="text-gray-300" />
-                                )}
-                                <span className={`text-sm ${gameStatus.wordle ? 'text-emerald-600 font-medium' : 'text-gray-400'}`}>
+                                    )}
+                                    <span className={`text-sm ${gameStatus.wordle ? 'text-emerald-600 font-medium' : 'text-gray-400'}`}>
                                     Wordle
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                                {gameStatus.sudoku ? (
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    {gameStatus.sudoku ? (
                                     <CheckCircle2 size={20} className="text-pink-500" />
-                                ) : (
+                                    ) : (
                                     <Circle size={20} className="text-gray-300" />
-                                )}
-                                <span className={`text-sm ${gameStatus.sudoku ? 'text-pink-600 font-medium' : 'text-gray-400'}`}>
+                                    )}
+                                    <span className={`text-sm ${gameStatus.sudoku ? 'text-pink-600 font-medium' : 'text-gray-400'}`}>
                                     Sudoku
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                                {gameStatus.ernigram ? (
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    {gameStatus.ernigram ? (
                                     <CheckCircle2 size={20} className="text-sky-500" />
-                                ) : (
+                                    ) : (
                                     <Circle size={20} className="text-gray-300" />
-                                )}
-                                <span className={`text-sm ${gameStatus.ernigram ? 'text-sky-600 font-medium' : 'text-gray-400'}`}>
+                                    )}
+                                    <span className={`text-sm ${gameStatus.ernigram ? 'text-sky-600 font-medium' : 'text-gray-400'}`}>
                                     ERNIgram
-                                </span>
-                            </div>
-                        </div>
+                                    </span>
+                                </div>
+                                </div>
+
                     </div>
                 </>
             )}
