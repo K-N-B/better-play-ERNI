@@ -5,6 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
 from django.db import transaction
+import pytz
 
 
 class PuzzleAttemptManager(models.Manager):
@@ -158,7 +159,7 @@ class Challenge(models.Model):
     class Status(models.TextChoices):
         PENDING = "PENDING", "Pending"
         COMPLETED = "COMPLETED", "Completed"
-        EXPIRED = "EXPIRED", "Expired"  # Optional for future use
+        EXPIRED = "EXPIRED", "Expired"
 
     challenger = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -198,12 +199,42 @@ class Challenge(models.Model):
         blank=True,
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(null=True, blank=True)  # ✅ NEW FIELD
+    completed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        ordering = ["-created_at"]
+        db_table = 'gameplay_challenge'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', 'recipient']),
+            models.Index(fields=['status', 'challenger']),
+            models.Index(fields=['expires_at']),  # ✅ NEW INDEX
+        ]
+
+    def save(self, *args, **kwargs):
+        # ✅ Set expiration to end of the day the challenge was created (PHT)
+        if not self.expires_at and not self.pk:  # Only set on creation
+            pht_tz = pytz.timezone('Asia/Manila')
+            created_time = timezone.now().astimezone(pht_tz)
+            
+            # Set expiration to 11:59:59 PM PHT on the same day
+            expires = created_time.replace(hour=23, minute=59, second=59, microsecond=999999)
+            self.expires_at = expires
+        
+        super().save(*args, **kwargs)
+
+    def is_expired(self):
+        """Check if the challenge has expired"""
+        if self.status != self.Status.PENDING:
+            return False
+        
+        pht_tz = pytz.timezone('Asia/Manila')
+        now_pht = timezone.now().astimezone(pht_tz)
+        
+        return now_pht > self.expires_at
 
     def __str__(self):
-        return f"Challenge from {self.challenger.username} to {self.recipient.username} ({self.status})"
+        return f"Challenge #{self.id}: {self.challenger.username} → {self.recipient.username} ({self.status})"
 
 
 # ActivityEvent model is removed as per previous decision
