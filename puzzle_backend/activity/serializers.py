@@ -1,51 +1,35 @@
-# activity/serializers.py
-
-from gameplay.models import Submission
+# activity/serializers.py 
+from gameplay.models import Submission, Challenge
 from rest_framework import serializers
 from users.models import User
 
 
-class ActivityEventSerializer(serializers.ModelSerializer):
-    """Serializer for recent puzzle completions"""
-
-    user = serializers.SerializerMethodField()
-    puzzle_name = serializers.SerializerMethodField()
-    time_in_minutes = serializers.SerializerMethodField()
-
+class UserBriefSerializer(serializers.ModelSerializer):
+    """Serializer for user info in activity events"""
     class Meta:
-        model = Submission
-        fields = ['id', 'user', 'puzzle_name', 'difficulty', 'time_in_minutes', 'created_at']
+        model = User
+        fields = ['id', 'username', 'profile_picture_url']
 
-    def get_user(self, obj):
-        # ✅ Added profile_picture_url
-        return {
-            'id': obj.user.id,
-            'username': obj.user.username,
-            'profile_picture_url': obj.user.profile_picture_url
-        }
 
-    def get_puzzle_name(self, obj):
-        """
-        ✅ FIX: Derive puzzle_name from content_type instead of puzzle_type field
-        """
-        # Get the model name from the GenericForeignKey's content_type
-        model_name = obj.content_type.model.lower()
-
-        # Map model names to display names
-        puzzle_names = {
-            'wordlepuzzle': 'Wordle',
-            'sudokupuzzle': 'Sudoku',
-            'ernigrampuzzle': 'ERNIgram',
-        }
-
-        return puzzle_names.get(model_name, model_name.title())
-
-    def get_time_in_minutes(self, obj):
-        """Convert milliseconds to MM:SS format"""
-        total_seconds = obj.time_taken_ms // 1000
-        minutes = total_seconds // 60
-        seconds = total_seconds % 60
-        return f"{minutes}:{seconds:02d}"
+class ActivityEventSerializer(serializers.Serializer):
+    """Unified serializer for all activity events (submissions + challenges)"""
+    
+    # ✅ FIX: Change from IntegerField to CharField to support "sub_123" format
+    id = serializers.CharField()
+    event_type = serializers.CharField()
+    created_at = serializers.DateTimeField()
+    
+    # For submissions
+    user = UserBriefSerializer(required=False, allow_null=True)
+    puzzle_name = serializers.CharField(required=False, allow_null=True)
+    difficulty = serializers.CharField(required=False, allow_null=True)
+    time_in_minutes = serializers.CharField(required=False, allow_null=True)
+    
+    # For challenges
+    challenger = UserBriefSerializer(required=False, allow_null=True)
+    recipient = UserBriefSerializer(required=False, allow_null=True)
+    status = serializers.CharField(required=False, allow_null=True)
+    winner = UserBriefSerializer(required=False, allow_null=True)
 
 
 class OnlineUserSerializer(serializers.ModelSerializer):
@@ -53,7 +37,7 @@ class OnlineUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'profile_picture_url']  # ✅ Added profile_picture_url
+        fields = ['id', 'username', 'profile_picture_url']
 
 
 class ActivityHubResponseSerializer(serializers.Serializer):
