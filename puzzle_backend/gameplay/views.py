@@ -413,6 +413,8 @@ class CheckUserSubmissionView(View):
 # ============================================================================
 # VIEW 4: SubmitPuzzleView - Submit Completed Puzzle
 # ============================================================================
+# In your views.py - Replace the SubmitPuzzleView post method
+
 @method_decorator(csrf_protect, name="dispatch")
 @method_decorator(login_required, name="post")
 class SubmitPuzzleView(View):
@@ -445,7 +447,6 @@ class SubmitPuzzleView(View):
         except Exception as e:
             print(f"[SubmitPuzzleView] Error: {e}")
             import traceback
-
             traceback.print_exc()
             return JsonResponse({"error": "Invalid puzzle reference."}, status=400)
 
@@ -502,9 +503,8 @@ class SubmitPuzzleView(View):
         points_awarded = 0
         tries = 0
         hints_used = 0
-        # 5. CHECK GAME STATUS
-        # We must ensure the game is actually over ('SOLVED' or 'LOST')
-        # before we try to score it.
+        
+        # 5. CHECK GAME STATUS - ✅ FIXED: Accept both SOLVED and LOST
         status = progress_data.get("status", "ACTIVE").upper()
         if status == "ACTIVE":
             print("[SubmitPuzzleView] ❌ Submission rejected. Game is still in 'ACTIVE' state.")
@@ -512,41 +512,42 @@ class SubmitPuzzleView(View):
                 {"error": "Puzzle is not yet complete. Save progress instead."},
                 status=400,
             )
+        
+        # ✅ NEW: Check if game was lost
+        is_lost = status == "LOST"
+        
+        if is_lost:
+            print("[SubmitPuzzleView] Game was lost - creating submission with 0 points")
+            points_awarded = 0
+            tries = progress_data.get("tries", 1)
+            hints_used = progress_data.get("hints_used", 0)
+        else:
+            # Game was won - score it normally
+            validation_data = attempt.progress_data
 
-       
-        validation_data = attempt.progress_data
+            # Perform Scoring and Unpacking
+            try:
+                if puzzle_model_name_lower == "sudokupuzzle":
+                    points_awarded, hints_used = puzzle_instance.validate_and_score(validation_data, difficulty)
+                    tries = 1
+                else:
+                    points_awarded, tries = puzzle_instance.validate_and_score(validation_data, difficulty)
+                    hints_used = attempt.progress_data.get("hints_used", 0)
 
+                print(f"[SubmitPuzzleView] Validation result: {points_awarded} points, {tries} tries, {hints_used} hints used")
 
-        # 2. Perform Scoring and Unpacking
-        try:
-            if puzzle_model_name_lower == "sudokupuzzle":
-                # Sudoku Model returns: (points_awarded, hints_used)
-                points_awarded, hints_used = puzzle_instance.validate_and_score(validation_data, difficulty)
-                tries = 1 # Manually set tries to 1 for Sudoku submission
-                
-            else:
-                # Other Models return: (points_awarded, tries)
-                points_awarded, tries = puzzle_instance.validate_and_score(validation_data, difficulty)
-                # Default hints_used to 0 for non-Sudoku puzzles
-                hints_used = attempt.progress_data.get("hints_used", 0) 
+            except AttributeError:
+                return JsonResponse(
+                    {"error": f"Scoring method missing for {puzzle_model_name}."},
+                    status=500,
+                )
+            except Exception as e:
+                print(f"[SubmitPuzzleView] Scoring error: {e}")
+                import traceback
+                traceback.print_exc()
+                return JsonResponse({"error": f"Scoring failed: {str(e)}"}, status=400)
 
-            # Consolidated print statement now works for all puzzle types
-            print(f"[SubmitPuzzleView] Validation result: {points_awarded} points, {tries} tries, {hints_used} hints used")
-
-        except AttributeError:
-            return JsonResponse(
-                {"error": f"Scoring method missing for {puzzle_model_name}."},
-                status=500,
-            )
-        except Exception as e:
-            print(f"[SubmitPuzzleView] Scoring error: {e}")
-            import traceback
-
-            traceback.print_exc()
-            return JsonResponse({"error": f"Scoring failed: {str(e)}"}, status=400)
-
-
-        # 7. CREATE SUBMISSION RECORD (The code below is now safe)
+        # 7. CREATE SUBMISSION RECORD (works for both won and lost games)
         submission = Submission.objects.create(
             user=user,
             puzzle=puzzle_instance,
@@ -555,11 +556,12 @@ class SubmitPuzzleView(View):
             difficulty=difficulty.lower(),
             points_awarded=points_awarded,
             time_taken_ms=time_taken,
-            tries=tries,      
-            hints_used=hints_used,  
+            tries=tries,
+            hints_used=hints_used,
             puzzle_date=daily_puzzle.date,
         )
-            # 7.0 UPDATE USER STREAK
+        
+        # 7.0 UPDATE USER STREAK
         streak_was_updated = update_daily_activity_streak(user)
 
         # 7.1 UPDATE USER STATS (only if points > 0)
@@ -569,7 +571,6 @@ class SubmitPuzzleView(View):
             user.save(update_fields=['total_points_alltime', 'current_points'])
             user.refresh_from_db()
             
-            # ✅ NEW: Update department all-time total in real-time
             if user.department:
                 from users.models import Department
                 Department.objects.filter(id=user.department.id).update(
@@ -588,17 +589,15 @@ class SubmitPuzzleView(View):
         # 10. Clean up the PuzzleAttempt
         attempt.delete()
 
-        # 10  Refresh user to get latest streak info
+        # 10. Refresh user to get latest streak info
         user.refresh_from_db()
-        print(
-            f"[SubmitPuzzleView] ✅ Submitted successfully: {points_awarded} points for {user.username}"
-        )
+        
+        print(f"[SubmitPuzzleView] ✅ Submitted successfully: {points_awarded} points for {user.username}")
 
-        # ✅ Return complete response with all streak fields
         response_message = (
             "Puzzle submitted successfully."
             if points_awarded > 0
-            else "Puzzle submitted (no points awarded)."
+            else "Puzzle completed (no points awarded)."
         )
 
         return JsonResponse(
@@ -606,12 +605,10 @@ class SubmitPuzzleView(View):
                 "message": response_message,
                 "points_awarded": points_awarded,
                 "submission_id": submission.pk,
-                # ✅ Add streak information (set to 0 for now, you can implement proper streak logic later)
-                # ⭐️ Use the live values from the refreshed user instance ⭐️
                 "current_streak": user.current_streak_count,
                 "max_streak": user.max_streak_count,
                 "last_active": user.last_active.isoformat() if user.last_active else None,
-                "streak_updated_today": streak_was_updated,  # Use the boolean return value
+                "streak_updated_today": streak_was_updated,
             },
             status=201,
         )
