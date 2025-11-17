@@ -1,6 +1,5 @@
-// src/components/ui/postGameResultsModal.tsx - UPDATED WITH CHALLENGE PROPS
 import { useState } from 'react';
-import { X, Trophy, Star, Home } from 'lucide-react';
+import { X, Trophy, Star, Home, HeartCrack } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ChallengeModal } from '../features/challenge/challengeModal';
 
@@ -9,20 +8,23 @@ interface PostGameResultsModalProps {
   onClose: () => void;
   submissionId: number | null;
   gameType: 'wordle' | 'sudoku' | 'ernigram';
-  puzzleId?: number; // Add this
-  dailyPuzzleDate?: string; // Add this
+  puzzleId?: number;
+  dailyPuzzleDate?: string;
 }
 
-export const PostGameResultsModal = ({ 
-  score, 
-  onClose, 
+export const PostGameResultsModal = ({
+  score,
+  onClose,
   submissionId,
   gameType,
   puzzleId,
-  dailyPuzzleDate
+  dailyPuzzleDate,
 }: PostGameResultsModalProps) => {
   const [isChallengeModalOpen, setIsChallengeModalOpen] = useState(false);
   const navigate = useNavigate();
+
+  const didWin = score > 0; // <-- Your win/loss logic
+
   const effectiveSubmissionId = submissionId;
 
   const handleReturnHome = () => {
@@ -42,28 +44,50 @@ export const PostGameResultsModal = ({
             <X size={24} />
           </button>
 
-          <Trophy className="mx-auto text-yellow-500 mb-3" size={48} />
-          <h2 className="text-xl font-bold mb-3 text-gray-800">Puzzle Complete!</h2>
-          
-          <p className="text-sm text-gray-600 mb-1">
-            {gameType.charAt(0).toUpperCase() + gameType.slice(1)} • Completed
-          </p>
-          
-          <p className="text-lg text-gray-700 mb-1">You earned</p>
-          <div className="font-bold text-primary text-4xl flex items-center justify-center gap-1 mb-4">
-            {score}
-            <Star size={30} className="text-yellow-500 fill-current" />
-          </div>
+          {/* Win or Fail Icon */}
+          {didWin ? (
+            <Trophy className="mx-auto text-yellow-500 mb-3" size={48} />
+          ) : (
+            <HeartCrack className="mx-auto text-red-500 mb-3" size={48} />
+          )}
 
-          {/* Challenge Button */}
-          <button
-            onClick={() => setIsChallengeModalOpen(true)}
-            disabled={!effectiveSubmissionId || !puzzleId || !dailyPuzzleDate}
-            className="w-full px-6 py-3 mb-2 text-base text-white bg-primary rounded-lg shadow hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-            title={!effectiveSubmissionId ? "Submission failed, cannot challenge" : "Challenge a colleague"}
-          >
-            Challenge a Colleague!
-          </button>
+          {/* Title */}
+          <h2 className="text-xl font-bold mb-3 text-gray-800">
+            {didWin ? 'Puzzle Complete!' : 'Puzzle Failed'}
+          </h2>
+
+          {/* Subtitle */}
+          <p className="text-sm text-gray-600 mb-1">
+            {gameType.charAt(0).toUpperCase() + gameType.slice(1)} •{' '}
+            {didWin ? 'Completed' : 'Not Completed'}
+          </p>
+
+          {/* Score Section (hidden if fail) */}
+          {didWin ? (
+            <>
+              <p className="text-lg text-gray-700 mb-1">You earned</p>
+              <div className="font-bold text-primary text-4xl flex items-center justify-center gap-1 mb-4">
+                {score}
+                <Star size={30} className="text-yellow-500 fill-current" />
+              </div>
+            </>
+          ) : (
+            <p className="text-gray-600 mb-4 text-sm">
+              Oof… this one fought back. You can try again tomorrow.
+            </p>
+          )}
+
+          {/* Challenge button (only if win) */}
+          {didWin && (
+            <button
+              onClick={() => setIsChallengeModalOpen(true)}
+              disabled={!effectiveSubmissionId || !puzzleId || !dailyPuzzleDate}
+              className="w-full px-6 py-3 mb-2 text-base text-white bg-primary rounded-lg shadow hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              title={!effectiveSubmissionId ? 'Submission failed, cannot challenge' : 'Challenge a colleague'}
+            >
+              Challenge a Colleague!
+            </button>
+          )}
 
           {/* Return Home Button */}
           <button
@@ -76,7 +100,7 @@ export const PostGameResultsModal = ({
         </div>
       </div>
 
-      {effectiveSubmissionId !== null && puzzleId && dailyPuzzleDate && (
+      {didWin && effectiveSubmissionId !== null && puzzleId && dailyPuzzleDate && (
         <ChallengeModal
           isOpen={isChallengeModalOpen}
           onClose={() => setIsChallengeModalOpen(false)}

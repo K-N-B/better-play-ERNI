@@ -641,7 +641,7 @@ export const SudokuGame = ({
       )} */}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
-        <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
+        <div className="w-full flex justify-center items-center p-10 sm:p-15 bg-white rounded-3xl shadow-sm">
           <SudokuGrid
             grid={grid}
             selectedCell={selectedCell}

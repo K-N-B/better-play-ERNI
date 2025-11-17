@@ -7,7 +7,10 @@ import UserProfileModal from '../features/userProfileModal';
 import { useAuth } from '../../hooks/authContext';
 import { navItems, shopNavStyle, notificationNavStyle } from '../../data/navItems'; // <-- IMPORT YOUR DATA
 import { ChallengeIcon } from '../features/challenge/challengeIcon';
-import { Store, Star, Menu, X, Mountain } from 'lucide-react';
+import { Store, Star, Menu, X } from 'lucide-react';
+import Tippy from '@tippyjs/react';
+import 'tippy.js/dist/tippy.css';
+
 import clsx from 'clsx';
 
 
@@ -35,15 +38,15 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 left-0 w-full bg-slate-50 shadow-md z-50 py-2">
-      <div className="mx-auto w-full max-w-[80rem] rounded-lg transition-colors">
-        <div className="flex items-center justify-between h-[4rem] px-6 py-6">
+      <div className="mx-auto w-full max-w-7xl rounded-lg transition-colors">
+        <div className="flex items-center justify-between h-16 px-6 py-6">
           {/* Left: Logo */}
           <a href="/" className="flex items-center space-x-2">
             <img className="h-12 w-auto" src={logo} alt="Namespace Logo" />
           </a>
 
           {/* Center: Navigation (This section is updated) */}
-          <nav className="hidden lg:flex flex-grow justify-center items-center ">
+          <nav className="hidden lg:flex grow justify-center items-center ">
             {navItems.map((item, idx) => {
               if (item.name === '┃') {
                 return (
@@ -91,7 +94,7 @@ export default function Navbar() {
                 // Base styles for the icon button
                 'hidden md:inline-flex items-center justify-center h-10 w-10 m-0 rounded-lg transition-all duration-150',
                 // Active styles
-                isShopActive && `active:translate-y-[2px] active:shadow-[0_3px_0_0] ${shopNavStyle.activeClasses}`,
+                isShopActive && `active:translate-y-0.5 active:shadow-[0_3px_0_0] ${shopNavStyle.activeClasses}`,
                 // Inactive styles
                 !isShopActive && `text-primary ${shopNavStyle.hoverClasses}` // Apply hover from nav data
               )}
@@ -111,12 +114,22 @@ export default function Navbar() {
             </div>
 
 
-            {!authLoading && user && ( // Only show if user is loaded
-              <div className="hidden md:flex m-0 items-center space-x-1 bg-yellow-100 text-yellow-800 px-3 py-2 rounded-full text-lg font-bold shadow-inner">
-                <span>{currentPoints}</span>
-                <Star size={24} className="fill-current text-yellow-500" />
-              </div>
+            {!authLoading && user && (
+              <Tippy content="These are the points you currently have!" placement="bottom">
+                <div className="hidden md:flex flex-col items-center bg-yellow-100 text-yellow-800 px-5 py-2 rounded-full font-bold shadow-inner cursor-default">
+                  <div className="flex items-center space-x-1 text-lg">
+                    <span>{currentPoints}</span>
+                    <Star size={20} className="fill-current text-yellow-500" />
+                  </div>
+
+                  {/* New text below */}
+                  <span className="text-xs font-normal text-yellow-700 leading-none">
+                    Current points
+                  </span>
+                </div>
+              </Tippy>
             )}
+
             {/* Right: Profile button */}
             <div className="flex items-center m-0 ">
               {authLoading ? (
