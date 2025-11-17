@@ -3,17 +3,23 @@ import React from 'react';
 import type { ActivityEvent } from '../../../types/activity';
 import clsx from 'clsx';
 import { formatTimeAgo } from '../../../utils/timeFormat';
-import { Swords, Trophy, Send } from 'lucide-react';
+import { Swords, Trophy, Send, Brain, PenTool, TextInitial, Puzzle } from 'lucide-react';
 
 interface ActivityFeedItemProps {
   event: ActivityEvent;
 }
 
+const puzzleIcons: Record<string, React.FC<any>> = {
+  Sudoku: Brain,        // looks like grid numbers
+  Wordle: TextInitial,      // puzzle piece vibe
+  ERNIgram: PenTool,    // abstract shapes (fits non-standard puzzles)
+};
+
 // Puzzle-specific styles (for submissions)
 const puzzleStyles: Record<string, { text: string; bg: string; avatarBg: string; avatarText: string }> = {
-  Sudoku: { text: 'text-pink-600', bg: 'bg-pink-100/60', avatarBg: 'bg-pink-300', avatarText: 'text-pink-800' },
-  Wordle: { text: 'text-emerald-600', bg: 'bg-emerald-100/60', avatarBg: 'bg-emerald-300', avatarText: 'text-emerald-800' },
-  ERNIgram: { text: 'text-sky-600', bg: 'bg-sky-100/60', avatarBg: 'bg-sky-300', avatarText: 'text-sky-800' },
+  Sudoku: { text: 'text-pink-600', bg: 'bg-pink-100/60', avatarBg: 'bg-pink-400', avatarText: 'text-pink-800' },
+  Wordle: { text: 'text-emerald-600', bg: 'bg-emerald-100/60', avatarBg: 'bg-emerald-400', avatarText: 'text-emerald-800' },
+  ERNIgram: { text: 'text-sky-600', bg: 'bg-sky-100/60', avatarBg: 'bg-sky-400', avatarText: 'text-sky-800' },
 };
 
 // Challenge event styles
@@ -56,7 +62,7 @@ const UserAvatar: React.FC<{
   const userInitial = user.username.charAt(0).toUpperCase();
   
   return (
-    <div className="flex-shrink-0 w-10 h-10 rounded-full overflow-hidden">
+    <div className="shrink-0 w-10 h-10 rounded-full overflow-hidden shadow-md">
       {user.profile_picture_url ? (
         <img
           src={user.profile_picture_url}
@@ -65,8 +71,7 @@ const UserAvatar: React.FC<{
         />
       ) : (
         <div className={clsx(
-          "w-full h-full flex items-center justify-center text-xl font-bold",
-          styleClasses.avatarBg,
+          "w-full h-full flex items-center justify-center text-xl font-bold bg-white",
           styleClasses.avatarText
         )}>
           {userInitial}
@@ -75,6 +80,32 @@ const UserAvatar: React.FC<{
     </div>
   );
 };
+
+const AvatarWithBadge: React.FC<{
+  user: { username: string; profile_picture_url: string | null };
+  styleClasses: { avatarBg: string; avatarText: string };
+  BadgeIcon: React.FC<any>;
+  badgeColor: string;
+}> = ({ user, styleClasses, BadgeIcon, badgeColor }) => {
+
+  return (
+    <div className="relative shrink-0 w-10 h-10">
+      <UserAvatar user={user} styleClasses={styleClasses} />
+
+      {/* Badge */}
+      <div
+        className={clsx(
+          "absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4 w-6 h-6 rounded-full flex items-center justify-center shadow-md",
+          badgeColor
+        )}
+      >
+        <BadgeIcon size={12} className="text-white" />
+      </div>
+
+    </div>
+  );
+};
+
 
 export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ event }) => {
   const timeAgo = formatTimeAgo(event.created_at);
@@ -90,7 +121,14 @@ export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ event }) => 
 
     return (
       <div className={clsx("flex items-start space-x-4 p-3 sm:p-4 rounded-xl relative", styles.bg)}>
-        <UserAvatar user={event.user} styleClasses={styles} />
+        <AvatarWithBadge
+          user={event.user}
+          styleClasses={styles}
+          BadgeIcon={puzzleIcons[event.puzzle_name] ?? Puzzle}
+          badgeColor={styles.avatarBg}
+        />
+
+
         
         <div className="flex-1 min-w-0">
           <div className="text-gray-700 text-sm sm:text-base leading-snug">
@@ -115,9 +153,13 @@ export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ event }) => 
 
     return (
       <div className={clsx("flex items-start space-x-4 p-3 sm:p-4 rounded-xl relative", styles.bg)}>
-        <div className="flex-shrink-0">
-          <Send size={24} className={styles.icon} />
-        </div>
+        <AvatarWithBadge
+          user={event.challenger}
+          styleClasses={styles}
+          BadgeIcon={Send}
+          badgeColor="bg-orange-500"
+        />
+
         
         <div className="flex-1 min-w-0">
           <div className="text-gray-700 text-sm sm:text-base leading-snug">
@@ -163,7 +205,7 @@ export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ event }) => 
 
     return (
       <div className={clsx("flex items-start space-x-4 p-3 sm:p-4 rounded-xl relative", styles.bg)}>
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           <Icon size={24} className={styles.icon} />
         </div>
         
