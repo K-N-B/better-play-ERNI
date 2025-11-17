@@ -3,6 +3,7 @@
 import json
 import random
 from datetime import datetime
+from django.utils import timezone
 
 import pytz
 from django.contrib.auth.decorators import login_required
@@ -923,16 +924,22 @@ class SearchUsersView(View):
 class PendingChallengesView(View):
     """
     GET /api/challenges/pending/
-    Get all pending challenges where the current user is the recipient
+    Get all pending challenges where the current user is EITHER the recipient OR the challenger
+    This allows users to see:
+    - Challenges they need to complete (as recipient)
+    - Challenges they're waiting on (as challenger)
     """
 
     def get(self, request):
         user = request.user
 
         try:
-            # Get challenges where user is recipient and status is PENDING
+            # Get challenges where user is EITHER recipient OR challenger, and status is PENDING
             challenges = (
-                Challenge.objects.filter(recipient=user, status=Challenge.Status.PENDING)
+                Challenge.objects.filter(
+                    Q(recipient=user) | Q(challenger=user),  # ✅ CHANGED: Include both
+                    status=Challenge.Status.PENDING
+                )
                 .select_related(
                     'challenger',
                     'recipient',
@@ -942,15 +949,12 @@ class PendingChallengesView(View):
                 .order_by('-created_at')
             )
 
-            # Serialize using DRF serializer
-            # from rest_framework.renderers import JSONRenderer
-
             serializer = ChallengeSerializer(challenges, many=True)
 
             print(f"[PendingChallenges] Found {challenges.count()} pending for {user.username}")
+            print(f"[PendingChallenges] - As recipient: {challenges.filter(recipient=user).count()}")
+            print(f"[PendingChallenges] - As challenger: {challenges.filter(challenger=user).count()}")
 
-            # Return as JSON
-            # json_data = JSONRenderer().render(serializer.data)
             return JsonResponse(serializer.data, safe=False)
 
         except Exception as e:
@@ -1141,6 +1145,16 @@ class CompleteChallengeView(View):
             print(f"  - Challenger: {challenge.challenger.username}")
             print(f"  - Recipient: {challenge.recipient.username}")
 
+            if challenge.is_expired():
+                print("[CompleteChallenge] ❌ Challenge has expired")
+                # Update status to expired
+                challenge.status = Challenge.Status.EXPIRED
+                challenge.save(update_fields=['status'])
+                
+                return JsonResponse({
+                    'error': 'This challenge has expired. Challenges must be completed on the same day they were sent.'
+                }, status=400)
+
             # Verify user is the recipient
             if challenge.recipient != user:
                 print("[CompleteChallenge] ❌ User is not recipient")
@@ -1190,7 +1204,8 @@ class CompleteChallengeView(View):
             print("[CompleteChallenge] Updating challenge...")
 
             challenge.recipient_submission = submission
-            challenge.status = Challenge.Status.COMPLETED  # ✅ This line MUST execute
+            challenge.status = Challenge.Status.COMPLETED
+            challenge.completed_at = timezone.now() 
 
             # Determine winner based on points
             challenger_points = challenge.challenger_submission.points_awarded

@@ -36,13 +36,15 @@ class ChallengeSerializer(serializers.ModelSerializer):
             'id',
             'challenger',
             'recipient',
-            'puzzle_type',  # ✅ Include this
-            'puzzle_id',    # ✅ You may need to add this too
+            'puzzle_type', 
+            'puzzle_id',    
             'challenger_submission',
             'recipient_submission',
             'status',
             'winner',
-            'created_at'
+            'created_at',
+            'expires_at',     
+            'completed_at',
         ]
     
     def get_puzzle_type(self, obj):
