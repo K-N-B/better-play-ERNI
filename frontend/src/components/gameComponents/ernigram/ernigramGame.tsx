@@ -301,13 +301,12 @@ export const ErnigramGame = ({
           (letter) => !solution.includes(letter)
         ).length;
 
-        // ✅ Set proper status for both won and lost
+        // ✅ CRITICAL FIX: Always set proper status
         const finalProgressData = {
           guessedLetters,
           attemptsLeft: won ? attemptsLeft : 0,
           isGameOver: true,
           misses: misses,
-          tries: triesTaken,  // ✅ Include tries for lost games
           status: won ? "SOLVED" : "LOST",
         };
 
@@ -328,49 +327,52 @@ export const ErnigramGame = ({
 
         console.log("[ErnigramGame] ✅ Progress saved successfully");
 
-        // ✅ ALWAYS SUBMIT - for both won and lost games
-        console.log("[ErnigramGame] Preparing submission...");
-        
-        const submissionData: SubmissionData = {
-          puzzle_id: puzzle.id,
-          puzzle_type: "ernigram",
-          difficulty: difficulty,
-          time_taken_ms: finalTime,
-          tries: triesTaken,
-        };
+        // ✅ Only submit if won
+        if (won) {
+          console.log("[ErnigramGame] Preparing submission...");
+          
+          const submissionData: SubmissionData = {
+            puzzle_id: puzzle.id,
+            puzzle_type: "ernigram",
+            difficulty: difficulty,
+            time_taken_ms: finalTime,
+            tries: triesTaken,
+          };
 
-        console.log("[ErnigramGame] Submission data:", submissionData);
-        console.log("[ErnigramGame] Calling submitPuzzle...");
+          console.log("[ErnigramGame] Submission data:", submissionData);
+          console.log("[ErnigramGame] Calling submitPuzzle...");
 
-        submissionResult = await submitPuzzle(
-          submissionData,
-          dailyPuzzleDate,
-          puzzle.id
-        );
+          submissionResult = await submitPuzzle(
+            submissionData,
+            dailyPuzzleDate,
+            puzzle.id
+          );
 
-        console.log("[ErnigramGame] ✅ Submission result:", submissionResult);
+          console.log("[ErnigramGame] ✅ Submission result:", submissionResult);
 
-        finalScore = submissionResult.score;
-        submissionIdForResultModal = submissionResult.submissionId ?? null;
+          finalScore = submissionResult.score;
+          submissionIdForResultModal = submissionResult.submissionId ?? null;
 
-        console.log("[ErnigramGame] Score:", finalScore);
-        console.log("[ErnigramGame] Submission ID:", submissionIdForResultModal);
+          console.log("[ErnigramGame] Score:", finalScore);
+          console.log("[ErnigramGame] Submission ID:", submissionIdForResultModal);
 
-        // ✅ Handle challenge completion if applicable
-        if (challengeId && submissionIdForResultModal) {
-          console.log("[ErnigramGame] Completing challenge...");
-          try {
-            await completeChallenge(challengeId, {
-              submission_id: submissionIdForResultModal,
-            });
+          if (challengeId && submissionIdForResultModal) {
+            console.log("[ErnigramGame] Completing challenge...");
+            try {
+              await completeChallenge(challengeId, {
+                submission_id: submissionIdForResultModal,
+              });
 
-            console.log("[ErnigramGame] ✅ Challenge completed");
-            await new Promise((resolve) => setTimeout(resolve, 3000));
-            await refreshChallenges();
-          } catch (challengeError) {
-            console.error("[ErnigramGame] ❌ Challenge error:", challengeError);
-            await refreshChallenges();
+              console.log("[ErnigramGame] ✅ Challenge completed");
+              await new Promise((resolve) => setTimeout(resolve, 3000));
+              await refreshChallenges();
+            } catch (challengeError) {
+              console.error("[ErnigramGame] ❌ Challenge error:", challengeError);
+              await refreshChallenges();
+            }
           }
+        } else {
+          console.log("[ErnigramGame] Game lost - no submission sent");
         }
       } catch (err) {
         console.error("[ErnigramGame] ❌ Error during end:", err);
@@ -385,7 +387,7 @@ export const ErnigramGame = ({
           streakUpdatedToday: submissionResult?.streakUpdatedToday ?? false,
           message: won 
             ? (submissionResult?.message ?? "Puzzle completed!")
-            : (submissionResult?.message ?? "Better luck next time!"),
+            : "Better luck next time!",
         });
         console.log("[ErnigramGame] ========== END COMPLETE ==========");
       }
