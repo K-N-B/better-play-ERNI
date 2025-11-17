@@ -413,8 +413,6 @@ class CheckUserSubmissionView(View):
 # ============================================================================
 # VIEW 4: SubmitPuzzleView - Submit Completed Puzzle
 # ============================================================================
-# In your views.py - Replace the SubmitPuzzleView post method
-
 @method_decorator(csrf_protect, name="dispatch")
 @method_decorator(login_required, name="post")
 class SubmitPuzzleView(View):

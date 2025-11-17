@@ -404,7 +404,8 @@ export const ErnigramGame = ({
       refreshChallenges,
     ]
   );
- 
+
+
   const checkGameState = useCallback(
     (currentGuesses: string[], currentAttempts: number) => {
       const uniqueLetters = [...new Set(solution.replace(/ /g, ""))];
