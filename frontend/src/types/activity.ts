@@ -22,9 +22,9 @@ export interface ActivityEvent {
   time_in_minutes?: string;
   
   // For challenges
-  challenger?: ActivityUser;
-  recipient?: ActivityUser;
-  status?: 'PENDING' | 'COMPLETED';
+  challenger: ActivityUser;
+  recipient: ActivityUser;
+  status: 'PENDING' | 'COMPLETED';
   winner?: ActivityUser | null;
 }
 
