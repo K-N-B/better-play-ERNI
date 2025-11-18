@@ -7,7 +7,6 @@ import {
   saveProgress,
   checkSubmissionExists,
 } from "../../../api/gameService";
-import { completeChallenge } from "../../../api/challengeService";
 import { useChallenges } from "../../../context/ChallengeContext";
 import type {
   WordlePuzzle,
@@ -20,7 +19,6 @@ import { WordleGrid } from "./wordleGrid";
 import { Keyboard } from "./keyboard";
 import { PostGameResultsModal } from "../../ui/postGameResultsModal";
 import { AlreadyPlayedScreen } from "../shared/alreadyPlayedScreen";
-// import { ResumeGameModal } from '../../ui/resumeGameModal';
 import { useTimer } from "../../../hooks/useTimer";
 import { Timer } from "../../ui/timer";
 import { useApi } from "../../../hooks/useApi";
@@ -149,29 +147,41 @@ export const WordleGame = ({
 
   // Load saved progress and START timer
   useEffect(() => {
-    if (alreadyCompleted?.hasSubmitted) return;
+    // 1. Guard clause: Stop if already submitted or if data is still loading
+    if (alreadyCompleted?.hasSubmitted || loading) return;
 
     let loadedIsGameOver = false;
+
     if (savedGame && savedGame.puzzle_type === "wordle") {
-      const progress = savedGame.progress_data as WordleProgress;
+      const progress = savedGame.progress_data as WordleProgress; // Restore game state
       setGuesses(progress.guesses || []);
       setCurrentRow(progress.currentRow || 0);
       setLetterStatuses(progress.letterStatuses || {});
       setIsGameOver(progress.isGameOver || false);
+      loadedIsGameOver = progress.isGameOver; // 2. Load the saved time and initialize the timer
+
       setSavedTime(savedGame.time_spent_ms);
-      loadedIsGameOver = progress.isGameOver;
+    } // 3. Critical Fix: Start the timer ONLY if the game is NOT over.
+    // This ensures the timer resumes from saved time (if savedGame existed)
+    // or starts from 0 (if savedGame was null/new game).
 
-      const hasProgress =
-        (progress.guesses?.length ?? 0) > 0 || savedGame.time_spent_ms > 5000;
-
-      if (hasProgress && !loadedIsGameOver) {
-      } else if (!loadedIsGameOver) {
-        startTimer();
-      }
-    } else if (!loadedIsGameOver) {
+    if (!loadedIsGameOver) {
       startTimer();
-    }
-  }, [savedGame, startTimer, setSavedTime, alreadyCompleted]);
+    } // 4. Cleanup: Stop the timer when the component unmounts
+
+    return () => {
+      if (!loadedIsGameOver) {
+        stopTimer();
+      }
+    };
+  }, [
+    savedGame,
+    loading, // Added loading dependency
+    startTimer,
+    stopTimer, // Added stopTimer for cleanup
+    setSavedTime,
+    alreadyCompleted,
+  ]);
 
   // Auto-save progress
   useEffect(() => {
