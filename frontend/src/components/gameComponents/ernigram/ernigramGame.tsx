@@ -45,6 +45,7 @@ interface ErnigramGameProps {
   difficulty: Difficulty;
   challengeId: number | null;
   dailyPuzzleDate: string;
+  children?: React.ReactNode;
 }
  
 const MAX_ATTEMPTS = (difficulty: Difficulty) =>
@@ -55,6 +56,7 @@ export const ErnigramGame = ({
   difficulty,
   challengeId,
   dailyPuzzleDate,
+  children
 }: ErnigramGameProps) => {
   const { refreshChallenges } = useChallenges();
   const [solution] = useState(puzzle.solution_phrase.toUpperCase());
@@ -580,7 +582,11 @@ export const ErnigramGame = ({
               <h1 className="text-4xl font-bold">ERNIgram</h1>
               <p>on {difficulty} difficulty</p>
             </div>
-            <Timer timeMs={time} />
+            <div className="flex justify-between gap-4">
+              <Timer timeMs={time} />
+              {children}
+            </div>
+            
           </div>
           <div className={isGameOver ? "opacity-50 pointer-events-none" : ""}>
             <Keyboard

@@ -7,6 +7,7 @@ export interface PuzzleIntroProps {
   description: string; // Intro text (the first block)
   howToPlay: string; // Instruction content
   pointsInfo: string; // Main points description
+  pointsCalculation: string; // Points calculation info
   hintInfo: string; // Hint/bonus info
   onStart: () => void; // Function when "Start" button is clicked
   onDifficultyChange: (difficulty: Difficulty) => void;
@@ -22,6 +23,7 @@ export default function GameIntro({
   description,
   howToPlay,
   pointsInfo,
+  pointsCalculation,
   hintInfo,
   onStart,
   onDifficultyChange,
@@ -62,8 +64,9 @@ export default function GameIntro({
 
         <div className="mt-10 font-medium">
           <div dangerouslySetInnerHTML={{ __html: pointsInfo }} />
+          <div className="mt-4 text-xl/6 hidden lg:block" dangerouslySetInnerHTML={{ __html: pointsCalculation }} />
           <div
-            className="mt-10"
+            className="mt-8"
             dangerouslySetInnerHTML={{ __html: hintInfo }}
           />
         </div>
