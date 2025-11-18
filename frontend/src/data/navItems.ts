@@ -10,8 +10,8 @@ export const shopNavStyle = {
 
 // You might define one for Notifications too if needed, e.g., using primary color
 export const notificationNavStyle = {
-    activeClasses: 'bg-primary text-white shadow-[0_5px_0_0] shadow-primary-900',
-    hoverClasses: 'hover:bg-primary hover:text-white', // Consistent hover
+    activeClasses: 'bg-orange-500 text-white shadow-[0_5px_0_0] shadow-orange-900',
+    hoverClasses: 'hover:bg-orange-500 hover:text-white', // Consistent hover
 }
 
 export const navItems: NavItem[] = [
