@@ -1,47 +1,65 @@
-// src/context/ChallengeContext.tsx
+// src/context/ChallengeContext.tsx - UPDATED WITH EXPIRY TRACKING
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { getPendingChallenges } from '../api/challengeService';
-import { useAuth } from '../hooks/authContext';
+import type { Challenge } from '../types/challenge';
+import { isChallengeExpired } from '../types/challenge';
 
 interface ChallengeContextType {
     pendingCount: number;
-    isLoading: boolean;
+    expiredCount: number;
     refreshChallenges: () => Promise<void>;
+    isRefreshing: boolean;
 }
 
 const ChallengeContext = createContext<ChallengeContextType | undefined>(undefined);
 
 export const ChallengeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [pendingCount, setPendingCount] = useState<number>(0);
-    const [isLoading, setIsLoading] = useState(true);
+    const [pendingCount, setPendingCount] = useState(0);
+    const [expiredCount, setExpiredCount] = useState(0);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     const refreshChallenges = useCallback(async () => {
+        setIsRefreshing(true);
         try {
-            console.log('[ChallengeContext] Fetching pending challenges...');
             const challenges = await getPendingChallenges();
-            console.log('[ChallengeContext] Found', challenges.length, 'pending challenges');
-            setPendingCount(challenges.length);
-            setIsLoading(false);
+            
+            // Separate pending and expired challenges
+            const activePending = challenges.filter(c => !isChallengeExpired(c));
+            const expired = challenges.filter(c => isChallengeExpired(c));
+            
+            setPendingCount(activePending.length);
+            setExpiredCount(expired.length);
         } catch (error) {
-            console.error('[ChallengeContext] Error fetching challenges:', error);
-            setPendingCount(0);
-            setIsLoading(false);
+            console.error('[ChallengeContext] Failed to refresh challenges:', error);
+            // Keep previous counts on error
+        } finally {
+            setIsRefreshing(false);
         }
     }, []);
 
-    // Initial fetch
+    // Initial fetch on mount
     useEffect(() => {
         refreshChallenges();
     }, [refreshChallenges]);
 
-    // Auto-refresh every 60 seconds
+    // Auto-refresh every 2 minutes
     useEffect(() => {
-        const intervalId = setInterval(refreshChallenges, 60000);
-        return () => clearInterval(intervalId);
+        const interval = setInterval(() => {
+            refreshChallenges();
+        }, 2 * 60 * 1000); // 2 minutes
+
+        return () => clearInterval(interval);
     }, [refreshChallenges]);
 
     return (
-        <ChallengeContext.Provider value={{ pendingCount, isLoading, refreshChallenges }}>
+        <ChallengeContext.Provider 
+            value={{ 
+                pendingCount, 
+                expiredCount, 
+                refreshChallenges, 
+                isRefreshing 
+            }}
+        >
             {children}
         </ChallengeContext.Provider>
     );

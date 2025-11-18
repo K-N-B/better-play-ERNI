@@ -1,49 +1,75 @@
+import { useState } from 'react';
 import { WelcomeMessage } from '../components/features/welcomeMessage';
 import { GamesSection } from '../components/features/games/gameSection';
 import { ActivityFeedCard } from '../components/features/activityFeed/activityFeedCard';
 import { LeaderboardPreviewCard } from '../components/features/leaderboard/leaderboardPreviewCard';
 import { WhosOnlineCard } from '../components/features/whosOnlineCard';
+import { WhosOnlineList } from '../components/features/whosOnlineList';
+import { Users } from 'lucide-react';
+import { GamesStrip } from '../components/features/games/gamesStrip';
 
-export const HomePage = () => { // Use default export if that's your convention
+
+export const HomePage = () => {
+  const [showWhosOnline, setShowWhosOnline] = useState(false);
+
   return (
-    // Main container with padding
- <div className="container mx-auto ">
+    <div className="container mx-auto px-4">
+      {/* --- MOBILE LAYOUT --- */}
+      <div className="block lg:hidden space-y-6">
+        {/* Welcome Message */}
+        <div>
+          <WelcomeMessage />
+        </div>
 
-      {/* --- MAIN 3-COLUMN LAYOUT GRID --- */}
-      {/* On large screens (lg:), create a 3-column grid */}
-      {/* The 'grid' automatically makes columns in the same row equal height */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-screen items-stretch">
+        {/* Games Section */}
+        <div>
+          <GamesStrip />
+        </div>
 
-        {/* --- Column 1: Welcome & Games --- */}
-        {/* 'flex flex-col' allows items to stack and fill height */}
-        {/* Add 'h-full' to ensure this div takes the full grid cell height */}
+        {/* Activity Feed with Who's Online button */}
+        <div className="relative">
+          <ActivityFeedCard />
+
+          <button
+            className="absolute top-4 right-4 bg-sky-200 text-primary-600 p-3 rounded-full shadow-[0_3px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-0.5 active:translate-y-1 transition-all"
+            onClick={() => setShowWhosOnline(!showWhosOnline)}
+          >
+            <Users size={22} strokeWidth={2.5} />
+          </button>
+
+          {showWhosOnline && (
+            <div className="absolute top-20 right-4 w-64 bg-white shadow-lg rounded-lg p-4 z-20max-h-96 overflow-y-auto">
+              <WhosOnlineList /> {/* only list, no header */}
+            </div>
+          )}
+        </div>
+
+      </div>
+
+      {/* --- DESKTOP LAYOUT (3-column) --- */}
+      <div className="hidden lg:grid lg:grid-cols-4 lg:gap-6 lg:min-h-screen">
+        {/* Column 1 */}
         <div className="lg:col-span-1 flex flex-col gap-6 h-full">
           <WelcomeMessage />
-          {/* Add 'flex-grow' to GamesSection's *wrapper* if you want it to take remaining space */}
-          <div className=""> {/* Wrapper to allow GamesSection to grow */}
-            <GamesSection /> {/* Ensure GamesSection uses h-full internally */}
+          <div>
+            <GamesSection />
           </div>
         </div>
 
-        {/* --- Column 2: Activity Feed --- */}
-        {/* Add 'h-full' here as well */}
+        {/* Column 2 */}
         <div className="lg:col-span-2 h-full">
-            {/* ActivityFeedCard should have h-full internally to fill this div */}
-            <ActivityFeedCard />
+          <ActivityFeedCard />
         </div>
 
-        {/* --- Column 3: Leaderboard & Who's Online --- */}
-        {/* Add 'h-full' and 'flex flex-col' */}
+        {/* Column 3 */}
         <div className="lg:col-span-1 flex flex-col gap-6 h-full">
-          <div className=""> {/* Wrapper to allow GamesSection to grow */}
-            <LeaderboardPreviewCard /> {/* Ensure GamesSection uses h-full internally */}
+          <div>
+            <LeaderboardPreviewCard />
           </div>
-          <div className=""> {/* Wrapper to allow GamesSection to grow */}
-            <WhosOnlineCard /> {/* Ensure GamesSection uses h-full internally */}
+          <div>
+            <WhosOnlineCard />
           </div>
         </div>
-        {/* --- END OF MAIN LAYOUT GRID --- */}
-
       </div>
     </div>
   );

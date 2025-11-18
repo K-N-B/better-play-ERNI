@@ -1,15 +1,11 @@
-# activity/models.py
-from django.contrib.auth import get_user_model
+# activity/models.py 
 from django.db import models
+from django.contrib.auth import get_user_model
+from gameplay.models import Challenge
 
 User = get_user_model()
 
-
 class UserActivity(models.Model):
-    """
-    Tracks user online status via heartbeat mechanism.
-    Updated every time user sends a heartbeat (every 30s from frontend).
-    """
 
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, primary_key=True, related_name='activity_status'

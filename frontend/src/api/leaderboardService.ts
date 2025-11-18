@@ -18,10 +18,6 @@ export const getLeaderboard = async (
 ): Promise<LeaderboardData> => {
   // Real API call
   try {
-    console.log(
-      `[getLeaderboard] Fetching: period=${period}, type=${type}, date=${date}`
-    );
-
     // Build query parameters
     const params = new URLSearchParams({
       period: period,
@@ -33,7 +29,6 @@ export const getLeaderboard = async (
     }
 
     const url = `${API_BASE_URL}/api/leaderboard/?${params.toString()}`;
-    console.log(`[getLeaderboard] Request URL: ${url}`);
 
     const response = await fetch(url, {
       method: "GET",
@@ -43,8 +38,6 @@ export const getLeaderboard = async (
       },
     });
 
-    console.log(`[getLeaderboard] Response status: ${response.status}`);
-
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`[getLeaderboard] Error response:`, errorText);
@@ -52,35 +45,17 @@ export const getLeaderboard = async (
     }
 
     const data = await response.json();
-    console.log(`[getLeaderboard] Response data:`, data);
-    console.log(
-      `[getLeaderboard] Response type:`,
-      typeof data,
-      "IsArray:",
-      Array.isArray(data)
-    );
 
     // ✅ Handle multiple possible response formats robustly
     if (Array.isArray(data)) {
       // Backend returned plain array directly
-      console.log(
-        `[getLeaderboard] ✅ Returning array directly, length:`,
-        data.length
-      );
       return data;
     } else if (data && Array.isArray(data.leaderboard)) {
       // Backend returned object with 'leaderboard' property
-      console.log(
-        `[getLeaderboard] ✅ Extracting leaderboard array, length:`,
-        data.leaderboard.length
-      );
+
       return data.leaderboard;
     } else if (data && Array.isArray(data.results)) {
       // Backend returned object with 'results' property (DRF pagination format)
-      console.log(
-        `[getLeaderboard] ✅ Extracting results array, length:`,
-        data.results.length
-      );
       return data.results;
     } else {
       // Unexpected format - return empty array and log warning

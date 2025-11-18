@@ -23,11 +23,9 @@ export const GameCard: React.FC<GameCardProps> = ({
     <Link
       to={path}
       className={
-        ` rounded-2xl p-8 sm:p-6 h-full w-full transition-transform duration-100 ease-in-out overflow-hidden
+        ` rounded-2xl p-8 sm:p-6 min-h-[150px] w-full transition-transform duration-100 ease-in-out overflow-hidden
         flex flex-col items-center justify-center 
-         ${bgColor} ${shadowColor} shadow-[0_8px_0_0]
-         hover:translate-y-[-4px] hover:shadow-[0_12px_0_0]
-         active:translate-y-[0px] active:shadow-[0_4px_0_0]`
+        ${bgColor} ${shadowColor} shadow-[0_6px_0_0] hover:shadow-[0_4px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all]`
       }
       style={{ willChange: 'transform, box-shadow' }}
     >

@@ -7,7 +7,7 @@ import type { IndividualScoreEntry } from "../../../types/leaderboard";
 import { Trophy } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const PREVIEW_LIMIT = 5;
+const PREVIEW_LIMIT = 10;
 
 export const LeaderboardPreviewCard = () => {
   const fetchPreviewData = React.useCallback(
@@ -16,16 +16,14 @@ export const LeaderboardPreviewCard = () => {
   );
   const { data, loading, error } = useApi(fetchPreviewData);
 
-  console.log("Leaderboard API response:", data);
-
   // Safely extract array
   const entries: IndividualScoreEntry[] = Array.isArray(data)
     ? data
     : Array.isArray((data as any)?.results)
-    ? (data as any).results
-    : Array.isArray((data as any)?.data)
-    ? (data as any).data
-    : [];
+      ? (data as any).results
+      : Array.isArray((data as any)?.data)
+        ? (data as any).data
+        : [];
 
   const previewData = entries.slice(0, PREVIEW_LIMIT);
 
@@ -34,9 +32,7 @@ export const LeaderboardPreviewCard = () => {
       <div className="flex justify-between items-center shrink-0 mb-3">
         <h3 className="text-xl font-semibold flex items-center space-x-3">
           <Trophy size={22} strokeWidth={2.5} />
-          <div className="text-xl font-semibold text-black">
-            Leaderboards
-          </div>
+          <div className="text-xl font-semibold text-black">Leaderboards</div>
         </h3>
       </div>
 

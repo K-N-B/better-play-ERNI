@@ -7,6 +7,7 @@ export const gameCardData: GameCardData[] = [
     subtitle: 'Guess the 5-letter word.',
     bgColor: 'bg-emerald-500',
     shadowColor: 'shadow-emerald-900',
+    textColor: 'text-emerald-700',
     IconComponent: TextInitial, // Assign the icon component
     path: '/game/wordle',
   },
@@ -15,6 +16,7 @@ export const gameCardData: GameCardData[] = [
     subtitle: 'A logic puzzle for your break.',
     bgColor: 'bg-pink-400',
     shadowColor: 'shadow-pink-800',
+    textColor: 'text-pink-700',
     IconComponent: Brain, // Assign the icon component
     path: '/game/sudoku',
   },
@@ -23,6 +25,7 @@ export const gameCardData: GameCardData[] = [
     subtitle: 'Company-themed hangman.',
     bgColor: 'bg-sky-400',
     shadowColor: 'shadow-sky-800',
+    textColor: 'text-sky-700',
     IconComponent: PenTool, // Assign the icon component
     path: '/game/ernigram',
   },

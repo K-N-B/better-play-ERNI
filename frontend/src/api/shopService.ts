@@ -1,8 +1,6 @@
-import { mockApiCall } from "./api"; // Import helpers
 import { getCookie, API_URL } from "./authService";
 import type { RewardItem, ClaimResponse, ClaimedReward } from "../types";
 
-const MOCK_MODE = false;
 /**
  * Fetches the list of available rewards from the real backend.
  */
