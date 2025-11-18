@@ -21,7 +21,7 @@ export const ChallengeTabs = ({
             className={clsx(
                 'px-6 py-3 font-medium text-sm transition-colors relative',
                 activeTab === 'pending'
-                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    ? 'text-orange-600 border-b-2 border-orange-600'
                     : 'text-gray-600 hover:text-gray-800'
             )}
         >
@@ -29,7 +29,7 @@ export const ChallengeTabs = ({
                 <Clock size={18} />
                 <span>Pending</span>
                 {activePendingCount > 0 && (
-                    <span className="bg-blue-600 text-white text-xs rounded-full px-2 py-0.5">
+                    <span className="bg-orange-600 text-white text-xs rounded-full px-2 py-0.5">
                         {activePendingCount}
                     </span>
                 )}
@@ -42,7 +42,7 @@ export const ChallengeTabs = ({
             className={clsx(
                 'px-6 py-3 font-medium text-sm transition-colors relative',
                 activeTab === 'history'
-                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    ? 'text-amber-600 border-b-2 border-amber-600'
                     : 'text-gray-600 hover:text-gray-800'
             )}
         >
@@ -50,23 +50,12 @@ export const ChallengeTabs = ({
                 <Trophy size={18} />
                 <span>History</span>
                 {totalCompleted > 0 && (
-                    <span className="bg-gray-400 text-white text-xs rounded-full px-2 py-0.5">
+                    <span className="bg-amber-600 text-white text-xs rounded-full px-2 py-0.5">
                         {totalCompleted}
                     </span>
                 )}
             </div>
         </button>
 
-        {/* Stats */}
-        <button
-            onClick={() => setActiveTab('stats')}
-            className={clsx(
-                'px-6 py-3 font-medium text-sm transition-colors relative',
-                activeTab === 'stats'
-                    ? 'text-blue-600 border-b-2 border-blue-600'
-                    : 'text-gray-600 hover:text-gray-800'
-            )}
-        >
-        </button>
     </div>
 );
