@@ -178,6 +178,37 @@ export const ChallengeItem: React.FC<ChallengeItemProps> = ({
             {challenge.challenger_submission.points_awarded} pts
           </p>
 
+          {/* Recipient Score (for completed) */}
+          {challenge.recipient_submission && isCompleted && (
+            <div className="text-sm mt-2">
+              {isRecipient ? "Your" : `${challenge.recipient.username}'s`} Score:{" "}
+              {challenge.recipient_submission.points_awarded} pts
+              {won && isRecipient && (
+                <span className="ml-2 text-green-600 font-semibold">
+                  You Won!
+                </span>
+              )}
+              {lost && isRecipient && (
+                <span className="ml-2 text-red-600 font-semibold">
+                  You Lost
+                </span>
+              )}
+              {won && isChallenger && (
+                <span className="ml-2 text-red-600 font-semibold">
+                  They Won!
+                </span>
+              )}
+              {lost && isChallenger && (
+                <span className="ml-2 text-green-600 font-semibold">
+                  You Won!
+                </span>
+              )}
+              {!won && !lost && (
+                <span className="ml-2 text-gray-600 font-semibold">Tie</span>
+              )}
+            </div>
+          )}
+
           {/* Date and Time Information */}
           <div className="flex items-center gap-3 mt-2 text-xs flex-wrap">
             {/* Created Date */}
@@ -219,37 +250,6 @@ export const ChallengeItem: React.FC<ChallengeItemProps> = ({
               </div>
             )}
           </div>
-
-          {/* Recipient Score (for completed) */}
-          {challenge.recipient_submission && isCompleted && (
-            <div className="text-sm mt-2">
-              {isRecipient ? "Your" : `${challenge.recipient.username}'s`} Score:{" "}
-              {challenge.recipient_submission.points_awarded} pts
-              {won && isRecipient && (
-                <span className="ml-2 text-green-600 font-semibold">
-                  You Won!
-                </span>
-              )}
-              {lost && isRecipient && (
-                <span className="ml-2 text-red-600 font-semibold">
-                  You Lost
-                </span>
-              )}
-              {won && isChallenger && (
-                <span className="ml-2 text-red-600 font-semibold">
-                  They Won!
-                </span>
-              )}
-              {lost && isChallenger && (
-                <span className="ml-2 text-green-600 font-semibold">
-                  You Won!
-                </span>
-              )}
-              {!won && !lost && (
-                <span className="ml-2 text-gray-600 font-semibold">Tie</span>
-              )}
-            </div>
-          )}
 
           {/* Expiry Message */}
           {(isExpired || expiryStatus.isExpired) && (

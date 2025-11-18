@@ -1,6 +1,6 @@
 // src/components/features/challenge/challengeIcon.tsx
 import React, { useState, useEffect } from 'react';
-import { Mountain } from 'lucide-react';
+import { Swords } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { getPendingChallenges } from '../../../api/challengeService';
 import clsx from 'clsx';
@@ -11,8 +11,8 @@ interface ChallengeIconProps {
 }
 
 export const ChallengeIcon: React.FC<ChallengeIconProps> = ({
-    activeClasses = 'bg-primary text-white shadow-[0_5px_0_0] shadow-primary-900',
-    hoverClasses = 'hover:bg-primary hover:text-white'
+    activeClasses = 'bg-orange-500 text-white shadow-[0_5px_0_0] shadow-orange-900',
+    hoverClasses = 'hover:bg-orange-500 hover:text-white'
 }) => {
     const [challengeCount, setChallengeCount] = useState<number>(0);
     const [isLoading, setIsLoading] = useState(true);
@@ -61,7 +61,7 @@ export const ChallengeIcon: React.FC<ChallengeIconProps> = ({
             aria-label={`View Challenges (${challengeCount} pending)`}
             title={`View Challenges (${challengeCount} pending)`}
         >
-            <Mountain size={24} strokeWidth={2} />
+            <Swords size={24} strokeWidth={2} />
             
             {/* Badge - show only when not loading and count > 0 */}
             {!isLoading && challengeCount > 0 && (
