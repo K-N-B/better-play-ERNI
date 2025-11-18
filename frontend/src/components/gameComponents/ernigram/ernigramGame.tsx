@@ -7,6 +7,7 @@ import {
   getSavedAttempt,
   saveProgress,
   checkSubmissionExists,
+  getGameLimits,
 } from "../../../api/gameService";
 import { completeChallenge } from "../../../api/challengeService";
 import { useChallenges } from "../../../context/ChallengeContext";
@@ -23,7 +24,6 @@ import { AttemptsTracker } from "./attemptsTracker";
 import { Keyboard } from "../wordle/keyboard";
 import { PostGameResultsModal } from "../../ui/postGameResultsModal";
 import { AlreadyPlayedScreen } from "../shared/alreadyPlayedScreen";
-// import { ResumeGameModal } from "../../ui/resumeGameModal";
 import { useTimer } from "../../../hooks/useTimer";
 import { Timer } from "../../ui/timer";
 import { useApi } from "../../../hooks/useApi";
@@ -39,6 +39,7 @@ import success from "@/assets/sounds/success.mp3";
 import error from "@/assets/sounds/error.mp3";
 
 import { useSound } from "../../../hooks/useSound";
+import { calculateSpeedBonus } from "../../../utils/SpeedBonus";
 
 interface ErnigramGameProps {
   puzzle: ErnigramPuzzle;
@@ -96,6 +97,12 @@ export const ErnigramGame = ({
   const puzzleID = puzzle.id;
   const [isWon, setIsWon] = useState(false);
 
+  const fetchLimits = useCallback(
+    // FIX: Use a string literal if 'puzzle' object doesn't have the property
+    () => getGameLimits("ernigram"),
+    [] // The dependency array can now be empty as the type is constant
+  );
+  const { data: gameConfig, loading: configLoading } = useApi(fetchLimits);
   // ✅ 1. Check for existing submission FIRST
   useEffect(() => {
     if (!dailyPuzzleDate || !puzzleID) {
@@ -222,6 +229,7 @@ export const ErnigramGame = ({
     checkingSubmission,
     loading,
   ]);
+
   // ✅ 4. Auto-save progress
   useEffect(() => {
     if (
@@ -282,10 +290,24 @@ export const ErnigramGame = ({
       }
       stopTimer();
       const finalTime = time;
-      let finalScore = 0;
+
       let submissionIdForResultModal: number | null = null;
       const triesTaken = maxAttemptsForDifficulty - attemptsLeft;
       let submissionResult: SubmissionResult | null = null;
+
+      let finalScore = 0;
+
+      if (won && gameConfig) {
+        const difficultyKey = difficulty.toUpperCase();
+        const maxTimeMs = gameConfig.TIME_LIMITS_MS[difficultyKey];
+        const basePoints = gameConfig.BASE_POINTS[difficultyKey]; // Assuming you imported calculateSpeedBonus from utils/speedBonus
+        const speedBonus = calculateSpeedBonus(finalTime, maxTimeMs);
+        finalScore = basePoints + speedBonus;
+
+        console.log(
+          `[ErnigramGame] Base: ${basePoints}, Bonus: ${speedBonus}, Total: ${finalScore}`
+        );
+      }
 
       if (!dailyPuzzleDate || !puzzle.id) {
         console.error("[ErnigramGame] ❌ Missing dailyPuzzleDate or puzzle.id");

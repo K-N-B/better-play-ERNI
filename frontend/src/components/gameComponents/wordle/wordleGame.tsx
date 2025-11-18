@@ -6,6 +6,7 @@ import {
   getSavedAttempt,
   saveProgress,
   checkSubmissionExists,
+  getGameLimits,
 } from "../../../api/gameService";
 import { useChallenges } from "../../../context/ChallengeContext";
 import type {
@@ -33,6 +34,7 @@ import click3 from "@/assets/sounds/keyboard_press_3.mp3";
 import back from "@/assets/sounds/backspace.mp3";
 import error from "@/assets/sounds/error.mp3";
 import success from "@/assets/sounds/success.mp3";
+import { calculateSpeedBonus } from "../../../utils/SpeedBonus";
 
 interface WordleGameProps {
   puzzle: WordlePuzzle;
@@ -85,6 +87,12 @@ export const WordleGame = ({
   const playBackspace = useSound([back], 0.4);
   const playSuccess = useSound([success], 0.4);
   const playError = useSound([error], 0.4);
+
+  // Fetch game limits/config (for speed bonus calculation)
+  const fetchLimits = useCallback(() => getGameLimits("wordle"), []);
+
+  // FIX: Explicitly specify the type GameLimits for the fetched data
+  const { data: gameConfig, loading: configLoading } = useApi(fetchLimits);
 
   // Check for existing submission FIRST
   useEffect(() => {
@@ -258,6 +266,27 @@ export const WordleGame = ({
         return;
       }
 
+      // --- 🚀 NEW SPEED BONUS CALCULATION START 🚀 ---
+      let calculatedScore = 0;
+
+      if (won && gameConfig) {
+        const difficultyKey = difficulty.toUpperCase();
+
+        // Access limits safely using optional chaining
+        const maxTimeMs = gameConfig.TIME_LIMITS_MS[difficultyKey] || 0;
+        const basePoints = gameConfig.BASE_POINTS[difficultyKey] || 0;
+
+        const speedBonus = calculateSpeedBonus(finalTime, maxTimeMs);
+        calculatedScore = basePoints + speedBonus; // Calculate the score
+
+        console.log(
+          `[WordleGame] Base: ${basePoints}, Bonus: ${speedBonus}, Total Calculated: ${calculatedScore}`
+        );
+      } else {
+        // If lost, the calculated score is the base score awarded by the server (usually 0)
+        calculatedScore = 0;
+      }
+      // --- 🚀 NEW SPEED BONUS CALCULATION END 🚀 ---
       try {
         const finalProgress: WordleProgress = {
           guesses: currentGuessesArray,
@@ -295,7 +324,7 @@ export const WordleGame = ({
           puzzle.id
         );
 
-        finalScore = submissionResult.score;
+        finalScore = calculatedScore;
         submissionIdForResultModal = submissionResult.submissionId ?? null;
 
         if (challengeId && submissionIdForResultModal) {

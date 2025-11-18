@@ -321,3 +321,27 @@ export const checkUserSubmissionExists = async (
     return { hasSubmitted: false, userId };
   }
 };
+
+interface GameLimits {
+  TIME_LIMITS_MS: Record<string, number>;
+  BASE_POINTS: Record<string, number>;
+}
+
+export const getGameLimits = async (
+  puzzleType: string
+): Promise<GameLimits> => {
+  // This URL matches the pattern you set up: /api/games/limits/<puzzle_type>/
+  const url = `${API_BASE_URL}/api/games/limits/${puzzleType.toLowerCase()}/`;
+
+  // ... (fetch logic: GET method, credentials: 'include', headers)
+  const response = await fetch(url, {
+    method: "GET",
+    credentials: "include",
+    headers: { Accept: "application/json" },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch game limits: ${response.statusText}`);
+  }
+  return await response.json();
+};

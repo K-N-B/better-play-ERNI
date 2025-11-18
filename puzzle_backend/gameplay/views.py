@@ -37,6 +37,7 @@ from .serializers import (
 
 # Import the streak utility function
 from .streak_utils import update_daily_activity_streak
+from .scoring_utils import calculate_speed_bonus
 
 User = get_user_model()
 
@@ -533,6 +534,13 @@ class SubmitPuzzleView(View):
                     hints_used = attempt.progress_data.get("hints_used", 0)
 
                 print(f"[SubmitPuzzleView] Validation result: {points_awarded} points, {tries} tries, {hints_used} hints used")
+                max_time_ms = PuzzleModel.TIME_LIMITS_MS.get(difficulty) # Retrieve limit again
+                if max_time_ms is not None:
+                    # Calculate and apply the bonus
+                    speed_bonus = calculate_speed_bonus(time_taken, max_time_ms)
+                    points_awarded += speed_bonus
+                    print(f"[SubmitPuzzleView] Speed Bonus Applied: +{speed_bonus} points. Total: {points_awarded}")
+                    # --- 🛑 NEW SPEED BONUS CALCULATION END 🛑 ---
 
             except AttributeError:
                 return JsonResponse(

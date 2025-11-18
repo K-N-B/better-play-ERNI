@@ -7,6 +7,7 @@ import {
   getSavedAttempt,
   saveProgress,
   checkSubmissionExists,
+  getGameLimits,
 } from "../../../api/gameService";
 // import { completeChallenge } from "../../../api/challengeService";
 import type {
@@ -35,6 +36,8 @@ import type { Difficulty } from "../../../pages/gamePage";
 import { getHint, getSudokuHintLimits } from "../../../api/gameService";
 import { useChallenges } from "../../../context/ChallengeContext";
 import { keyboardInputSudoku } from "./keyboardInputsSudoku";
+
+import { calculateSpeedBonus } from "../../../utils/SpeedBonus"; // Import the utility function
 
 // Helper Functions
 const parseGrid = (puzzleString: string): SudokuCell[][] => {
@@ -178,6 +181,13 @@ export const SudokuGame = ({
   const [checkingSubmission, setCheckingSubmission] = useState(true);
 
   const { time, startTimer, stopTimer, setSavedTime } = useTimer();
+
+  // Fetch the limits for Sudoku (max time, BASCORE, etc.)
+  const fetchLimits = useCallback(
+    () => getGameLimits("sudoku"),
+    [] // Sudoku type is constant here
+  );
+  const { data: gameConfig, loading: configLoading } = useApi(fetchLimits);
 
   // Check for existing submission FIRST
   useEffect(() => {
@@ -354,6 +364,11 @@ export const SudokuGame = ({
       alert("Solution is incorrect. Keep trying or check for errors (in red).");
       return;
     }
+    if (!gameConfig) {
+      console.error("Game configuration (limits/points) not loaded.");
+      alert("Cannot submit: Game configuration is missing.");
+      return;
+    }
 
     console.log("[SudokuGame] ========== SUBMITTING PUZZLE ==========");
     console.log("[SudokuGame] challengeId:", challengeId);
@@ -368,6 +383,20 @@ export const SudokuGame = ({
       setGameResult({ score: 0, submissionId: null });
       return;
     }
+    // --- 🚀 NEW SPEED BONUS CALCULATION START 🚀 ---
+    const difficultyKey = difficulty.toUpperCase();
+
+    // Look up the limits from the fetched config
+    const maxTimeMs = gameConfig?.TIME_LIMITS_MS?.[difficultyKey] || 0;
+    const basePoints = gameConfig?.BASE_POINTS?.[difficultyKey] || 0;
+
+    const speedBonus = calculateSpeedBonus(finalTime, maxTimeMs);
+    const calculatedScore = basePoints + speedBonus; // Store the calculated score
+
+    console.log(
+      `[SudokuGame] Base: ${basePoints}, Bonus: ${speedBonus}, Total Calculated: ${calculatedScore}`
+    );
+    // --- 🚀 NEW SPEED BONUS CALCULATION END 🚀 ---
 
     try {
       // ✅ Convert grid to string format for backend validation
@@ -413,7 +442,7 @@ export const SudokuGame = ({
         puzzle.id
       );
 
-      finalScore = submissionResult.score;
+      finalScore = calculatedScore;
       submissionIdForResultModal = submissionResult.submissionId ?? null;
 
       // ✅ NEW: Complete challenge
