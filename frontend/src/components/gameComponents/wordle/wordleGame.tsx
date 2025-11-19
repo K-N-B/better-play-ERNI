@@ -7,7 +7,7 @@ import {
   saveProgress,
   checkSubmissionExists,
 } from "../../../api/gameService";
-import { completeChallenge } from "../../../api/challengeService";
+// import { completeChallenge } from "../../../api/challengeService";
 import { useChallenges } from "../../../context/ChallengeContext";
 import type {
   WordlePuzzle,

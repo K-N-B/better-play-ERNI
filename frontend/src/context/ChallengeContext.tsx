@@ -1,7 +1,7 @@
 // src/context/ChallengeContext.tsx - UPDATED WITH EXPIRY TRACKING
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { getPendingChallenges } from '../api/challengeService';
-import type { Challenge } from '../types/challenge';
+// import type { Challenge } from '../types/challenge';
 import { isChallengeExpired } from '../types/challenge';
 
 interface ChallengeContextType {
