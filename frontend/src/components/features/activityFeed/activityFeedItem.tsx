@@ -110,6 +110,10 @@ export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ event }) => 
     // Challenge styling (always orange)
     const challengeCfg = activityConfig.challenge;
 
+    console.log("ACTIVITY EVENT:", event);
+    console.log("event_type:", event.event_type);
+    console.log("puzzle_name:", event.puzzle_name);
+
 
     // SUBMISSION EVENT
     if (event.event_type === 'submission' && event.user && puzzleCfg) {
@@ -207,6 +211,7 @@ export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ event }) => 
     }
     // FALLBACK
     return (
+        
         <div className="flex items-center space-x-4 p-3 sm:p-4 rounded-xl bg-gray-100/60">
             <div className="text-gray-600 text-sm">Unknown activity type</div>
             <div className="text-xs text-gray-500">{timeAgo}</div>
