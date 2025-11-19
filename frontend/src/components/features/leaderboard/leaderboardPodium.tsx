@@ -35,14 +35,14 @@ const PodiumItem: React.FC<{
   numTopClass,
 }) => {
   let name = "Unknown";
-  let id = rank;
+  // let id = rank;
   let profileImageUrl: string | null = null;
 
   // Extract user/department data and profile picture
   if (type === "department") {
     if ("department" in entry && entry.department) {
       name = entry.department.name || "Unknown Dept";
-      id = entry.department.id || rank;
+      // id = entry.department.id || rank;
     } else {
       console.error(
         `[PodiumItem] Department type but no department data:`,
@@ -52,7 +52,7 @@ const PodiumItem: React.FC<{
   } else if (type === "individual") {
     if ("user" in entry && entry.user) {
       name = entry.user.username || "Unknown User";
-      id = entry.user.id || rank;
+      // id = entry.user.id || rank;
       profileImageUrl = entry.user.profile_picture_url || null;
     } else {
       console.error(`[PodiumItem] Individual type but no user data:`, entry);

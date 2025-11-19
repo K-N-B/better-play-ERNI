@@ -1,6 +1,6 @@
 // src/types/activity.ts
 
-import type { UserProfile } from './user';
+// import type { UserProfile } from './user';
 
 // Base user info for activity events
 export interface ActivityUser {

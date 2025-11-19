@@ -82,6 +82,7 @@ export const WelcomeMessage = () => {
     (sum, sub) => sum + sub.points_awarded,
     0
   );
+  console.log("[WelcomeMessage] Daily score:", dailyScore);
 
   // Check game status based on completed array from backend
   const gameStatus = {
