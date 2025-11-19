@@ -1,5 +1,4 @@
 import { getCookie, API_URL } from "./authService";
-
 import type { RewardItem, ClaimResponse, ClaimedReward } from "../types";
 
 /**
