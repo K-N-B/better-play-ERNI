@@ -6,8 +6,8 @@ import {
   getSavedAttempt,
   saveProgress,
   checkSubmissionExists,
+  getGameLimits,
 } from "../../../api/gameService";
-import { completeChallenge } from "../../../api/challengeService";
 import { useChallenges } from "../../../context/ChallengeContext";
 import type {
   WordlePuzzle,
@@ -20,7 +20,6 @@ import { WordleGrid } from "./wordleGrid";
 import { Keyboard } from "./keyboard";
 import { PostGameResultsModal } from "../../ui/postGameResultsModal";
 import { AlreadyPlayedScreen } from "../shared/alreadyPlayedScreen";
-// import { ResumeGameModal } from '../../ui/resumeGameModal';
 import { useTimer } from "../../../hooks/useTimer";
 import { Timer } from "../../ui/timer";
 import { useApi } from "../../../hooks/useApi";
@@ -35,6 +34,7 @@ import click3 from "@/assets/sounds/keyboard_press_3.mp3";
 import back from "@/assets/sounds/backspace.mp3";
 import error from "@/assets/sounds/error.mp3";
 import success from "@/assets/sounds/success.mp3";
+import { calculateSpeedBonus } from "../../../utils/SpeedBonus";
 
 interface WordleGameProps {
   puzzle: WordlePuzzle;
@@ -87,6 +87,12 @@ export const WordleGame = ({
   const playBackspace = useSound([back], 0.4);
   const playSuccess = useSound([success], 0.4);
   const playError = useSound([error], 0.4);
+
+  // Fetch game limits/config (for speed bonus calculation)
+  const fetchLimits = useCallback(() => getGameLimits("wordle"), []);
+
+  // FIX: Explicitly specify the type GameLimits for the fetched data
+  const { data: gameConfig, loading: configLoading } = useApi(fetchLimits);
 
   // Check for existing submission FIRST
   useEffect(() => {
@@ -149,29 +155,41 @@ export const WordleGame = ({
 
   // Load saved progress and START timer
   useEffect(() => {
-    if (alreadyCompleted?.hasSubmitted) return;
+    // 1. Guard clause: Stop if already submitted or if data is still loading
+    if (alreadyCompleted?.hasSubmitted || loading) return;
 
     let loadedIsGameOver = false;
+
     if (savedGame && savedGame.puzzle_type === "wordle") {
-      const progress = savedGame.progress_data as WordleProgress;
+      const progress = savedGame.progress_data as WordleProgress; // Restore game state
       setGuesses(progress.guesses || []);
       setCurrentRow(progress.currentRow || 0);
       setLetterStatuses(progress.letterStatuses || {});
       setIsGameOver(progress.isGameOver || false);
+      loadedIsGameOver = progress.isGameOver; // 2. Load the saved time and initialize the timer
+
       setSavedTime(savedGame.time_spent_ms);
-      loadedIsGameOver = progress.isGameOver;
+    } // 3. Critical Fix: Start the timer ONLY if the game is NOT over.
+    // This ensures the timer resumes from saved time (if savedGame existed)
+    // or starts from 0 (if savedGame was null/new game).
 
-      const hasProgress =
-        (progress.guesses?.length ?? 0) > 0 || savedGame.time_spent_ms > 5000;
-
-      if (hasProgress && !loadedIsGameOver) {
-      } else if (!loadedIsGameOver) {
-        startTimer();
-      }
-    } else if (!loadedIsGameOver) {
+    if (!loadedIsGameOver) {
       startTimer();
-    }
-  }, [savedGame, startTimer, setSavedTime, alreadyCompleted]);
+    } // 4. Cleanup: Stop the timer when the component unmounts
+
+    return () => {
+      if (!loadedIsGameOver) {
+        stopTimer();
+      }
+    };
+  }, [
+    savedGame,
+    loading, // Added loading dependency
+    startTimer,
+    stopTimer, // Added stopTimer for cleanup
+    setSavedTime,
+    alreadyCompleted,
+  ]);
 
   // Auto-save progress
   useEffect(() => {
@@ -248,6 +266,27 @@ export const WordleGame = ({
         return;
       }
 
+      // --- 🚀 NEW SPEED BONUS CALCULATION START 🚀 ---
+      let calculatedScore = 0;
+
+      if (won && gameConfig) {
+        const difficultyKey = difficulty.toUpperCase();
+
+        // Access limits safely using optional chaining
+        const maxTimeMs = gameConfig.TIME_LIMITS_MS[difficultyKey] || 0;
+        const basePoints = gameConfig.BASE_POINTS[difficultyKey] || 0;
+
+        const speedBonus = calculateSpeedBonus(finalTime, maxTimeMs);
+        calculatedScore = basePoints + speedBonus; // Calculate the score
+
+        console.log(
+          `[WordleGame] Base: ${basePoints}, Bonus: ${speedBonus}, Total Calculated: ${calculatedScore}`
+        );
+      } else {
+        // If lost, the calculated score is the base score awarded by the server (usually 0)
+        calculatedScore = 0;
+      }
+      // --- 🚀 NEW SPEED BONUS CALCULATION END 🚀 ---
       try {
         const finalProgress: WordleProgress = {
           guesses: currentGuessesArray,
@@ -285,7 +324,7 @@ export const WordleGame = ({
           puzzle.id
         );
 
-        finalScore = submissionResult.score;
+        finalScore = calculatedScore;
         submissionIdForResultModal = submissionResult.submissionId ?? null;
 
         if (challengeId && submissionIdForResultModal) {

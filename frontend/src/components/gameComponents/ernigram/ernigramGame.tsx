@@ -1,12 +1,13 @@
 // src/components/gameComponents/ernigram/ernigramGame.tsx
 // COMPLETE FILE WITH DIFFICULTY FIX
- 
+
 import { useState, useEffect, useCallback } from "react";
 import {
   submitPuzzle,
   getSavedAttempt,
   saveProgress,
   checkSubmissionExists,
+  getGameLimits,
 } from "../../../api/gameService";
 import { completeChallenge } from "../../../api/challengeService";
 import { useChallenges } from "../../../context/ChallengeContext";
@@ -23,7 +24,6 @@ import { AttemptsTracker } from "./attemptsTracker";
 import { Keyboard } from "../wordle/keyboard";
 import { PostGameResultsModal } from "../../ui/postGameResultsModal";
 import { AlreadyPlayedScreen } from "../shared/alreadyPlayedScreen";
-// import { ResumeGameModal } from "../../ui/resumeGameModal";
 import { useTimer } from "../../../hooks/useTimer";
 import { Timer } from "../../ui/timer";
 import { useApi } from "../../../hooks/useApi";
@@ -31,15 +31,16 @@ import { LoadingSpinner } from "../../ui/loadingSpinner";
 import type { Difficulty } from "../../../pages/gamePage";
 import { API_URL } from "../../../api/authService";
 import clsx from "clsx";
- 
+
 import click1 from "@/assets/sounds/keyboard_press_1.mp3";
 import click2 from "@/assets/sounds/keyboard_press_2.mp3";
 import click3 from "@/assets/sounds/keyboard_press_3.mp3";
 import success from "@/assets/sounds/success.mp3";
 import error from "@/assets/sounds/error.mp3";
- 
+
 import { useSound } from "../../../hooks/useSound";
- 
+import { calculateSpeedBonus } from "../../../utils/SpeedBonus";
+
 interface ErnigramGameProps {
   puzzle: ErnigramPuzzle;
   difficulty: Difficulty;
@@ -47,10 +48,10 @@ interface ErnigramGameProps {
   dailyPuzzleDate: string;
   children?: React.ReactNode;
 }
- 
+
 const MAX_ATTEMPTS = (difficulty: Difficulty) =>
   difficulty === "hard" ? 3 : 6;
- 
+
 export const ErnigramGame = ({
   puzzle,
   difficulty,
@@ -61,7 +62,7 @@ export const ErnigramGame = ({
   const { refreshChallenges } = useChallenges();
   const [solution] = useState(puzzle.solution_phrase.toUpperCase());
   const maxAttemptsForDifficulty = MAX_ATTEMPTS(difficulty);
- 
+
   const [guessedLetters, setGuessedLetters] = useState<string[]>([]);
   const [attemptsLeft, setAttemptsLeft] = useState(() =>
     MAX_ATTEMPTS(difficulty)
@@ -78,7 +79,7 @@ export const ErnigramGame = ({
     streakUpdatedToday: boolean;
     message: string;
   } | null>(null);
- 
+
   // const [showResumeModal, setShowResumeModal] = useState(false);
   const [alreadyCompleted, setAlreadyCompleted] = useState<{
     hasSubmitted: boolean;
@@ -88,37 +89,43 @@ export const ErnigramGame = ({
     difficulty?: string;
   } | null>(null);
   const [checkingSubmission, setCheckingSubmission] = useState(true);
- 
+
   const { time, startTimer, stopTimer, setSavedTime } = useTimer();
- 
+
   const playLetter = useSound([click1, click2, click3], 0.4);
   const playError = useSound([error], 0.4);
   const playSuccess = useSound([success], 0.4);
- 
+
   const puzzleID = puzzle.id;
   const [isWon, setIsWon] = useState(false);
- 
+
+  const fetchLimits = useCallback(
+    // FIX: Use a string literal if 'puzzle' object doesn't have the property
+    () => getGameLimits("ernigram"),
+    [] // The dependency array can now be empty as the type is constant
+  );
+  const { data: gameConfig, loading: configLoading } = useApi(fetchLimits);
   // ✅ 1. Check for existing submission FIRST
   useEffect(() => {
     if (!dailyPuzzleDate || !puzzleID) {
       setCheckingSubmission(false);
       return;
     }
- 
+
     setCheckingSubmission(true);
- 
+
     checkSubmissionExists("ernigram", dailyPuzzleDate, puzzleID)
       .then(async (result) => {
         if (result.hasSubmitted) {
           setAlreadyCompleted(result);
           setIsGameOver(true);
- 
+
           if (challengeId && result.submissionId) {
             try {
               await completeChallenge(challengeId, {
                 submission_id: result.submissionId,
               });
- 
+
               await new Promise((resolve) => setTimeout(resolve, 2000));
               await refreshChallenges();
             } catch (error) {
@@ -133,7 +140,7 @@ export const ErnigramGame = ({
       .catch((err) => console.error("[ErnigramGame] Check failed:", err))
       .finally(() => setCheckingSubmission(false));
   }, [dailyPuzzleDate, puzzleID, challengeId, refreshChallenges]);
- 
+
   // ✅ 2. Fetch saved game
   const fetchSavedErnigram = useCallback(() => {
     if (
@@ -146,44 +153,50 @@ export const ErnigramGame = ({
     }
     return getSavedAttempt("ernigram", dailyPuzzleDate, puzzleID.toString());
   }, [dailyPuzzleDate, puzzleID, checkingSubmission, alreadyCompleted]);
- 
+
   const { data: savedGame, loading } = useApi(fetchSavedErnigram);
- 
-  // ✅ 3. Load saved progress
+
+  // Effect 1: Set saved time when game loads
   useEffect(() => {
-    if (alreadyCompleted?.hasSubmitted || checkingSubmission) return;
- 
+    if (savedGame?.time_spent_ms && savedGame.time_spent_ms > 0) {
+      setSavedTime(savedGame.time_spent_ms);
+    }
+  }, [savedGame?.time_spent_ms, setSavedTime]);
+
+  // Effect 2: Load game state and start timer
+  useEffect(() => {
+    if (alreadyCompleted?.hasSubmitted || checkingSubmission || loading) return;
+
     let loadedIsGameOver = false;
+
     if (savedGame && savedGame.puzzle_type === "ernigram") {
       const progress = savedGame.progress_data as ErnigramProgress;
+
       setGuessedLetters(progress.guessedLetters);
- 
       const incorrectGuesses = progress.guessedLetters.filter(
         (g) => !solution.includes(g)
       ).length;
       const currentMax = MAX_ATTEMPTS(difficulty);
       setAttemptsLeft(Math.max(0, currentMax - incorrectGuesses));
       setIsGameOver(progress.isGameOver);
-      setSavedTime(savedGame.time_spent_ms);
+
       loadedIsGameOver = progress.isGameOver;
- 
+
       const newStatuses: Record<string, KeyStatus> = {};
       progress.guessedLetters.forEach((char) => {
         if (solution.includes(char)) newStatuses[char] = "correct";
         else newStatuses[char] = "absent";
       });
       setLetterStatuses(newStatuses);
- 
+
       if (loadedIsGameOver) {
         const uniqueLetters = [...new Set(solution.replace(/ /g, ""))];
         const hasWon = uniqueLetters.every((char) =>
           progress.guessedLetters.includes(char)
         );
- 
         if (hasWon) {
           setIsWon(true);
         }
- 
         setGameResult({
           score: 0,
           submissionId: null,
@@ -194,32 +207,31 @@ export const ErnigramGame = ({
             ? "You already completed this puzzle!"
             : "You already attempted this puzzle.",
         });
- 
         return;
       }
- 
-      const hasProgress =
-        progress.guessedLetters.length > 0 || savedGame.time_spent_ms > 5000;
- 
-      if (hasProgress && !loadedIsGameOver) {
-        // setShowResumeModal(true);
-      } else if (!loadedIsGameOver) {
-        startTimer();
-      }
-    } else if (!loadedIsGameOver && !loading) {
+    }
+
+    // ✅ Just start the timer - saved time is already set in first effect
+    if (!loadedIsGameOver) {
       startTimer();
     }
+
+    return () => {
+      if (!loadedIsGameOver) {
+        stopTimer();
+      }
+    };
   }, [
     savedGame,
     startTimer,
-    setSavedTime,
+    stopTimer,
     solution,
     difficulty,
     alreadyCompleted,
     checkingSubmission,
     loading,
   ]);
- 
+
   // ✅ 4. Auto-save progress
   useEffect(() => {
     if (
@@ -231,14 +243,14 @@ export const ErnigramGame = ({
       !difficulty
     )
       return;
- 
+
     const saveTimer = setTimeout(() => {
       const progress: ErnigramProgress = {
         guessedLetters,
         attemptsLeft,
         isGameOver,
       };
- 
+
       const dataPayload: PuzzleAttemptData = {
         puzzle_id: puzzle.id,
         puzzle_type: "ernigram",
@@ -246,12 +258,12 @@ export const ErnigramGame = ({
         time_spent_ms: time,
         difficulty: difficulty,
       };
- 
+
       saveProgress(dataPayload, dailyPuzzleDate, puzzle.id).catch((err) =>
         console.error("[ErnigramGame] ❌ Auto-save failed:", err)
       );
     }, 2000);
- 
+
     return () => clearTimeout(saveTimer);
   }, [
     guessedLetters,
@@ -264,7 +276,7 @@ export const ErnigramGame = ({
     difficulty,
     alreadyCompleted,
   ]);
- 
+
   // ✅ 5. endGame function with challenge support
   // ✅ FIXED: endGame function with better error handling
   const endGame = useCallback(
@@ -273,18 +285,32 @@ export const ErnigramGame = ({
       console.log("[ErnigramGame] Won:", won);
       console.log("[ErnigramGame] Guessed letters:", guessedLetters);
       console.log("[ErnigramGame] Attempts left:", attemptsLeft);
-     
+
       setIsGameOver(true);
       if (won) {
         setIsWon(true);
       }
       stopTimer();
       const finalTime = time;
-      let finalScore = 0;
+
       let submissionIdForResultModal: number | null = null;
       const triesTaken = maxAttemptsForDifficulty - attemptsLeft;
       let submissionResult: SubmissionResult | null = null;
- 
+
+      let finalScore = 0;
+
+      if (won && gameConfig) {
+        const difficultyKey = difficulty.toUpperCase();
+        const maxTimeMs = gameConfig.TIME_LIMITS_MS[difficultyKey];
+        const basePoints = gameConfig.BASE_POINTS[difficultyKey]; // Assuming you imported calculateSpeedBonus from utils/speedBonus
+        const speedBonus = calculateSpeedBonus(finalTime, maxTimeMs);
+        finalScore = basePoints + speedBonus;
+
+        console.log(
+          `[ErnigramGame] Base: ${basePoints}, Bonus: ${speedBonus}, Total: ${finalScore}`
+        );
+      }
+
       if (!dailyPuzzleDate || !puzzle.id) {
         console.error("[ErnigramGame] ❌ Missing dailyPuzzleDate or puzzle.id");
         setGameResult({
@@ -297,24 +323,27 @@ export const ErnigramGame = ({
         });
         return;
       }
- 
+
       try {
         const misses = guessedLetters.filter(
           (letter) => !solution.includes(letter)
         ).length;
- 
+
         // ✅ Set proper status for both won and lost
         const finalProgressData = {
           guessedLetters,
           attemptsLeft: won ? attemptsLeft : 0,
           isGameOver: true,
           misses: misses,
-          tries: triesTaken,  // ✅ Include tries for lost games
+          tries: triesTaken, // ✅ Include tries for lost games
           status: won ? "SOLVED" : "LOST",
         };
- 
-        console.log("[ErnigramGame] Saving final progress with status:", finalProgressData.status);
-       
+
+        console.log(
+          "[ErnigramGame] Saving final progress with status:",
+          finalProgressData.status
+        );
+
         // ✅ Save progress with correct status BEFORE submitting
         await saveProgress(
           {
@@ -327,12 +356,12 @@ export const ErnigramGame = ({
           dailyPuzzleDate,
           puzzle.id
         );
- 
+
         console.log("[ErnigramGame] ✅ Progress saved successfully");
- 
+
         // ✅ ALWAYS SUBMIT - for both won and lost games
         console.log("[ErnigramGame] Preparing submission...");
-       
+
         const submissionData: SubmissionData = {
           puzzle_id: puzzle.id,
           puzzle_type: "ernigram",
@@ -340,24 +369,27 @@ export const ErnigramGame = ({
           time_taken_ms: finalTime,
           tries: triesTaken,
         };
- 
+
         console.log("[ErnigramGame] Submission data:", submissionData);
         console.log("[ErnigramGame] Calling submitPuzzle...");
- 
+
         submissionResult = await submitPuzzle(
           submissionData,
           dailyPuzzleDate,
           puzzle.id
         );
- 
+
         console.log("[ErnigramGame] ✅ Submission result:", submissionResult);
- 
+
         finalScore = submissionResult.score;
         submissionIdForResultModal = submissionResult.submissionId ?? null;
- 
+
         console.log("[ErnigramGame] Score:", finalScore);
-        console.log("[ErnigramGame] Submission ID:", submissionIdForResultModal);
- 
+        console.log(
+          "[ErnigramGame] Submission ID:",
+          submissionIdForResultModal
+        );
+
         // ✅ Handle challenge completion if applicable
         if (challengeId && submissionIdForResultModal) {
           console.log("[ErnigramGame] Completing challenge...");
@@ -365,7 +397,7 @@ export const ErnigramGame = ({
             await completeChallenge(challengeId, {
               submission_id: submissionIdForResultModal,
             });
- 
+
             console.log("[ErnigramGame] ✅ Challenge completed");
             await new Promise((resolve) => setTimeout(resolve, 3000));
             await refreshChallenges();
@@ -376,7 +408,10 @@ export const ErnigramGame = ({
         }
       } catch (err) {
         console.error("[ErnigramGame] ❌ Error during end:", err);
-        console.error("[ErnigramGame] Error details:", JSON.stringify(err, null, 2));
+        console.error(
+          "[ErnigramGame] Error details:",
+          JSON.stringify(err, null, 2)
+        );
       } finally {
         console.log("[ErnigramGame] Setting game result...");
         setGameResult({
@@ -407,14 +442,13 @@ export const ErnigramGame = ({
     ]
   );
 
-
   const checkGameState = useCallback(
     (currentGuesses: string[], currentAttempts: number) => {
       const uniqueLetters = [...new Set(solution.replace(/ /g, ""))];
       const hasWon = uniqueLetters.every((char) =>
         currentGuesses.includes(char)
       );
- 
+
       if (hasWon) {
         playSuccess();
         endGame(true);
@@ -424,7 +458,7 @@ export const ErnigramGame = ({
     },
     [solution, endGame, playSuccess]
   );
- 
+
   const saveImmediately = useCallback(
     (newGuessedLetters: string[], newAttemptsLeft: number) => {
       if (
@@ -434,13 +468,13 @@ export const ErnigramGame = ({
         alreadyCompleted?.hasSubmitted
       )
         return;
- 
+
       const progress: ErnigramProgress = {
         guessedLetters: newGuessedLetters,
         attemptsLeft: newAttemptsLeft,
         isGameOver: false,
       };
- 
+
       const dataPayload: PuzzleAttemptData = {
         puzzle_id: puzzle.id,
         puzzle_type: "ernigram",
@@ -448,27 +482,27 @@ export const ErnigramGame = ({
         time_spent_ms: time,
         difficulty: difficulty,
       };
- 
+
       saveProgress(dataPayload, dailyPuzzleDate, puzzle.id).catch((err) =>
         console.error("[ErnigramGame] ❌ Immediate save failed:", err)
       );
     },
     [dailyPuzzleDate, puzzle.id, time, difficulty, isGameOver, alreadyCompleted]
   );
- 
+
   const handleKeyPress = useCallback(
     (key: string) => {
       if (isGameOver || key.length > 1) return;
- 
+
       const char = key.toUpperCase();
       if (guessedLetters.includes(char) || !/^[A-Z]$/.test(char)) return;
- 
+
       const newGuessedLetters = [...guessedLetters, char];
       setGuessedLetters(newGuessedLetters);
- 
+
       let newAttemptsLeft = attemptsLeft;
       const newStatuses = { ...letterStatuses };
- 
+
       if (solution.includes(char)) {
         newStatuses[char] = "correct";
         playLetter();
@@ -479,7 +513,7 @@ export const ErnigramGame = ({
         playError();
       }
       setLetterStatuses(newStatuses);
- 
+
       saveImmediately(newGuessedLetters, newAttemptsLeft);
       checkGameState(newGuessedLetters, newAttemptsLeft);
     },
@@ -495,7 +529,7 @@ export const ErnigramGame = ({
       playError,
     ]
   );
- 
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (/^[a-zA-Z]$/.test(e.key)) {
@@ -505,16 +539,16 @@ export const ErnigramGame = ({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyPress]);
- 
+
   // const handleContinue = () => {
   //   // setShowResumeModal(false);
   //   startTimer();
   // };
- 
+
   if (checkingSubmission || loading) {
     return <LoadingSpinner fullPage={true} />;
   }
- 
+
   // ✅ CRITICAL FIX: Use difficulty from alreadyCompleted, not lockedDifficulty
   if (alreadyCompleted?.hasSubmitted) {
     return (
@@ -526,11 +560,11 @@ export const ErnigramGame = ({
       />
     );
   }
- 
+
   const fullImageUrl = puzzle.employee_image_url
     ? API_URL.replace(/\/$/, "") + puzzle.employee_image_url
     : "";
- 
+
   return (
     <>
       {/* {showResumeModal && (
@@ -544,7 +578,7 @@ export const ErnigramGame = ({
           customMessage={`You've guessed ${guessedLetters.length} letter${guessedLetters.length !== 1 ? "s" : ""} with ${attemptsLeft} attempt${attemptsLeft !== 1 ? "s" : ""} remaining.`}
         />
       )} */}
- 
+
       <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
         <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
           <div className="place-content-center p-4 md:p-20 text-xl leading-6 bg-white h-full rounded-3xl">
@@ -565,11 +599,11 @@ export const ErnigramGame = ({
             ) : (
               <p className="text-xl text-black mb-6">{puzzle.clue}</p>
             )}
- 
+
             <div className="flex justify-between w-full max-w-sm items-center mb-4">
               <AttemptsTracker attemptsLeft={attemptsLeft} />
             </div>
- 
+
             <PhraseDisplay
               solutionPhrase={solution}
               guessedLetters={guessedLetters}
@@ -594,7 +628,7 @@ export const ErnigramGame = ({
               letterStatuses={letterStatuses}
             />
           </div>
- 
+
           {gameResult && (
             <PostGameResultsModal
               score={gameResult.score}
@@ -614,4 +648,3 @@ export const ErnigramGame = ({
     </>
   );
 };
- 
