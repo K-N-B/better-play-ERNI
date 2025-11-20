@@ -14,6 +14,6 @@ def calculate_speed_bonus(time_spent_ms: int, max_time_ms: int) -> int:
     elif time_ratio <= 0.75:
         return 25
     elif time_ratio <= 1.0:
-        return 10  # Assuming 10 points for 75%-100% usage
+        return 10  
     else:
         return 0

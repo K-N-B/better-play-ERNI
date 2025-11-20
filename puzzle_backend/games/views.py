@@ -101,7 +101,7 @@ class GetSudokuHintLimitsView(View):
 
 class GameScoreLimitsView(APIView):
     """
-    API endpoint to retrieve TIME_LIMITS_MS and BASE_POINTS for a given puzzle type.
+    API endpoint to retrieve TIME_LIMITS_MS, BASE_POINTS, and MISTAKE_LIMITS (if applicable) for a given puzzle type.
     Example URL: /api/games/limits/wordle/
     """
     permission_classes = [IsAuthenticated]
@@ -124,10 +124,13 @@ class GameScoreLimitsView(APIView):
             )
 
         # 2. Access the static attributes on the Model
-        # Since these are class attributes, we access them directly on the class.
         response_data = {
             "TIME_LIMITS_MS": ModelClass.TIME_LIMITS_MS,
             "BASE_POINTS": ModelClass.BASE_POINTS,
         }
+        
+        # ✅ Only add MISTAKE_LIMITS if the model has it
+        if hasattr(ModelClass, "MISTAKE_LIMITS"):
+            response_data["MISTAKE_LIMITS"] = ModelClass.MISTAKE_LIMITS
 
         return Response(response_data)

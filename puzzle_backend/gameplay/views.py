@@ -111,19 +111,6 @@ class SaveProgressView(View):
             traceback.print_exc()
             return JsonResponse({"error": f"Invalid puzzle reference: {str(e)}"}, status=400)
 
-        # 4. TIME LIMIT ENFORCEMENT
-        if hasattr(PuzzleModel, "TIME_LIMITS_MS"):
-            time_limits = PuzzleModel.TIME_LIMITS_MS
-            max_time_ms = time_limits.get(difficulty)
-
-            if max_time_ms is not None and new_time_spent > max_time_ms:
-                max_time_minutes = max_time_ms / 60000
-                return JsonResponse(
-                    {
-                        "error": f"Time limit of {int(max_time_minutes)} minutes for '{difficulty}' difficulty exceeded."
-                    },
-                    status=403,
-                )
 
         # 5. GUESS/HINT/MISTAKE LIMIT ENFORCEMENT
         limit_config = None
@@ -466,15 +453,22 @@ class SubmitPuzzleView(View):
 
         # 3. Retrieve Attempt
         try:
-            attempt = PuzzleAttempt.objects.get(
+            attempt = PuzzleAttempt.objects.select_for_update().get(
                 user=user,
                 daily_puzzle=daily_puzzle,
                 content_type=puzzle_content_type,
                 object_id=puzzle_instance.pk,
             )
+
+      
+
+            attempt.refresh_from_db()
+
+            
             time_taken = attempt.time_spent_ms
             progress_data = attempt.progress_data
 
+            print(f"Debugging progress_data: {progress_data}")
         except PuzzleAttempt.DoesNotExist:
             return JsonResponse({"error": "No active attempt found to submit."}, status=404)
 
@@ -482,29 +476,39 @@ class SubmitPuzzleView(View):
         try:
             submission_data = json.loads(request.body)
             difficulty = submission_data.get("difficulty", "EASY").upper()
+            status_from_client = submission_data.get("status", "").upper() 
         except json.JSONDecodeError:
             difficulty = "EASY"
+            status_from_client = ""
 
-        # 4. TIME LIMIT ENFORCEMENT
-        if hasattr(PuzzleModel, "TIME_LIMITS_MS"):
-            time_limits = PuzzleModel.TIME_LIMITS_MS
-            max_time_ms = time_limits.get(difficulty)
-
-            if max_time_ms is not None and time_taken > max_time_ms:
-                max_time_minutes = max_time_ms / 60000
-                return JsonResponse(
-                    {
-                        "error": f"Time limit of {int(max_time_minutes)} minutes for '{difficulty}' difficulty was exceeded."
-                    },
-                    status=403,
-                )
-
+        # 4. Initialize scoring variables
         points_awarded = 0
         tries = 0
         hints_used = 0
         
         # 5. CHECK GAME STATUS - ✅ FIXED: Accept both SOLVED and LOST
-        status = progress_data.get("status", "ACTIVE").upper()
+        # 5. CHECK GAME STATUS (Prioritize the 'Finished' state)
+        db_status = progress_data.get("status", "ACTIVE").upper()
+        
+        # Logic: If the DB says it's done, it's done (ignore stale client data).
+        # If DB is active, but Client says it's done, trust the Client.
+        if db_status in ["SOLVED", "LOST"]:
+            status = db_status
+            print(f"[SubmitPuzzleView] Using DB status: {status}")
+        elif status_from_client in ["SOLVED", "LOST"]:
+            status = status_from_client
+            # UPDATE: Ensure validation logic uses this new status if needed
+            progress_data['status'] = status 
+            print(f"[SubmitPuzzleView] Using Client status: {status}")
+        else:
+            status = "ACTIVE"
+            print("[SubmitPuzzleView] Status is ACTIVE in both DB and Client.")
+        
+        # ✅ Check if game is still active (reject if not complete)
+
+       
+
+
         if status == "ACTIVE":
             print("[SubmitPuzzleView] ❌ Submission rejected. Game is still in 'ACTIVE' state.")
             return JsonResponse(
@@ -675,6 +679,7 @@ class GetHintView(View):
                     content_type=puzzle_content_type,
                     object_id=puzzle_instance.pk,
                 )
+
 
                 # Hint Limit Check (inside the lock)
                 hints_used = attempt.progress_data.get("hints_used", 0)

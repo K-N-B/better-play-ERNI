@@ -44,6 +44,7 @@ export interface SubmissionData {
   difficulty: Difficulty;
   time_taken_ms: number;
   tries: number;
+  status?: "SOLVED" | "LOST"; // ✅ Added status field
 }
 
 export interface Submission {

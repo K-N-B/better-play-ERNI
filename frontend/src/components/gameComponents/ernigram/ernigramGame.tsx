@@ -103,6 +103,7 @@ export const ErnigramGame = ({
     [] // The dependency array can now be empty as the type is constant
   );
   const { data: gameConfig, loading: configLoading } = useApi(fetchLimits);
+
   // ✅ 1. Check for existing submission FIRST
   useEffect(() => {
     if (!dailyPuzzleDate || !puzzleID) {
@@ -296,17 +297,68 @@ export const ErnigramGame = ({
       let submissionResult: SubmissionResult | null = null;
 
       let finalScore = 0;
+      let calculatedScore = 0;
 
       if (won && gameConfig) {
         const difficultyKey = difficulty.toUpperCase();
-        const maxTimeMs = gameConfig.TIME_LIMITS_MS[difficultyKey];
-        const basePoints = gameConfig.BASE_POINTS[difficultyKey]; // Assuming you imported calculateSpeedBonus from utils/speedBonus
+
+        console.log("========== DEBUG CONFIG ==========");
+        console.log("gameConfig:", gameConfig);
+        console.log("difficultyKey:", difficultyKey);
+        console.log("===================================");
+
+        const maxTimeMs = gameConfig.TIME_LIMITS_MS?.[difficultyKey] || 0;
+        const basePoints = gameConfig.BASE_POINTS?.[difficultyKey] || 0;
+        const maxMistakes = gameConfig.MISTAKE_LIMITS?.[difficultyKey] || 0;
+
+        console.log("[ErnigramGame] Config values:", {
+          maxTimeMs,
+          basePoints,
+          maxMistakes,
+          difficultyKey,
+        });
+
+        const misses = guessedLetters.filter(
+          (letter) => !solution.includes(letter)
+        ).length;
+
+        // --- STEP 1: CALCULATE SCORE AFTER MISTAKE DEDUCTION ---
+        const MISTAKE_DEDUCTION_PER_MISTAKE = 20;
+
+        // Calculate the maximum mistake bonus
+        const maxMistakeBonus = maxMistakes * MISTAKE_DEDUCTION_PER_MISTAKE;
+
+        // The score pool = base points + mistake bonus
+        // e.g., EASY: 150 + (6 × 20) = 270
+        const scorePool = basePoints + maxMistakeBonus;
+
+        // Calculate deduction based on actual mistakes
+        const deduction = misses * MISTAKE_DEDUCTION_PER_MISTAKE;
+
+        // Calculate points after penalty (cannot go below 0)
+        const basePointsAfterPenalty = Math.max(0, scorePool - deduction);
+
+        console.log("[ErnigramGame] Scoring breakdown:");
+        console.log(`  Base Points: ${basePoints}`);
+        console.log(`  Max Mistakes: ${maxMistakes}`);
+        console.log(`  Max Mistake Bonus: ${maxMistakeBonus}`);
+        console.log(`  Score Pool: ${scorePool}`);
+        console.log(`  Actual Misses: ${misses}`);
+        console.log(`  Deduction: ${deduction}`);
+        console.log(`  Points After Penalty: ${basePointsAfterPenalty}`);
+
+        // --- STEP 2: ADD SPEED BONUS ---
         const speedBonus = calculateSpeedBonus(finalTime, maxTimeMs);
-        finalScore = basePoints + speedBonus;
+
+        // Final score for display
+        calculatedScore = basePointsAfterPenalty + speedBonus;
+        finalScore = calculatedScore;
 
         console.log(
-          `[ErnigramGame] Base: ${basePoints}, Bonus: ${speedBonus}, Total: ${finalScore}`
+          `[ErnigramGame] Base: ${basePoints}, Misses: ${misses}, After Penalty: ${basePointsAfterPenalty}, Bonus: ${speedBonus}, Total Calculated: ${finalScore}`
         );
+      } else if (!won) {
+        finalScore = 0; // If lost, score is 0
       }
 
       if (!dailyPuzzleDate || !puzzle.id) {
@@ -328,6 +380,8 @@ export const ErnigramGame = ({
         ).length;
 
         // ✅ Set proper status for both won and lost
+        console.log("[ErnigramGame] Preparing final progress data...");
+
         const finalProgressData = {
           guessedLetters,
           attemptsLeft: won ? attemptsLeft : 0,
@@ -341,13 +395,14 @@ export const ErnigramGame = ({
           "[ErnigramGame] Saving final progress with status:",
           finalProgressData.status
         );
+        console.log(finalProgressData);
 
         // ✅ Save progress with correct status BEFORE submitting
         await saveProgress(
           {
             puzzle_id: puzzle.id,
             puzzle_type: "ernigram",
-            progress_data: finalProgressData,
+            progress_data: finalProgressData, // Contains status: "SOLVED"
             time_spent_ms: finalTime,
             difficulty: difficulty,
           },
@@ -355,17 +410,13 @@ export const ErnigramGame = ({
           puzzle.id
         );
 
-        console.log("[ErnigramGame] ✅ Progress saved successfully");
-
-        // ✅ ALWAYS SUBMIT - for both won and lost games
-        console.log("[ErnigramGame] Preparing submission...");
-
         const submissionData: SubmissionData = {
           puzzle_id: puzzle.id,
           puzzle_type: "ernigram",
           difficulty: difficulty,
           time_taken_ms: finalTime,
           tries: triesTaken,
+          status: won ? "SOLVED" : "LOST",
         };
 
         console.log("[ErnigramGame] Submission data:", submissionData);
@@ -379,7 +430,7 @@ export const ErnigramGame = ({
 
         console.log("[ErnigramGame] ✅ Submission result:", submissionResult);
 
-        finalScore = submissionResult.score;
+        finalScore = calculatedScore;
         submissionIdForResultModal = submissionResult.submissionId ?? null;
 
         console.log("[ErnigramGame] Score:", finalScore);
@@ -437,6 +488,12 @@ export const ErnigramGame = ({
       guessedLetters,
       solution,
       refreshChallenges,
+      gameConfig, // Used in the scoring block (causing the crash)
+      calculateSpeedBonus, // Used in the scoring block
+      setIsWon, // Used if won is true
+      setGameResult, // Used in the final/error path
+      saveProgress, // Used in the try block
+      submitPuzzle, // Used in the try block
     ]
   );
 
@@ -512,7 +569,21 @@ export const ErnigramGame = ({
       }
       setLetterStatuses(newStatuses);
 
-      saveImmediately(newGuessedLetters, newAttemptsLeft);
+      // ✅ FIX STARTS HERE ------------------------------------------
+      
+      // 1. Check if this move ends the game
+      const uniqueLetters = [...new Set(solution.replace(/ /g, ""))];
+      const hasWon = uniqueLetters.every((char) => newGuessedLetters.includes(char));
+      const isLost = newAttemptsLeft <= 0;
+      const isGameEndingMove = hasWon || isLost;
+
+      // 2. Only save "intermediate" progress if the game is NOT over.
+      // If the game IS over, 'checkGameState' -> 'endGame' will handle the final save.
+      if (!isGameEndingMove) {
+        saveImmediately(newGuessedLetters, newAttemptsLeft);
+      }
+
+      // 3. Proceed to check game state (which triggers endGame if finished)
       checkGameState(newGuessedLetters, newAttemptsLeft);
     },
     [
@@ -538,12 +609,13 @@ export const ErnigramGame = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyPress]);
 
-  // const handleContinue = () => {
-  //   // setShowResumeModal(false);
-  //   startTimer();
-  // };
-
-  if (checkingSubmission || loading) {
+  if (
+    loading ||
+    configLoading ||
+    !puzzle ||
+    !dailyPuzzleDate ||
+    checkingSubmission
+  ) {
     return <LoadingSpinner fullPage={true} />;
   }
 
