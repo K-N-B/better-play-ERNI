@@ -569,7 +569,21 @@ export const ErnigramGame = ({
       }
       setLetterStatuses(newStatuses);
 
-      saveImmediately(newGuessedLetters, newAttemptsLeft);
+      // ✅ FIX STARTS HERE ------------------------------------------
+      
+      // 1. Check if this move ends the game
+      const uniqueLetters = [...new Set(solution.replace(/ /g, ""))];
+      const hasWon = uniqueLetters.every((char) => newGuessedLetters.includes(char));
+      const isLost = newAttemptsLeft <= 0;
+      const isGameEndingMove = hasWon || isLost;
+
+      // 2. Only save "intermediate" progress if the game is NOT over.
+      // If the game IS over, 'checkGameState' -> 'endGame' will handle the final save.
+      if (!isGameEndingMove) {
+        saveImmediately(newGuessedLetters, newAttemptsLeft);
+      }
+
+      // 3. Proceed to check game state (which triggers endGame if finished)
       checkGameState(newGuessedLetters, newAttemptsLeft);
     },
     [

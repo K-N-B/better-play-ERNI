@@ -487,12 +487,22 @@ class SubmitPuzzleView(View):
         hints_used = 0
         
         # 5. CHECK GAME STATUS - ✅ FIXED: Accept both SOLVED and LOST
-        if status_from_client:
+        # 5. CHECK GAME STATUS (Prioritize the 'Finished' state)
+        db_status = progress_data.get("status", "ACTIVE").upper()
+        
+        # Logic: If the DB says it's done, it's done (ignore stale client data).
+        # If DB is active, but Client says it's done, trust the Client.
+        if db_status in ["SOLVED", "LOST"]:
+            status = db_status
+            print(f"[SubmitPuzzleView] Using DB status: {status}")
+        elif status_from_client in ["SOLVED", "LOST"]:
             status = status_from_client
-            print(f"[SubmitPuzzleView] Using status from client: {status}")
+            # UPDATE: Ensure validation logic uses this new status if needed
+            progress_data['status'] = status 
+            print(f"[SubmitPuzzleView] Using Client status: {status}")
         else:
-            status = progress_data.get("status", "ACTIVE").upper()
-            print(f"[SubmitPuzzleView] Using status from progress_data: {status}")
+            status = "ACTIVE"
+            print("[SubmitPuzzleView] Status is ACTIVE in both DB and Client.")
         
         # ✅ Check if game is still active (reject if not complete)
 
