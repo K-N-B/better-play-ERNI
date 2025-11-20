@@ -36,6 +36,7 @@ import back from "@/assets/sounds/backspace.mp3";
 import error from "@/assets/sounds/error.mp3";
 import success from "@/assets/sounds/success.mp3";
 import { calculateSpeedBonus } from "../../../utils/SpeedBonus";
+import { PotentialScoreBar } from "../../ui/potentialScoreBar";
 
 interface WordleGameProps {
   puzzle: WordlePuzzle;
@@ -520,17 +521,6 @@ export const WordleGame = ({
   const triesScoreComponent = Math.max(0, basePoints + REAL_MAX_TRIES_BONUS - currentTriesPenalty);
   const currentPotentialScore = triesScoreComponent + currentSpeedBonus;
 
-  // 4. Calculate Bar Percentage
-  const progressPercentage = maxPossibleScore > 0
-    ? (currentPotentialScore / maxPossibleScore) * 100
-    : 0;
-
-  const getBarColor = () => {
-    if (progressPercentage > 66) return "bg-green-500";
-    if (progressPercentage > 33) return "bg-yellow-500";
-    return "bg-red-500";
-  };
-
   if (checkingSubmission || loading) {
     return <LoadingSpinner fullPage={true} />;
   }
@@ -575,7 +565,7 @@ export const WordleGame = ({
         </div>
 
         <div className="place-content-center p-20 text-xl leading-5">
-          <div className="flex justify-between mb-10">
+          <div className="flex justify-between mb-6">
             <div>
               <h1 className="text-4xl font-bold">Wordle</h1>
               <p>on {difficulty} difficulty</p>
@@ -583,30 +573,15 @@ export const WordleGame = ({
             <Timer timeMs={time} />
           </div>
 
-          <div className="mb-6 w-full">
-            <div className="flex justify-between text-sm font-bold text-gray-700 mb-1">
-              <span>Potential Score</span>
-              <span>{currentPotentialScore} / {maxPossibleScore} pts</span>
-            </div>
-
-            <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner overflow-hidden">
-              <div
-                className={`${getBarColor()} h-4 rounded-full transition-all duration-700 ease-in-out relative`}
-                style={{ width: `${progressPercentage}%` }}
-              >
-                {/* <div className="absolute top-0 left-0 bottom-0 right-0 bg-gradient-to-b from-white/20 to-transparent"></div> */}
-              </div>
-            </div>
-
-            <div className="flex justify-between text-xs mt-1 text-gray-500 font-medium">
-              <span>Base: {basePoints}</span>
-              <span className="text-blue-600">Speed: +{currentSpeedBonus}</span>
-              {/* Only show penalty text if there is actually a penalty (> 0) */}
-              <span className={`${currentTriesPenalty > 0 ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
-                Attempts Penalty: -{currentTriesPenalty}
-              </span>
-            </div>
-          </div>
+          <PotentialScoreBar
+            currentScore={currentPotentialScore}
+            maxScore={maxPossibleScore}
+            basePoints={basePoints}
+            speedBonus={currentSpeedBonus}
+            penaltyValue={currentTriesPenalty}
+            penaltyLabel="Attempts Penalty"
+            color="bg-green-600"
+          />
 
           <div className={isGameOver ? "opacity-50 pointer-events-none" : ""}>
             <Keyboard
