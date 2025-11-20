@@ -295,13 +295,15 @@ All API endpoints require authentication (session cookie) unless marked as `Allo
 * Improved Activity Feed
 * Added points computation information on game pages
 
-### v0.0.3 - Upcoming
+### v0.0.3 - November 20,2025
 * Implementation of speed and fewer tries/mistakes bonus
 * Bug fix for ERNIgram failing to submit/returning 0 points even on puzzle success
-* Potential Score bar
+* Potential Score bars for Sudoku
 * User interface responsiveness improvements
 * Migration to ERNI entra
-* (more to be added)
+
+### v0.0.4 - Upcoming
+* Potential score bar for Wordle and ERNIgram
 
 
 ---
