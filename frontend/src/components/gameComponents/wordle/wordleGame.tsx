@@ -493,7 +493,7 @@ export const WordleGame = ({
   //   startTimer();
   // };
 
-  if (checkingSubmission || loading) {
+  if (checkingSubmission || loading || configLoading) {
     return <LoadingSpinner fullPage={true} />;
   }
 

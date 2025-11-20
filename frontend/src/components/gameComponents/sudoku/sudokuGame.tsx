@@ -671,7 +671,7 @@ export const SudokuGame = ({
   //   return "bg-red-500";
   // };
 
-  if (checkingSubmission || loading) {
+  if (checkingSubmission || loading || configLoading) {
     return <LoadingSpinner fullPage={true} />;
   }
 
