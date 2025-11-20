@@ -93,7 +93,8 @@ export const WordleGame = ({
   const fetchLimits = useCallback(() => getGameLimits("wordle"), []);
 
   // FIX: Explicitly specify the type GameLimits for the fetched data
-  const { data: gameConfig, loading: configLoading } = useApi(fetchLimits);
+  // const { data: gameConfig, loading: configLoading } = useApi(fetchLimits);
+  const { data: gameConfig } = useApi(fetchLimits);
 
   // Check for existing submission FIRST
   useEffect(() => {
@@ -493,7 +494,7 @@ export const WordleGame = ({
   //   startTimer();
   // };
 
-  if (checkingSubmission || loading || configLoading) {
+  if (checkingSubmission || loading) {
     return <LoadingSpinner fullPage={true} />;
   }
 

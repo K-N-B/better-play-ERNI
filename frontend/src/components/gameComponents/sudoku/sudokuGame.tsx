@@ -187,7 +187,7 @@ export const SudokuGame = ({
     () => getGameLimits("sudoku"),
     [] // Sudoku type is constant here
   );
-  const { data: gameConfig, loading: configLoading } = useApi(fetchLimits);
+  const { data: gameConfig} = useApi(fetchLimits);
 
   // Check for existing submission FIRST
   useEffect(() => {
@@ -671,7 +671,7 @@ export const SudokuGame = ({
   //   return "bg-red-500";
   // };
 
-  if (checkingSubmission || loading || configLoading) {
+  if (checkingSubmission || loading) {
     return <LoadingSpinner fullPage={true} />;
   }
 
