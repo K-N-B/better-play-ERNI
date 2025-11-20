@@ -297,8 +297,10 @@ All API endpoints require authentication (session cookie) unless marked as `Allo
 
 ### v0.0.3 - Upcoming
 * Implementation of speed and fewer tries/mistakes bonus
+* Bug fix for ERNIgram failing to submit/returning 0 points even on puzzle success
 * Potential Score bar
 * User interface responsiveness improvements
+* Migration to ERNI entra
 * (more to be added)
 
 
