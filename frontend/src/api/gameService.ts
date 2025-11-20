@@ -323,6 +323,7 @@ export const checkUserSubmissionExists = async (
 };
 
 interface GameLimits {
+  MISTAKE_LIMITS: any;
   TIME_LIMITS_MS: Record<string, number>;
   BASE_POINTS: Record<string, number>;
 }

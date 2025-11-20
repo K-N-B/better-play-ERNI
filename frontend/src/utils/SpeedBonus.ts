@@ -1,31 +1,29 @@
+/**
+ * Calculates a fixed-tier speed bonus based on the time spent relative to the maximum allowed time.
+ * @param timeSpentMs The total time the user spent on the puzzle in milliseconds.
+ * @param maxTimeMs The maximum time allowed for the current puzzle's difficulty.
+ * @returns The speed bonus points (100, 50, 25, 10, or 0).
+ */
+
 export function calculateSpeedBonus(
   timeSpentMs: number,
   maxTimeMs: number
 ): number {
-  // 1. Safety check for invalid input (e.g., maxTimeMs is 0 or negative)
   if (maxTimeMs <= 0 || timeSpentMs < 0) {
     return 0;
   }
 
-  // 2. Calculate the ratio of time used (ranges from 0 up)
-  // Note: If timeSpentMs > maxTimeMs, timeRatio will be > 1.0
   const timeRatio = timeSpentMs / maxTimeMs;
 
-  // 3. Check the ratio against the defined tiers (starting from the fastest tier)
   if (timeRatio <= 0.25) {
-    // Finished in 0% to 25% of the max time
-    return 100;
+    return 100; // Tier 1: 0% to 25% used
   } else if (timeRatio <= 0.5) {
-    // Finished in 25% to 50% of the max time
-    return 50;
+    return 50; // Tier 2: 25% to 50% used
   } else if (timeRatio <= 0.75) {
-    // Finished in 50% to 75% of the max time
-    return 25;
+    return 25; // Tier 3: 50% to 75% used
   } else if (timeRatio <= 1.0) {
-    // Finished in 75% to 100% of the max time
-    return 10;
+    return 10; // Tier 4: 75% to 100% used
   } else {
-    // Finished over 100% of the max time
-    return 0;
+    return 0; // Over 100% used
   }
 }

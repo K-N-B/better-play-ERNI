@@ -72,9 +72,8 @@ class WordlePuzzle(models.Model):
 
     def validate_and_score(self, progress_data, difficulty="EASY"):
         """
-        Calculates the score for Wordle puzzle.
-        - Returns full points if status='SOLVED' and last guess is correct
-        - Returns 0 points if status='LOST' (allows submission for completion tracking)
+        Calculates the score for Wordle puzzle, applying a 20-point deduction
+        for every try used after the first one.
         """
         guesses = progress_data.get("guesses", [])
         tries = len(guesses)
@@ -88,11 +87,11 @@ class WordlePuzzle(models.Model):
         status = progress_data.get("status", "ACTIVE").upper()
         print(f"  Status: {status}")
 
-
-        #DEBUG LOGGING
+        # DEBUG LOGGING
         last_guess_received = guesses[-1] if tries > 0 else "N/A"
-        print(f"  DEBUG: Raw Guess Sent: '{last_guess_received}' (Length: {len(last_guess_received)})")
-        print(f"  DEBUG: Solution Check: '{self.solution_word}' (Length: {len(self.solution_word)})")
+        print(f"  DEBUG: Raw Guess Sent: '{last_guess_received}' (Length: {len(last_guess_received)})")
+        print(f"  DEBUG: Solution Check: '{self.solution_word}' (Length: {len(self.solution_word)})")
+        
         # ✅ Allow LOST games to submit with 0 points
         if status == "LOST":
             print("[WordlePuzzle.validate_and_score] ✅ LOST game - Awarding 0 points")
@@ -110,10 +109,24 @@ class WordlePuzzle(models.Model):
             print("[WordlePuzzle.validate_and_score] ❌ VALIDATION FAILED")
             return 0, tries
 
-        # Award full points for won games
-        points = self.BASE_POINTS.get(difficulty_upper, 0)
-        print(f"[WordlePuzzle.validate_and_score] ✅ SUCCESS - Awarding {points} points")
+        # Get base points for difficulty
+        base_points = self.BASE_POINTS.get(difficulty_upper, 0)
+        MAX_TRIES = self.GUESS_LIMITS.get(difficulty_upper, 6) # Assume 6 for both
+        TRIES_BONUS_PER_TRY = 20
 
+        MAX_TRIES_BONUS = MAX_TRIES * TRIES_BONUS_PER_TRY
+
+        # The base score starts with this maximum bonus included
+        score_pool = base_points + MAX_TRIES_BONUS # e.g., 100 + 120 = 220
+        
+        # 2. Calculate Deduction
+        # The deduction is for every try USED (N)
+        deduction = tries * TRIES_BONUS_PER_TRY # e.g., 4 tries * 20 = 80 pts
+
+        # 3. Calculate Final Points (Pre-Speed Bonus)
+        points = max(0, score_pool - deduction) # e.g., 220 - 80 = 140 pts
+
+        # NOTE: The final speed bonus is added in SubmitPuzzleView.
         return points, tries
 
     def save(self, *args, **kwargs):
@@ -377,18 +390,62 @@ class ErnigramPuzzle(models.Model):
     }
 
     def validate_and_score(self, progress_data, difficulty="EASY"):
-        misses = progress_data.get("misses", 0)
-        difficulty = difficulty.upper()
-
+        """
+        Calculates the score for Ernigram puzzle, applying a 20-point deduction
+        for every mistake made.
+        """
+        difficulty_upper = difficulty.upper()
+        
+        print("[ErnigramPuzzle.validate_and_score] Called")
+        print(f"  Difficulty: {difficulty_upper}")
+        
+        # Check for LOST games immediately
         status = progress_data.get("status", "ACTIVE").upper()
-        is_solved = status == "SOLVED"
-
-        if not is_solved:
+        misses = progress_data.get("misses", 0)
+        
+        print(f"  Status: {status}")
+        print(f"  Misses: {misses}")
+        
+        if status == "LOST":
+            print("[ErnigramPuzzle.validate_and_score] ✅ LOST game - Awarding 0 points")
             return 0, misses
 
-        points = self.BASE_POINTS.get(difficulty, 0)
-        return points, misses
+        # Verify solution for won games
+        if status != "SOLVED":
+            print("[ErnigramPuzzle.validate_and_score] ❌ VALIDATION FAILED - Invalid status")
+            return 0, misses
 
+        # Get base points and mistake limit for this difficulty
+        base_points = self.BASE_POINTS.get(difficulty_upper, 0)
+        max_mistakes = self.MISTAKE_LIMITS.get(difficulty_upper, 6)
+        
+        # ✅ FIXED DEDUCTION: 20 points per mistake (same as Wordle)
+        MISTAKE_DEDUCTION_PER_MISTAKE = 20
+        
+        # Calculate the maximum mistake bonus
+        max_mistake_bonus = max_mistakes * MISTAKE_DEDUCTION_PER_MISTAKE
+        
+        # The score pool = base points + mistake bonus
+        # e.g., EASY: 150 + (6 × 20) = 270
+        score_pool = base_points + max_mistake_bonus
+        
+        print(f"  Base Points: {base_points}")
+        print(f"  Max Mistakes Allowed: {max_mistakes}")
+        print(f"  Max Mistake Bonus: {max_mistake_bonus}")
+        print(f"  Score Pool: {score_pool}")
+        
+        # Calculate deduction based on actual mistakes made
+        deduction = misses * MISTAKE_DEDUCTION_PER_MISTAKE
+        
+        # Calculate final points (cannot go below 0)
+        points = max(0, score_pool - deduction)
+        
+        print(f"  Deduction: {deduction}")
+        print(f"  Final Points (Pre-Speed Bonus): {points}")
+        
+        # NOTE: The final speed bonus is added in SubmitPuzzleView.
+        return points, misses
+    
     def save(self, *args, **kwargs):
         self.solution_phrase = self.solution_phrase.upper()
         super().save(*args, **kwargs)

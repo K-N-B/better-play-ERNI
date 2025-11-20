@@ -390,8 +390,14 @@ export const SudokuGame = ({
     const maxTimeMs = gameConfig?.TIME_LIMITS_MS?.[difficultyKey] || 0;
     const basePoints = gameConfig?.BASE_POINTS?.[difficultyKey] || 0;
 
+    // Assuming HINT_PENALTY_POINTS is part of gameConfig or a stable constant
+    const HINT_PENALTY = 20; // Use a constant if not in gameConfig, or fetch it.
+    const penalty = hintsUsed * HINT_PENALTY; // hintsUsed is a state variable
+    const scoreAfterPenalty = Math.max(0, basePoints - penalty);
+
     const speedBonus = calculateSpeedBonus(finalTime, maxTimeMs);
-    const calculatedScore = basePoints + speedBonus; // Store the calculated score
+
+    const calculatedScore = scoreAfterPenalty + speedBonus; // Store the calculated score
 
     console.log(
       `[SudokuGame] Base: ${basePoints}, Bonus: ${speedBonus}, Total Calculated: ${calculatedScore}`
@@ -434,6 +440,7 @@ export const SudokuGame = ({
         difficulty: difficulty,
         time_taken_ms: finalTime,
         tries: 1,
+        status: "SOLVED",
       };
 
       const submissionResult = await submitPuzzle(

@@ -272,19 +272,34 @@ export const WordleGame = ({
       if (won && gameConfig) {
         const difficultyKey = difficulty.toUpperCase();
 
-        // Access limits safely using optional chaining
+        // 1. Retrieve required constants
         const maxTimeMs = gameConfig.TIME_LIMITS_MS[difficultyKey] || 0;
         const basePoints = gameConfig.BASE_POINTS[difficultyKey] || 0;
 
-        const speedBonus = calculateSpeedBonus(finalTime, maxTimeMs);
-        calculatedScore = basePoints + speedBonus; // Calculate the score
+        // Assuming MAX_TRIES is 6 (or fetched from config.GUESS_LIMITS if available)
+        const MAX_TRIES = 6;
+        const DEDUCTION_PER_TRY = 20;
+
+        // 2. Calculate Tries Component
+        const MAX_TRIES_BONUS = MAX_TRIES * DEDUCTION_PER_TRY; // e.g., 120
+        const totalDeductionFromTries = tries * DEDUCTION_PER_TRY; // e.g., 4 * 20 = 80
+
+        // Score based on tries: Start with Base + MaxTriesBonus, then subtract used tries
+        const scoreAfterTriesDeduction = Math.max(
+          0,
+          basePoints + MAX_TRIES_BONUS - totalDeductionFromTries
+        );
+
+        // 3. Add Speed Component
+        const actualSpeedBonus = calculateSpeedBonus(finalTime, maxTimeMs);
+
+        calculatedScore = scoreAfterTriesDeduction + actualSpeedBonus;
 
         console.log(
-          `[WordleGame] Base: ${basePoints}, Bonus: ${speedBonus}, Total Calculated: ${calculatedScore}`
+          `[WordleGame] Base Pts: ${basePoints}, Tries Penalty: ${totalDeductionFromTries}, Speed Bonus: ${actualSpeedBonus}, Total Calculated: ${calculatedScore}`
         );
       } else {
-        // If lost, the calculated score is the base score awarded by the server (usually 0)
-        calculatedScore = 0;
+        calculatedScore = 0; // If lost, score is 0
       }
       // --- 🚀 NEW SPEED BONUS CALCULATION END 🚀 ---
       try {
@@ -316,6 +331,7 @@ export const WordleGame = ({
           difficulty: difficulty,
           time_taken_ms: finalTime,
           tries: tries,
+          status: won ? "SOLVED" : "LOST",
         };
 
         const submissionResult = await submitPuzzle(
@@ -324,7 +340,7 @@ export const WordleGame = ({
           puzzle.id
         );
 
-        finalScore = calculatedScore;
+        finalScore = submissionResult.score;
         submissionIdForResultModal = submissionResult.submissionId ?? null;
 
         if (challengeId && submissionIdForResultModal) {
@@ -361,6 +377,11 @@ export const WordleGame = ({
       challengeId,
       alreadyCompleted,
       refreshChallenges,
+      gameConfig, // Used to lookup limits/points
+      calculateSpeedBonus, // Used to calculate bonus
+      setGameResult, // Used in the final/error path
+      saveProgress, // Used to save final progress
+      submitPuzzle,
     ]
   );
 
