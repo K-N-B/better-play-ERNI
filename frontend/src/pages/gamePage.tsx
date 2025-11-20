@@ -28,10 +28,10 @@ const introContent = {
     description: "Guess the hidden <strong>5-letter word</strong>.",
     howToPlay: `You have a set number of tries to guess the word.\nType a 5-letter word and press Enter.\nTiles change color to show how close your guess was:\n<strong class="text-emerald-500">Green</strong>: Correct letter, correct spot.\n<strong class="text-yellow-400">Yellow</strong>: Correct letter, wrong spot.\n<strong class="text-gray-600">Gray</strong>: Letter not in the word.`,
     pointsInfo:
-      "Earn points based on how many tries you take. Fewer tries = more points!",
+      "Points are all about how well (and how fast!) you play.",
     pointsCalculation:
-      "Points are all about how well (and how fast!) you play. You’ll get [base points] for every correct answer or completed round. On top of that, [bonus points] are added for things like quick responses, perfect streaks, and tougher challenges. Some games even throw in [extra multipliers] or [special bonuses] to keep things exciting. Play smart, play fast — and watch your score climb up the leaderboard!",
-    hintInfo: "Hard mode gives you fewer tries!",
+      "You’ll get <strong>100pts</strong> for completing Easy and <strong>200pts</strong> for Hard. On top of that, you get <strong>20pts</strong> for each try that you didn't use up, and a speed bonus if you're up for the challenge! Play smart, play fast — and watch your score climb up the leaderboard!",
+    hintInfo: "Hard mode make you guess a longer word!",
     color: "bg-emerald-500",
     textColor: "text-emerald-900",
     darkColor: "shadow-emerald-900",
@@ -42,9 +42,9 @@ const introContent = {
     description:
       "Fill the <strong>9x9 grid</strong> so each row, column, and 3x3 box contains digits 1-9 without repeating.",
     howToPlay: `Click a cell to select it.\nUse the number pad to enter digits.\nToggle "Note Mode" (<span class="inline-block align-middle mx-1">📝</span>) to pencil in possibilities.\nCells will turn <strong class="text-red-500">red</strong> if they conflict with another number.`,
-    pointsInfo: "Earn points based on how quickly you solve the puzzle.",
+    pointsInfo: "Points are all about how well (and how fast!) you play.",
     pointsCalculation:
-      "Points are all about how well (and how fast!) you play. You’ll get [base points] for every correct answer or completed round. On top of that, [bonus points] are added for things like quick responses, perfect streaks, and tougher challenges. Some games even throw in [extra multipliers] or [special bonuses] to keep things exciting. Play smart, play fast — and watch your score climb up the leaderboard!",
+      "You’ll get <strong>200pts</strong> for completing Easy and <strong>400pts</strong> for Hard. But, there's a <strong>20pts</strong> deduction for each hint used. A speed bonus if you're up for the challenge! Play smart, play fast — and watch your score climb up the leaderboard!",
     hintInfo: "Hard mode gives you fewer starting numbers.",
     color: "bg-pink-400",
     textColor: "text-pink-800",
@@ -56,10 +56,10 @@ const introContent = {
     description:
       "Guess the hidden phrase related to <strong>ERNI culture, values, or tools</strong>.",
     howToPlay: `Guess letters one by one using the keyboard.\nEach incorrect guess reduces your remaining attempts.\nTry to solve the phrase before you run out of guesses!`,
-    pointsInfo: "Earn points based on remaining attempts and time.",
+    pointsInfo: "Points are all about how well (and how fast!) you play.",
     pointsCalculation:
-      "Points are all about how well (and how fast!) you play. You’ll get [base points] for every correct answer or completed round. On top of that, [bonus points] are added for things like quick responses, perfect streaks, and tougher challenges. Some games even throw in [extra multipliers] or [special bonuses] to keep things exciting. Play smart, play fast — and watch your score climb up the leaderboard!",
-    hintInfo: "Hard mode gives you significantly fewer attempts!",
+      "You’ll get <strong>150pts</strong> for completing Easy and <strong>300pts</strong> for Hard. On top of that, you get <strong>20pts</strong> for each mistake that you didn't use up, and a speed bonus if you're up for the challenge! Play smart, play fast — and watch your score climb up the leaderboard!",
+    hintInfo: "You can only make 3 mistakes in Hard!",
     color: "bg-sky-400",
     textColor: "text-sky-800",
     darkColor: "shadow-sky-800",
@@ -358,7 +358,7 @@ export const GamePage = () => {
           guessCount={
             gameType === "wordle"
               ? (foundAttempt.progress_data as WordleProgress)?.guesses
-                  ?.length || 0
+                ?.length || 0
               : 0
           }
           maxGuesses={6}
@@ -378,6 +378,7 @@ export const GamePage = () => {
             description={introData.description}
             howToPlay={introData.howToPlay}
             pointsInfo={introData.pointsInfo}
+            pointsCalculation={introData.pointsCalculation}
             hintInfo={introData.hintInfo}
             onStart={() => setHasStarted(true)}
             onDifficultyChange={setSelectedDifficulty}
@@ -463,7 +464,22 @@ export const GamePage = () => {
             difficulty={activeDifficulty}
             challengeId={challengeId}
             dailyPuzzleDate={puzzles.date}
-          />
+          >
+            <button
+              onClick={() => setShowPointsComputation(true)}
+              className={`font-semibold text-primary text-xl leading-none px-5 py-3 rounded-full ${introData.color} ${introData.darkColor} text-white shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all`}
+            >
+              <Star size={24} strokeWidth={2.5} />
+            </button>
+          </GameComponent>
+
+          {showPointsComputation && (
+            <PointsComputationModal
+              title={introData.title}
+              computation={introData.pointsCalculation}
+              onClose={() => setShowPointsComputation(false)}
+            />
+          )}
         </>
       );
     }

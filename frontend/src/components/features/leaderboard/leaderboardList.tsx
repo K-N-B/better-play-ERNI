@@ -16,7 +16,7 @@ export const LeaderboardList: React.FC<LeaderboardListProps> = ({ data, type, of
   }
 
   return (
-    <div className="flex-grow overflow-y-auto">
+    <div className="grow overflow-y-auto">
       <ul className="divide-y divide-gray-200">
         {data.map((entry, index) => {
           const rank = index + offsetRank;

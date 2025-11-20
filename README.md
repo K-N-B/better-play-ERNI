@@ -276,6 +276,36 @@ All API endpoints require authentication (session cookie) unless marked as `Allo
 * This automatically runs all linters and tests for both frontend and backend on every pull request to the `main` branch.
 * Branch protection rules in GitHub can be set to require these checks to pass before merging.
 
+---
+
+## Changelog
+
+### v0.0.1 - November 13, 2025
+* Initial deployment of website using Sprint 2 Progress
+
+
+### v0.0.2 - November 19, 2025
+* Bug fix for Sudoku's conflicting results, auto-submit, hints abuse, and grid alignment
+* Fixes for other minor bugs
+* Added distinguishable post game results modals for success and failure
+* User interface responsiveness improvements
+* Challenge modal shows list of users instead of having to search
+* Improved challenges page
+* Changelogs modal
+* Improved Activity Feed
+* Added points computation information on game pages
+
+### v0.0.3 - Upcoming
+* Implementation of speed and fewer tries/mistakes bonus
+* Bug fix for ERNIgram failing to submit/returning 0 points even on puzzle success
+* Potential Score bar
+* User interface responsiveness improvements
+* Migration to ERNI entra
+* (more to be added)
+
+
+---
+
 ![Tests](https://img.shields.io/badge/tests-passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-93%25-brightgreen)
 ![Code style](https://img.shields.io/badge/style-black-black)

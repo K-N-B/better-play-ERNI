@@ -226,7 +226,7 @@ export default function Navbar() {
                       // Base styles for all mobile links
                       "block px-3 py-2 rounded-md text-base font-medium transition-colors text-left", // Added text-center
                       // Apply activeClasses if isActive is true
-                      isActive && `active:translate-y-[2px] active:shadow-[0_3px_0_0] ${item.activeClasses}`,
+                      isActive && `active:translate-y-0.5 active:shadow-[0_3px_0_0] ${item.activeClasses}`,
                       // Apply standard text + hoverClasses if inactive
                       !isActive && `text-primary ${item.hoverClasses}`
                     )}
@@ -255,7 +255,7 @@ export default function Navbar() {
                     // Base styles
                     "flex items-center justify-start gap-2 px-3 py-2 rounded-md text-base font-medium transition-colors", // Added justify-center
                     // Active styles
-                    isActive && `active:translate-y-[2px] active:shadow-[0_3px_0_0] ${linkItem.style.activeClasses}`,
+                    isActive && `active:translate-y-0.5 active:shadow-[0_3px_0_0] ${linkItem.style.activeClasses}`,
                     // Inactive styles
                     !isActive && `text-primary ${linkItem.style.hoverClasses}`
                   )}

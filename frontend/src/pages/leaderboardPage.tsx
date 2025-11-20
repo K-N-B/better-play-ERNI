@@ -67,7 +67,7 @@ export const LeaderboardPage = () => { // Use default export if needed
             selectedPeriod={individualPeriod}
             onPeriodChange={setIndividualPeriod} // Control individual period state
           />
-          <div className="flex-grow"> {/* Allow card to fill remaining space */}
+          <div className="grow"> {/* Allow card to fill remaining space */}
             <LeaderboardCard
               title={individualTitle} // Use dynamic title
               data={individualData as LeaderboardData | null}
@@ -83,7 +83,7 @@ export const LeaderboardPage = () => { // Use default export if needed
             selectedPeriod={departmentPeriod}
             onPeriodChange={setDepartmentPeriod} // Control department period state
           />
-           <div className="flex-grow"> {/* Allow card to fill remaining space */}
+           <div className="grow"> {/* Allow card to fill remaining space */}
             <LeaderboardCard
               title={departmentTitle} // Use dynamic title
               data={departmentData as LeaderboardData | null}

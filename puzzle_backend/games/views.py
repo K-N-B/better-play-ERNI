@@ -18,7 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
 from django.views import View
-from .models import SudokuPuzzle
+from .models import SudokuPuzzle, WordlePuzzle, ErnigramPuzzle
 
 
 class DailyPuzzlesView(APIView):
@@ -97,3 +97,40 @@ class GetSudokuHintLimitsView(View):
         return JsonResponse({
             "HINT_LIMITS": SudokuPuzzle.HINT_LIMITS
         })
+
+
+class GameScoreLimitsView(APIView):
+    """
+    API endpoint to retrieve TIME_LIMITS_MS, BASE_POINTS, and MISTAKE_LIMITS (if applicable) for a given puzzle type.
+    Example URL: /api/games/limits/wordle/
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, puzzle_type, format=None):
+        
+        # 1. Map the URL type string to the actual Django Model Class
+        puzzle_type_map = {
+            "wordle": WordlePuzzle,
+            "sudoku": SudokuPuzzle,
+            "ernigram": ErnigramPuzzle,
+        }
+        
+        ModelClass = puzzle_type_map.get(puzzle_type.lower())
+
+        if not ModelClass:
+            return Response(
+                {"detail": f"Invalid puzzle type: {puzzle_type}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # 2. Access the static attributes on the Model
+        response_data = {
+            "TIME_LIMITS_MS": ModelClass.TIME_LIMITS_MS,
+            "BASE_POINTS": ModelClass.BASE_POINTS,
+        }
+        
+        # ✅ Only add MISTAKE_LIMITS if the model has it
+        if hasattr(ModelClass, "MISTAKE_LIMITS"):
+            response_data["MISTAKE_LIMITS"] = ModelClass.MISTAKE_LIMITS
+
+        return Response(response_data)

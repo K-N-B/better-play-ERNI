@@ -7,6 +7,7 @@ import {
   getSavedAttempt,
   saveProgress,
   checkSubmissionExists,
+  getGameLimits,
 } from "../../../api/gameService";
 // import { completeChallenge } from "../../../api/challengeService";
 import type {
@@ -35,6 +36,8 @@ import type { Difficulty } from "../../../pages/gamePage";
 import { getHint, getSudokuHintLimits } from "../../../api/gameService";
 import { useChallenges } from "../../../context/ChallengeContext";
 import { keyboardInputSudoku } from "./keyboardInputsSudoku";
+
+import { calculateSpeedBonus } from "../../../utils/SpeedBonus"; // Import the utility function
 
 // Helper Functions
 const parseGrid = (puzzleString: string): SudokuCell[][] => {
@@ -148,6 +151,7 @@ export const SudokuGame = ({
   const [hintsUsed, setHintsUsed] = useState(0);
   const [maxHints, setMaxHints] = useState<number>(3);
 
+  // fetch hint limits on mount or difficulty change
   useEffect(() => {
     const fetchLimits = async () => {
       try {
@@ -166,16 +170,24 @@ export const SudokuGame = ({
   }, [difficulty]);
 
   const [isHintLoading, setIsHintLoading] = useState(false);
-  // const [showResumeModal, setShowResumeModal] = useState(false);
+
   const [alreadyCompleted, setAlreadyCompleted] = useState<{
     hasSubmitted: boolean;
     score?: number;
     submittedAt?: string;
     submissionId?: number;
   } | null>(null);
+
   const [checkingSubmission, setCheckingSubmission] = useState(true);
 
   const { time, startTimer, stopTimer, setSavedTime } = useTimer();
+
+  // Fetch the limits for Sudoku (max time, BASCORE, etc.)
+  const fetchLimits = useCallback(
+    () => getGameLimits("sudoku"),
+    [] // Sudoku type is constant here
+  );
+  const { data: gameConfig, loading: configLoading } = useApi(fetchLimits);
 
   // Check for existing submission FIRST
   useEffect(() => {
@@ -236,11 +248,11 @@ export const SudokuGame = ({
 
   // Load saved progress
   useEffect(() => {
-    if (alreadyCompleted?.hasSubmitted) return;
+    if (alreadyCompleted?.hasSubmitted || loading) return; // Wait for loading to complete
 
     let loadedIsGameOver = false;
+
     if (savedGame && savedGame.puzzle_type === "sudoku") {
-      // ✅ Handle both old format (direct grid) and new format (wrapped object)
       const progressData = savedGame.progress_data;
       const savedGrid = progressData?.grid || progressData;
 
@@ -248,33 +260,28 @@ export const SudokuGame = ({
         setGrid(savedGrid);
         if (progressData?.hints_used) {
           setHintsUsed(progressData.hints_used);
-        }
-        setSavedTime(savedGame.time_spent_ms);
+        } // 1. Set the saved time from the database
 
-        // Check if grid is already solved
-        loadedIsGameOver = checkSolution(savedGrid, puzzle.solution_string);
-        // setIsGameOver(loadedIsGameOver);
+        setSavedTime(savedGame.time_spent_ms); // Check if grid is already solved
 
-        // Show resume modal if user has made progress
-        const filledCells = countFilledCells(savedGrid);
-        const hasProgress =
-          filledCells > countFilledCells(parseGrid(initialPuzzleString)) ||
-          savedGame.time_spent_ms > 5000;
-
-        if (hasProgress && !loadedIsGameOver) {
-        } else if (!loadedIsGameOver) {
-          startTimer();
-        }
+        loadedIsGameOver = checkSolution(savedGrid, puzzle.solution_string); // Logic for resume modal / progress can remain, but the startTimer logic is simplified.
       }
-    } else if (!loadedIsGameOver) {
-      startTimer();
     }
+
+    if (!loadedIsGameOver) {
+      startTimer();
+    } // 3. Ensure the timer stops if the game is already completed on load.
+    return () => {
+      if (!loadedIsGameOver) {
+        stopTimer();
+      }
+    };
   }, [
     savedGame,
+    loading, // Added dependency to wait for loading state
     startTimer,
     setSavedTime,
     puzzle.solution_string,
-    initialPuzzleString,
     alreadyCompleted,
   ]);
 
@@ -357,6 +364,11 @@ export const SudokuGame = ({
       alert("Solution is incorrect. Keep trying or check for errors (in red).");
       return;
     }
+    if (!gameConfig) {
+      console.error("Game configuration (limits/points) not loaded.");
+      alert("Cannot submit: Game configuration is missing.");
+      return;
+    }
 
     console.log("[SudokuGame] ========== SUBMITTING PUZZLE ==========");
     console.log("[SudokuGame] challengeId:", challengeId);
@@ -371,6 +383,26 @@ export const SudokuGame = ({
       setGameResult({ score: 0, submissionId: null });
       return;
     }
+    // --- 🚀 NEW SPEED BONUS CALCULATION START 🚀 ---
+    const difficultyKey = difficulty.toUpperCase();
+
+    // Look up the limits from the fetched config
+    const maxTimeMs = gameConfig?.TIME_LIMITS_MS?.[difficultyKey] || 0;
+    const basePoints = gameConfig?.BASE_POINTS?.[difficultyKey] || 0;
+
+    // Assuming HINT_PENALTY_POINTS is part of gameConfig or a stable constant
+    const HINT_PENALTY = 20; // Use a constant if not in gameConfig, or fetch it.
+    const penalty = hintsUsed * HINT_PENALTY; // hintsUsed is a state variable
+    const scoreAfterPenalty = Math.max(0, basePoints - penalty);
+
+    const speedBonus = calculateSpeedBonus(finalTime, maxTimeMs);
+
+    const calculatedScore = scoreAfterPenalty + speedBonus; // Store the calculated score
+
+    console.log(
+      `[SudokuGame] Base: ${basePoints}, Bonus: ${speedBonus}, Total Calculated: ${calculatedScore}`
+    );
+    // --- 🚀 NEW SPEED BONUS CALCULATION END 🚀 ---
 
     try {
       // ✅ Convert grid to string format for backend validation
@@ -408,6 +440,7 @@ export const SudokuGame = ({
         difficulty: difficulty,
         time_taken_ms: finalTime,
         tries: 1,
+        status: "SOLVED",
       };
 
       const submissionResult = await submitPuzzle(
@@ -416,7 +449,7 @@ export const SudokuGame = ({
         puzzle.id
       );
 
-      finalScore = submissionResult.score;
+      finalScore = calculatedScore;
       submissionIdForResultModal = submissionResult.submissionId ?? null;
 
       // ✅ NEW: Complete challenge
@@ -469,11 +502,6 @@ export const SudokuGame = ({
     }
   };
 
-  // const handleContinue = () => {
-  //   setShowResumeModal(false);
-  //   startTimer();
-  // };
-  // ⭐️ NEW: Core function to handle all input (number, note, erase) ⭐️
   const handleInputCore = useCallback(
     (value: number | null) => {
       if (!selectedCell || isGameOver || alreadyCompleted?.hasSubmitted) return;
@@ -609,6 +637,40 @@ export const SudokuGame = ({
     }
   };
 
+  // ==========================================
+  // 📊 PROGRESS BAR LOGIC
+  // ==========================================
+  
+  // 1. Get Config Values safely
+  const difficultyKey = difficulty.toUpperCase();
+  const basePoints = gameConfig?.BASE_POINTS?.[difficultyKey] || 0;
+  const maxTimeMs = gameConfig?.TIME_LIMITS_MS?.[difficultyKey] || 1; // Avoid divide by zero
+  
+  // 2. Calculate Dynamic Values
+  const currentSpeedBonus = calculateSpeedBonus(time, maxTimeMs);
+  const HINT_PENALTY_VALUE = 20; // As per your description
+  const currentHintPenalty = hintsUsed * HINT_PENALTY_VALUE;
+  
+  // 3. Calculate Totals
+  // Max possible is Base + Max Bonus (100)
+  const maxPossibleScore = basePoints + 100; 
+  
+  // Current potential is Base + Current Bonus - Penalties
+  // We use Math.max(0, ...) to ensure we don't show negative points
+  const currentPotentialScore = Math.max(0, basePoints + currentSpeedBonus - currentHintPenalty);
+  
+  // 4. Calculate Bar Percentage
+  const progressPercentage = maxPossibleScore > 0 
+    ? (currentPotentialScore / maxPossibleScore) * 100 
+    : 0;
+    
+  // // Define bar color based on percentage (optional visual flair)
+  // const getBarColor = () => {
+  //   if (progressPercentage > 66) return "bg-green-500";
+  //   if (progressPercentage > 33) return "bg-yellow-500";
+  //   return "bg-red-500";
+  // };
+
   if (checkingSubmission || loading) {
     return <LoadingSpinner fullPage={true} />;
   }
@@ -649,12 +711,41 @@ export const SudokuGame = ({
           />
         </div>
         <div className="place-content-center p-20 text-xl leading-5">
-          <div className="flex justify-between mb-10">
+          <div className="flex justify-between mb-4">
             <div>
               <h1 className="text-4xl font-bold">Sudoku</h1>
               <p>on {difficulty} difficulty</p>
             </div>
             <Timer timeMs={time} />
+          </div>
+
+          {/* Score Progress Bar Section */}
+          <div className="mb-6 w-full">
+            <div className="flex justify-between text-sm font-bold text-black mb-1">
+              <span>Potential Score</span>
+              <span>{currentPotentialScore} / {maxPossibleScore} pts</span>
+            </div>
+            
+            {/* The Bar Container */}
+            <div className="w-full bg-white rounded-full h-4 overflow-hidden">
+              {/* The Fill */}
+              <div
+                className={` bg-pink-400 h-4 rounded-full transition-all duration-700 ease-in-out relative`}
+                style={{ width: `${progressPercentage}%` }}
+              >
+                {/* Optional: Shine effect */}
+                {/* <div className="absolute top-0 left-0 bottom-0 right-0 bg-gradient-to-b from-white/20 to-transparent"></div> */}
+              </div>
+            </div>
+
+            {/* Legend / Breakdown */}
+            <div className="flex justify-between text-xs mt-1 text-gray-500">
+              <span className="text-pink-700 font-medium">Base: {basePoints}</span>
+              <span className="text-green-700 font-medium">Speed Bonus: +{currentSpeedBonus}</span>
+              <span className={`${hintsUsed > 0 ? 'text-red-700 font-medium' : ''}`}>
+                Hints: -{currentHintPenalty}
+              </span>
+            </div>
           </div>
 
           <NumberPad

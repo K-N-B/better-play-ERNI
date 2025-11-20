@@ -298,7 +298,7 @@ export const ChallengeItem: React.FC<ChallengeItemProps> = ({
                   ? "bg-red-600 hover:bg-red-700 text-white animate-pulse"
                   : expiryStatus.urgency === "warning"
                   ? "bg-orange-600 hover:bg-orange-700 text-white"
-                  : "bg-blue-600 hover:bg-blue-700 text-white"
+                  : "bg-primary-500 shadow-primary-800 text-white shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all"
               )}
             >
               Play Now
