@@ -502,24 +502,16 @@ export const WordleGame = ({
   // 1. Calculate Speed Bonus
   const currentSpeedBonus = calculateSpeedBonus(time, maxTimeMs);
 
-  // 2. Calculate Tries Bonus 
-  // "Perfect Game" (1 Try) = 120 - 20 = 100 points from tries.
-  // We use this 100 as our 'Full Bar' baseline for the tries component.
+  // --- LOGIC ---
   const REAL_MAX_TRIES_BONUS = 100;
   const DEDUCTION_PER_EXTRA_TRY = 20;
+  
+  // Calculate remaining bonus
+  const deduction = currentRow * DEDUCTION_PER_EXTRA_TRY;
+  const currentTriesBonus = Math.max(0, REAL_MAX_TRIES_BONUS - deduction);
 
-  // currentRow starts at 0. 
-  // Row 0 (Try #1) -> Penalty 0
-  // Row 2 (Try #3) -> Penalty 40
-  const currentTriesPenalty = currentRow * DEDUCTION_PER_EXTRA_TRY;
-
-  // 3. Calculate Totals
-  // Max Possible = Base + Max Speed (100) + Perfect Tries (100)
-  const maxPossibleScore = basePoints + 100 + REAL_MAX_TRIES_BONUS;
-
-  // Current Potential = Base + Speed + (Perfect Tries - Penalty)
-  const triesScoreComponent = Math.max(0, basePoints + REAL_MAX_TRIES_BONUS - currentTriesPenalty);
-  const currentPotentialScore = triesScoreComponent + currentSpeedBonus;
+  const maxPossibleScore = basePoints + REAL_MAX_TRIES_BONUS + 100; // Base + MaxTries + MaxSpeed
+  const currentPotentialScore = basePoints + currentTriesBonus + currentSpeedBonus;
 
   if (checkingSubmission || loading) {
     return <LoadingSpinner fullPage={true} />;
@@ -578,8 +570,9 @@ export const WordleGame = ({
             maxScore={maxPossibleScore}
             basePoints={basePoints}
             speedBonus={currentSpeedBonus}
-            penaltyValue={currentTriesPenalty}
-            penaltyLabel="Attempts Penalty"
+            // Bonus Configuration
+            bonusOrPenaltyValue={currentTriesBonus}
+            bonusOrPenaltyLabel="Tries Bonus"
             color="bg-green-600"
           />
 

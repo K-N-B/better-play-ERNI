@@ -1,6 +1,4 @@
 // src/components/gameComponents/ernigram/ernigramGame.tsx
-// COMPLETE FILE WITH DIFFICULTY FIX
-
 import { useState, useEffect, useCallback } from "react";
 import {
   submitPuzzle,
@@ -40,6 +38,7 @@ import error from "@/assets/sounds/error.mp3";
 
 import { useSound } from "../../../hooks/useSound";
 import { calculateSpeedBonus } from "../../../utils/SpeedBonus";
+import { PotentialScoreBar } from "../../ui/potentialScoreBar"; // <--- IMPORTED
 
 interface ErnigramGameProps {
   puzzle: ErnigramPuzzle;
@@ -80,7 +79,6 @@ export const ErnigramGame = ({
     message: string;
   } | null>(null);
 
-  // const [showResumeModal, setShowResumeModal] = useState(false);
   const [alreadyCompleted, setAlreadyCompleted] = useState<{
     hasSubmitted: boolean;
     score?: number;
@@ -100,9 +98,8 @@ export const ErnigramGame = ({
   const [isWon, setIsWon] = useState(false);
 
   const fetchLimits = useCallback(
-    // FIX: Use a string literal if 'puzzle' object doesn't have the property
     () => getGameLimits("ernigram"),
-    [] // The dependency array can now be empty as the type is constant
+    []
   );
   const { data: gameConfig, loading: configLoading } = useApi(fetchLimits);
 
@@ -212,7 +209,6 @@ export const ErnigramGame = ({
       }
     }
 
-    // ✅ Just start the timer - saved time is already set in first effect
     if (!loadedIsGameOver) {
       startTimer();
     }
@@ -279,14 +275,8 @@ export const ErnigramGame = ({
   ]);
 
   // ✅ 5. endGame function with challenge support
-  // ✅ FIXED: endGame function with better error handling
   const endGame = useCallback(
     async (won: boolean) => {
-      console.log("[ErnigramGame] ========== GAME END ==========");
-      console.log("[ErnigramGame] Won:", won);
-      console.log("[ErnigramGame] Guessed letters:", guessedLetters);
-      console.log("[ErnigramGame] Attempts left:", attemptsLeft);
-
       setIsGameOver(true);
       if (won) {
         setIsWon(true);
@@ -299,72 +289,31 @@ export const ErnigramGame = ({
       let submissionResult: SubmissionResult | null = null;
 
       let finalScore = 0;
-      let calculatedScore = 0;
 
       if (won && gameConfig) {
         const difficultyKey = difficulty.toUpperCase();
-
-        console.log("========== DEBUG CONFIG ==========");
-        console.log("gameConfig:", gameConfig);
-        console.log("difficultyKey:", difficultyKey);
-        console.log("===================================");
-
         const maxTimeMs = gameConfig.TIME_LIMITS_MS?.[difficultyKey] || 0;
         const basePoints = gameConfig.BASE_POINTS?.[difficultyKey] || 0;
         const maxMistakes = gameConfig.MISTAKE_LIMITS?.[difficultyKey] || 0;
-
-        console.log("[ErnigramGame] Config values:", {
-          maxTimeMs,
-          basePoints,
-          maxMistakes,
-          difficultyKey,
-        });
 
         const misses = guessedLetters.filter(
           (letter) => !solution.includes(letter)
         ).length;
 
-        // --- STEP 1: CALCULATE SCORE AFTER MISTAKE DEDUCTION ---
+        // --- SCORING LOGIC DUPLICATED HERE FOR SUBMISSION ---
         const MISTAKE_DEDUCTION_PER_MISTAKE = 20;
-
-        // Calculate the maximum mistake bonus
         const maxMistakeBonus = maxMistakes * MISTAKE_DEDUCTION_PER_MISTAKE;
-
-        // The score pool = base points + mistake bonus
-        // e.g., EASY: 150 + (6 × 20) = 270
         const scorePool = basePoints + maxMistakeBonus;
-
-        // Calculate deduction based on actual mistakes
         const deduction = misses * MISTAKE_DEDUCTION_PER_MISTAKE;
-
-        // Calculate points after penalty (cannot go below 0)
         const basePointsAfterPenalty = Math.max(0, scorePool - deduction);
-
-        console.log("[ErnigramGame] Scoring breakdown:");
-        console.log(`  Base Points: ${basePoints}`);
-        console.log(`  Max Mistakes: ${maxMistakes}`);
-        console.log(`  Max Mistake Bonus: ${maxMistakeBonus}`);
-        console.log(`  Score Pool: ${scorePool}`);
-        console.log(`  Actual Misses: ${misses}`);
-        console.log(`  Deduction: ${deduction}`);
-        console.log(`  Points After Penalty: ${basePointsAfterPenalty}`);
-
-        // --- STEP 2: ADD SPEED BONUS ---
         const speedBonus = calculateSpeedBonus(finalTime, maxTimeMs);
-
-        // Final score for display
-        calculatedScore = basePointsAfterPenalty + speedBonus;
-        finalScore = calculatedScore;
-
-        console.log(
-          `[ErnigramGame] Base: ${basePoints}, Misses: ${misses}, After Penalty: ${basePointsAfterPenalty}, Bonus: ${speedBonus}, Total Calculated: ${finalScore}`
-        );
+        
+        finalScore = basePointsAfterPenalty + speedBonus;
       } else if (!won) {
-        finalScore = 0; // If lost, score is 0
+        finalScore = 0;
       }
 
       if (!dailyPuzzleDate || !puzzle.id) {
-        console.error("[ErnigramGame] ❌ Missing dailyPuzzleDate or puzzle.id");
         setGameResult({
           score: 0,
           submissionId: null,
@@ -381,30 +330,20 @@ export const ErnigramGame = ({
           (letter) => !solution.includes(letter)
         ).length;
 
-        // ✅ Set proper status for both won and lost
-        console.log("[ErnigramGame] Preparing final progress data...");
-
         const finalProgressData = {
           guessedLetters,
           attemptsLeft: won ? attemptsLeft : 0,
           isGameOver: true,
           misses: misses,
-          tries: triesTaken, // ✅ Include tries for lost games
+          tries: triesTaken,
           status: won ? "SOLVED" : "LOST",
         };
 
-        console.log(
-          "[ErnigramGame] Saving final progress with status:",
-          finalProgressData.status
-        );
-        console.log(finalProgressData);
-
-        // ✅ Save progress with correct status BEFORE submitting
         await saveProgress(
           {
             puzzle_id: puzzle.id,
             puzzle_type: "ernigram",
-            progress_data: finalProgressData, // Contains status: "SOLVED"
+            progress_data: finalProgressData,
             time_spent_ms: finalTime,
             difficulty: difficulty,
           },
@@ -421,35 +360,20 @@ export const ErnigramGame = ({
           status: won ? "SOLVED" : "LOST",
         };
 
-        console.log("[ErnigramGame] Submission data:", submissionData);
-        console.log("[ErnigramGame] Calling submitPuzzle...");
-
         submissionResult = await submitPuzzle(
           submissionData,
           dailyPuzzleDate,
           puzzle.id
         );
 
-        console.log("[ErnigramGame] ✅ Submission result:", submissionResult);
-
-        finalScore = calculatedScore;
+        finalScore = submissionResult.score; // Trust backend score
         submissionIdForResultModal = submissionResult.submissionId ?? null;
 
-        console.log("[ErnigramGame] Score:", finalScore);
-        console.log(
-          "[ErnigramGame] Submission ID:",
-          submissionIdForResultModal
-        );
-
-        // ✅ Handle challenge completion if applicable
         if (challengeId && submissionIdForResultModal) {
-          console.log("[ErnigramGame] Completing challenge...");
           try {
             await completeChallenge(challengeId, {
               submission_id: submissionIdForResultModal,
             });
-
-            console.log("[ErnigramGame] ✅ Challenge completed");
             await new Promise((resolve) => setTimeout(resolve, 3000));
             await refreshChallenges();
           } catch (challengeError) {
@@ -459,12 +383,7 @@ export const ErnigramGame = ({
         }
       } catch (err) {
         console.error("[ErnigramGame] ❌ Error during end:", err);
-        console.error(
-          "[ErnigramGame] Error details:",
-          JSON.stringify(err, null, 2)
-        );
       } finally {
-        console.log("[ErnigramGame] Setting game result...");
         setGameResult({
           score: finalScore,
           submissionId: submissionIdForResultModal,
@@ -475,7 +394,6 @@ export const ErnigramGame = ({
             ? (submissionResult?.message ?? "Puzzle completed!")
             : (submissionResult?.message ?? "Better luck next time!"),
         });
-        console.log("[ErnigramGame] ========== END COMPLETE ==========");
       }
     },
     [
@@ -490,12 +408,12 @@ export const ErnigramGame = ({
       guessedLetters,
       solution,
       refreshChallenges,
-      gameConfig, // Used in the scoring block (causing the crash)
-      calculateSpeedBonus, // Used in the scoring block
-      setIsWon, // Used if won is true
-      setGameResult, // Used in the final/error path
-      saveProgress, // Used in the try block
-      submitPuzzle, // Used in the try block
+      gameConfig,
+      calculateSpeedBonus,
+      setIsWon,
+      setGameResult,
+      saveProgress,
+      submitPuzzle,
     ]
   );
 
@@ -571,21 +489,15 @@ export const ErnigramGame = ({
       }
       setLetterStatuses(newStatuses);
 
-      // ✅ FIX STARTS HERE ------------------------------------------
-      
-      // 1. Check if this move ends the game
       const uniqueLetters = [...new Set(solution.replace(/ /g, ""))];
       const hasWon = uniqueLetters.every((char) => newGuessedLetters.includes(char));
       const isLost = newAttemptsLeft <= 0;
       const isGameEndingMove = hasWon || isLost;
 
-      // 2. Only save "intermediate" progress if the game is NOT over.
-      // If the game IS over, 'checkGameState' -> 'endGame' will handle the final save.
       if (!isGameEndingMove) {
         saveImmediately(newGuessedLetters, newAttemptsLeft);
       }
 
-      // 3. Proceed to check game state (which triggers endGame if finished)
       checkGameState(newGuessedLetters, newAttemptsLeft);
     },
     [
@@ -611,6 +523,36 @@ export const ErnigramGame = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyPress]);
 
+  // --- 🚀 LIVE SCORE BAR CALCULATION START 🚀 ---
+  const difficultyKey = difficulty.toUpperCase();
+  const configBasePoints = gameConfig?.BASE_POINTS?.[difficultyKey] || 0;
+  const configMaxMistakes = gameConfig?.MISTAKE_LIMITS?.[difficultyKey] || 0;
+  const configMaxTimeMs = gameConfig?.TIME_LIMITS_MS?.[difficultyKey] || 1;
+
+  const MISTAKE_DEDUCTION = 20;
+  const MAX_SPEED_BONUS = 100; // Assuming standard 100 bonus
+
+  // 1. Calculate Mistakes
+  const currentMisses = guessedLetters.filter(
+    (letter) => !solution.includes(letter)
+  ).length;
+  
+  console.log(configBasePoints, configMaxMistakes, configMaxTimeMs);
+  const currentSpeedBonus = calculateSpeedBonus(time, configMaxTimeMs);
+// Calculate Bonus Pool
+  const maxMistakeBonusPool = configMaxMistakes * MISTAKE_DEDUCTION;
+  const currentDeduction = currentMisses * MISTAKE_DEDUCTION;
+  
+  // Calculate Remaining Bonus
+  const currentMistakeBonus = Math.max(0, maxMistakeBonusPool - currentDeduction);
+
+  // Max Score includes the full bonus pool
+  const maxPossibleScore = configBasePoints + maxMistakeBonusPool + MAX_SPEED_BONUS;
+  
+  // Current score uses the remaining bonus
+  const currentPotentialScore = configBasePoints + currentMistakeBonus + currentSpeedBonus;
+  // --- 🚀 LIVE SCORE BAR CALCULATION END 🚀 ---
+
   if (
     loading ||
     configLoading ||
@@ -621,7 +563,6 @@ export const ErnigramGame = ({
     return <LoadingSpinner fullPage={true} />;
   }
 
-  // ✅ CRITICAL FIX: Use difficulty from alreadyCompleted, not lockedDifficulty
   if (alreadyCompleted?.hasSubmitted) {
     return (
       <AlreadyPlayedScreen
@@ -639,18 +580,6 @@ export const ErnigramGame = ({
 
   return (
     <>
-      {/* {showResumeModal && (
-        <ResumeGameModal
-          guessCount={guessedLetters.length}
-          maxGuesses={null}
-          puzzleDate={dailyPuzzleDate}
-          puzzleNumber={puzzle.id}
-          editor="ERNI Team"
-          onContinue={handleContinue}
-          customMessage={`You've guessed ${guessedLetters.length} letter${guessedLetters.length !== 1 ? "s" : ""} with ${attemptsLeft} attempt${attemptsLeft !== 1 ? "s" : ""} remaining.`}
-        />
-      )} */}
-
       <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
         <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
           <div className="place-content-center p-4 md:p-20 text-xl leading-6 bg-white h-full rounded-3xl">
@@ -692,8 +621,20 @@ export const ErnigramGame = ({
               <Timer timeMs={time} />
               {children}
             </div>
-            
           </div>
+
+          {/* --- NEW POTENTIAL SCORE BAR --- */}
+          <PotentialScoreBar
+            currentScore={currentPotentialScore}
+            maxScore={maxPossibleScore}
+            basePoints={configBasePoints} // Display Base as "Base + Potential Mistake Bonus" or just Base depending on preference. Passing total pool usually looks better.
+            speedBonus={currentSpeedBonus}
+            bonusOrPenaltyValue={currentMistakeBonus}
+          bonusOrPenaltyLabel="Mistake Bonus"
+            color="bg-blue-500"
+          />
+          {/* ------------------------------- */}
+
           <div className={isGameOver ? "opacity-50 pointer-events-none" : ""}>
             <Keyboard
               onKeyPress={handleKeyPress}
@@ -705,10 +646,6 @@ export const ErnigramGame = ({
             <PostGameResultsModal
               score={gameResult.score}
               submissionId={gameResult.submissionId}
-              // currentStreak={gameResult.currentStreak}
-              // maxStreak={gameResult.maxStreak}
-              // streakUpdatedToday={gameResult.streakUpdatedToday}
-              // message={gameResult.message}
               gameType="ernigram"
               puzzleId={puzzle.id}
               dailyPuzzleDate={puzzle.date_to_be_used}

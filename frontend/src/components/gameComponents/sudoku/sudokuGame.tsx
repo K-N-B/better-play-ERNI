@@ -656,9 +656,8 @@ export const SudokuGame = ({
   // Max possible is Base + Max Bonus (100)
   const maxPossibleScore = basePoints + 100;
 
-  // Current potential is Base + Current Bonus - Penalties
-  // We use Math.max(0, ...) to ensure we don't show negative points
-  const currentPotentialScore = Math.max(0, basePoints + currentSpeedBonus - currentHintPenalty);
+  // Current Score subtracts the penalty
+  const currentPotentialScore = Math.max(0, (basePoints) - currentHintPenalty) + currentSpeedBonus;
   
   if (checkingSubmission || loading || configLoading) {
     return <LoadingSpinner fullPage={true} />;
@@ -713,8 +712,10 @@ export const SudokuGame = ({
             maxScore={maxPossibleScore}
             basePoints={basePoints}
             speedBonus={currentSpeedBonus}
-            penaltyValue={currentHintPenalty} // Pass the calculated hint penalty
-            penaltyLabel="Hint Penalty"       // Label specifically for Sudoku
+            // Penalty Configuration
+            bonusOrPenaltyValue={currentHintPenalty}
+            bonusOrPenaltyLabel="Hint Penalty"   
+            isPenalty={true}   // Label specifically for Sudoku
             color="bg-pink-400"
           />
 
