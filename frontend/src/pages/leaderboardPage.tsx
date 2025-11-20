@@ -3,7 +3,7 @@ import { useApi } from "../hooks/useApi";
 import { getLeaderboard } from "../api/leaderboardService";
 import { LeaderboardCard } from "../components/features/leaderboard/leaderboardCard";
 import { TabButton } from "../components/ui/tabButton";
-import type { LeaderboardPeriod, LeaderboardType, LeaderboardData } from "../types/leaderboard";
+import type { LeaderboardPeriod, LeaderboardData } from "../types/leaderboard";
 
 // Helper component for the filter tabs
 const PeriodFilters: React.FC<{
@@ -67,7 +67,7 @@ export const LeaderboardPage = () => { // Use default export if needed
             selectedPeriod={individualPeriod}
             onPeriodChange={setIndividualPeriod} // Control individual period state
           />
-          <div className="flex-grow"> {/* Allow card to fill remaining space */}
+          <div className="grow"> {/* Allow card to fill remaining space */}
             <LeaderboardCard
               title={individualTitle} // Use dynamic title
               data={individualData as LeaderboardData | null}
@@ -83,7 +83,7 @@ export const LeaderboardPage = () => { // Use default export if needed
             selectedPeriod={departmentPeriod}
             onPeriodChange={setDepartmentPeriod} // Control department period state
           />
-           <div className="flex-grow"> {/* Allow card to fill remaining space */}
+           <div className="grow"> {/* Allow card to fill remaining space */}
             <LeaderboardCard
               title={departmentTitle} // Use dynamic title
               data={departmentData as LeaderboardData | null}

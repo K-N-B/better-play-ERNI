@@ -111,6 +111,19 @@ class SaveProgressView(View):
             traceback.print_exc()
             return JsonResponse({"error": f"Invalid puzzle reference: {str(e)}"}, status=400)
 
+        # 4. TIME LIMIT ENFORCEMENT
+        # if hasattr(PuzzleModel, "TIME_LIMITS_MS"):
+        #     time_limits = PuzzleModel.TIME_LIMITS_MS
+        #     max_time_ms = time_limits.get(difficulty)
+
+        #     if max_time_ms is not None and new_time_spent > max_time_ms:
+        #         max_time_minutes = max_time_ms / 60000
+        #         return JsonResponse(
+        #             {
+        #                 "error": f"Time limit of {int(max_time_minutes)} minutes for '{difficulty}' difficulty exceeded."
+        #             },
+        #             status=403,
+        #         )
 
         # 5. GUESS/HINT/MISTAKE LIMIT ENFORCEMENT
         limit_config = None
@@ -481,7 +494,20 @@ class SubmitPuzzleView(View):
             difficulty = "EASY"
             status_from_client = ""
 
-        # 4. Initialize scoring variables
+        # # 4. TIME LIMIT ENFORCEMENT
+        # if hasattr(PuzzleModel, "TIME_LIMITS_MS"):
+        #     time_limits = PuzzleModel.TIME_LIMITS_MS
+        #     max_time_ms = time_limits.get(difficulty)
+
+        #     if max_time_ms is not None and time_taken > max_time_ms:
+        #         max_time_minutes = max_time_ms / 60000
+        #         return JsonResponse(
+        #             {
+        #                 "error": f"Time limit of {int(max_time_minutes)} minutes for '{difficulty}' difficulty was exceeded."
+        #             },
+        #             status=403,
+        #         )
+
         points_awarded = 0
         tries = 0
         hints_used = 0

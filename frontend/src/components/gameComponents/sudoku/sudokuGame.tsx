@@ -637,6 +637,40 @@ export const SudokuGame = ({
     }
   };
 
+  // ==========================================
+  // 📊 PROGRESS BAR LOGIC
+  // ==========================================
+  
+  // 1. Get Config Values safely
+  const difficultyKey = difficulty.toUpperCase();
+  const basePoints = gameConfig?.BASE_POINTS?.[difficultyKey] || 0;
+  const maxTimeMs = gameConfig?.TIME_LIMITS_MS?.[difficultyKey] || 1; // Avoid divide by zero
+  
+  // 2. Calculate Dynamic Values
+  const currentSpeedBonus = calculateSpeedBonus(time, maxTimeMs);
+  const HINT_PENALTY_VALUE = 20; // As per your description
+  const currentHintPenalty = hintsUsed * HINT_PENALTY_VALUE;
+  
+  // 3. Calculate Totals
+  // Max possible is Base + Max Bonus (100)
+  const maxPossibleScore = basePoints + 100; 
+  
+  // Current potential is Base + Current Bonus - Penalties
+  // We use Math.max(0, ...) to ensure we don't show negative points
+  const currentPotentialScore = Math.max(0, basePoints + currentSpeedBonus - currentHintPenalty);
+  
+  // 4. Calculate Bar Percentage
+  const progressPercentage = maxPossibleScore > 0 
+    ? (currentPotentialScore / maxPossibleScore) * 100 
+    : 0;
+    
+  // // Define bar color based on percentage (optional visual flair)
+  // const getBarColor = () => {
+  //   if (progressPercentage > 66) return "bg-green-500";
+  //   if (progressPercentage > 33) return "bg-yellow-500";
+  //   return "bg-red-500";
+  // };
+
   if (checkingSubmission || loading) {
     return <LoadingSpinner fullPage={true} />;
   }
@@ -677,12 +711,41 @@ export const SudokuGame = ({
           />
         </div>
         <div className="place-content-center p-20 text-xl leading-5">
-          <div className="flex justify-between mb-10">
+          <div className="flex justify-between mb-4">
             <div>
               <h1 className="text-4xl font-bold">Sudoku</h1>
               <p>on {difficulty} difficulty</p>
             </div>
             <Timer timeMs={time} />
+          </div>
+
+          {/* Score Progress Bar Section */}
+          <div className="mb-6 w-full">
+            <div className="flex justify-between text-sm font-bold text-black mb-1">
+              <span>Potential Score</span>
+              <span>{currentPotentialScore} / {maxPossibleScore} pts</span>
+            </div>
+            
+            {/* The Bar Container */}
+            <div className="w-full bg-white rounded-full h-4 overflow-hidden">
+              {/* The Fill */}
+              <div
+                className={` bg-pink-400 h-4 rounded-full transition-all duration-700 ease-in-out relative`}
+                style={{ width: `${progressPercentage}%` }}
+              >
+                {/* Optional: Shine effect */}
+                {/* <div className="absolute top-0 left-0 bottom-0 right-0 bg-gradient-to-b from-white/20 to-transparent"></div> */}
+              </div>
+            </div>
+
+            {/* Legend / Breakdown */}
+            <div className="flex justify-between text-xs mt-1 text-gray-500">
+              <span className="text-pink-700 font-medium">Base: {basePoints}</span>
+              <span className="text-green-700 font-medium">Speed Bonus: +{currentSpeedBonus}</span>
+              <span className={`${hintsUsed > 0 ? 'text-red-700 font-medium' : ''}`}>
+                Hints: -{currentHintPenalty}
+              </span>
+            </div>
           </div>
 
           <NumberPad
