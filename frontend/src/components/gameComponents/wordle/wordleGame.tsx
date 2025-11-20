@@ -494,6 +494,43 @@ export const WordleGame = ({
   //   startTimer();
   // };
 
+  const difficultyKey = difficulty.toUpperCase();
+  const basePoints = gameConfig?.BASE_POINTS?.[difficultyKey] || 0;
+  const maxTimeMs = gameConfig?.TIME_LIMITS_MS?.[difficultyKey] || 1;
+
+  // 1. Calculate Speed Bonus
+  const currentSpeedBonus = calculateSpeedBonus(time, maxTimeMs);
+
+  // 2. Calculate Tries Bonus 
+  // "Perfect Game" (1 Try) = 120 - 20 = 100 points from tries.
+  // We use this 100 as our 'Full Bar' baseline for the tries component.
+  const REAL_MAX_TRIES_BONUS = 100;
+  const DEDUCTION_PER_EXTRA_TRY = 20;
+
+  // currentRow starts at 0. 
+  // Row 0 (Try #1) -> Penalty 0
+  // Row 2 (Try #3) -> Penalty 40
+  const currentTriesPenalty = currentRow * DEDUCTION_PER_EXTRA_TRY;
+
+  // 3. Calculate Totals
+  // Max Possible = Base + Max Speed (100) + Perfect Tries (100)
+  const maxPossibleScore = basePoints + 100 + REAL_MAX_TRIES_BONUS;
+
+  // Current Potential = Base + Speed + (Perfect Tries - Penalty)
+  const triesScoreComponent = Math.max(0, basePoints + REAL_MAX_TRIES_BONUS - currentTriesPenalty);
+  const currentPotentialScore = triesScoreComponent + currentSpeedBonus;
+
+  // 4. Calculate Bar Percentage
+  const progressPercentage = maxPossibleScore > 0
+    ? (currentPotentialScore / maxPossibleScore) * 100
+    : 0;
+
+  const getBarColor = () => {
+    if (progressPercentage > 66) return "bg-green-500";
+    if (progressPercentage > 33) return "bg-yellow-500";
+    return "bg-red-500";
+  };
+
   if (checkingSubmission || loading) {
     return <LoadingSpinner fullPage={true} />;
   }
@@ -544,6 +581,31 @@ export const WordleGame = ({
               <p>on {difficulty} difficulty</p>
             </div>
             <Timer timeMs={time} />
+          </div>
+
+          <div className="mb-6 w-full">
+            <div className="flex justify-between text-sm font-bold text-gray-700 mb-1">
+              <span>Potential Score</span>
+              <span>{currentPotentialScore} / {maxPossibleScore} pts</span>
+            </div>
+
+            <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner overflow-hidden">
+              <div
+                className={`${getBarColor()} h-4 rounded-full transition-all duration-700 ease-in-out relative`}
+                style={{ width: `${progressPercentage}%` }}
+              >
+                {/* <div className="absolute top-0 left-0 bottom-0 right-0 bg-gradient-to-b from-white/20 to-transparent"></div> */}
+              </div>
+            </div>
+
+            <div className="flex justify-between text-xs mt-1 text-gray-500 font-medium">
+              <span>Base: {basePoints}</span>
+              <span className="text-blue-600">Speed: +{currentSpeedBonus}</span>
+              {/* Only show penalty text if there is actually a penalty (> 0) */}
+              <span className={`${currentTriesPenalty > 0 ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
+                Attempts Penalty: -{currentTriesPenalty}
+              </span>
+            </div>
           </div>
 
           <div className={isGameOver ? "opacity-50 pointer-events-none" : ""}>
