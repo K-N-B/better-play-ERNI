@@ -20,6 +20,53 @@ from .config import (
 # A. SUDOKU API CLIENTS (Utilities and Generators)
 # ----------------------------------------------------------------------
 
+def _is_safe(board, row, col, num):
+    """
+    Checks if placing 'num' at board[row][col] is valid 
+    according to Sudoku rules (row, col, 3x3 box).
+    """
+    # Check row
+    for x in range(9):
+        if board[row][x] == num:
+            return False
+            
+    # Check column
+    for x in range(9):
+        if board[x][col] == num:
+            return False
+            
+    # Check 3x3 box
+    start_row = row - (row % 3)
+    start_col = col - (col % 3)
+    for i in range(3):
+        for j in range(3):
+            if board[i + start_row][j + start_col] == num:
+                return False
+    return True
+
+def _count_solutions(board, limit=2):
+    """
+    Backtracking algorithm to count valid solutions for a given board.
+    Stops early if we find more solutions than 'limit' (usually 2) 
+    because we only care if count == 1 or count > 1.
+    """
+    # Find the next empty cell (represented by 0)
+    for i in range(9):
+        for j in range(9):
+            if board[i][j] == 0:
+                count = 0
+                # Try digits 1-9
+                for num in range(1, 10):
+                    if _is_safe(board, i, j, num):
+                        board[i][j] = num
+                        count += _count_solutions(board, limit)
+                        board[i][j] = 0 # Backtrack
+                        
+                        if count >= limit:
+                            return count
+                return count
+    # If no empty cells, we found 1 solution
+    return 1
 
 def _flatten_board(board):
     """
@@ -50,23 +97,53 @@ def _fetch_one_sudoku_from_api():
 
 def _make_variant_from_base(base_string: str, blanks_target: int) -> str:
     """
-    base_string: 81-char string with digits '0'-'9' (0 means blank)
-    This function will randomly turn some non-zero cells to '0' until the
-    total number of '0's equals blanks_target (or as many as possible).
+    Generates a puzzle with a unique solution.
+    It attempts to remove numbers one by one, checking uniqueness after each removal.
     """
     if len(base_string) != 81:
         raise ValueError("base_string must be length 81")
 
-    arr = list(base_string)
-    current_blanks = [i for i, ch in enumerate(arr) if ch == "0"]
-    non_blank_indices = [i for i, ch in enumerate(arr) if ch != "0"]
+    # Convert string to a 9x9 list of integers for processing
+    board_flat = [int(c) for c in base_string]
+    board_2d = [board_flat[i:i+9] for i in range(0, 81, 9)]
+    
+    # Get all positions that currently have numbers
+    # (Since we start with a full solution, this is 0 to 80)
+    coords = [(r, c) for r in range(9) for c in range(9)]
+    random.shuffle(coords) # Shuffle to remove numbers randomly
 
-    blanks_needed = max(0, blanks_target - len(current_blanks))
-    if blanks_needed > 0 and non_blank_indices:
-        to_blank = random.sample(non_blank_indices, min(blanks_needed, len(non_blank_indices)))
-        for idx in to_blank:
-            arr[idx] = "0"
-    return "".join(arr)
+    current_blanks = 0
+    
+    # Iterate through random coordinates and try to remove them
+    for r, c in coords:
+        if current_blanks >= blanks_target:
+            break
+            
+        # Remember the number in case we need to put it back
+        backup = board_2d[r][c]
+        
+        # Tentatively remove the number
+        board_2d[r][c] = 0
+        
+        # CHECK: Does this new state still have exactly 1 solution?
+        # We pass a deep copy or reconstruct logic to avoid checking function mutating our main board
+        # But strictly speaking, _count_solutions backtracks, so it restores the board state.
+        solutions = _count_solutions(board_2d, limit=2)
+        
+        if solutions != 1:
+            # If 0 solutions (impossible) or >1 solutions (ambiguous), revert!
+            board_2d[r][c] = backup
+        else:
+            # Valid removal, increment count
+            current_blanks += 1
+
+    # Convert 9x9 int list back to flattened string
+    result_flat = []
+    for row in board_2d:
+        for num in row:
+            result_flat.append(str(num))
+            
+    return "".join(result_flat)
 
 
 FALLBACK_PUZZLES = [
