@@ -1,11 +1,8 @@
-# games/api_client.py
 import random
-
 import requests
 from bs4 import BeautifulSoup
 
-# --- Configuration (Assumed from your project's config file) ---
-# Ensure these variables are accessible via this import.
+# --- Configuration ---
 from .config import (
     DEFAULT_EASY_BLANKS,
     DEFAULT_HARD_BLANKS,
@@ -14,75 +11,51 @@ from .config import (
     SUDOKU_API_BASE_URL,
 )
 
-# ----------------------------------------------------------------
-
 # ----------------------------------------------------------------------
-# A. SUDOKU API CLIENTS (Utilities and Generators)
+# HELPER: SUDOKU SOLVER (Backtracking)
 # ----------------------------------------------------------------------
 
 def _is_safe(board, row, col, num):
-    """
-    Checks if placing 'num' at board[row][col] is valid 
-    according to Sudoku rules (row, col, 3x3 box).
-    """
-    # Check row
+    # Check row and column
     for x in range(9):
-        if board[row][x] == num:
+        if board[row][x] == num or board[x][col] == num:
             return False
-            
-    # Check column
-    for x in range(9):
-        if board[x][col] == num:
-            return False
-            
     # Check 3x3 box
-    start_row = row - (row % 3)
-    start_col = col - (col % 3)
+    start_row, start_col = row - (row % 3), col - (col % 3)
     for i in range(3):
         for j in range(3):
             if board[i + start_row][j + start_col] == num:
                 return False
     return True
 
-def _count_solutions(board, limit=2):
-    """
-    Backtracking algorithm to count valid solutions for a given board.
-    Stops early if we find more solutions than 'limit' (usually 2) 
-    because we only care if count == 1 or count > 1.
-    """
-    # Find the next empty cell (represented by 0)
+def _solve_and_count(board, limit=2):
     for i in range(9):
         for j in range(9):
             if board[i][j] == 0:
                 count = 0
-                # Try digits 1-9
                 for num in range(1, 10):
                     if _is_safe(board, i, j, num):
                         board[i][j] = num
-                        count += _count_solutions(board, limit)
-                        board[i][j] = 0 # Backtrack
-                        
+                        count += _solve_and_count(board, limit)
+                        board[i][j] = 0 
                         if count >= limit:
                             return count
                 return count
-    # If no empty cells, we found 1 solution
     return 1
 
+# ----------------------------------------------------------------------
+# A. SUDOKU API CLIENTS
+# ----------------------------------------------------------------------
+
 def _flatten_board(board):
-    """
-    Accepts board as list-of-lists or nested arrays, returns 81-char string,
-    using '0' for blanks.
-    """
     flattened = []
     for row in board:
         for cell in row:
-            # cell may be int or None; ensure '0' for blanks
             if cell is None:
                 flattened.append("0")
             else:
                 flattened.append(str(cell))
     return "".join(flattened)
-
 
 def _fetch_one_sudoku_from_api():
     query = "?query={newboard(limit:1){grids{value,solution,difficulty}}}"
@@ -94,157 +67,94 @@ def _fetch_one_sudoku_from_api():
         raise RuntimeError("Sudoku API returned no grids")
     return grids[0]
 
-
-def _make_variant_from_base(base_string: str, blanks_target: int) -> str:
-    """
-    Generates a puzzle with a unique solution.
-    It attempts to remove numbers one by one, checking uniqueness after each removal.
-    """
+def _make_unique_variant(base_string: str, blanks_target: int) -> str:
     if len(base_string) != 81:
         raise ValueError("base_string must be length 81")
 
-    # Convert string to a 9x9 list of integers for processing
     board_flat = [int(c) for c in base_string]
     board_2d = [board_flat[i:i+9] for i in range(0, 81, 9)]
-    
-    # Get all positions that currently have numbers
-    # (Since we start with a full solution, this is 0 to 80)
     coords = [(r, c) for r in range(9) for c in range(9)]
-    random.shuffle(coords) # Shuffle to remove numbers randomly
+    random.shuffle(coords)
 
     current_blanks = 0
     
-    # Iterate through random coordinates and try to remove them
+    # DEBUG PRINT (Optional: keep or remove for production)
+    print(f"   [Gen] Attempting to create {blanks_target} blanks...")
+
     for r, c in coords:
         if current_blanks >= blanks_target:
             break
-            
-        # Remember the number in case we need to put it back
         backup = board_2d[r][c]
-        
-        # Tentatively remove the number
         board_2d[r][c] = 0
         
-        # CHECK: Does this new state still have exactly 1 solution?
-        # We pass a deep copy or reconstruct logic to avoid checking function mutating our main board
-        # But strictly speaking, _count_solutions backtracks, so it restores the board state.
-        solutions = _count_solutions(board_2d, limit=2)
+        board_copy = [row[:] for row in board_2d]
+        solutions = _solve_and_count(board_copy, limit=2)
         
         if solutions != 1:
-            # If 0 solutions (impossible) or >1 solutions (ambiguous), revert!
             board_2d[r][c] = backup
         else:
-            # Valid removal, increment count
             current_blanks += 1
 
-    # Convert 9x9 int list back to flattened string
+    print(f"   [Gen] Finished. Achieved {current_blanks} blanks")
+
     result_flat = []
     for row in board_2d:
         for num in row:
             result_flat.append(str(num))
-            
     return "".join(result_flat)
 
-
-FALLBACK_PUZZLES = [
-    {
-        "solution": "534287196871694352629135748468729531193568274257413689386951427715842963942376815	",
-        "easy": "000000096001690350029030700460020031190568070200000009000051407005002903040000800",
-        "hard": "000000090000690050009030700400020031190068070200000009000051007005002900040000800",
-    },
-    {
-        "solution": "357896214614235897289417635962173548543682971871549326135728469428961753796354182",
-        "easy": "000000000600005090280007000902100500500000900070500020105708060008001050796054002",
-        "hard": "000000000600005090280007000902000500500000900070500020105700060008000050796054002",
-    },
-    {
-        "solution": "246395781918672435735481269573914826492836157681257943154723698827569314369148572",
-        "easy": "046390081008600030705000000500000006090830100601200040100020000007069300000148000",
-        "hard": "046390001000600030005000000500000006090830100601200040100020000007069300000108000",
-    },
-    {
-        "solution": "425693817167258349839147562643821795791435286258976431584769123316582974972314658",
-        "easy": "000690000160200000809000002000000000090000080200006400500009000300000904070004650",
-        "hard": "000690000160200000809000002000000000090000080200006400500009000300000904070004650	",
-    },
-    {
-        "solution": "689327514274159638531864792928476153145983276763215489897542361416738925352691847",
-        "easy": "009000000000000030500804002908006000100080000003000480000000300000000000300600047",
-        "hard": "009000000000000030500804002908006000100080000003000480000000300000000000300600047	",
-    },
-    {
-        "solution": "457936218698712354321458769842567193713849526965321847179284635586193472234675981",
-        "easy": "050030010008010000300000700042000090710040500000300840000084600500100470200000080",
-        "hard": "050030010008010000300000700042000090710040500000300840000084600500100470200000080	",
-    },
+# --- UPDATED FALLBACK DATA ---
+# Only storing solutions now. We will generate the puzzle strings dynamically.
+FALLBACK_SOLUTIONS = [
+    "534287196871694352629135748468729531193568274257413689386951427715842963942376815",
+    "357896214614235897289417635962173548543682971871549326135728469428961753796354182",
+    "246395781918672435735481269573914826492836157681257943154723698827569314369148572",
+    "425693817167258349839147562643821795791435286258976431584769123316582974972314658",
+    "689327514274159638531864792928476153145983276763215489897542361416738925352691847"
 ]
 
-
-def get_random_fallback():
-    return random.choice(FALLBACK_PUZZLES)
-
-
 def generate_sudoku_puzzle_data(date_to_be_used):
-    """
-    Public-facing function to generate all Sudoku data for a given date
-    by calling the external API.
-    """
+    solution_string = ""
+    
     try:
+        # 1. Try to get from API
         grid = _fetch_one_sudoku_from_api()
         base_solution = grid.get("solution")
-
         solution_string = _flatten_board(base_solution)
-        base_puzzle_string = _flatten_board(base_solution)
+        print(f"Fetched live data for {date_to_be_used}")
 
-        puzzle_string_easy = _make_variant_from_base(base_puzzle_string, DEFAULT_EASY_BLANKS)
-        puzzle_string_hard = _make_variant_from_base(base_puzzle_string, DEFAULT_HARD_BLANKS)
-
-        # print(f"API base blanks: {base_puzzle_string.count('0')}")
-        # print(f"Easy blanks: {puzzle_string_easy.count('0')}")
-        # print(f"Hard blanks: {puzzle_string_hard.count('0')}")
-
-        # print("EASY:", puzzle_string_easy)
-        # print("HARD:",  puzzle_string_hard)
-
-        # print("Same string?", puzzle_string_easy ==  puzzle_string_hard)
-
-        return {
-            "date_to_be_used": date_to_be_used,
-            "solution_string": solution_string,
-            "puzzle_string_easy": puzzle_string_easy,
-            "puzzle_string_hard": puzzle_string_hard,
-        }
     except Exception as exc:
-        print(f"[games.api_client] Error fetching Sudoku: {exc}")
-        # Return fallback data on error
-        fb = get_random_fallback()
-        return {
-            "date_to_be_used": date_to_be_used,
-            "solution_string": fb["solution"],
-            "puzzle_string_easy": fb["easy"],
-            "puzzle_string_hard": fb["hard"],
-        }
+        # 2. If API fails, pick a random fallback solution
+        print(f"[games.api_client] Error fetching Sudoku: {exc}. Using Fallback.")
+        solution_string = random.choice(FALLBACK_SOLUTIONS)
 
+    # 3. Generate the puzzles using the solution (Works for both API and Fallback data)
+    # This ensures Fallbacks are ALSO unique!
+    puzzle_string_easy = _make_unique_variant(solution_string, DEFAULT_EASY_BLANKS)
+    puzzle_string_hard = _make_unique_variant(solution_string, DEFAULT_HARD_BLANKS)
+
+    return {
+        "date_to_be_used": date_to_be_used,
+        "solution_string": solution_string,
+        "puzzle_string_easy": puzzle_string_easy,
+        "puzzle_string_hard": puzzle_string_hard,
+    }
 
 # ----------------------------------------------------------------------
-# B. NEWS/RSS API CLIENT (External Fetcher)
+# B. NEWS/RSS API CLIENT
 # ----------------------------------------------------------------------
-
 
 def fetch_cleaned_news_articles():
-    """Fetch and clean multiple RSS articles from the external API."""
     full_url = NEWS_API_BASE_URL + NEWS_API_FEED_PARAM
     try:
         resp = requests.get(full_url, timeout=10)
         resp.raise_for_status()
         data = resp.json()
-
         articles = data.get("items", [])
         valid_articles = []
         for a in articles:
             title = a.get("title", "").strip()
             desc_html = a.get("description", "")
-            # Use BeautifulSoup to strip HTML/clean text
             clue_text = BeautifulSoup(desc_html, "html.parser").get_text(" ", strip=True)
             if title and clue_text:
                 valid_articles.append({"title": title, "description": clue_text})

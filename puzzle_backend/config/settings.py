@@ -284,12 +284,12 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # ---
 
+# 2. Base URL for serving static files (e.g., in templates)
+STATIC_URL = '/static/'
 
 # 1. Directory where collectstatic will put all files
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# 2. Base URL for serving static files (e.g., in templates)
-STATIC_URL = '/static/'
 
 
 print(f"âš™ï¸ Running in {ENVIRONMENT.upper()} mode | DEBUG={DEBUG}")
