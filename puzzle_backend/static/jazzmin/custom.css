@@ -1,3 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
+
+body {
+    font-family: 'Poppins', sans-serif !important;
+}
 /* Remove circle */
 .brand-link .brand-image {
     border-radius: 0 !important;
@@ -57,4 +62,18 @@ table {
 /* Optional: round modal windows */
 .modal-content {
     border-radius: 1rem !important;
+}
+
+
+/* Increase sidebar width */
+.main-sidebar, .brand-link{
+    width: 275px !important;  /* adjust as needed */
+}
+
+.nav-sidebar {
+    font-size: 0.9rem !important; /* adjust font size as needed */
+}
+
+.nav-item {
+    font-size: 0.8rem !important;
 }

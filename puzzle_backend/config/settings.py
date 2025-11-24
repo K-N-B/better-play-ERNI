@@ -385,7 +385,6 @@ JAZZMIN_SETTINGS= {
         "default_icon_children": "fas fa-circle",
         
         "custom_css": "jazzmin/custom.css",
-        "use_google_fonts_cdn": True,
     }
 
 JAZZMIN_UI_TWEAKS = {
