@@ -1,0 +1,27 @@
+/* Remove circle */
+.brand-link .brand-image {
+    border-radius: 0 !important;
+    object-fit: contain !important;
+    width: auto !important;
+    height: 40px !important; /* adjust as needed */
+}
+
+/* Remove the shadow */
+.brand-link .brand-image {
+    box-shadow: none !important;
+}
+
+/* In case Jazzmin applies elevation classes */
+.brand-link .brand-image.elevation-3 {
+    box-shadow: none !important;
+}
+
+/* Prevent extra padding that may make it look "boxed" */
+.brand-link .brand-image {
+    background: transparent !important;
+}
+
+.brand-text {
+    font-weight: medium !important;
+    color: #ffffff !important; /* Adjust text color as needed */
+}

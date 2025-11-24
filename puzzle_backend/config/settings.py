@@ -39,6 +39,7 @@ else:
 # Application definition
 
 INSTALLED_APPS = [
+    "jazzmin",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -51,6 +52,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "corsheaders",  # Add this for Cross-Origin Resource Sharing
+    ""
     # Your local apps
     'users.apps.UsersConfig',
     # 'games.apps.GamesConfig',
@@ -290,6 +292,10 @@ STATIC_URL = '/static/'
 # 1. Directory where collectstatic will put all files
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static')
+]
+
 
 
 print(f"âš™ï¸ Running in {ENVIRONMENT.upper()} mode | DEBUG={DEBUG}")
@@ -305,3 +311,85 @@ DATE_INPUT_FORMATS = [
     "%d %b, %Y",  # '6 Nov, 2025'
 ]
 USE_L10N = True
+
+JAZZMIN_SETTINGS= {
+        "site_title": "Better Play ERNI Admin",
+        "site_header": "Better Play ERNI Administration",
+        "site_brand": "Better Play ERNI",
+        "site_logo": "assets/logo.png",
+        "welcome_sign": "Welcome to the Better Play ERNI Admin Area",
+        "search_model": "auth.User",
+        "show_ui_builder": True,  # UI builder panel
+        "show_sidebar": True,
+        "navigation_expanded": True,
+        "icons": {
+            "auth.User": "fas fa-user",
+            "auth.Group": "fas fa-users",
+            "authToken.tokenproxy": "fas fa-key",
+            
+            # APP-LEVEL ICONS (optional)
+            "config": "fas fa-puzzle-piece",
+
+            # MODEL-LEVEL ICONS
+            "gameplay.Challenge": "fas fa-flag-checkered",
+            "gameplay.PuzzleAttempt": "fas fa-brain",
+            "gameplay.Submission": "fas fa-paper-plane",
+
+            "games.DailyPuzzle": "fas fa-calendar-day",
+            "games.EmployeeImageSource": "fas fa-image",
+            "games.ErnigramPuzzle": "fas fa-lightbulb",
+            "games.SudokuPuzzle": "fas fa-th",
+            "games.WordlePuzzle": "fas fa-font",
+
+            "leaderboards.DailyDepartmentScore": "fas fa-ranking-star",
+            "leaderboards.DailyIndividualScore": "fas fa-ranking-star",
+            "leaderboards.WeeklyDepartmentScore": "fas fa-ranking-star",
+            "leaderboards.WeeklyIndividualScore": "fas fa-ranking-star",
+            "leaderboards.MonthlyDepartmentScore": "fas fa-ranking-star",
+            "leaderboards.MonthlyIndividualScore": "fas fa-ranking-star",
+
+            "shop.ClaimedReward": "fas fa-gift",
+            "shop.Reward": "fas fa-coins",
+            
+            "users.User": "fas fa-id-badge",
+            "users.Department": "fas fa-building",
+
+            "auth.UserActivity": "fas fa-user-clock",
+        },
+        "custom_css": "jazzmin/custom.css",
+    }
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-lightblue",
+    "accent": "accent-navy",
+    "navbar": "navbar-navy navbar-dark",
+    "no_navbar_border": True,
+    "navbar_fixed": True,
+    "layout_boxed": False,
+    "footer_fixed": True,
+    "sidebar_fixed": False,
+    "sidebar": "sidebar-light-lightblue",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": True,
+    "sidebar_nav_compact_style": True,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "lumen",
+    "dark_mode_theme": "cyborg",
+    "button_classes": {
+        "primary": "btn-outline-primary",
+        "secondary": "btn-outline-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success"
+    },
+    "show_sidebar": True,
+    "actions_sticky_top": False
+}
+
