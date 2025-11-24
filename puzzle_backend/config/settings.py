@@ -354,8 +354,21 @@ JAZZMIN_SETTINGS= {
             "users.User": "fas fa-id-badge",
             "users.Department": "fas fa-building",
 
-            "auth.UserActivity": "fas fa-user-clock",
+            "activity.UserActivity": "fas fa-user-clock",
         },
+        "order_with_respect_to": [
+            # Order the apps:
+            "users",
+            "auth",
+            "authToken",
+            "gameplay",
+            "games",
+            "leaderboards",
+            "activity",            
+            "shop",
+            "sites",
+            "social_django",
+        ],
         "custom_css": "jazzmin/custom.css",
     }
 
