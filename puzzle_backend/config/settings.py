@@ -322,6 +322,17 @@ JAZZMIN_SETTINGS= {
         "show_ui_builder": True,  # UI builder panel
         "show_sidebar": True,
         "navigation_expanded": True,
+        
+        # Links to put along the top menu
+        "topmenu_links": [
+
+            # Url that gets reversed (Permissions can be added)
+            {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
+
+            # external url that opens in a new window (Permissions can be added)
+            {"name": "Public App", "url": "https://better-play-erni.duckdns.org/", "new_window": True},
+
+        ],
         "icons": {
             "auth.User": "fas fa-user",
             "auth.Group": "fas fa-users",
@@ -356,7 +367,12 @@ JAZZMIN_SETTINGS= {
 
             "auth.UserActivity": "fas fa-user-clock",
         },
+        # Icons that are used when one is not manually specified
+        "default_icon_parents": "fas fa-chevron-circle-right",
+        "default_icon_children": "fas fa-circle",
+        
         "custom_css": "jazzmin/custom.css",
+        "use_google_fonts_cdn": True,
     }
 
 JAZZMIN_UI_TWEAKS = {
@@ -380,7 +396,6 @@ JAZZMIN_UI_TWEAKS = {
     "sidebar_nav_legacy_style": False,
     "sidebar_nav_flat_style": False,
     "theme": "lumen",
-    "dark_mode_theme": "cyborg",
     "button_classes": {
         "primary": "btn-outline-primary",
         "secondary": "btn-outline-secondary",
