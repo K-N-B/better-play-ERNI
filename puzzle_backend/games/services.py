@@ -625,7 +625,7 @@ def generate_daily_puzzles(target_date: Optional[date] = None):
     # ✅ Prevent nested atomic block when already in a transaction (test-safe)
 
     if target_date is None:
-        target_date = timezone.now().date() # Or use get_local_today() if appropriate
+        target_date = timezone.now().date() 
     
     print(f"Generating daily puzzles for date: {target_date}")
     if connection.in_atomic_block:

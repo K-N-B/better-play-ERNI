@@ -657,8 +657,9 @@ export const SudokuGame = ({
   const maxPossibleScore = basePoints + 100;
 
   // Current Score subtracts the penalty
-  const currentPotentialScore = Math.max(0, (basePoints) - currentHintPenalty) + currentSpeedBonus;
-  
+  const currentPotentialScore =
+    Math.max(0, basePoints - currentHintPenalty) + currentSpeedBonus;
+
   if (checkingSubmission || loading || configLoading) {
     return <LoadingSpinner fullPage={true} />;
   }
@@ -690,43 +691,45 @@ export const SudokuGame = ({
         />
       )} */}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
-        <div className="w-full flex justify-center items-center p-10 sm:p-15 bg-white rounded-3xl shadow-sm">
+      <div className="grid grid-cols-1 lg:grid-cols-2 items-center md:p-4">
+        <div className="w-full flex justify-center items-center p-2 sm:p-15 bg-white rounded-3xl shadow-sm">
           <SudokuGrid
             grid={grid}
             selectedCell={selectedCell}
             onCellClick={handleCellClick}
           />
         </div>
-        <div className="place-content-center p-20 text-xl leading-5">
-          <div className="flex justify-between mb-6">
+        <div className="flex flex-col place-content-center p-5 md:p-20 text-xl leading-5">
+          <div className="flex justify-between mb-6 order-3 md:order-1">
             <div>
               <h1 className="text-4xl font-bold">Sudoku</h1>
               <p>on {difficulty} difficulty</p>
             </div>
             <Timer timeMs={time} />
           </div>
+          <div className="order-2 md:order-2">
+            <PotentialScoreBar
+              currentScore={currentPotentialScore}
+              maxScore={maxPossibleScore}
+              basePoints={basePoints}
+              speedBonus={currentSpeedBonus}
+              // Penalty Configuration
+              bonusOrPenaltyValue={currentHintPenalty}
+              bonusOrPenaltyLabel="Hint Penalty"
+              isPenalty={true} // Label specifically for Sudoku
+              color="bg-pink-400"
+            />
+          </div>
+          <div className="order-1 md:order-3">
+            <NumberPad
+              isNoteMode={isNoteMode}
+              onNoteToggle={() => !isGameOver && setIsNoteMode(!isNoteMode)}
+              onNumberClick={handleNumberClick}
+              onEraseClick={handleEraseClick}
+            />
+          </div>
 
-          <PotentialScoreBar
-            currentScore={currentPotentialScore}
-            maxScore={maxPossibleScore}
-            basePoints={basePoints}
-            speedBonus={currentSpeedBonus}
-            // Penalty Configuration
-            bonusOrPenaltyValue={currentHintPenalty}
-            bonusOrPenaltyLabel="Hint Penalty"   
-            isPenalty={true}   // Label specifically for Sudoku
-            color="bg-pink-400"
-          />
-
-          <NumberPad
-            isNoteMode={isNoteMode}
-            onNoteToggle={() => !isGameOver && setIsNoteMode(!isNoteMode)}
-            onNumberClick={handleNumberClick}
-            onEraseClick={handleEraseClick}
-          />
-
-          <div className="grid grid-cols-2 gap-4 mt-2">
+          <div className="grid grid-cols-2 gap-4 mt-2 order-4 md:order-4">
             <button
               onClick={handleGetHint}
               disabled={isGameOver || hintsUsed >= maxHints}
