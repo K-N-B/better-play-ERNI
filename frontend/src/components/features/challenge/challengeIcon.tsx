@@ -55,7 +55,7 @@ export const ChallengeIcon: React.FC<ChallengeIconProps> = ({
             to="/challenges"
             className={clsx(
                 'relative inline-flex items-center justify-center h-10 w-10 rounded-lg transition-all duration-150',
-                isActive && `active:translate-y-[2px] active:shadow-[0_3px_0_0] ${activeClasses}`,
+                isActive && `active:translate-y-0.5 active:shadow-[0_3px_0_0] ${activeClasses}`,
                 !isActive && `text-primary ${hoverClasses}`
             )}
             aria-label={`View Challenges (${challengeCount} pending)`}
