@@ -57,6 +57,7 @@ export const SudokuGrid = ({
         row.map((cell, colIndex) => (
           <div
             key={`${rowIndex}-${colIndex}`}
+            data-testid={`cell-${rowIndex}-${colIndex}`}
             className={getCellClasses(rowIndex, colIndex)}
             onClick={() => {
               if (!cell.isGiven && !cell.isHint) {

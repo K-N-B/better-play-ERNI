@@ -30,6 +30,7 @@ export const NumberPad = ({ onNumberClick, onEraseClick, onNoteToggle, isNoteMod
             playClick();
             onNumberClick(num);
           }}
+          aria-label={num.toString()}
           className="h-12 w-12 sm:h-14 sm:w-14 rounded-lg bg-primary-500 shadow-primary-800 text-white text-xl font-bold shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all"
         >
           {num}
@@ -40,6 +41,7 @@ export const NumberPad = ({ onNumberClick, onEraseClick, onNoteToggle, isNoteMod
           playClick();
           onNoteToggle();
         }}
+        aria-label="Toggle Notes"
         className={`h-12 w-12 sm:h-14 sm:w-14 rounded-lg text-lg font-bold 
                     ${isNoteMode ? 'bg-yellow-400 shadow-yellow-600 shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all text-black' : 'bg-gray-300 shadow-gray-600 shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all'}`}
       >
@@ -50,6 +52,7 @@ export const NumberPad = ({ onNumberClick, onEraseClick, onNoteToggle, isNoteMod
           playClick();
           onEraseClick();
         }}
+        aria-label="Erase"
         className="h-12 w-12 sm:h-14 sm:w-14 rounded-lg bg-red-500 shadow-red-800 text-white text-lg font-bold shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all"
       >
         <Eraser className="mx-auto" />
