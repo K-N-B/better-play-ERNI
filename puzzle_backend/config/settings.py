@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'leaderboards.apps.LeaderboardsConfig',
     'shop.apps.ShopConfig',
     'activity.apps.ActivityConfig',
+    
 ]
 
 CRON_CLASSES = [
