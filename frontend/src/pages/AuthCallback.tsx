@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 export default function AuthCallback() {
   const [status] = useState('Processing authentication...');
   const navigate = useNavigate();
@@ -9,7 +9,7 @@ export default function AuthCallback() {
     // Just wait a moment and check auth status
     setTimeout(async () => {
       try {
-        const response = await fetch('http://localhost:8000/auth/check/', {
+        const response = await fetch(`${API_URL}/auth/check/`, {
           credentials: 'include',
         });
         
