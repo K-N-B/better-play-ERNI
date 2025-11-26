@@ -318,16 +318,24 @@ JAZZMIN_SETTINGS = {
     "site_brand": "Better Play ERNI",
     "site_logo": "assets/logo.png",
     "welcome_sign": "Welcome to the Better Play ERNI Admin Area",
-    "search_model": "auth.User",
-    "show_ui_builder": True,
+    "search_model": "users.User",  # ✅ Changed from "auth.User"
+    
+    # ✅ Remove UI builder
+    "show_ui_builder": False,
     "show_sidebar": True,
     "navigation_expanded": True,
     
-    # ✅ ADD THIS SECTION - User menu configuration
+    # ✅ User menu configuration
     "usermenu_links": [
         {"name": "Public App", "url": "https://better-play-erni.duckdns.org/", "new_window": True},
-        {"model": "auth.user"}  # This adds a link to edit your own profile
+        {"model": "users.user"},  # ✅ Changed from "auth.user"
     ],
+    
+    # ✅ Optional: Add user avatar
+    "user_avatar": None,
+    
+    # ✅ Show user icon/name in navbar
+    "show_ui_builder": True,
     
     "topmenu_links": [
         {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
@@ -375,7 +383,10 @@ JAZZMIN_SETTINGS = {
     
     "default_icon_parents": "fas fa-chevron-circle-right",
     "default_icon_children": "fas fa-circle",
+    
+    # ✅ Custom CSS and JS
     "custom_css": "jazzmin/custom.css",
+    "custom_js": "jazzmin/custom.js",
 }
 
 JAZZMIN_UI_TWEAKS = {
