@@ -13,18 +13,26 @@ class ContentAdminPermissionMixin:
     
     def has_module_permission(self, request):
         """Only Content Admins and Super Admins see Games section"""
+        if not request.user.is_authenticated:
+            return False
         return request.user.is_superuser or request.user.is_content_admin()
     
     def has_add_permission(self, request):
         """Only Content Admins and Super Admins can add"""
+        if not request.user.is_authenticated:
+            return False
         return request.user.is_superuser or request.user.is_content_admin()
     
     def has_change_permission(self, request, obj=None):
         """Only Content Admins and Super Admins can edit"""
+        if not request.user.is_authenticated:
+            return False
         return request.user.is_superuser or request.user.is_content_admin()
     
     def has_delete_permission(self, request, obj=None):
         """Only Super Admins can delete (Content Admins cannot)"""
+        if not request.user.is_authenticated:
+            return False
         return request.user.is_superuser
 
 
@@ -53,9 +61,10 @@ class SudokuPuzzleAdmin(ContentAdminPermissionMixin, admin.ModelAdmin):
     )
     list_filter = ("date_to_be_used",)
     ordering = ("-date_to_be_used",)
-    
+
+    search_fields = ("solution_string",)
+
     def display_solution_preview(self, obj):
-        """Show first 20 chars of solution"""
         return f"{obj.solution_string[:20]}..."
     display_solution_preview.short_description = "Solution Preview"
 

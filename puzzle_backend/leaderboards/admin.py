@@ -22,6 +22,8 @@ class LeaderboardReadOnlyMixin:
     
     def has_module_permission(self, request):
         """All admin roles can see Leaderboards section"""
+        if not request.user.is_authenticated:
+            return False
         return request.user.has_admin_access()
     
     def has_add_permission(self, request):
@@ -30,10 +32,14 @@ class LeaderboardReadOnlyMixin:
     
     def has_change_permission(self, request, obj=None):
         """Only Super Admins can edit (for manual corrections)"""
+        if not request.user.is_authenticated:
+            return False
         return request.user.is_superuser
     
     def has_delete_permission(self, request, obj=None):
         """Only Super Admins can delete"""
+        if not request.user.is_authenticated:
+            return False
         return request.user.is_superuser
 
 

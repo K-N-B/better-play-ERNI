@@ -4,6 +4,7 @@ from django.utils.html import format_html
 from django.db.models import Q
 
 from .models import Department, User
+from .admin_mixins import AuthenticatedPermissionMixin
 
 
 # ========== CUSTOM ADMIN SITE ==========
@@ -14,11 +15,23 @@ class RoleBasedAdminSite(admin.AdminSite):
     site_title = "ERNI Puzzle Admin Portal"
     index_title = "Welcome to ERNI Puzzle Administration"
     
+    # Add these attributes to fix logout/profile issues
+    enable_nav_sidebar = True
+    
     def has_permission(self, request):
         """
         Only allow users with admin roles to access /admin/
         """
+        if not request.user.is_authenticated:
+            return False
+        
         return request.user.is_active and request.user.has_admin_access()
+    
+    def get_urls(self):
+        """Ensure all default URLs including logout are properly registered"""
+        from django.urls import path
+        urls = super().get_urls()
+        return urls
 
 
 # Replace default admin site with our custom one
@@ -27,7 +40,7 @@ admin_site = RoleBasedAdminSite(name='admin')
 
 # ========== DEPARTMENT ADMIN ==========
 @admin.register(Department, site=admin_site)
-class DepartmentAdmin(admin.ModelAdmin):
+class DepartmentAdmin(AuthenticatedPermissionMixin, admin.ModelAdmin):
     """Admin configuration for Department model"""
     
     list_display = ("name", "total_points_alltime", "member_count")
@@ -41,26 +54,34 @@ class DepartmentAdmin(admin.ModelAdmin):
     
     def has_add_permission(self, request):
         """Only Super Admins and Moderators can add departments"""
+        if not request.user.is_authenticated:
+            return False
         return request.user.is_superuser or request.user.is_moderator()
     
     def has_change_permission(self, request, obj=None):
         """Only Super Admins and Moderators can edit departments"""
+        if not request.user.is_authenticated:
+            return False
         return request.user.is_superuser or request.user.is_moderator()
     
     def has_delete_permission(self, request, obj=None):
         """Only Super Admins can delete departments"""
+        if not request.user.is_authenticated:
+            return False
         return request.user.is_superuser
     
     def has_module_permission(self, request):
-        """Only Super Admins and Moderators see the Users section"""
+        """Only Super Admins and Moderators see the Department section"""
+        if not request.user.is_authenticated:
+            return False
         return request.user.is_superuser or request.user.is_moderator()
 
 
 # ========== USER ADMIN ==========
 @admin.register(User, site=admin_site)
-class UserAdmin(BaseUserAdmin):
+class UserAdmin(AuthenticatedPermissionMixin, BaseUserAdmin):
     """Custom User admin with role-based permissions"""
-    
+    change_form_template = 'admin/users/user/change_form.html'
     # ========== LIST VIEW ==========
     list_display = (
         "username",
@@ -86,25 +107,24 @@ class UserAdmin(BaseUserAdmin):
     
     # ========== DETAIL VIEW FIELDSETS ==========
     fieldsets = (
-        ("Basic Info", {
-            "fields": ("username", "email", "first_name", "last_name", "password")
-        }),
-        ("Role & Permissions", {
-            "fields": ("role", "is_active", "is_superuser", "groups", "user_permissions"),
-            "description": "⚠️ IMPORTANT: Use 'role' field to assign admin permissions. Superuser = Full access."
-        }),
-        ("Profile", {
-            "fields": ("azure_id", "department", "profile_picture_url", "profile_complete")
-        }),
-        ("Stats & Points", {
-            "fields": ("total_points_alltime", "current_points", "current_streak_count", "max_streak_count", "challenges_made_count"),
-            "classes": ("collapse",)
-        }),
-        ("Activity", {
-            "fields": ("last_active", "last_login", "date_joined"),
-            "classes": ("collapse",)
-        }),
-    )
+    (None, {
+        "fields": ("username", "email", "first_name", "last_name", "password")
+    }),
+    ("Role & Permissions", {
+        "fields": ("role", "is_active", "is_superuser", "groups", "user_permissions"),
+        "description": "⚠️ IMPORTANT: Use 'role' field to assign admin permissions."
+    }),
+    ("Profile Information", {
+        "fields": ("azure_id", "department", "profile_picture_url", "profile_complete")
+    }),
+    ("Statistics", {
+        "fields": ("total_points_alltime", "current_points", "current_streak_count", "max_streak_count", "challenges_made_count")
+    }),
+    ("Activity Tracking", {
+        "fields": ("last_active", "last_login", "date_joined")
+    }),
+)
+
     
     # ========== ADD USER FORM ==========
     add_fieldsets = (
@@ -162,6 +182,9 @@ class UserAdmin(BaseUserAdmin):
         """
         qs = super().get_queryset(request)
         
+        if not request.user.is_authenticated:
+            return qs.none()
+        
         if request.user.is_superuser:
             return qs
         
@@ -180,10 +203,15 @@ class UserAdmin(BaseUserAdmin):
     
     def has_add_permission(self, request):
         """Only Super Admins can add users (users are created via Azure AD)"""
+        if not request.user.is_authenticated:
+            return False
         return request.user.is_superuser
     
     def has_change_permission(self, request, obj=None):
         """Super Admins and Moderators can edit users"""
+        if not request.user.is_authenticated:
+            return False
+        
         if request.user.is_superuser:
             return True
         
@@ -197,10 +225,14 @@ class UserAdmin(BaseUserAdmin):
     
     def has_delete_permission(self, request, obj=None):
         """Only Super Admins can delete users"""
+        if not request.user.is_authenticated:
+            return False
         return request.user.is_superuser
     
     def has_module_permission(self, request):
         """Only Super Admins and Moderators see the Users section"""
+        if not request.user.is_authenticated:
+            return False
         return request.user.is_superuser or request.user.is_moderator()
     
     def get_readonly_fields(self, request, obj=None):

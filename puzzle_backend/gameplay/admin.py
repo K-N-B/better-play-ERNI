@@ -13,6 +13,8 @@ class ModeratorReadOnlyMixin:
     
     def has_module_permission(self, request):
         """Moderators and Super Admins can see Gameplay section"""
+        if not request.user.is_authenticated:
+            return False
         return request.user.is_superuser or request.user.is_moderator()
     
     def has_add_permission(self, request):
@@ -21,10 +23,14 @@ class ModeratorReadOnlyMixin:
     
     def has_change_permission(self, request, obj=None):
         """Only Super Admins can edit gameplay data"""
+        if not request.user.is_authenticated:
+            return False
         return request.user.is_superuser
     
     def has_delete_permission(self, request, obj=None):
         """Only Super Admins can delete gameplay data"""
+        if not request.user.is_authenticated:
+            return False
         return request.user.is_superuser
 
 

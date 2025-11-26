@@ -13,18 +13,26 @@ class ShopManagerPermissionMixin:
     
     def has_module_permission(self, request):
         """Only Shop Managers and Super Admins see Shop section"""
+        if not request.user.is_authenticated:
+            return False
         return request.user.is_superuser or request.user.is_shop_manager()
     
     def has_add_permission(self, request):
         """Shop Managers and Super Admins can add rewards"""
+        if not request.user.is_authenticated:
+            return False
         return request.user.is_superuser or request.user.is_shop_manager()
     
     def has_change_permission(self, request, obj=None):
         """Shop Managers and Super Admins can edit"""
+        if not request.user.is_authenticated:
+            return False
         return request.user.is_superuser or request.user.is_shop_manager()
     
     def has_delete_permission(self, request, obj=None):
         """Only Super Admins can delete rewards"""
+        if not request.user.is_authenticated:
+            return False
         return request.user.is_superuser
 
 

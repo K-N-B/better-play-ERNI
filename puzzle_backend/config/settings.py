@@ -38,6 +38,7 @@ else:
 
 # Application definition
 
+
 INSTALLED_APPS = [
     "jazzmin",
     "django.contrib.admin",
@@ -46,23 +47,21 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django.contrib.sites",  # Required by social-auth
+    "django.contrib.sites",
     "social_django",
     # Third-party apps
     "rest_framework",
     "rest_framework.authtoken",
-    "corsheaders",  # Add this for Cross-Origin Resource Sharing
-    ""
+    "corsheaders",
     # Your local apps
-    'users.apps.UsersConfig',
-    # 'games.apps.GamesConfig',
+    'users.apps.UsersConfig',  
     'games.apps.GamesConfig',
-    'gameplay.apps.GameplayConfig',  # <-- Ensure this line is present
+    'gameplay.apps.GameplayConfig',
     'leaderboards.apps.LeaderboardsConfig',
     'shop.apps.ShopConfig',
     'activity.apps.ActivityConfig',
-    
 ]
+
 
 CRON_CLASSES = [
     'games.cron.GenerateDailyPuzzlesCronJob',
@@ -313,80 +312,71 @@ DATE_INPUT_FORMATS = [
 ]
 USE_L10N = True
 
-JAZZMIN_SETTINGS= {
-        "site_title": "Better Play ERNI Admin",
-        "site_header": "Better Play ERNI Administration",
-        "site_brand": "Better Play ERNI",
-        "site_logo": "assets/logo.png",
-        "welcome_sign": "Welcome to the Better Play ERNI Admin Area",
-        "search_model": "auth.User",
-        "show_ui_builder": True,  # UI builder panel
-        "show_sidebar": True,
-        "navigation_expanded": True,
-        
-        # Links to put along the top menu
-        "topmenu_links": [
-
-            # Url that gets reversed (Permissions can be added)
-            {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
-
-            # external url that opens in a new window (Permissions can be added)
-            {"name": "Public App", "url": "https://better-play-erni.duckdns.org/", "new_window": True},
-
-        ],
-        "icons": {
-            "auth.User": "fas fa-user",
-            "auth.Group": "fas fa-users",
-            "authToken.tokenproxy": "fas fa-key",
-            
-            # APP-LEVEL ICONS (optional)
-            "config": "fas fa-puzzle-piece",
-
-            # MODEL-LEVEL ICONS
-            "gameplay.Challenge": "fas fa-flag-checkered",
-            "gameplay.PuzzleAttempt": "fas fa-brain",
-            "gameplay.Submission": "fas fa-paper-plane",
-
-            "games.DailyPuzzle": "fas fa-calendar-day",
-            "games.EmployeeImageSource": "fas fa-image",
-            "games.ErnigramPuzzle": "fas fa-lightbulb",
-            "games.SudokuPuzzle": "fas fa-th",
-            "games.WordlePuzzle": "fas fa-font",
-
-            "leaderboards.DailyDepartmentScore": "fas fa-ranking-star",
-            "leaderboards.DailyIndividualScore": "fas fa-ranking-star",
-            "leaderboards.WeeklyDepartmentScore": "fas fa-ranking-star",
-            "leaderboards.WeeklyIndividualScore": "fas fa-ranking-star",
-            "leaderboards.MonthlyDepartmentScore": "fas fa-ranking-star",
-            "leaderboards.MonthlyIndividualScore": "fas fa-ranking-star",
-
-            "shop.ClaimedReward": "fas fa-gift",
-            "shop.Reward": "fas fa-coins",
-            
-            "users.User": "fas fa-id-badge",
-            "users.Department": "fas fa-building",
-
-            "activity.UserActivity": "fas fa-user-clock",
-        },
-        "order_with_respect_to": [
-            # Order the apps:
-            "users",
-            "auth",
-            "authToken",
-            "gameplay",
-            "games",
-            "leaderboards",
-            "activity",            
-            "shop",
-            "sites",
-            "social_django",
-        ],
-        # Icons that are used when one is not manually specified
-        "default_icon_parents": "fas fa-chevron-circle-right",
-        "default_icon_children": "fas fa-circle",
-        
-        "custom_css": "jazzmin/custom.css",
-    }
+JAZZMIN_SETTINGS = {
+    "site_title": "Better Play ERNI Admin",
+    "site_header": "Better Play ERNI Administration",
+    "site_brand": "Better Play ERNI",
+    "site_logo": "assets/logo.png",
+    "welcome_sign": "Welcome to the Better Play ERNI Admin Area",
+    "search_model": "auth.User",
+    "show_ui_builder": True,
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    
+    # ✅ ADD THIS SECTION - User menu configuration
+    "usermenu_links": [
+        {"name": "Public App", "url": "https://better-play-erni.duckdns.org/", "new_window": True},
+        {"model": "auth.user"}  # This adds a link to edit your own profile
+    ],
+    
+    "topmenu_links": [
+        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "Public App", "url": "https://better-play-erni.duckdns.org/", "new_window": True},
+    ],
+    
+    "icons": {
+        "auth.User": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "authToken.tokenproxy": "fas fa-key",
+        "config": "fas fa-puzzle-piece",
+        "gameplay.Challenge": "fas fa-flag-checkered",
+        "gameplay.PuzzleAttempt": "fas fa-brain",
+        "gameplay.Submission": "fas fa-paper-plane",
+        "games.DailyPuzzle": "fas fa-calendar-day",
+        "games.EmployeeImageSource": "fas fa-image",
+        "games.ErnigramPuzzle": "fas fa-lightbulb",
+        "games.SudokuPuzzle": "fas fa-th",
+        "games.WordlePuzzle": "fas fa-font",
+        "leaderboards.DailyDepartmentScore": "fas fa-ranking-star",
+        "leaderboards.DailyIndividualScore": "fas fa-ranking-star",
+        "leaderboards.WeeklyDepartmentScore": "fas fa-ranking-star",
+        "leaderboards.WeeklyIndividualScore": "fas fa-ranking-star",
+        "leaderboards.MonthlyDepartmentScore": "fas fa-ranking-star",
+        "leaderboards.MonthlyIndividualScore": "fas fa-ranking-star",
+        "shop.ClaimedReward": "fas fa-gift",
+        "shop.Reward": "fas fa-coins",
+        "users.User": "fas fa-id-badge",
+        "users.Department": "fas fa-building",
+        "activity.UserActivity": "fas fa-user-clock",
+    },
+    
+    "order_with_respect_to": [
+        "users",
+        "auth",
+        "authToken",
+        "gameplay",
+        "games",
+        "leaderboards",
+        "activity",
+        "shop",
+        "sites",
+        "social_django",
+    ],
+    
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
+    "custom_css": "jazzmin/custom.css",
+}
 
 JAZZMIN_UI_TWEAKS = {
     "navbar_small_text": False,
