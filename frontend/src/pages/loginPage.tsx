@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AlertCircle, Shield } from 'lucide-react';
-import logoImage from '../assets/image-removebg-preview.png';
+import logoImage from '../assets/logo_full.svg';
 // Import your new service function
 import { getLoginRedirectUrl } from '../api/authService';
 import { useAuth } from '../hooks/authContext'; // Import useAuth
