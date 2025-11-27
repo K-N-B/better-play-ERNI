@@ -1,0 +1,83 @@
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    'use strict';
+    
+    console.log('🔍 Looking for user menu components...');
+    
+    setTimeout(function() {
+        // Find the dropdown
+        const userDropdown = document.getElementById('jazzy-usermenu');
+        
+        if (!userDropdown) {
+            console.log('❌ Dropdown not found');
+            return;
+        }
+        
+        console.log('✅ Found dropdown');
+        
+        // Find ALL links in navbar
+        const navLinks = document.querySelectorAll('.navbar-nav a, .navbar-nav button');
+        console.log('Found nav links:', navLinks.length);
+        
+        let toggleButton = null;
+        
+        // Look for the link that's near the dropdown
+        navLinks.forEach((link, index) => {
+            const nextSibling = link.nextElementSibling;
+            if (nextSibling && nextSibling.id === 'jazzy-usermenu') {
+                toggleButton = link;
+                console.log('✅ Found toggle by next sibling, index:', index);
+            }
+        });
+        
+        // Fallback: look for user icon
+        if (!toggleButton) {
+            navLinks.forEach((link, index) => {
+                const hasUserIcon = link.querySelector('i.fa-user');
+                if (hasUserIcon) {
+                    toggleButton = link;
+                    console.log('✅ Found toggle by user icon, index:', index);
+                }
+            });
+        }
+        
+        if (!toggleButton) {
+            console.log('❌ Could not find toggle button');
+            console.log('Dropdown parent:', userDropdown.parentElement);
+            return;
+        }
+        
+        console.log('✅ Toggle button:', toggleButton);
+        
+        // Add click handler
+        toggleButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('🖱️ CLICKED!');
+            
+            const isShowing = userDropdown.classList.contains('show');
+            console.log('Current state:', isShowing ? 'SHOWING' : 'HIDDEN');
+            
+            if (isShowing) {
+                userDropdown.classList.remove('show');
+                console.log('→ HIDING');
+            } else {
+                userDropdown.classList.add('show');
+                console.log('→ SHOWING');
+            }
+        });
+        
+        console.log('✅ Setup complete!');
+        
+    }, 1000); // Wait 1 second for Jazzmin to load
+    
+    // Close on outside click
+    document.addEventListener('click', function(e) {
+        const dropdown = document.getElementById('jazzy-usermenu');
+        if (dropdown && !e.target.closest('.navbar-nav')) {
+            dropdown.classList.remove('show');
+        }
+    });
+});
+</script>
