@@ -27,7 +27,7 @@ import { useApi } from "../../../hooks/useApi";
 import { LoadingSpinner } from "../../ui/loadingSpinner";
 import type { Difficulty } from "../../../pages/gamePage";
 import { isValidWord } from "../../../services/wordValidator";
-
+import { useAuth } from "../../../hooks/authContext";
 import { useSound } from "../../../hooks/useSound";
 import click1 from "@/assets/sounds/keyboard_press_1.mp3";
 import click2 from "@/assets/sounds/keyboard_press_2.mp3";
@@ -49,6 +49,7 @@ export const WordleGame = ({
   difficulty,
   challengeId,
 }: WordleGameProps) => {
+  const { refreshUser } = useAuth();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const { refreshChallenges } = useChallenges();
@@ -342,6 +343,11 @@ export const WordleGame = ({
           puzzle.date_to_be_used,
           puzzle.id
         );
+
+        if (submissionResult) {
+            console.log("Refetching user points...");
+            await refreshUser(); 
+        }
 
         finalScore = submissionResult.score;
         submissionIdForResultModal = submissionResult.submissionId ?? null;

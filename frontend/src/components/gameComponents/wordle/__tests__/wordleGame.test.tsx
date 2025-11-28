@@ -11,6 +11,17 @@ const mockSetSavedTime = vi.fn();
 const mockPlaySound = vi.fn();
 
 // --- 2. Mock Dependencies ---
+vi.mock('../../../../hooks/authContext', () => ({
+  useAuth: () => ({
+    user: { 
+      id: 1, 
+      username: 'TestUser', 
+      current_points: 100 
+    },
+    refreshUser: vi.fn(),
+    isLoading: false,
+  }),
+}));
 
 vi.mock('../../../../context/ChallengeContext', () => ({
   // Return the SAME function instance every time

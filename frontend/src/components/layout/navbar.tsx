@@ -8,10 +8,10 @@ import { useAuth } from '../../hooks/authContext';
 import { navItems, shopNavStyle, notificationNavStyle } from '../../data/navItems'; // <-- IMPORT YOUR DATA
 import { ChallengeIcon } from '../features/challenge/challengeIcon';
 import { Store, Star, Menu, X } from 'lucide-react';
-import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 
 import clsx from 'clsx';
+import CurrentPointsBar from '../ui/currentPointsBar';
 
 
 export default function Navbar() {
@@ -115,19 +115,7 @@ export default function Navbar() {
 
 
             {!authLoading && user && (
-              <Tippy content="These are the points you currently have!" placement="bottom">
-                <div className="hidden md:flex flex-col items-center bg-yellow-100 text-yellow-800 px-5 py-2 rounded-full font-bold shadow-inner cursor-default">
-                  <div className="flex items-center space-x-1 text-lg">
-                    <span>{currentPoints}</span>
-                    <Star size={20} className="fill-current text-yellow-500" />
-                  </div>
-
-                  {/* New text below */}
-                  <span className="text-xs font-normal text-yellow-700 leading-none">
-                    Current points
-                  </span>
-                </div>
-              </Tippy>
+              <CurrentPointsBar currentPoints={currentPoints} />
             )}
 
             {/* Right: Profile button */}
