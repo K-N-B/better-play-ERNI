@@ -691,23 +691,23 @@ export const SudokuGame = ({
         />
       )} */}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 items-center md:p-4">
-        <div className="w-full flex justify-center items-center p-2 sm:p-15 bg-white rounded-3xl shadow-sm">
+      <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-0 md:p-4">
+        <div className="w-full flex justify-center items-center p-2 md:p-15 bg-white rounded-3xl shadow-sm order-3 lg:order-1">
           <SudokuGrid
             grid={grid}
             selectedCell={selectedCell}
             onCellClick={handleCellClick}
           />
         </div>
-        <div className="flex flex-col place-content-center p-5 md:p-20 text-xl leading-5">
-          <div className="flex justify-between mb-6 order-3 md:order-1">
+        <div className="contents lg:flex lg:flex-col lg:place-content-center lg:p-20 text-xl leading-5 lg:order-2">
+          <div className="flex justify-between lg:mb-6 order-1 lg:order-none px-4 mb-2 lg:p-0">
             <div>
-              <h1 className="text-4xl font-bold">Sudoku</h1>
-              <p>on {difficulty} difficulty</p>
+              <h1 className="text-xl lg:text-4xl font-bold">Sudoku</h1>
+              <p className="text-sm lg:text-base">on {difficulty} difficulty</p>
             </div>
             <Timer timeMs={time} />
           </div>
-          <div className="order-2 md:order-2">
+          <div className="order-2 lg:order-none px-4 lg:p-0">
             <PotentialScoreBar
               currentScore={currentPotentialScore}
               maxScore={maxPossibleScore}
@@ -720,7 +720,7 @@ export const SudokuGame = ({
               color="bg-pink-400"
             />
           </div>
-          <div className="order-1 md:order-3">
+          <div className="order-4 lg:order-none lg:p-0">
             <NumberPad
               isNoteMode={isNoteMode}
               onNoteToggle={() => !isGameOver && setIsNoteMode(!isNoteMode)}
@@ -729,11 +729,11 @@ export const SudokuGame = ({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mt-2 order-4 md:order-4">
+          <div className="flex flex-row justify-evenly items-center gap-4 order-5 lg:order-none lg:p-0">
             <button
               onClick={handleGetHint}
               disabled={isGameOver || hintsUsed >= maxHints}
-              className="mt-6 px-8 py-3 bg-yellow-500 shadow-yellow-700 text-white font-bold rounded-lg shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="my-4 w-30 py-2 md:px-4 md:py-3 lg:mt-6 lg:px-8 bg-yellow-500 shadow-yellow-700 text-white text-md lg:text-lg font-bold rounded-lg shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Hint ({hintsUsed}/{maxHints})
             </button>
@@ -741,7 +741,7 @@ export const SudokuGame = ({
             <button
               onClick={handleSubmit}
               disabled={isGameOver}
-              className="mt-6 px-8 py-3 bg-green-600 shadow-green-900 text-white font-bold rounded-lg shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="my-4 w-30 py-2 md:px-4 md:py-3 lg:mt-6 lg:px-8 bg-green-600 shadow-green-900 text-white text-md lg:text-lg font-bold rounded-lg shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed "
             >
               Submit
             </button>

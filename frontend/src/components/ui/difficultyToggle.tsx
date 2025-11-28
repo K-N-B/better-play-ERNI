@@ -47,6 +47,7 @@ const DifficultyToggle: React.FC<DifficultyToggleProps> = ({
 
       {/* Toggle Switch */}
       <button
+        data-testid="difficulty-toggle"
         onClick={handleToggle}
         disabled={disabled} // ✅ Disable the button
         className={`relative w-16 h-8 rounded-full transition-all $ shadow-xs ${

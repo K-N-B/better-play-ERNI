@@ -47,6 +47,7 @@ export const Keyboard = ({ onKeyPress, letterStatuses }: KeyboardProps) => {
               <button
                 key={key}
                 onClick={() => handlePress(key)}
+                aria-label={key === "Backspace" ? "Backspace" : key === "Enter" ? "Enter" : keyUpper}
                 className={`h-14 rounded font-semibold uppercase p-2 active:scale-95 shadow-[0_2px_0_0] hover:shadow-[0_2px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-0.5 active:translate-y-1 transition-all
                             ${key.length > 1 ? "flex-[1.5] text-xs" : "flex-1 text-lg"}
                             ${statusColors[status]}`}

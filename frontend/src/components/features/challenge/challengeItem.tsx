@@ -258,7 +258,7 @@ export const ChallengeItem: React.FC<ChallengeItemProps> = ({
             </div>
           )}
 
-          {/* Waiting Message (for challenger) */}
+          Waiting Message (for challenger)
           {isPending && isChallenger && !expiryStatus.isExpired && (
             <div className="text-sm mt-2 text-purple-600 italic">
               Waiting for {opponent.username} to complete the challenge...

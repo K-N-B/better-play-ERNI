@@ -617,17 +617,24 @@ def generate_ernigram_puzzle_data(date_to_be_used):
 
 # --- Wordle Helper (uses corrected logic above) ---
 # (The code for _generate_unique_wordle_data is included above, before generate_ernigram_puzzle_data)
-
+import pytz 
 
 def generate_daily_puzzles(target_date: Optional[date] = None):
-    print(f"Generating daily puzzles for date: {target_date}")
-
-    # ✅ Prevent nested atomic block when already in a transaction (test-safe)
-
-    if target_date is None:
-        target_date = timezone.now().date() 
     
-    print(f"Generating daily puzzles for date: {target_date}")
+    # 1. FIX: Calculate the date based on Manila time, not Server/UTC time
+    if target_date is None:
+        # Get current time (UTC)
+        now_utc = timezone.now()
+        
+        # Convert to Manila Time
+        manila_tz = pytz.timezone('Asia/Manila')
+        now_manila = now_utc.astimezone(manila_tz)
+        
+        # Extract the date (e.g., if it's Nov 29 00:01 Manila, this is Nov 29)
+        target_date = now_manila.date()
+
+    print(f"Generating daily puzzles for date (Manila): {target_date}")
+
     if connection.in_atomic_block:
         return _generate_daily_puzzles_inner(target_date)
 
@@ -641,9 +648,10 @@ def _generate_daily_puzzles_inner(target_date: datetime.date = None) -> DailyPuz
     """
     with transaction.atomic():
         if target_date is None:
-            target_date = timezone.now().date()
+            manila_tz = pytz.timezone('Asia/Manila')
+            target_date = timezone.now().astimezone(manila_tz).date()
+            
         print(f"Generating daily puzzles for date: {target_date}")
-
         # 1. Initialize the AI service
         ai_generator = WordleGeneratorAI()
 

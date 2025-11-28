@@ -1,0 +1,207 @@
+/* ========== FONTS ========== */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
+
+body {
+    font-family: 'Poppins', sans-serif !important;
+}
+
+/* ========== BRAND LOGO STYLING ========== */
+/* Remove circle */
+.brand-link .brand-image {
+    border-radius: 0 !important;
+    object-fit: contain !important;
+    width: auto !important;
+    height: 40px !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+/* Remove the shadow */
+.brand-link .brand-image.elevation-3 {
+    box-shadow: none !important;
+}
+
+.brand-text {
+    font-weight: medium !important;
+    color: #ffffff !important;
+}
+
+/* ========== FORM ELEMENTS ========== */
+/* Make input fields, selects, textareas rounded */
+input, select, textarea {
+    border-radius: 0.5rem !important;
+}
+
+/* ========== CARDS & PANELS ========== */
+.card, .box, .module {
+    border-radius: 1rem !important;
+    box-shadow: 0 !important;
+    border: none !important;
+}
+
+.card-header {
+    background-color: #bedbff !important;
+    border-top-left-radius: 1rem !important;
+    border-top-right-radius: 1rem !important;
+}
+
+/* ========== TABLES ========== */
+table {
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+/* ========== MODALS ========== */
+.modal-content {
+    border-radius: 1rem !important;
+}
+
+/* ========== SIDEBAR ========== */
+/* Increase sidebar width */
+.main-sidebar, .brand-link {
+    width: 275px !important;
+}
+
+.nav-sidebar {
+    font-size: 0.9rem !important;
+}
+
+.nav-item {
+    font-size: 0.8rem !important;
+}
+
+/* ========== USER DROPDOWN FIX ========== */
+
+/* Ensure parent positioning */
+.navbar-nav .nav-item {
+    position: relative !important;
+}
+
+/* Dropdown toggle */
+.navbar-nav a[data-toggle="dropdown"] {
+    cursor: pointer !important;
+    position: relative;
+}
+
+/* Dropdown menu - Jazzmin uses these classes */
+#jazzy-usermenu,
+.dropdown-menu-lg {
+    position: absolute !important;
+    top: 100% !important;
+    right: 0 !important;
+    left: auto !important;
+    z-index: 9999 !important;
+    display: none !important;
+    min-width: 200px !important;
+    padding: 0.5rem 0 !important;
+    margin: 0.125rem 0 0 !important;
+    background-color: #fff !important;
+    border: 1px solid rgba(0,0,0,.15) !important;
+    border-radius: 0.5rem !important; /* Match your design style */
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,.175) !important;
+}
+
+/* Show dropdown when active */
+#jazzy-usermenu.show,
+.dropdown-menu-lg.show,
+.dropdown-menu.show {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Dropdown items */
+.dropdown-menu .dropdown-header {
+    display: block !important;
+    padding: 0.5rem 1.5rem !important;
+    margin-bottom: 0 !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important; /* Poppins bold */
+    color: #6c757d !important;
+    white-space: nowrap !important;
+}
+
+.dropdown-menu .dropdown-divider {
+    height: 0 !important;
+    margin: 0.5rem 0 !important;
+    overflow: hidden !important;
+    border-top: 1px solid #e9ecef !important;
+}
+
+.dropdown-menu .dropdown-item {
+    display: block !important;
+    width: 100% !important;
+    padding: 0.5rem 1.5rem !important;
+    clear: both !important;
+    font-weight: 400 !important;
+    color: #212529 !important;
+    text-align: inherit !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+    background-color: transparent !important;
+    border: 0 !important;
+    transition: all 0.2s ease !important;
+}
+
+.dropdown-menu .dropdown-item:hover,
+.dropdown-menu .dropdown-item:focus {
+    color: #16181b !important;
+    background-color: #f8f9fa !important;
+    border-radius: 0.25rem !important;
+}
+
+.dropdown-menu .dropdown-item.text-danger {
+    color: #dc3545 !important;
+}
+
+.dropdown-menu .dropdown-item.text-danger:hover {
+    color: #fff !important;
+    background-color: #dc3545 !important;
+}
+
+.dropdown-menu .dropdown-footer {
+    display: block !important;
+    padding: 0.5rem 1.5rem !important;
+    color: #6c757d !important;
+    font-size: 0.875rem !important;
+}
+
+/* Icon spacing in dropdown items */
+.dropdown-item i {
+    margin-right: 8px !important;
+    width: 16px !important;
+    text-align: center !important;
+}
+
+/* Right-align dropdown menu */
+.dropdown-menu-right {
+    right: 0 !important;
+    left: auto !important;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .navbar-nav .dropdown-menu {
+        position: static !important;
+        float: none;
+        width: auto;
+        margin-top: 0;
+        box-shadow: none;
+    }
+}
+
+/* ========== SMOOTH TRANSITIONS ========== */
+.dropdown-menu {
+    animation: dropdownFadeIn 0.2s ease-in-out;
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

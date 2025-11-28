@@ -1,0 +1,179 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .custom-tab-nav {
+        display: flex;
+        gap: 5px;
+        border-bottom: 2px solid #dee2e6;
+        margin: 20px 0 15px 0;
+        background: #f8f9fa;
+        padding: 10px 10px 0 10px;
+        border-radius: 5px 5px 0 0;
+    }
+    
+    .custom-tab-btn {
+        padding: 10px 20px;
+        background: transparent;
+        border: none;
+        border-bottom: 3px solid transparent;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        color: #495057;
+        transition: all 0.2s ease;
+        border-radius: 5px 5px 0 0;
+    }
+    
+    .custom-tab-btn:hover {
+        background: #e9ecef;
+        color: #0056b3;
+    }
+    
+    .custom-tab-btn.active {
+        background: #fff;
+        color: #0056b3;
+        border-bottom-color: #0056b3;
+        font-weight: 600;
+    }
+    
+    .custom-tab-content {
+        display: none;
+    }
+    
+    .custom-tab-content.active {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block field_sets %}
+<div class="custom-tab-nav" id="customTabNav">
+    <button type="button" class="custom-tab-btn active" data-tab="general">General</button>
+    <button type="button" class="custom-tab-btn" data-tab="role">Role & Permissions</button>
+    <button type="button" class="custom-tab-btn" data-tab="profile">Profile Information</button>
+    <button type="button" class="custom-tab-btn" data-tab="stats">Statistics</button>
+    <button type="button" class="custom-tab-btn" data-tab="activity">Activity Tracking</button>
+</div>
+
+<div class="custom-tab-content active" data-panel="general">
+    {% for fieldset in adminform %}
+        {% if fieldset.name == None or fieldset.name == "Basic Info" or fieldset.name == "" %}
+            {% include "admin/includes/fieldset.html" %}
+        {% endif %}
+    {% endfor %}
+</div>
+
+<div class="custom-tab-content" data-panel="role">
+    {% for fieldset in adminform %}
+        {% if "Role" in fieldset.name or "Permission" in fieldset.name %}
+            {% include "admin/includes/fieldset.html" %}
+        {% endif %}
+    {% endfor %}
+</div>
+
+<div class="custom-tab-content" data-panel="profile">
+    {% for fieldset in adminform %}
+        {% if "Profile" in fieldset.name %}
+            {% include "admin/includes/fieldset.html" %}
+        {% endif %}
+    {% endfor %}
+</div>
+
+<div class="custom-tab-content" data-panel="stats">
+    {% for fieldset in adminform %}
+        {% if "Stats" in fieldset.name or "Statistics" in fieldset.name %}
+            {% include "admin/includes/fieldset.html" %}
+        {% endif %}
+    {% endfor %}
+</div>
+
+<div class="custom-tab-content" data-panel="activity">
+    {% for fieldset in adminform %}
+        {% if "Activity" in fieldset.name %}
+            {% include "admin/includes/fieldset.html" %}
+        {% endif %}
+    {% endfor %}
+</div>
+
+<script>
+(function() {
+    'use strict';
+    
+    function initTabs() {
+        const tabNav = document.getElementById('customTabNav');
+        if (!tabNav) return;
+        
+        const tabButtons = tabNav.querySelectorAll('.custom-tab-btn');
+        const tabPanels = document.querySelectorAll('.custom-tab-content');
+        
+        // Handle URL hash on load
+        const hash = window.location.hash.substring(1);
+        if (hash) {
+            const targetBtn = tabNav.querySelector(`[data-tab="${hash}"]`);
+            if (targetBtn) {
+                switchTab(hash);
+            }
+        }
+        
+        // Add click handlers
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const targetTab = this.dataset.tab;
+                switchTab(targetTab);
+                
+                // Update URL hash
+                window.history.replaceState(null, null, '#' + targetTab);
+            });
+        });
+        
+        function switchTab(tabKey) {
+            // Update button states
+            tabButtons.forEach(btn => {
+                if (btn.dataset.tab === tabKey) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // Update panel visibility
+            tabPanels.forEach(panel => {
+                if (panel.dataset.panel === tabKey) {
+                    panel.classList.add('active');
+                    
+                    // ✅ Trigger any Django admin widgets to re-initialize
+                    const event = new Event('DOMNodeInserted', { bubbles: true });
+                    panel.dispatchEvent(event);
+                    
+                    // ✅ Re-initialize select2 dropdowns if present
+                    if (typeof django !== 'undefined' && django.jQuery) {
+                        django.jQuery(panel).find('select').trigger('change');
+                    }
+                    
+                    // ✅ Focus first input in the panel
+                    const firstInput = panel.querySelector('input:not([type="hidden"]), select, textarea');
+                    if (firstInput) {
+                        setTimeout(() => firstInput.focus(), 100);
+                    }
+                } else {
+                    panel.classList.remove('active');
+                }
+            });
+        }
+    }
+    
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initTabs);
+    } else {
+        initTabs();
+    }
+})();
+</script>
+{% endblock %}
