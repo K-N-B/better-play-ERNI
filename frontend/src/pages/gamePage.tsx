@@ -27,8 +27,7 @@ const introContent = {
     title: "Wordle",
     description: "Guess the hidden <strong>5-letter word</strong>.",
     howToPlay: `You have a set number of tries to guess the word.\nType a 5-letter word and press Enter.\nTiles change color to show how close your guess was:\n<strong class="text-emerald-500">Green</strong>: Correct letter, correct spot.\n<strong class="text-yellow-400">Yellow</strong>: Correct letter, wrong spot.\n<strong class="text-gray-600">Gray</strong>: Letter not in the word.`,
-    pointsInfo:
-      "Points are all about how well (and how fast!) you play.",
+    pointsInfo: "Points are all about how well (and how fast!) you play.",
     pointsCalculation:
       "You’ll get <strong>100pts</strong> for completing Easy and <strong>200pts</strong> for Hard. On top of that, you get <strong>20pts</strong> for each try that you didn't use up, and a speed bonus if you're up for the challenge! Play smart, play fast — and watch your score climb up the leaderboard!",
     hintInfo: "Hard mode make you guess a longer word!",
@@ -358,7 +357,7 @@ export const GamePage = () => {
           guessCount={
             gameType === "wordle"
               ? (foundAttempt.progress_data as WordleProgress)?.guesses
-                ?.length || 0
+                  ?.length || 0
               : 0
           }
           maxGuesses={6}
@@ -390,13 +389,13 @@ export const GamePage = () => {
             {/* This button is passed as a child and rendered by GameIntro on mobile */}
             <button
               onClick={() => setShowInstructions(true)}
-              className={`font-semibold text-primary text-xl leading-none px-4 py-4 rounded-full ${introData.color} ${introData.darkColor} text-white shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all`}
+              className={`font-semibold text-primary text-xl leading-none p-3 md:p-4 rounded-full ${introData.color} ${introData.darkColor} text-white shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all`}
             >
               <CircleQuestionMark size={30} strokeWidth={2.5} />
             </button>
             <button
               onClick={() => setShowPointsComputation(true)}
-              className={`font-semibold text-primary text-xl leading-none px-4 ms-4 py-4 rounded-full ${introData.color} ${introData.darkColor} text-white shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all`}
+              className={`font-semibold text-primary text-xl leading-none ms-4 p-3 md:p-4 rounded-full ${introData.color} ${introData.darkColor} text-white shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all`}
             >
               <Star size={30} strokeWidth={2.5} />
             </button>
@@ -487,7 +486,7 @@ export const GamePage = () => {
 
   return (
     <div
-      className={`container mx-auto h-full w-full shadow-md rounded-4xl p-4 sm:p-8 md:p-12 ${introData.bgColor}`}
+      className={`container mx-auto h-full w-full shadow-md rounded-4xl p-6 sm:p-8 md:p-12 ${introData.bgColor}`}
     >
       {content}
     </div>

@@ -38,7 +38,7 @@ export const Keyboard = ({ onKeyPress, letterStatuses }: KeyboardProps) => {
   return (
     <div className="w-full max-w-lg mx-auto select-none">
       {keys.map((row, i) => (
-        <div key={i} className="flex justify-center gap-1 sm:gap-1.5 mb-1.5">
+        <div key={i} className="flex justify-center gap-1 md:gap-1.5 mb-1.5">
           {row.map((key) => {
             const keyUpper = key.toUpperCase();
             const status = letterStatuses[keyUpper] || "default";
@@ -47,8 +47,14 @@ export const Keyboard = ({ onKeyPress, letterStatuses }: KeyboardProps) => {
               <button
                 key={key}
                 onClick={() => handlePress(key)}
-                aria-label={key === "Backspace" ? "Backspace" : key === "Enter" ? "Enter" : keyUpper}
-                className={`h-14 rounded font-semibold uppercase p-2 active:scale-95 shadow-[0_2px_0_0] hover:shadow-[0_2px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-0.5 active:translate-y-1 transition-all
+                aria-label={
+                  key === "Backspace"
+                    ? "Backspace"
+                    : key === "Enter"
+                      ? "Enter"
+                      : keyUpper
+                }
+                className={`md:h-14 rounded font-semibold uppercase p-1 md:p-2 active:scale-95 shadow-[0_2px_0_0] hover:shadow-[0_2px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-0.5 active:translate-y-1 transition-all
                             ${key.length > 1 ? "flex-[1.5] text-xs" : "flex-1 text-lg"}
                             ${statusColors[status]}`}
               >

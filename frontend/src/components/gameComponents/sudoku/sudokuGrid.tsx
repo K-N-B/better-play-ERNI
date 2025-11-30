@@ -55,7 +55,7 @@ export const SudokuGrid = ({
     // --- THIS IS THE FIX ---
     // 1. REMOVED 'gap-0'.
     // 2. ADDED 'divide-x divide-y divide-gray-300' to create the thin 1px grid lines.
-    <div className="w-full max-w-lg mx-auto aspect-square grid grid-cols-9 rounded-xl sm:rounded-2xl border-4 md:border-6 border-gray-500 overflow-hidden divide-x divide-y divide-gray-300 bg-gray-500">
+    <div className="w-full max-w-lg mx-auto aspect-square grid grid-cols-9 rounded-2xl border-3 md:border-6 border-gray-500 overflow-hidden divide-x divide-y divide-gray-300 bg-gray-500">
       {/* --- END FIX --- */}
       {grid.map((row, rowIndex) =>
         row.map((cell, colIndex) => (

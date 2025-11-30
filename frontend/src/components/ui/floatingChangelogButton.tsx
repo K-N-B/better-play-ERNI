@@ -33,7 +33,7 @@ export const FloatingChangelogButton = () => {
     <>
       {/* Floating button */}
       <button
-        className="hidden md:block fixed bottom-6 right-6 z-50 bg-primary-600 text-white p-4 rounded-full shadow-lg hover:bg-primary-500 active:bg-primary-700 transition-all flex items-center justify-center hover:scale-110"
+        className="md:block fixed bottom-6 right-6 z-50 bg-primary-600 text-white p-2 md:p-4 rounded-full shadow-lg hover:bg-primary-500 active:bg-primary-700 transition-all flex items-center justify-center hover:scale-110"
         onClick={() => setShowChangelog(true)}
         title="View Changelogs"
       >

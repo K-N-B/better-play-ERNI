@@ -1,6 +1,6 @@
 // src/components/features/games/gameIntro.tsx - UPDATED WITH CHALLENGE SUPPORT
 import DifficultyToggle from "../../ui/difficultyToggle";
-import type { Difficulty } from '../../../pages/gamePage';
+import type { Difficulty } from "../../../pages/gamePage";
 
 export interface PuzzleIntroProps {
   title: string; // e.g. "ERNIgram"
@@ -33,18 +33,20 @@ export default function GameIntro({
   darkColor = "bg-primary-900",
   children,
 }: PuzzleIntroProps) {
-  
   // ✅ Handle difficulty change with disabled check
   const handleDifficultyToggle = (isHard: boolean) => {
     if (disableDifficultyChange) {
-      console.log('[GameIntro] Difficulty change disabled - challenge mode');
+      console.log("[GameIntro] Difficulty change disabled - challenge mode");
       return; // Don't allow changes in challenge mode
     }
     onDifficultyChange(isHard ? "hard" : "easy");
   };
 
   return (
-    <div id="gameIntro" className="h-full text-center grid grid-cols-1 lg:grid-cols-2">
+    <div
+      id="gameIntro"
+      className="h-full text-center grid grid-cols-1 lg:grid-cols-2"
+    >
       {/* LEFT SIDE */}
       <div className="hidden lg:block place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
         <div
@@ -59,19 +61,22 @@ export default function GameIntro({
       </div>
 
       {/* RIGHT SIDE */}
-      <div className="place-content-center p-20 text-xl leading-5">
-        <div className="text-5xl font-bold">{title}</div>
+      <div className="place-content-center p-10 md:p-20 text-xl leading-5">
+        <div className="text-4xl md:text-5xl font-bold">{title}</div>
 
-        <div className="mt-10 font-medium">
+        <div className="text-lg md:text-xl mt-5 md:mt-10 font-medium">
           <div dangerouslySetInnerHTML={{ __html: pointsInfo }} />
-          <div className="mt-4 text-xl/6 hidden lg:block" dangerouslySetInnerHTML={{ __html: pointsCalculation }} />
           <div
-            className="mt-8"
+            className="mt-4 text-xl/6 hidden lg:block"
+            dangerouslySetInnerHTML={{ __html: pointsCalculation }}
+          />
+          <div
+            className="text-lg md:text-xl mt-5 md:mt-8"
             dangerouslySetInnerHTML={{ __html: hintInfo }}
           />
         </div>
 
-        <div className="mt-6 text-xl">
+        <div className="text-lg mt-5 md:mt-6 md:text-xl">
           {/* ✅ Show challenge notice or difficulty selector */}
           {disableDifficultyChange ? (
             <div className="mb-6">
@@ -80,7 +85,11 @@ export default function GameIntro({
                   🎯 Challenge Mode
                 </p>
                 <p className="text-blue-600 text-sm mt-1">
-                  Playing on <span className="uppercase font-bold">{initialDifficulty}</span> difficulty
+                  Playing on{" "}
+                  <span className="uppercase font-bold">
+                    {initialDifficulty}
+                  </span>{" "}
+                  difficulty
                 </p>
               </div>
             </div>
@@ -92,7 +101,7 @@ export default function GameIntro({
 
               <DifficultyToggle
                 onToggle={handleDifficultyToggle}
-                initialIsHard={initialDifficulty === 'hard'}
+                initialIsHard={initialDifficulty === "hard"}
                 disabled={disableDifficultyChange} // ✅ Pass disabled state to toggle
                 color={color}
                 darkColor={darkColor}
@@ -100,18 +109,16 @@ export default function GameIntro({
             </>
           )}
 
-          <div className="difficulty-buttons mt-10">
+          <div className="difficulty-buttons mt-5 md:mt-10">
             <button
               onClick={onStart}
-              className={`font-semibold text-primary text-4xl leading-none px-6 py-4 rounded-2xl ${color} ${darkColor} text-white shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all`}
+              className={`font-semibold text-primary text-3xl md:text-4xl leading-none px-5 py-3 md:px-6 md:py-4 rounded-2xl ${color} ${darkColor} text-white shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all`}
             >
               Start
             </button>
           </div>
 
-          <div className="mt-6 lg:hidden">
-            {children}
-          </div>
+          <div className="mt-6 md:mt-6 lg:hidden">{children}</div>
         </div>
       </div>
     </div>

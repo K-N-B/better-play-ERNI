@@ -196,7 +196,7 @@ export default function Navbar() {
       {/* Show overlay only when mobile menu is open */}
       <div
         className={clsx(
-          "fixed inset-0 z-40 bg-black bg-opacity-20 backdrop-blur-sm lg:hidden", // Only visible below md breakpoint
+          "fixed inset-0 z-40 bg-transparent backdrop-blur-sm mt-15 lg:hidden", // Only visible below md breakpoint
           isMobileMenuOpen ? "block" : "hidden" // Toggle visibility
         )}
         onClick={() => setIsMobileMenuOpen(false)} // Close on overlay click

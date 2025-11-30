@@ -39,7 +39,7 @@ export const PotentialScoreBar = ({
         />
       </div>
 
-      <div className="flex justify-between text-xs mt-1 text-gray-500 font-medium">
+      <div className="flex justify-between text-[10px] md:text-lg mt-1 text-gray-500 font-medium">
         <span className="text-primary-600">Base: {basePoints}</span>
         <span className="text-green-600">Speed: +{speedBonus}</span>
 

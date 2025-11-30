@@ -25,7 +25,7 @@ export const NumberPad = ({
   const playClick = useSound([click1, click2, click3], 0.5);
 
   return (
-    <div className="flex flex-row justify-between md:grid md:grid-cols-12  md:grid-cols-5 md:gap-6 lg:gap-2 w-full max-w-sm mx-auto mt-4">
+    <div className="grid grid-cols-6  md:grid md:grid-cols-6 gap-2 md:gap-4 w-full max-w-sm mx-auto mt-4">
       {numbers.map((num) => (
         <button
           key={num}
