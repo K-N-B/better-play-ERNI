@@ -237,6 +237,7 @@ export const FloatingChangelogButton = () => {
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onClick={() => setShowChangelog(true)}
       >
         <span className="text-xl">📝</span>
       </button>
