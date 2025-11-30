@@ -5,19 +5,22 @@ interface PhraseDisplayProps {
   guessedLetters: string[];
 }
 
-export const PhraseDisplay = ({ solutionPhrase, guessedLetters }: PhraseDisplayProps) => {
+export const PhraseDisplay = ({
+  solutionPhrase,
+  guessedLetters,
+}: PhraseDisplayProps) => {
   return (
-    <div className="flex justify-center flex-wrap gap-2 mb-6">
-      {solutionPhrase.split(' ').map((word, wordIndex) => (
+    <div className="flex justify-center flex-wrap gap-2 mb-4 md:mb-6">
+      {solutionPhrase.split(" ").map((word, wordIndex) => (
         <div key={wordIndex} className="flex gap-1.5">
-          {word.split('').map((char, charIndex) => (
+          {word.split("").map((char, charIndex) => (
             <div
               key={charIndex}
-              className="flex items-center justify-center h-12 w-10 sm:h-14 sm:w-12 
+              className="flex items-center justify-center h-6 w-5 md:h-12 md:w-10 sm:h-14 sm:w-12 
                         bg-white border-b-4 border-primary"
             >
-              <span className="text-3xl font-bold uppercase">
-                {guessedLetters.includes(char.toUpperCase()) ? char : ''}
+              <span className="text-xl md:text-3xl font-bold uppercase">
+                {guessedLetters.includes(char.toUpperCase()) ? char : ""}
               </span>
             </div>
           ))}

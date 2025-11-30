@@ -563,7 +563,9 @@ export const WordleGame = ({
               <h1 className="text-xl lg:text-4xl font-bold">Wordle</h1>
               <p className="text-sm lg:text-base">on {difficulty} difficulty</p>
             </div>
-            <Timer timeMs={time} />
+            <div className="flex justify-between gap-4">
+              <Timer timeMs={time} />
+            </div>
           </div>
           <div className="order-2 lg:order-none px-10 md:px-0  lg:p-0">
             <PotentialScoreBar

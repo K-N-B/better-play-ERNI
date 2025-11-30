@@ -466,9 +466,9 @@ export const GamePage = () => {
           >
             <button
               onClick={() => setShowPointsComputation(true)}
-              className={`font-semibold text-primary text-xl leading-none px-5 py-3 rounded-full ${introData.color} ${introData.darkColor} text-white shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all`}
+              className={`font-semibold text-primary text-sm md:text-xl leading-none px-3 py-0 md:px-5 md:py-3 rounded-full ${introData.color} ${introData.darkColor} text-white shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all`}
             >
-              <Star size={24} strokeWidth={2.5} />
+              <Star size={25} strokeWidth={2.5} />
             </button>
           </GameComponent>
 
@@ -486,7 +486,7 @@ export const GamePage = () => {
 
   return (
     <div
-      className={`container mx-auto h-full w-full shadow-md rounded-4xl p-6 sm:p-8 md:p-12 ${introData.bgColor}`}
+      className={`container md:mx-auto h-full w-full shadow-md rounded-4xl p-6 sm:p-8 md:p-12 ${introData.bgColor}`}
     >
       {content}
     </div>

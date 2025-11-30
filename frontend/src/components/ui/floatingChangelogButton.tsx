@@ -1,12 +1,117 @@
 // src/components/ui/FloatingChangelogButton.tsx
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 // The ?raw suffix tells Vite to import the file content as a plain string
 import readmeContent from "../../../../README.md?raw";
 
+const INITIAL_OFFSET = 24;
+
 export const FloatingChangelogButton = () => {
   const [showChangelog, setShowChangelog] = useState(false);
 
+  // 1. STATE: Stores the current top/left position for the inline style
+  const [position, setPosition] = useState({
+    x: 0,
+    y: 0,
+  });
+
+  // --- Initialization (Sets the initial bottom-right position once on mount) ---
+  useEffect(() => {
+    const setInitialPosition = () => {
+      if (buttonRef.current) {
+        // Calculate initial position equivalent to fixed bottom-6 right-6
+        const buttonWidth = buttonRef.current.offsetWidth;
+        const buttonHeight = buttonRef.current.offsetHeight;
+
+        setPosition({
+          x: window.innerWidth - buttonWidth - INITIAL_OFFSET,
+          y: window.innerHeight - buttonHeight - INITIAL_OFFSET,
+        });
+      }
+    };
+
+    // Set initial position
+    setInitialPosition();
+
+    // Recalculate position on window resize
+    window.addEventListener("resize", setInitialPosition);
+    return () => window.removeEventListener("resize", setInitialPosition);
+  }, []);
+
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent<HTMLButtonElement>) => {
+      // Prevent drag if modal is open
+      if (showChangelog || !buttonRef.current) return;
+
+      const touch = e.touches[0];
+      const rect = buttonRef.current.getBoundingClientRect();
+
+      // Store where the user touched relative to the button's top-left corner
+      dragRef.current = {
+        isDragging: true,
+        startX: touch.clientX - rect.left,
+        startY: touch.clientY - rect.top,
+        wasDragged: false,
+      };
+
+      // Remove transition during drag for smooth movement
+      e.currentTarget.style.transition = "none";
+    },
+    [showChangelog]
+  );
+
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent<HTMLButtonElement>) => {
+      if (!dragRef.current.isDragging || !buttonRef.current) return;
+
+      // Prevent default touch behavior (e.g., scrolling)
+      e.preventDefault();
+
+      const touch = e.touches[0];
+
+      // Calculate new position by subtracting the touch-to-button offset (startX/startY)
+      let newX = touch.clientX - dragRef.current.startX;
+      let newY = touch.clientY - dragRef.current.startY;
+
+      // Boundary constraints to keep the button within the viewport
+      const buttonWidth = buttonRef.current.offsetWidth;
+      const buttonHeight = buttonRef.current.offsetHeight;
+
+      newX = Math.min(newX, window.innerWidth - buttonWidth); // Right boundary
+      newX = Math.max(newX, 0); // Left boundary
+      // FIX: Ensure newY never exceeds the viewport height minus button height
+      newY = Math.min(newY, window.innerHeight - buttonHeight); // Bottom boundary
+      newY = Math.max(newY, 0); // Top boundary
+
+      // If movement is detected, set the wasDragged flag
+      if (Math.abs(newX - position.x) > 2 || Math.abs(newY - position.y) > 2) {
+        dragRef.current.wasDragged = true;
+      }
+
+      setPosition({ x: newX, y: newY });
+    },
+    [position]
+  );
+
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent<HTMLButtonElement>) => {
+      if (dragRef.current.isDragging) {
+        // Re-enable CSS transition after drag ends
+        e.currentTarget.style.transition = "";
+      }
+      dragRef.current.isDragging = false;
+    },
+    []
+  );
+
+  // 2. REFS: Used to reference the button and track drag state
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dragRef = useRef({
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+    wasDragged: false, // Prevents click event after drag
+  });
   // This function extracts ONLY the content under "## Changelog"
   // It stops when it hits the next "## " header or the end of the file.
   const changelogText = useMemo(() => {
@@ -33,9 +138,34 @@ export const FloatingChangelogButton = () => {
     <>
       {/* Floating button */}
       <button
-        className="md:block fixed bottom-6 right-6 z-50 bg-primary-600 text-white p-2 md:p-4 rounded-full shadow-lg hover:bg-primary-500 active:bg-primary-700 transition-all flex items-center justify-center hover:scale-110"
-        onClick={() => setShowChangelog(true)}
+        ref={buttonRef} // Attach ref here
+        // IMPORTANT: Change 'fixed bottom-6 right-6' to 'absolute'
+        className="md:block fixed z-50 bg-primary-600 text-white p-2 md:p-4 rounded-full shadow-lg hover:bg-primary-500 active:bg-primary-700 transition-all flex items-center justify-center hover:scale-110"
+        style={{
+          // Use 'transform: translate'
+          transform: `translate(${position.x}px, ${position.y}px)`,
+          touchAction: "none",
+          willChange: "transform",
+          // Ensure fixed positioning is offset to 0,0 before transform applies
+          top: 0,
+          left: 0,
+        }}
+        onClick={(e) => {
+          // Check if the button was dragged; if so, prevent the click
+          if (dragRef.current.wasDragged) {
+            // Reset drag flag immediately
+            dragRef.current.wasDragged = false;
+            return;
+          }
+          setShowChangelog(true);
+        }}
         title="View Changelogs"
+        // Apply Dynamic Position via Inline Style
+
+        // Attach Touch Event Handlers
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         <span className="text-xl">📝</span>
       </button>

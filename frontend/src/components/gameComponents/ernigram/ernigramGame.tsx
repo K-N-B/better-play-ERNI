@@ -56,7 +56,7 @@ export const ErnigramGame = ({
   difficulty,
   challengeId,
   dailyPuzzleDate,
-  children
+  children,
 }: ErnigramGameProps) => {
   const { refreshChallenges } = useChallenges();
   const [solution] = useState(puzzle.solution_phrase.toUpperCase());
@@ -97,10 +97,7 @@ export const ErnigramGame = ({
   const puzzleID = puzzle.id;
   const [isWon, setIsWon] = useState(false);
 
-  const fetchLimits = useCallback(
-    () => getGameLimits("ernigram"),
-    []
-  );
+  const fetchLimits = useCallback(() => getGameLimits("ernigram"), []);
   const { data: gameConfig, loading: configLoading } = useApi(fetchLimits);
 
   // ✅ 1. Check for existing submission FIRST
@@ -307,7 +304,7 @@ export const ErnigramGame = ({
         const deduction = misses * MISTAKE_DEDUCTION_PER_MISTAKE;
         const basePointsAfterPenalty = Math.max(0, scorePool - deduction);
         const speedBonus = calculateSpeedBonus(finalTime, maxTimeMs);
-        
+
         finalScore = basePointsAfterPenalty + speedBonus;
       } else if (!won) {
         finalScore = 0;
@@ -490,7 +487,9 @@ export const ErnigramGame = ({
       setLetterStatuses(newStatuses);
 
       const uniqueLetters = [...new Set(solution.replace(/ /g, ""))];
-      const hasWon = uniqueLetters.every((char) => newGuessedLetters.includes(char));
+      const hasWon = uniqueLetters.every((char) =>
+        newGuessedLetters.includes(char)
+      );
       const isLost = newAttemptsLeft <= 0;
       const isGameEndingMove = hasWon || isLost;
 
@@ -536,21 +535,26 @@ export const ErnigramGame = ({
   const currentMisses = guessedLetters.filter(
     (letter) => !solution.includes(letter)
   ).length;
-  
+
   console.log(configBasePoints, configMaxMistakes, configMaxTimeMs);
   const currentSpeedBonus = calculateSpeedBonus(time, configMaxTimeMs);
-// Calculate Bonus Pool
+  // Calculate Bonus Pool
   const maxMistakeBonusPool = configMaxMistakes * MISTAKE_DEDUCTION;
   const currentDeduction = currentMisses * MISTAKE_DEDUCTION;
-  
+
   // Calculate Remaining Bonus
-  const currentMistakeBonus = Math.max(0, maxMistakeBonusPool - currentDeduction);
+  const currentMistakeBonus = Math.max(
+    0,
+    maxMistakeBonusPool - currentDeduction
+  );
 
   // Max Score includes the full bonus pool
-  const maxPossibleScore = configBasePoints + maxMistakeBonusPool + MAX_SPEED_BONUS;
-  
+  const maxPossibleScore =
+    configBasePoints + maxMistakeBonusPool + MAX_SPEED_BONUS;
+
   // Current score uses the remaining bonus
-  const currentPotentialScore = configBasePoints + currentMistakeBonus + currentSpeedBonus;
+  const currentPotentialScore =
+    configBasePoints + currentMistakeBonus + currentSpeedBonus;
   // --- 🚀 LIVE SCORE BAR CALCULATION END 🚀 ---
 
   if (
@@ -580,11 +584,11 @@ export const ErnigramGame = ({
 
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
-        <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
-          <div className="place-content-center p-4 md:p-20 text-xl leading-6 bg-white h-full rounded-3xl">
+      <div className="grid grid-cols-1 lg:grid-cols-2 items-center md:p-4">
+        <div className="place-content-center px-2 text-lg md:text-xl leading-6 bg-white h-full rounded-3xl order-3 lg:order-1">
+          <div className="place-content-center px-4 pt-4 md:p-20 text-xl leading-6 bg-white h-full rounded-3xl">
             {puzzle.employee_image_url != "None" ? (
-              <div className="w-full max-w-sm mx-auto">
+              <div className="w-9/10 md:w-full md:max-w-md mx-auto px-4">
                 <img
                   src={fullImageUrl}
                   alt="Employee to guess"
@@ -593,15 +597,17 @@ export const ErnigramGame = ({
                     !isWon ? "blur-md" : "blur-none"
                   )}
                 />
-                <p className="text-xl text-black mt-6 mb-6">
+                <p className="text-[13px] text-center font-bold md:text-xl text-black mt-3 md:mt-6 md:mb-6">
                   {"Guess the employee's name!"}
                 </p>
               </div>
             ) : (
-              <p className="text-xl text-black mb-6">{puzzle.clue}</p>
+              <p className="text-sm md:text-xl text-black mb-6">
+                {puzzle.clue}
+              </p>
             )}
 
-            <div className="flex justify-between w-full max-w-sm items-center mb-4">
+            <div className="flex justify-between w-full max-w-sm items-center md:mb-4">
               <AttemptsTracker attemptsLeft={attemptsLeft} />
             </div>
 
@@ -611,31 +617,38 @@ export const ErnigramGame = ({
             />
           </div>
         </div>
-        <div className="place-content-center p-20 text-xl leading-5">
-          <div className="flex justify-between mb-10">
+        <div className="contents lg:flex lg:flex-col lg:place-content-center p-0 lg:p-20 text-xl leading-5 lg:order-2">
+          <div className="flex justify-between lg:mb-6 order-1 lg:order-none mb-2 lg:p-0">
             <div className="">
-              <h1 className="text-4xl font-bold">ERNIgram</h1>
-              <p>on {difficulty} difficulty</p>
+              <h1 className="text-xl lg:text-4xl font-bold">ERNIgram</h1>
+              <p className="text-sm lg:text-base">on {difficulty} difficulty</p>
             </div>
-            <div className="flex justify-between gap-4">
-              <Timer timeMs={time} />
-              {children}
-            </div>
+
+            <Timer timeMs={time} />
+            {children}
           </div>
 
           {/* --- NEW POTENTIAL SCORE BAR --- */}
-          <PotentialScoreBar
-            currentScore={currentPotentialScore}
-            maxScore={maxPossibleScore}
-            basePoints={configBasePoints} // Display Base as "Base + Potential Mistake Bonus" or just Base depending on preference. Passing total pool usually looks better.
-            speedBonus={currentSpeedBonus}
-            bonusOrPenaltyValue={currentMistakeBonus}
-          bonusOrPenaltyLabel="Mistake Bonus"
-            color="bg-blue-500"
-          />
+          <div className="order-2 lg:order-none px-10 md:px-0  lg:p-0">
+            <PotentialScoreBar
+              currentScore={currentPotentialScore}
+              maxScore={maxPossibleScore}
+              basePoints={configBasePoints} // Display Base as "Base + Potential Mistake Bonus" or just Base depending on preference. Passing total pool usually looks better.
+              speedBonus={currentSpeedBonus}
+              bonusOrPenaltyValue={currentMistakeBonus}
+              bonusOrPenaltyLabel="Mistake Bonus"
+              color="bg-blue-500"
+            />
+          </div>
           {/* ------------------------------- */}
 
-          <div className={isGameOver ? "opacity-50 pointer-events-none" : ""}>
+          <div
+            className={
+              isGameOver
+                ? "order-4 lg:order-none mt-5 lg:mt-0 opacity-50 pointer-events-none"
+                : "order-4 lg:order-none mt-5 lg:mt-0"
+            }
+          >
             <Keyboard
               onKeyPress={handleKeyPress}
               letterStatuses={letterStatuses}
