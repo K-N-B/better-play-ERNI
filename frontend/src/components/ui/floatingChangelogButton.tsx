@@ -112,6 +112,85 @@ export const FloatingChangelogButton = () => {
     startY: 0,
     wasDragged: false, // Prevents click event after drag
   });
+
+  // handleMouseMove needs to be defined globally or be accessible to the window listener
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      // Note: This is a native MouseEvent, not React.MouseEvent
+      if (!dragRef.current.isDragging || !buttonRef.current) return;
+
+      // Prevent default text selection/scrolling
+      e.preventDefault();
+
+      // Calculate new position
+      let newX = e.clientX - dragRef.current.startX;
+      let newY = e.clientY - dragRef.current.startY;
+
+      // Boundary constraints (same logic as in handleTouchMove)
+      const buttonWidth = buttonRef.current.offsetWidth;
+      const buttonHeight = buttonRef.current.offsetHeight;
+
+      newX = Math.min(newX, window.innerWidth - buttonWidth);
+      newX = Math.max(newX, 0);
+      newY = Math.min(newY, window.innerHeight - buttonHeight);
+      newY = Math.max(newY, 0);
+
+      // Set wasDragged flag
+      if (Math.abs(newX - position.x) > 2 || Math.abs(newY - position.y) > 2) {
+        dragRef.current.wasDragged = true;
+      }
+
+      setPosition({ x: newX, y: newY });
+    },
+    [position]
+  );
+
+  // handleMouseUp also needs to be defined globally or be accessible to the window listener
+  const handleMouseUp = useCallback(
+    (e: MouseEvent) => {
+      // Note: This is a native MouseEvent, not React.MouseEvent
+      if (dragRef.current.isDragging) {
+        // Find the button element to reset the transition style
+        // We can't use e.currentTarget here since the listener is on the window.
+        if (buttonRef.current) {
+          buttonRef.current.style.transition = "";
+        }
+      }
+      dragRef.current.isDragging = false;
+
+      // IMPORTANT: Remove the global listeners
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    },
+    [handleMouseMove]
+  );
+
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      // Prevent drag if modal is open
+      if (showChangelog || !buttonRef.current) return;
+
+      // Use clientX/clientY from the MouseEvent
+      const rect = buttonRef.current.getBoundingClientRect();
+
+      dragRef.current = {
+        isDragging: true,
+        startX: e.clientX - rect.left,
+        startY: e.clientY - rect.top,
+        wasDragged: false,
+      };
+
+      // Remove transition during drag for smooth movement
+      e.currentTarget.style.transition = "none";
+
+      // IMPORTANT: Attach global listeners for move/up events
+      // This ensures dragging continues even if the mouse leaves the button
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+    },
+    [showChangelog, handleMouseMove, handleMouseUp] // Include the move/up handlers
+  );
+
   // This function extracts ONLY the content under "## Changelog"
   // It stops when it hits the next "## " header or the end of the file.
   const changelogText = useMemo(() => {
@@ -140,7 +219,7 @@ export const FloatingChangelogButton = () => {
       <button
         ref={buttonRef} // Attach ref here
         // IMPORTANT: Change 'fixed bottom-6 right-6' to 'absolute'
-        className="md:block fixed z-50 bg-primary-600 text-white p-2 md:p-4 rounded-full shadow-lg hover:bg-primary-500 active:bg-primary-700 transition-all flex items-center justify-center hover:scale-110"
+        className="md:block fixed z-50 bg-primary-600 text-white p-2 md:p-4 rounded-full shadow-lg hover:bg-primary-500 active:bg-primary-700 transition-all flex items-center justify-center"
         style={{
           // Use 'transform: translate'
           transform: `translate(${position.x}px, ${position.y}px)`,
@@ -150,19 +229,11 @@ export const FloatingChangelogButton = () => {
           top: 0,
           left: 0,
         }}
-        onClick={(e) => {
-          // Check if the button was dragged; if so, prevent the click
-          if (dragRef.current.wasDragged) {
-            // Reset drag flag immediately
-            dragRef.current.wasDragged = false;
-            return;
-          }
-          setShowChangelog(true);
-        }}
         title="View Changelogs"
         // Apply Dynamic Position via Inline Style
 
         // Attach Touch Event Handlers
+        onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
