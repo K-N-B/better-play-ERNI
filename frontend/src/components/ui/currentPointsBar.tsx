@@ -8,7 +8,7 @@ interface CurrentPointsBarProps {
 export default function CurrentPointsBar({ currentPoints }: CurrentPointsBarProps) {
   return (
     <Tippy content="These are the points you currently have!" placement="bottom">
-        <div className="hidden md:flex flex-col items-center bg-yellow-100 text-yellow-800 px-5 py-2 rounded-full font-bold shadow-inner cursor-default">
+        <div data-testid="points-bar" className="hidden md:flex flex-col items-center bg-yellow-100 text-yellow-800 px-5 py-2 rounded-full font-bold shadow-inner cursor-default">
             <div className="flex items-center space-x-1 text-lg">
             <span>{currentPoints}</span>
             <Star size={20} className="fill-current text-yellow-500" />

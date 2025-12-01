@@ -158,8 +158,6 @@ export const GamePage = () => {
   useEffect(() => {
     if (!challengeId) {
       setHasStarted(false);
-      setSelectedDifficulty("easy");
-      setLockedDifficulty(null);
     } else {
       if (difficultyFromUrl) {
         setSelectedDifficulty(difficultyFromUrl);
@@ -178,10 +176,6 @@ export const GamePage = () => {
       return;
     }
 
-    if (hasStarted && !challengeId) {
-      return;
-    }
-
     setIsChecking(true);
 
     const puzzlesToCheck: { diff: Difficulty; puzzle: any }[] = [
@@ -190,8 +184,8 @@ export const GamePage = () => {
     ];
 
     if (gameType === "sudoku" || gameType === "ernigram") {
-      puzzlesToCheck[0].puzzle = (puzzles as any)[gameType];
-      puzzlesToCheck[1].puzzle = null;
+      puzzlesToCheck[0].puzzle = (puzzles as any)[`${gameType}_easy`];
+      puzzlesToCheck[1].puzzle = (puzzles as any)[`${gameType}_hard`];
     }
 
     const checkAll = async () => {
