@@ -1,7 +1,8 @@
-# activity/services.py 
+# activity/services.py
 from datetime import timedelta
 from django.utils import timezone
 from gameplay.models import Submission, Challenge
+from shop.models import ClaimedReward  # ✅ Import ClaimedReward
 from .models import UserActivity
 import traceback
 
@@ -40,15 +41,15 @@ class ActivityService:
                 'ernigrampuzzle': 'ERNIgram',
             }
             puzzle_name = puzzle_names.get(model_name, model_name.title())
-            
+
             # Convert time to minutes
             total_seconds = submission.time_taken_ms // 1000
             minutes = total_seconds // 60
             seconds = total_seconds % 60
             time_in_minutes = f"{minutes}:{seconds:02d}"
-            
+
             return {
-                'id': f"sub_{submission.id}",  # String format
+                'id': f"sub_{submission.id}",
                 'event_type': 'submission',
                 'created_at': submission.created_at,
                 'user': {
@@ -73,7 +74,7 @@ class ActivityService:
             if not challenge.challenger_submission:
                 print(f"[ActivityService] Challenge {challenge.id} missing challenger_submission")
                 return []
-            
+
             model_name = challenge.challenger_submission.content_type.model.lower()
             puzzle_names = {
                 'wordlepuzzle': 'Wordle',
@@ -81,12 +82,12 @@ class ActivityService:
                 'ernigrampuzzle': 'ERNIgram',
             }
             puzzle_name = puzzle_names.get(model_name, model_name.title())
-            
+
             events = []
-            
+
             # Always add "challenge sent" event
             events.append({
-                'id': f"chal_sent_{challenge.id}",  # String format
+                'id': f"chal_sent_{challenge.id}",
                 'event_type': 'challenge_sent',
                 'created_at': challenge.created_at,
                 'challenger': {
@@ -103,7 +104,7 @@ class ActivityService:
                 'difficulty': challenge.challenger_submission.difficulty,
                 'status': challenge.status,
             })
-            
+
             # If completed, also add "challenge completed" event
             if challenge.status == 'COMPLETED' and challenge.recipient_submission:
                 winner_data = None
@@ -113,9 +114,9 @@ class ActivityService:
                         'username': challenge.winner.username,
                         'profile_picture_url': challenge.winner.profile_picture_url
                     }
-                
+
                 events.append({
-                    'id': f"chal_comp_{challenge.id}",  # String format
+                    'id': f"chal_comp_{challenge.id}",
                     'event_type': 'challenge_completed',
                     'created_at': challenge.recipient_submission.created_at,
                     'challenger': {
@@ -133,22 +134,47 @@ class ActivityService:
                     'status': challenge.status,
                     'winner': winner_data,
                 })
-            
+
             return events
-            
+
         except Exception as e:
             print(f"[ActivityService] Error formatting challenge {challenge.id}: {e}")
             traceback.print_exc()
             return []
 
     @classmethod
+    def _format_purchase_event(cls, claimed_reward):
+        """Helper to format a ClaimedReward into an activity event dict"""
+        try:
+            return {
+                'id': f"purchase_{claimed_reward.id}",
+                'event_type': 'shop_purchase',
+                'created_at': claimed_reward.claimed_at,
+                'user': {
+                    'id': claimed_reward.user.id,
+                    'username': claimed_reward.user.username,
+                    'profile_picture_url': claimed_reward.user.profile_picture_url
+                },
+                'reward': {
+                    'id': claimed_reward.reward.id,
+                    'name': claimed_reward.reward.name,
+                    'image': claimed_reward.reward.image.url if claimed_reward.reward.image else None,
+                },
+                'points_spent': claimed_reward.points_spent,
+            }
+        except Exception as e:
+            print(f"[ActivityService] Error formatting purchase {claimed_reward.id}: {e}")
+            traceback.print_exc()
+            return None
+
+    @classmethod
     def get_recent_activity(cls):
         """
-        Get recent puzzle completions AND challenge events.
+        Get recent puzzle completions, challenge events, AND shop purchases.
         Returns unified list of activity events sorted by time.
         """
         cutoff_time = timezone.now() - timedelta(hours=cls.RECENT_ACTIVITY_HOURS)
-        
+
         try:
             # Fetch submissions
             submissions = (
@@ -156,7 +182,7 @@ class ActivityService:
                 .select_related('user', 'content_type')
                 .order_by('-created_at')[:cls.RECENT_ACTIVITY_LIMIT]
             )
-            
+
             # Fetch challenges
             challenges = (
                 Challenge.objects.filter(created_at__gte=cutoff_time)
@@ -167,29 +193,42 @@ class ActivityService:
                 )
                 .order_by('-created_at')[:cls.RECENT_ACTIVITY_LIMIT]
             )
-            
+
+            # ✅ Fetch shop purchases
+            purchases = (
+                ClaimedReward.objects.filter(claimed_at__gte=cutoff_time)
+                .select_related('user', 'reward')
+                .order_by('-claimed_at')[:cls.RECENT_ACTIVITY_LIMIT]
+            )
+
             # Convert to unified event format
             events = []
-            
+
             for submission in submissions:
                 event = cls._format_submission_event(submission)
-                if event:  # Only add if successfully formatted
+                if event:
                     events.append(event)
-            
+
             for challenge in challenges:
                 challenge_events = cls._format_challenge_event(challenge)
-                events.extend(challenge_events)  # Extend with all challenge events
-            
+                events.extend(challenge_events)
+
+            # ✅ Add purchase events
+            for purchase in purchases:
+                event = cls._format_purchase_event(purchase)
+                if event:
+                    events.append(event)
+
             # Sort all events by created_at (newest first)
             events.sort(key=lambda x: x['created_at'], reverse=True)
-            
+
             # Return only the top RECENT_ACTIVITY_LIMIT items
             return events[:cls.RECENT_ACTIVITY_LIMIT]
-            
+
         except Exception as e:
             print(f"[ActivityService] Error in get_recent_activity: {e}")
             traceback.print_exc()
-            return []  # Return empty list on error
+            return []
 
     @classmethod
     def get_activity_hub_data(cls):
