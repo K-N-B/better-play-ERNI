@@ -40,7 +40,7 @@ import { useAuth } from "@/hooks/authContext";
 
 import { calculateSpeedBonus } from "../../../utils/SpeedBonus"; // Import the utility function
 import { PotentialScoreBar } from "../../ui/potentialScoreBar";
-import { Check, HandHelping, HeartHandshake, LucideLifeBuoy, Search } from "lucide-react";
+import { Check, HandHelping } from "lucide-react";
 // Helper Functions
 const parseGrid = (puzzleString: string): SudokuCell[][] => {
   return Array.from({ length: 9 }, (_, r) =>

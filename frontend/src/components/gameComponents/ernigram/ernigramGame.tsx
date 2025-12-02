@@ -56,8 +56,7 @@ export const ErnigramGame = ({
   puzzle,
   difficulty,
   challengeId,
-  dailyPuzzleDate,
-  children,
+  dailyPuzzleDate
 }: ErnigramGameProps) => {
   const { refreshUser } = useAuth();
   const { refreshChallenges } = useChallenges();
