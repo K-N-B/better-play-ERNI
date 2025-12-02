@@ -50,7 +50,7 @@ export default function Navbar() {
             />
           </a>
 
-          {/* Center: Navigation (This section is updated) */}
+          {/* Center: Navigation (This section is updated)  */}
           <nav className="hidden lg:flex grow justify-center items-center ">
             {navItems.map((item, idx) => {
               if (item.name === "┃") {
