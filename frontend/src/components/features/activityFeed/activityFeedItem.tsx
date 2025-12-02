@@ -46,10 +46,10 @@ const activityConfig = {
 
     shop: {
         icon: ShoppingBag,
-        text: "text-purple-600",
-        bg: "bg-purple-100/60",
-        avatarBg: "bg-purple-400",
-        avatarText: "text-purple-900",
+        text: "text-yellow-600",
+        bg: "bg-yellow-100/40",
+        avatarBg: "bg-amber-400",
+        avatarText: "text-yellow-900",
     },
 };
 
@@ -248,7 +248,7 @@ export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ event }) => 
                             <strong className={clsx("font-semibold", shopCfg.text)}>{event.reward.name}</strong>
                             <span> for </span>
                             <strong className="text-gray-900 font-semibold">{event.points_spent} points</strong>
-                            <span>!</span>
+                            <span>. Grab one for yourself now!</span>
                         </div>
 
                         <div className="text-xs text-gray-500 mt-1">{timeAgo}</div>

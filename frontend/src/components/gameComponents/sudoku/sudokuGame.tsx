@@ -712,7 +712,7 @@ export const SudokuGame = ({
             <div>
               <h1 className="text-xl md:text-4xl font-bold">Sudoku</h1>
               <p className="text-sm lg:text-base text-gray-600 flex md:hidden">
-                {difficulty}
+                {difficulty} diff.
               </p>
               <p className="text-sm lg:text-base text-gray-600 hidden md:flex">
                 on {difficulty} difficulty
