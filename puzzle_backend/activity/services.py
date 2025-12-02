@@ -146,7 +146,21 @@ class ActivityService:
     def _format_purchase_event(cls, claimed_reward):
         """Helper to format a ClaimedReward into an activity event dict"""
         try:
-            return {
+            # Build the reward dict with proper checks
+            reward_data = {
+                'id': claimed_reward.reward.id,
+                'name': claimed_reward.reward.name,
+                'image': None,
+            }
+            
+            # Safely get the image URL
+            if claimed_reward.reward.image:
+                try:
+                    reward_data['image'] = claimed_reward.reward.image.url
+                except Exception as img_error:
+                    print(f"[ActivityService] Could not get image URL: {img_error}")
+            
+            event_data = {
                 'id': f"purchase_{claimed_reward.id}",
                 'event_type': 'shop_purchase',
                 'created_at': claimed_reward.claimed_at,
@@ -155,15 +169,15 @@ class ActivityService:
                     'username': claimed_reward.user.username,
                     'profile_picture_url': claimed_reward.user.profile_picture_url
                 },
-                'reward': {
-                    'id': claimed_reward.reward.id,
-                    'name': claimed_reward.reward.name,
-                    'image': claimed_reward.reward.image.url if claimed_reward.reward.image else None,
-                },
+                'reward': reward_data,
                 'points_spent': claimed_reward.points_spent,
             }
+            
+            print(f"[ActivityService] ✅ Formatted purchase event: {event_data}")
+            return event_data
+            
         except Exception as e:
-            print(f"[ActivityService] Error formatting purchase {claimed_reward.id}: {e}")
+            print(f"[ActivityService] ❌ Error formatting purchase {claimed_reward.id}: {e}")
             traceback.print_exc()
             return None
 

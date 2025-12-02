@@ -1,7 +1,5 @@
 // src/types/activity.ts
 
-// import type { UserProfile } from './user';
-
 // Base user info for activity events
 export interface ActivityUser {
   id: number;
@@ -9,10 +7,17 @@ export interface ActivityUser {
   profile_picture_url: string | null;
 }
 
+// Reward info for shop purchases
+export interface ActivityReward {
+  id: number;
+  name: string;
+  image: string | null;
+}
+
 // Unified activity event type
 export interface ActivityEvent {
-  id: string; // Format: "sub_123" or "chal_sent_45" or "chal_comp_45"
-  event_type: 'submission' | 'challenge_sent' | 'challenge_completed';
+  id: string; // Format: "sub_123" or "chal_sent_45" or "chal_comp_45" or "purchase_78"
+  event_type: 'submission' | 'challenge_sent' | 'challenge_completed' | 'shop_purchase';
   created_at: string; // ISO 8601 date string
   
   // For submissions
@@ -22,10 +27,14 @@ export interface ActivityEvent {
   time_in_minutes?: string;
   
   // For challenges
-  challenger: ActivityUser;
-  recipient: ActivityUser;
-  status: 'PENDING' | 'COMPLETED';
+  challenger?: ActivityUser;
+  recipient?: ActivityUser;
+  status?: 'PENDING' | 'COMPLETED';
   winner?: ActivityUser | null;
+  
+  // For shop purchases
+  reward?: ActivityReward;
+  points_spent?: number;
 }
 
 // Online user
