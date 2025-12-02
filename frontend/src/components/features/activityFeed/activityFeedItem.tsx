@@ -3,7 +3,7 @@ import React from 'react';
 import type { ActivityEvent } from '../../../types/activity';
 import clsx from 'clsx';
 import { formatTimeAgo } from '../../../utils/timeFormat';
-import { Swords, Brain, PenTool, TextInitial } from 'lucide-react';
+import { Swords, Brain, PenTool, TextInitial, ShoppingBag } from 'lucide-react';
 
 interface ActivityFeedItemProps {
     event: ActivityEvent;
@@ -42,6 +42,14 @@ const activityConfig = {
         bg: "bg-orange-100/60",
         avatarBg: "bg-orange-400",
         avatarText: "text-orange-900",
+    },
+
+    shop: {
+        icon: ShoppingBag,
+        text: "text-purple-600",
+        bg: "bg-purple-100/60",
+        avatarBg: "bg-purple-400",
+        avatarText: "text-purple-900",
     },
 };
 
@@ -102,6 +110,12 @@ const AvatarWithBadge: React.FC<{
 export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ event }) => {
     const timeAgo = formatTimeAgo(event.created_at);
 
+    // 🔍 DEBUG: Log the full event to see what we're receiving
+    console.log("🔍 [ActivityFeedItem] Full event:", JSON.stringify(event, null, 2));
+    console.log("🔍 [ActivityFeedItem] Event type:", event.event_type);
+    console.log("🔍 [ActivityFeedItem] Has user?", !!event.user);
+    console.log("🔍 [ActivityFeedItem] Has reward?", !!event.reward);
+
     // Submission styling
     const puzzleCfg = event.puzzle_name
         ? activityConfig.puzzles[event.puzzle_name]
@@ -110,13 +124,12 @@ export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ event }) => 
     // Challenge styling (always orange)
     const challengeCfg = activityConfig.challenge;
 
-    console.log("ACTIVITY EVENT:", event);
-    console.log("event_type:", event.event_type);
-    console.log("puzzle_name:", event.puzzle_name);
-
+    // Shop styling (purple)
+    const shopCfg = activityConfig.shop;
 
     // SUBMISSION EVENT
     if (event.event_type === 'submission' && event.user && puzzleCfg) {
+        console.log("✅ Rendering submission event");
         return (
             <div className={clsx("flex items-start space-x-4 p-3 sm:p-4 rounded-xl relative", puzzleCfg.bg)}>
                 <AvatarWithBadge
@@ -144,7 +157,8 @@ export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ event }) => 
     }
 
     // CHALLENGE SENT EVENT
-    if (event.event_type === 'challenge_sent') {
+    if (event.event_type === 'challenge_sent' && event.challenger && event.recipient) {
+        console.log("✅ Rendering challenge_sent event");
         return (
             <div className={clsx("flex items-start space-x-4 p-3 sm:p-4 rounded-xl relative", challengeCfg.bg)}>
                 <AvatarWithBadge
@@ -173,10 +187,10 @@ export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ event }) => 
     }
 
     // CHALLENGE COMPLETED
-    if (event.event_type === "challenge_completed") {
+    if (event.event_type === "challenge_completed" && event.challenger && event.recipient) {
+        console.log("✅ Rendering challenge_completed event");
         let outcomeText;
         if (!event.winner) {
-            // Tie
             outcomeText = 'TIED with';
         } else if (event.winner.id === event.recipient.id) {
             outcomeText = 'WON against';
@@ -209,11 +223,64 @@ export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ event }) => 
             </div>
         );
     }
-    // FALLBACK
-    return (
+
+    // SHOP PURCHASE EVENT
+    if (event.event_type === 'shop_purchase') {
+        console.log("🛒 Attempting to render shop_purchase event");
+        console.log("🛒 User exists?", !!event.user);
+        console.log("🛒 Reward exists?", !!event.reward);
         
+        if (event.user && event.reward) {
+            console.log("✅ Rendering shop_purchase event");
+            return (
+                <div className={clsx("flex items-start space-x-4 p-3 sm:p-4 rounded-xl relative", shopCfg.bg)}>
+                    <AvatarWithBadge
+                        user={event.user}
+                        styleClasses={shopCfg}
+                        BadgeIcon={shopCfg.icon}
+                        badgeColor={shopCfg.avatarBg}
+                    />
+
+                    <div className="flex-1 min-w-0">
+                        <div className="text-gray-700 text-sm sm:text-base leading-snug">
+                            <strong className="text-gray-900 font-semibold">{event.user.username}</strong>
+                            <span> purchased </span>
+                            <strong className={clsx("font-semibold", shopCfg.text)}>{event.reward.name}</strong>
+                            <span> for </span>
+                            <strong className="text-gray-900 font-semibold">{event.points_spent} points</strong>
+                            <span>!</span>
+                        </div>
+
+                        <div className="text-xs text-gray-500 mt-1">{timeAgo}</div>
+                    </div>
+
+                    {/* Optional: Show reward image if available */}
+                    {event.reward.image && (
+                        <img
+                            src={event.reward.image}
+                            alt={event.reward.name}
+                            className="shrink-0 w-12 h-12 rounded-lg object-cover shadow-sm"
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        />
+                    )}
+                </div>
+            );
+        } else {
+            console.error("❌ Shop purchase missing required data - user:", event.user, "reward:", event.reward);
+        }
+    }
+
+    // FALLBACK
+    console.log("❌ Falling back to unknown activity type");
+    return (
         <div className="flex items-center space-x-4 p-3 sm:p-4 rounded-xl bg-gray-100/60">
-            <div className="text-gray-600 text-sm">Unknown activity type</div>
+            <div className="text-gray-600 text-sm">
+                Unknown activity type: {event.event_type}
+                <br />
+                <pre className="text-xs mt-2 p-2 bg-gray-200 rounded overflow-auto">
+                    {JSON.stringify(event, null, 2)}
+                </pre>
+            </div>
             <div className="text-xs text-gray-500">{timeAgo}</div>
         </div>
     );
