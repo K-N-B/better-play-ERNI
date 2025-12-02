@@ -36,6 +36,7 @@ import type { Difficulty } from "../../../pages/gamePage";
 import { getHint, getSudokuHintLimits } from "../../../api/gameService";
 import { useChallenges } from "../../../context/ChallengeContext";
 import { keyboardInputSudoku } from "./keyboardInputsSudoku";
+import { useAuth } from "@/hooks/authContext";
 
 import { calculateSpeedBonus } from "../../../utils/SpeedBonus"; // Import the utility function
 import { PotentialScoreBar } from "../../ui/potentialScoreBar";
@@ -129,6 +130,7 @@ export const SudokuGame = ({
   difficulty,
   challengeId,
 }: SudokuGameProps) => {
+  const { refreshUser } = useAuth();
   const { refreshChallenges } = useChallenges();
   const initialPuzzleString =
     difficulty === "easy"
@@ -449,6 +451,11 @@ export const SudokuGame = ({
         puzzle.date_to_be_used,
         puzzle.id
       );
+
+      if (submissionResult) {
+            console.log("Refetching user points...");
+            await refreshUser(); 
+        }
 
       finalScore = calculatedScore;
       submissionIdForResultModal = submissionResult.submissionId ?? null;

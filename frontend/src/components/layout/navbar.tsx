@@ -14,6 +14,19 @@ import { ChallengeIcon } from "../features/challenge/challengeIcon";
 import { Store, Star, Menu, X } from "lucide-react";
 import Tippy from "@tippyjs/react";
 import "tippy.js/dist/tippy.css";
+import { useState, useEffect } from 'react';
+import { useLocation, Link } from 'react-router-dom';
+import logo from '../../assets/logo.png';
+import PrimaryButton from '../ui/primaryButton';
+import UserProfileModal from '../features/userProfileModal';
+import { useAuth } from '../../hooks/authContext';
+import { navItems, shopNavStyle, notificationNavStyle } from '../../data/navItems'; // <-- IMPORT YOUR DATA
+import { ChallengeIcon } from '../features/challenge/challengeIcon';
+import { Store, Star, Menu, X } from 'lucide-react';
+import 'tippy.js/dist/tippy.css';
+
+import clsx from 'clsx';
+import CurrentPointsBar from '../ui/currentPointsBar';
 
 import clsx from "clsx";
 
@@ -142,6 +155,7 @@ export default function Navbar() {
                   </span>
                 </div>
               </Tippy>
+              <CurrentPointsBar currentPoints={currentPoints} />
             )}
 
             {/* Right: Profile button */}

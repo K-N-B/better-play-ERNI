@@ -44,6 +44,20 @@ vi.mock('../../../../api/gameService', () => ({
     getHint: vi.fn(),
 }));
 
+vi.mock('../../../../hooks/authContext', () => ({
+    useAuth: () => ({
+        // 2. Return dummy data that the Game component needs
+        user: {
+            id: 1,
+            username: 'TestUser',
+            current_points: 500
+        },
+        // 3. Mock the functions the game calls
+        refreshUser: vi.fn(),
+        isLoading: false,
+    }),
+}));
+
 describe('SudokuGame Component', () => {
     const mockPuzzle = {
         id: 1,
