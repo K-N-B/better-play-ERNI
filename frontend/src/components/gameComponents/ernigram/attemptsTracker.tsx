@@ -6,9 +6,12 @@ interface AttemptsTrackerProps {
 
 export const AttemptsTracker = ({ attemptsLeft }: AttemptsTrackerProps) => {
   return (
-    <div className="mb-4">
-      <p className="text-lg text-gray-700">
-        Guesses Left: <span className="font-bold text-xl text-red-600">{attemptsLeft}</span>
+    <div className="my-2 md:mb-4">
+      <p className="text-xs sm:text-lg text-gray-700">
+        Mistakes Left:{" "}
+        <span className="font-bold text-smmd:text-xl text-red-600">
+          {attemptsLeft}
+        </span>
       </p>
       {/* You could add a visual hangman SVG here */}
     </div>

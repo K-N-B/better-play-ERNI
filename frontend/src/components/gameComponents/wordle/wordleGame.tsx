@@ -27,7 +27,7 @@ import { useApi } from "../../../hooks/useApi";
 import { LoadingSpinner } from "../../ui/loadingSpinner";
 import type { Difficulty } from "../../../pages/gamePage";
 import { isValidWord } from "../../../services/wordValidator";
-
+import { useAuth } from "../../../hooks/authContext";
 import { useSound } from "../../../hooks/useSound";
 import click1 from "@/assets/sounds/keyboard_press_1.mp3";
 import click2 from "@/assets/sounds/keyboard_press_2.mp3";
@@ -49,6 +49,7 @@ export const WordleGame = ({
   difficulty,
   challengeId,
 }: WordleGameProps) => {
+  const { refreshUser } = useAuth();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const { refreshChallenges } = useChallenges();
@@ -343,6 +344,11 @@ export const WordleGame = ({
           puzzle.id
         );
 
+        if (submissionResult) {
+            console.log("Refetching user points...");
+            await refreshUser(); 
+        }
+
         finalScore = submissionResult.score;
         submissionIdForResultModal = submissionResult.submissionId ?? null;
 
@@ -505,13 +511,14 @@ export const WordleGame = ({
   // --- LOGIC ---
   const REAL_MAX_TRIES_BONUS = 100;
   const DEDUCTION_PER_EXTRA_TRY = 20;
-  
+
   // Calculate remaining bonus
   const deduction = currentRow * DEDUCTION_PER_EXTRA_TRY;
   const currentTriesBonus = Math.max(0, REAL_MAX_TRIES_BONUS - deduction);
 
   const maxPossibleScore = basePoints + REAL_MAX_TRIES_BONUS + 100; // Base + MaxTries + MaxSpeed
-  const currentPotentialScore = basePoints + currentTriesBonus + currentSpeedBonus;
+  const currentPotentialScore =
+    basePoints + currentTriesBonus + currentSpeedBonus;
 
   if (checkingSubmission || loading) {
     return <LoadingSpinner fullPage={true} />;
@@ -541,8 +548,8 @@ export const WordleGame = ({
         />
       )} */}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
-        <div className="place-content-center p-20 text-xl leading-6 bg-white h-full rounded-3xl">
+      <div className="grid grid-cols-1 lg:grid-cols-2 items-center md:p-4">
+        <div className="place-content-center py-2 md:p-20 text-lg md:text-xl leading-6 bg-white h-full rounded-3xl order-3 lg:order-1">
           <WordleGrid
             guesses={guesses}
             currentGuess={currentGuess}
@@ -556,27 +563,40 @@ export const WordleGame = ({
           )}
         </div>
 
-        <div className="place-content-center p-20 text-xl leading-5">
-          <div className="flex justify-between mb-6">
+        <div className="contents lg:flex lg:flex-col lg:place-content-center p-0 lg:p-20 text-xl leading-5 lg:order-2">
+          <div className="flex justify-between lg:mb-6 order-1 lg:order-none mb-2 lg:p-0">
             <div>
-              <h1 className="text-4xl font-bold">Wordle</h1>
-              <p>on {difficulty} difficulty</p>
+              <h1 className="text-xl lg:text-4xl font-bold">Wordle</h1>
+              <p className="text-sm lg:text-base text-gray-600 flex md:hidden">
+                {difficulty} diff.
+              </p>
+              <p className="text-sm lg:text-base text-gray-600 hidden md:flex">
+                on {difficulty} difficulty
+              </p>
             </div>
-            <Timer timeMs={time} />
+            <div className="flex justify-between gap-4">
+              <Timer timeMs={time} />
+            </div>
           </div>
-
-          <PotentialScoreBar
-            currentScore={currentPotentialScore}
-            maxScore={maxPossibleScore}
-            basePoints={basePoints}
-            speedBonus={currentSpeedBonus}
-            // Bonus Configuration
-            bonusOrPenaltyValue={currentTriesBonus}
-            bonusOrPenaltyLabel="Tries Bonus"
-            color="bg-green-600"
-          />
-
-          <div className={isGameOver ? "opacity-50 pointer-events-none" : ""}>
+          <div className="order-2 lg:order-none md:px-0  lg:p-0">
+            <PotentialScoreBar
+              currentScore={currentPotentialScore}
+              maxScore={maxPossibleScore}
+              basePoints={basePoints}
+              speedBonus={currentSpeedBonus}
+              // Bonus Configuration
+              bonusOrPenaltyValue={currentTriesBonus}
+              bonusOrPenaltyLabel="Tries Bonus"
+              color="bg-green-600"
+            />
+          </div>
+          <div
+            className={
+              isGameOver
+                ? "order-4 lg:order-none mt-5 lg:mt-0 lg:p-0 opacity-50 pointer-events-none"
+                : "order-4 lg:order-none mt-5 lg:mt-0 lg:p-0"
+            }
+          >
             <Keyboard
               onKeyPress={handleKeyPress}
               letterStatuses={letterStatuses}

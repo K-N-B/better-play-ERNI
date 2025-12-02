@@ -36,10 +36,11 @@ import type { Difficulty } from "../../../pages/gamePage";
 import { getHint, getSudokuHintLimits } from "../../../api/gameService";
 import { useChallenges } from "../../../context/ChallengeContext";
 import { keyboardInputSudoku } from "./keyboardInputsSudoku";
+import { useAuth } from "@/hooks/authContext";
 
 import { calculateSpeedBonus } from "../../../utils/SpeedBonus"; // Import the utility function
 import { PotentialScoreBar } from "../../ui/potentialScoreBar";
-
+import { Check, HandHelping, HeartHandshake, LucideLifeBuoy, Search } from "lucide-react";
 // Helper Functions
 const parseGrid = (puzzleString: string): SudokuCell[][] => {
   return Array.from({ length: 9 }, (_, r) =>
@@ -129,6 +130,7 @@ export const SudokuGame = ({
   difficulty,
   challengeId,
 }: SudokuGameProps) => {
+  const { refreshUser } = useAuth();
   const { refreshChallenges } = useChallenges();
   const initialPuzzleString =
     difficulty === "easy"
@@ -450,6 +452,11 @@ export const SudokuGame = ({
         puzzle.id
       );
 
+      if (submissionResult) {
+            console.log("Refetching user points...");
+            await refreshUser(); 
+        }
+
       finalScore = calculatedScore;
       submissionIdForResultModal = submissionResult.submissionId ?? null;
 
@@ -657,8 +664,9 @@ export const SudokuGame = ({
   const maxPossibleScore = basePoints + 100;
 
   // Current Score subtracts the penalty
-  const currentPotentialScore = Math.max(0, (basePoints) - currentHintPenalty) + currentSpeedBonus;
-  
+  const currentPotentialScore =
+    Math.max(0, basePoints - currentHintPenalty) + currentSpeedBonus;
+
   if (checkingSubmission || loading || configLoading) {
     return <LoadingSpinner fullPage={true} />;
   }
@@ -679,70 +687,109 @@ export const SudokuGame = ({
 
   return (
     <>
-      {/* {showResumeModal && (
-        <ResumeGameModal
-          guessCount={filledCells}
-          maxGuesses={totalCells}
-          puzzleDate={puzzle.date_to_be_used}
-          puzzleNumber={puzzle.id}
-          editor="ERNI Team"
-          onContinue={handleContinue}
-        />
-      )} */}
+      
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 items-center p-4">
-        <div className="w-full flex justify-center items-center p-10 sm:p-15 bg-white rounded-3xl shadow-sm">
+      <div className="grid grid-cols-1 lg:grid-cols-2 items-center md:p-4">
+        <div className="w-full flex justify-center items-center p-2 md:p-15 bg-white rounded-3xl shadow-sm order-3 lg:order-1">
           <SudokuGrid
             grid={grid}
             selectedCell={selectedCell}
             onCellClick={handleCellClick}
           />
         </div>
-        <div className="place-content-center p-20 text-xl leading-5">
-          <div className="flex justify-between mb-6">
+        <div className="contents lg:flex lg:flex-col lg:place-content-center p-4 lg:px-15 text-xl leading-5 lg:order-2">
+          <div className="flex justify-between items-center mb-2 lg:mb-6 order-1 lg:order-0 lg:p-0">
+            {/* Title Section */}
             <div>
-              <h1 className="text-4xl font-bold">Sudoku</h1>
-              <p>on {difficulty} difficulty</p>
+              <h1 className="text-xl md:text-4xl font-bold">Sudoku</h1>
+              <p className="text-sm lg:text-base text-gray-600 flex md:hidden">
+                {difficulty} diff.
+              </p>
+              <p className="text-sm lg:text-base text-gray-600 hidden md:flex">
+                on {difficulty} difficulty
+              </p>
             </div>
-            <Timer timeMs={time} />
+
+            {/* Mobile Controls (Hidden on MD and up) */}
+            <div className="flex flex-row h-full">
+              <div className="flex md:hidden flex-row items-center gap-3">
+                <button
+                  onClick={handleGetHint}
+                  disabled={isGameOver || hintsUsed >= maxHints}
+                  className="flex items-center justify-center gap-1 h-10 px-3 bg-yellow-500 shadow-yellow-700 text-white text-xs font-bold rounded-lg shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <HandHelping size={20} strokeWidth={2.5} className="text-white" />
+                  <span>
+                    ({hintsUsed}/{maxHints})
+                  </span>
+                </button>
+
+                <button
+                  onClick={handleSubmit}
+                  disabled={isGameOver}
+                  className="flex items-center justify-center h-10 w-10 bg-green-600 shadow-green-900 text-white text-xs font-bold rounded-lg shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Check size={20} strokeWidth={2.5} className="text-white" />
+                </button>
+              </div>
+              {/* Timer Section */}
+              <Timer timeMs={time} />
+            </div>
+          </div>
+          <div className="order-2 lg:order-0 ">
+            <PotentialScoreBar
+              currentScore={currentPotentialScore}
+              maxScore={maxPossibleScore}
+              basePoints={basePoints}
+              speedBonus={currentSpeedBonus}
+              // Penalty Configuration
+              bonusOrPenaltyValue={currentHintPenalty}
+              bonusOrPenaltyLabel="Hint Penalty"
+              isPenalty={true} // Label specifically for Sudoku
+              color="bg-pink-400"
+            />
           </div>
 
-          <PotentialScoreBar
-            currentScore={currentPotentialScore}
-            maxScore={maxPossibleScore}
-            basePoints={basePoints}
-            speedBonus={currentSpeedBonus}
-            // Penalty Configuration
-            bonusOrPenaltyValue={currentHintPenalty}
-            bonusOrPenaltyLabel="Hint Penalty"   
-            isPenalty={true}   // Label specifically for Sudoku
-            color="bg-pink-400"
-          />
+          {/* --- NEW WRAPPER FOR NUMPAD + SIDE BUTTONS --- */}
+          {/* WRAPPER: Aligns Numpad and Action Buttons */}
+          {/* FIX: added 'items-center' for mobile centering, kept 'md:items-start' for desktop top-alignment */}
+          <div className="flex flex-col items-center md:flex-row md:items-start justify-center flex-wrap xl:flex-nowrap gap-4 mt-4 order-4 lg:order-0">
+            
+            {/* Left Side: Number Pad */}
+            <NumberPad
+              isNoteMode={isNoteMode}
+              onNoteToggle={() => !isGameOver && setIsNoteMode(!isNoteMode)}
+              onNumberClick={handleNumberClick}
+              onEraseClick={handleEraseClick}
+              // Optional: ensure text inside the pad doesn't skew left if the grid is smaller than container
+              className="justify-items-center" 
+            />
 
-          <NumberPad
-            isNoteMode={isNoteMode}
-            onNoteToggle={() => !isGameOver && setIsNoteMode(!isNoteMode)}
-            onNumberClick={handleNumberClick}
-            onEraseClick={handleEraseClick}
-          />
+            {/* Right Side: Desktop Buttons */}
+            <div className="hidden md:flex flex-row xl:flex-col gap-3 w-full md:w-auto xl:w-32 shrink-0 items-center xl:justify-between">
+              
+              {/* HINT BUTTON */}
+              <button
+                onClick={handleGetHint}
+                disabled={isGameOver || hintsUsed >= maxHints}
+                className="h-10 lg:h-12 sm:h-14 w-full md:w-32 bg-yellow-500 shadow-yellow-700 text-white px-2 text-sm lg:text-md font-bold rounded-lg shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+              >
+                <HandHelping size={20} strokeWidth={3} className="text-white" />
+                <span>Hint ({hintsUsed}/{maxHints})</span>
+              </button>
 
-          <div className="grid grid-cols-2 gap-4 mt-2">
-            <button
-              onClick={handleGetHint}
-              disabled={isGameOver || hintsUsed >= maxHints}
-              className="mt-6 px-8 py-3 bg-yellow-500 shadow-yellow-700 text-white font-bold rounded-lg shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Hint ({hintsUsed}/{maxHints})
-            </button>
-
-            <button
-              onClick={handleSubmit}
-              disabled={isGameOver}
-              className="mt-6 px-8 py-3 bg-green-600 shadow-green-900 text-white font-bold rounded-lg shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Submit
-            </button>
+              {/* SUBMIT BUTTON */}
+              <button
+                onClick={handleSubmit}
+                disabled={isGameOver}
+                className="h-10 lg:h-12 sm:h-14 w-full md:w-32 bg-green-600 shadow-green-900 text-white px-2 text-sm lg:text-md font-bold rounded-lg shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+              >
+                <Check size={20} strokeWidth={3} className="text-white" />
+                Done
+              </button>
+            </div>
           </div>
+          {/* --- END WRAPPER --- */}
 
           {gameResult && (
             <PostGameResultsModal

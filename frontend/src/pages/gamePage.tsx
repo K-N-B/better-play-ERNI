@@ -1,4 +1,4 @@
-// frontend/src/pages/gamePage.tsx - COMPLETE FILE WITH DIFFICULTY FIX
+// frontend/src/pages/gamePage.tsx
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, Navigate, useSearchParams } from "react-router-dom";
 import { useApi } from "../hooks/useApi";
@@ -27,8 +27,7 @@ const introContent = {
     title: "Wordle",
     description: "Guess the hidden <strong>5-letter word</strong>.",
     howToPlay: `You have a set number of tries to guess the word.\nType a 5-letter word and press Enter.\nTiles change color to show how close your guess was:\n<strong class="text-emerald-500">Green</strong>: Correct letter, correct spot.\n<strong class="text-yellow-400">Yellow</strong>: Correct letter, wrong spot.\n<strong class="text-gray-600">Gray</strong>: Letter not in the word.`,
-    pointsInfo:
-      "Points are all about how well (and how fast!) you play.",
+    pointsInfo: "Points are all about how well (and how fast!) you play.",
     pointsCalculation:
       "You’ll get <strong>100pts</strong> for completing Easy and <strong>200pts</strong> for Hard. On top of that, you get <strong>20pts</strong> for each try that you didn't use up, and a speed bonus if you're up for the challenge! Play smart, play fast — and watch your score climb up the leaderboard!",
     hintInfo: "Hard mode make you guess a longer word!",
@@ -86,15 +85,19 @@ const hasResumableProgress = (
 
     case "sudoku": {
       const sudokuProgress = attempt.progress_data as any;
+      // Safety check: ensure grid exists
+      if (!sudokuProgress || !sudokuProgress.grid) return false;
+      
       // Check if any cell in any row is non-empty
-      const hasAnyCellFilled = sudokuProgress?.grid?.some((row: any[]) =>
+      const hasAnyCellFilled = sudokuProgress.grid.some((row: any[]) =>
         row.some((cell) => cell !== null && cell !== 0)
       );
       return hasAnyCellFilled ?? false;
     }
 
     case "ernigram": {
-      const ernigramProgress = attempt.progress_data as any; // use ErnigramProgress type if defined
+      const ernigramProgress = attempt.progress_data as any; 
+      // Safety check for undefined progress
       return (
         !!ernigramProgress?.guessedLetters?.length &&
         !ernigramProgress?.isGameOver
@@ -158,8 +161,6 @@ export const GamePage = () => {
   useEffect(() => {
     if (!challengeId) {
       setHasStarted(false);
-      setSelectedDifficulty("easy");
-      setLockedDifficulty(null);
     } else {
       if (difficultyFromUrl) {
         setSelectedDifficulty(difficultyFromUrl);
@@ -178,21 +179,26 @@ export const GamePage = () => {
       return;
     }
 
-    if (hasStarted && !challengeId) {
-      return;
-    }
-
     setIsChecking(true);
 
-    const puzzlesToCheck: { diff: Difficulty; puzzle: any }[] = [
-      { diff: "easy", puzzle: (puzzles as any)[`${gameType}_easy`] },
-      { diff: "hard", puzzle: (puzzles as any)[`${gameType}_hard`] },
-    ];
+    // Initialize list of puzzles to check
+    const puzzlesToCheck: { diff: Difficulty; puzzle: any }[] = [];
 
-    if (gameType === "sudoku" || gameType === "ernigram") {
-      puzzlesToCheck[0].puzzle = (puzzles as any)[gameType];
-      puzzlesToCheck[1].puzzle = null;
+    // --- FIX STARTS HERE ---
+    // Specifically map game types to the correct object structure in 'puzzles'
+    if (gameType === "wordle") {
+      puzzlesToCheck.push(
+        { diff: "easy", puzzle: (puzzles as any).wordle_easy },
+        { diff: "hard", puzzle: (puzzles as any).wordle_hard }
+      );
+    } else if (gameType === "sudoku") {
+      // Sudoku usually has one puzzle object for the day
+      puzzlesToCheck.push({ diff: "easy", puzzle: (puzzles as any).sudoku });
+    } else if (gameType === "ernigram") {
+      // Ernigram usually has one puzzle object for the day
+      puzzlesToCheck.push({ diff: "easy", puzzle: (puzzles as any).ernigram });
     }
+    // --- FIX ENDS HERE ---
 
     const checkAll = async () => {
       let submission = null;
@@ -203,6 +209,7 @@ export const GamePage = () => {
         for (const { diff, puzzle } of puzzlesToCheck) {
           if (!puzzle) continue;
 
+          // 1. Check if submitted
           try {
             const subResult = await checkSubmissionExists(
               gameType,
@@ -212,8 +219,12 @@ export const GamePage = () => {
 
             if (subResult && subResult.hasSubmitted) {
               submission = subResult;
-              diffLock = diff;
-
+              diffLock = diff; 
+              // For Sudoku/Ernigram, the 'diff' pushed above is just a placeholder ("easy"),
+              // but valid submission data usually contains the actual played difficulty.
+              if (submission.difficulty) {
+                 diffLock = submission.difficulty as Difficulty;
+              }
               break;
             }
           } catch (err) {
@@ -223,6 +234,7 @@ export const GamePage = () => {
             );
           }
 
+          // 2. Check if attempted (resumable)
           try {
             const attemptResult = await getSavedAttempt(
               gameType,
@@ -236,7 +248,8 @@ export const GamePage = () => {
             ) {
               attempt = attemptResult;
               diffLock = diff;
-
+              // If attempt stores difficulty, we could use it, but usually the 
+              // resume screen handles displaying the correct state regardless of this lock.
               break;
             }
           } catch (err) {
@@ -247,8 +260,9 @@ export const GamePage = () => {
         setFoundSubmission(submission);
         setFoundAttempt(attempt);
 
-        if (!challengeId) {
+        if (!challengeId && diffLock) {
           setLockedDifficulty(diffLock);
+          setSelectedDifficulty(diffLock);
         }
 
         setCheckError(null);
@@ -358,7 +372,7 @@ export const GamePage = () => {
           guessCount={
             gameType === "wordle"
               ? (foundAttempt.progress_data as WordleProgress)?.guesses
-                ?.length || 0
+                  ?.length || 0
               : 0
           }
           maxGuesses={6}
@@ -390,13 +404,13 @@ export const GamePage = () => {
             {/* This button is passed as a child and rendered by GameIntro on mobile */}
             <button
               onClick={() => setShowInstructions(true)}
-              className={`font-semibold text-primary text-xl leading-none px-4 py-4 rounded-full ${introData.color} ${introData.darkColor} text-white shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all`}
+              className={`font-semibold text-primary text-xl leading-none p-3 md:p-4 rounded-full ${introData.color} ${introData.darkColor} text-white shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all`}
             >
               <CircleQuestionMark size={30} strokeWidth={2.5} />
             </button>
             <button
               onClick={() => setShowPointsComputation(true)}
-              className={`font-semibold text-primary text-xl leading-none px-4 ms-4 py-4 rounded-full ${introData.color} ${introData.darkColor} text-white shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all`}
+              className={`font-semibold text-primary text-xl leading-none ms-4 p-3 md:p-4 rounded-full ${introData.color} ${introData.darkColor} text-white shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all`}
             >
               <Star size={30} strokeWidth={2.5} />
             </button>
@@ -467,9 +481,9 @@ export const GamePage = () => {
           >
             <button
               onClick={() => setShowPointsComputation(true)}
-              className={`font-semibold text-primary text-xl leading-none px-5 py-3 rounded-full ${introData.color} ${introData.darkColor} text-white shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all`}
+              className={`font-semibold text-primary text-sm md:text-xl leading-none px-3 py-0 md:px-5 md:py-3 rounded-full ${introData.color} ${introData.darkColor} text-white shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all`}
             >
-              <Star size={24} strokeWidth={2.5} />
+              <Star size={25} strokeWidth={2.5} />
             </button>
           </GameComponent>
 
@@ -487,7 +501,7 @@ export const GamePage = () => {
 
   return (
     <div
-      className={`container mx-auto h-full w-full shadow-md rounded-4xl p-4 sm:p-8 md:p-12 ${introData.bgColor}`}
+      className={`container md:mx-auto h-full w-full shadow-md rounded-4xl p-6 sm:p-8 md:p-12 ${introData.bgColor}`}
     >
       {content}
     </div>

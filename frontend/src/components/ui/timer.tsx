@@ -1,15 +1,11 @@
-// A simple display component that uses the useTimer hook to show the elapsed time.
-
-import { Clock } from 'lucide-react';
+import { Clock } from "lucide-react";
 
 // Helper function to format milliseconds into MM:SS
 const formatTime = (timeMs: number) => {
   const totalSeconds = Math.floor(timeMs / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-
-  // padStart ensures it's "02:05" instead of "2:5"
-  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 };
 
 interface TimerProps {
@@ -18,9 +14,11 @@ interface TimerProps {
 
 export const Timer = ({ timeMs }: TimerProps) => {
   return (
-    <div className="flex items-center justify-center space-x-2 bg-white p-3 rounded-2xl shadow-inner">
-      <Clock className="text-black" size={20} />
-      <span className="text-xl font-semibold text-gray-800 tabular-nums">
+    // FIX: Removed 'w-20'. Added 'w-auto' and 'px-4' for better breathing room.
+    <div className="flex items-center justify-center w-auto min-w-fit space-x-2 bg-white px-4 py-2 ml-2 self-stretch rounded-xl shadow-sm border border-gray-100">
+      <Clock className="text-black" size={16} strokeWidth={2.5} />
+      {/* whitespace-nowrap ensures the time never wraps to a new line */}
+      <span className="text-sm md:text-xl font-semibold text-gray-800 tabular-nums whitespace-nowrap">
         {formatTime(timeMs)}
       </span>
     </div>
