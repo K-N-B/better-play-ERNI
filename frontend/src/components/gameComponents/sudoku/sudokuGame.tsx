@@ -40,7 +40,7 @@ import { useAuth } from "@/hooks/authContext";
 
 import { calculateSpeedBonus } from "../../../utils/SpeedBonus"; // Import the utility function
 import { PotentialScoreBar } from "../../ui/potentialScoreBar";
-
+import { Check, HandHelping, HeartHandshake, LucideLifeBuoy, Search } from "lucide-react";
 // Helper Functions
 const parseGrid = (puzzleString: string): SudokuCell[][] => {
   return Array.from({ length: 9 }, (_, r) =>
@@ -707,14 +707,45 @@ export const SudokuGame = ({
           />
         </div>
         <div className="contents lg:flex lg:flex-col lg:place-content-center lg:p-20 text-xl leading-5 lg:order-2">
-          <div className="flex justify-between lg:mb-6 order-1 lg:order-none mb-2 lg:p-0">
+          <div className="flex justify-between items-center mb-2 lg:mb-6 order-1 lg:order-0 lg:p-0">
+            {/* Title Section */}
             <div>
-              <h1 className="text-xl lg:text-4xl font-bold">Sudoku</h1>
-              <p className="text-sm lg:text-base">on {difficulty} difficulty</p>
+              <h1 className="text-xl md:text-4xl font-bold">Sudoku</h1>
+              <p className="text-sm lg:text-base text-gray-600 flex md:hidden">
+                {difficulty}
+              </p>
+              <p className="text-sm lg:text-base text-gray-600 hidden md:flex">
+                on {difficulty} difficulty
+              </p>
             </div>
-            <Timer timeMs={time} />
+
+            {/* Mobile Controls (Hidden on MD and up) */}
+            <div className="flex flex-row h-full">
+              <div className="flex md:hidden flex-row items-center gap-3">
+                <button
+                  onClick={handleGetHint}
+                  disabled={isGameOver || hintsUsed >= maxHints}
+                  className="flex items-center justify-center gap-1 h-10 px-3 bg-yellow-500 shadow-yellow-700 text-white text-xs font-bold rounded-lg shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <HandHelping size={20} strokeWidth={2.5} className="text-white" />
+                  <span>
+                    ({hintsUsed}/{maxHints})
+                  </span>
+                </button>
+
+                <button
+                  onClick={handleSubmit}
+                  disabled={isGameOver}
+                  className="flex items-center justify-center h-10 w-10 bg-green-600 shadow-green-900 text-white text-xs font-bold rounded-lg shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Check size={20} strokeWidth={2.5} className="text-white" />
+                </button>
+              </div>
+              {/* Timer Section */}
+              <Timer timeMs={time} />
+            </div>
           </div>
-          <div className="order-2 lg:order-none px-10 md:px-0 lg:p-0">
+          <div className="order-2 lg:order-0 ">
             <PotentialScoreBar
               currentScore={currentPotentialScore}
               maxScore={maxPossibleScore}
@@ -727,31 +758,47 @@ export const SudokuGame = ({
               color="bg-pink-400"
             />
           </div>
-          <div className="order-4 lg:order-none lg:p-0 gap-1.5">
+
+          {/* --- NEW WRAPPER FOR NUMPAD + SIDE BUTTONS --- */}
+          {/* WRAPPER: Aligns Numpad and Action Buttons */}
+          {/* FIX: added 'items-center' for mobile centering, kept 'md:items-start' for desktop top-alignment */}
+          <div className="flex flex-col items-center md:flex-row md:items-start justify-center gap-2 md:gap-4 mt-4 order-4 lg:order-none">
+            
+            {/* Left Side: Number Pad */}
             <NumberPad
               isNoteMode={isNoteMode}
               onNoteToggle={() => !isGameOver && setIsNoteMode(!isNoteMode)}
               onNumberClick={handleNumberClick}
               onEraseClick={handleEraseClick}
+              // Optional: ensure text inside the pad doesn't skew left if the grid is smaller than container
+              className="justify-items-center" 
             />
-          </div>
 
-          <div className="flex flex-row justify-evenly items-center gap-4 order-5 lg:order-none md:mt-5 lg:p-0">
-            <button
-              onClick={handleGetHint}
-              disabled={isGameOver || hintsUsed >= maxHints}
-              className="my-4 w-30 py-2 md:px-4 md:py-3 lg:mt-6  bg-yellow-500 shadow-yellow-700 text-white text-md md:text-lg lg:text-lg font-bold rounded-lg shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Hint({hintsUsed}/{maxHints})
-            </button>
-            <button
-              onClick={handleSubmit}
-              disabled={isGameOver}
-              className="my-4 w-30 py-2 md:px-4 md:py-3 lg:mt-6 bg-green-600 shadow-green-900 text-white text-md md:text-lg lg:text-lg font-bold rounded-lg shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed "
-            >
-              Submit
-            </button>
+            {/* Right Side: Desktop Buttons */}
+            <div className="hidden md:flex flex-col gap-2 md:gap-4 w-full md:w-auto">
+              
+              {/* HINT BUTTON */}
+              <button
+                onClick={handleGetHint}
+                disabled={isGameOver || hintsUsed >= maxHints}
+                className="h-10 lg:h-12 sm:h-14 w-full md:w-32 bg-yellow-500 shadow-yellow-700 text-white px-2 text-sm lg:text-md font-bold rounded-lg shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+              >
+                <HandHelping size={20} strokeWidth={3} className="text-white" />
+                <span>Hint ({hintsUsed}/{maxHints})</span>
+              </button>
+
+              {/* SUBMIT BUTTON */}
+              <button
+                onClick={handleSubmit}
+                disabled={isGameOver}
+                className="h-10 lg:h-12 sm:h-14 w-full md:w-32 bg-green-600 shadow-green-900 text-white px-2 text-sm lg:text-md font-bold rounded-lg shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+              >
+                <Check size={20} strokeWidth={3} className="text-white" />
+                Done
+              </button>
+            </div>
           </div>
+          {/* --- END WRAPPER --- */}
 
           {gameResult && (
             <PostGameResultsModal

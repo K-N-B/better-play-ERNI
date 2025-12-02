@@ -18,9 +18,9 @@ interface TimerProps {
 
 export const Timer = ({ timeMs }: TimerProps) => {
   return (
-    <div className="flex items-center justify-center space-x-2 bg-white p-3 ml-2 md:ml-0 rounded-2xl shadow-inner">
-      <Clock className="text-black" size={20} />
-      <span className="text-sm lg:text-xl font-semibold text-gray-800 tabular-nums">
+    <div className="flex items-center w-20 justify-center space-x-2 bg-white px-3 py-2 ml-2 self-stretch rounded-xl">
+      <Clock className="text-black" size={25} strokeWidth={2.5}/>
+      <span className="text-sm md:text-xl font-semibold text-gray-800 tabular-nums">
         {formatTime(timeMs)}
       </span>
     </div>
