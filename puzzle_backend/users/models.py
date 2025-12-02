@@ -25,7 +25,6 @@ class User(AbstractUser):
     # ========== ROLE SYSTEM (NEW) ==========
     class Role(models.TextChoices):
         """Define all available roles in the system"""
-        SUPER_ADMIN = 'SUPER_ADMIN', 'Super Admin'
         CONTENT_ADMIN = 'CONTENT_ADMIN', 'Content Admin'
         MODERATOR = 'MODERATOR', 'Moderator'
         SHOP_MANAGER = 'SHOP_MANAGER', 'Shop Manager'
@@ -142,20 +141,18 @@ class User(AbstractUser):
         return self.role == self.Role.SHOP_MANAGER or self.is_superuser
     
     def has_admin_access(self):
-        """Check if user should have ANY access to Django admin"""
-        return (
-            self.is_superuser or 
-            self.role in [
-                self.Role.CONTENT_ADMIN,
-                self.Role.MODERATOR,
-                self.Role.SHOP_MANAGER
-            ]
-        )
+        """Check if user has any admin role OR is superuser"""
+        if self.is_superuser:
+            return True
+        return self.role in [
+            self.Role.CONTENT_ADMIN,
+            self.Role.MODERATOR,
+            self.Role.SHOP_MANAGER,
+        ]
     
     def get_role_display_with_icon(self):
         """Get role display name with emoji for admin interface"""
         role_icons = {
-            self.Role.SUPER_ADMIN: '👑',
             self.Role.CONTENT_ADMIN: '🎮',
             self.Role.MODERATOR: '🛡️',
             self.Role.SHOP_MANAGER: '🏪',
