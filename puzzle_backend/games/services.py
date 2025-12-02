@@ -673,7 +673,7 @@ def _generate_daily_puzzles_inner(target_date: datetime.date = None) -> DailyPuz
         sudoku_data = generate_sudoku_puzzle_data(target_date)  # From api_client.py
         ernigram_data = generate_ernigram_puzzle_data(target_date)  # From local func above
 
-        # connection.close()
+       
         # 4. Create/Get the puzzle objects in the database
 
         # Wordle Easy/Hard updates
