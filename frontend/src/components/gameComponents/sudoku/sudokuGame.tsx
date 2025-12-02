@@ -687,16 +687,7 @@ export const SudokuGame = ({
 
   return (
     <>
-      {/* {showResumeModal && (
-        <ResumeGameModal
-          guessCount={filledCells}
-          maxGuesses={totalCells}
-          puzzleDate={puzzle.date_to_be_used}
-          puzzleNumber={puzzle.id}
-          editor="ERNI Team"
-          onContinue={handleContinue}
-        />
-      )} */}
+      
 
       <div className="grid grid-cols-1 lg:grid-cols-2 items-center md:p-4">
         <div className="w-full flex justify-center items-center p-2 md:p-15 bg-white rounded-3xl shadow-sm order-3 lg:order-1">
@@ -706,7 +697,7 @@ export const SudokuGame = ({
             onCellClick={handleCellClick}
           />
         </div>
-        <div className="contents lg:flex lg:flex-col lg:place-content-center lg:p-20 text-xl leading-5 lg:order-2">
+        <div className="contents lg:flex lg:flex-col lg:place-content-center p-4 lg:px-15 text-xl leading-5 lg:order-2">
           <div className="flex justify-between items-center mb-2 lg:mb-6 order-1 lg:order-0 lg:p-0">
             {/* Title Section */}
             <div>
@@ -762,7 +753,7 @@ export const SudokuGame = ({
           {/* --- NEW WRAPPER FOR NUMPAD + SIDE BUTTONS --- */}
           {/* WRAPPER: Aligns Numpad and Action Buttons */}
           {/* FIX: added 'items-center' for mobile centering, kept 'md:items-start' for desktop top-alignment */}
-          <div className="flex flex-col items-center md:flex-row md:items-start justify-center gap-2 md:gap-4 mt-4 order-4 lg:order-none">
+          <div className="flex flex-col items-center md:flex-row md:items-start justify-center flex-wrap xl:flex-nowrap gap-4 mt-4 order-4 lg:order-0">
             
             {/* Left Side: Number Pad */}
             <NumberPad
@@ -775,7 +766,7 @@ export const SudokuGame = ({
             />
 
             {/* Right Side: Desktop Buttons */}
-            <div className="hidden md:flex flex-col gap-2 md:gap-4 w-full md:w-auto">
+            <div className="hidden md:flex flex-row xl:flex-col gap-3 w-full md:w-auto xl:w-32 shrink-0 items-center xl:justify-between">
               
               {/* HINT BUTTON */}
               <button
