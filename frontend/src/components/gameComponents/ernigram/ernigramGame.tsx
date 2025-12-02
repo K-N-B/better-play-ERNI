@@ -28,6 +28,7 @@ import { useApi } from "../../../hooks/useApi";
 import { LoadingSpinner } from "../../ui/loadingSpinner";
 import type { Difficulty } from "../../../pages/gamePage";
 import { API_URL } from "../../../api/authService";
+import { useAuth } from "@/hooks/authContext";
 import clsx from "clsx";
 
 import click1 from "@/assets/sounds/keyboard_press_1.mp3";
@@ -58,6 +59,7 @@ export const ErnigramGame = ({
   dailyPuzzleDate,
   children,
 }: ErnigramGameProps) => {
+  const { refreshUser } = useAuth();
   const { refreshChallenges } = useChallenges();
   const [solution] = useState(puzzle.solution_phrase.toUpperCase());
   const maxAttemptsForDifficulty = MAX_ATTEMPTS(difficulty);
@@ -362,6 +364,11 @@ export const ErnigramGame = ({
           dailyPuzzleDate,
           puzzle.id
         );
+
+        if (submissionResult) {
+          console.log("Refetching user points...");
+          await refreshUser();
+        }
 
         finalScore = submissionResult.score; // Trust backend score
         submissionIdForResultModal = submissionResult.submissionId ?? null;
