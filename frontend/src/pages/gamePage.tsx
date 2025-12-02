@@ -1,4 +1,4 @@
-// frontend/src/pages/gamePage.tsx - COMPLETE FILE WITH DIFFICULTY FIX
+// frontend/src/pages/gamePage.tsx
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, Navigate, useSearchParams } from "react-router-dom";
 import { useApi } from "../hooks/useApi";
@@ -85,15 +85,19 @@ const hasResumableProgress = (
 
     case "sudoku": {
       const sudokuProgress = attempt.progress_data as any;
+      // Safety check: ensure grid exists
+      if (!sudokuProgress || !sudokuProgress.grid) return false;
+      
       // Check if any cell in any row is non-empty
-      const hasAnyCellFilled = sudokuProgress?.grid?.some((row: any[]) =>
+      const hasAnyCellFilled = sudokuProgress.grid.some((row: any[]) =>
         row.some((cell) => cell !== null && cell !== 0)
       );
       return hasAnyCellFilled ?? false;
     }
 
     case "ernigram": {
-      const ernigramProgress = attempt.progress_data as any; // use ErnigramProgress type if defined
+      const ernigramProgress = attempt.progress_data as any; 
+      // Safety check for undefined progress
       return (
         !!ernigramProgress?.guessedLetters?.length &&
         !ernigramProgress?.isGameOver
@@ -177,15 +181,24 @@ export const GamePage = () => {
 
     setIsChecking(true);
 
-    const puzzlesToCheck: { diff: Difficulty; puzzle: any }[] = [
-      { diff: "easy", puzzle: (puzzles as any)[`${gameType}_easy`] },
-      { diff: "hard", puzzle: (puzzles as any)[`${gameType}_hard`] },
-    ];
+    // Initialize list of puzzles to check
+    const puzzlesToCheck: { diff: Difficulty; puzzle: any }[] = [];
 
-    if (gameType === "sudoku" || gameType === "ernigram") {
-      puzzlesToCheck[0].puzzle = (puzzles as any)[`${gameType}_easy`];
-      puzzlesToCheck[1].puzzle = (puzzles as any)[`${gameType}_hard`];
+    // --- FIX STARTS HERE ---
+    // Specifically map game types to the correct object structure in 'puzzles'
+    if (gameType === "wordle") {
+      puzzlesToCheck.push(
+        { diff: "easy", puzzle: (puzzles as any).wordle_easy },
+        { diff: "hard", puzzle: (puzzles as any).wordle_hard }
+      );
+    } else if (gameType === "sudoku") {
+      // Sudoku usually has one puzzle object for the day
+      puzzlesToCheck.push({ diff: "easy", puzzle: (puzzles as any).sudoku });
+    } else if (gameType === "ernigram") {
+      // Ernigram usually has one puzzle object for the day
+      puzzlesToCheck.push({ diff: "easy", puzzle: (puzzles as any).ernigram });
     }
+    // --- FIX ENDS HERE ---
 
     const checkAll = async () => {
       let submission = null;
@@ -196,6 +209,7 @@ export const GamePage = () => {
         for (const { diff, puzzle } of puzzlesToCheck) {
           if (!puzzle) continue;
 
+          // 1. Check if submitted
           try {
             const subResult = await checkSubmissionExists(
               gameType,
@@ -205,8 +219,12 @@ export const GamePage = () => {
 
             if (subResult && subResult.hasSubmitted) {
               submission = subResult;
-              diffLock = diff;
-
+              diffLock = diff; 
+              // For Sudoku/Ernigram, the 'diff' pushed above is just a placeholder ("easy"),
+              // but valid submission data usually contains the actual played difficulty.
+              if (submission.difficulty) {
+                 diffLock = submission.difficulty as Difficulty;
+              }
               break;
             }
           } catch (err) {
@@ -216,6 +234,7 @@ export const GamePage = () => {
             );
           }
 
+          // 2. Check if attempted (resumable)
           try {
             const attemptResult = await getSavedAttempt(
               gameType,
@@ -229,7 +248,8 @@ export const GamePage = () => {
             ) {
               attempt = attemptResult;
               diffLock = diff;
-
+              // If attempt stores difficulty, we could use it, but usually the 
+              // resume screen handles displaying the correct state regardless of this lock.
               break;
             }
           } catch (err) {
@@ -240,8 +260,9 @@ export const GamePage = () => {
         setFoundSubmission(submission);
         setFoundAttempt(attempt);
 
-        if (!challengeId) {
+        if (!challengeId && diffLock) {
           setLockedDifficulty(diffLock);
+          setSelectedDifficulty(diffLock);
         }
 
         setCheckError(null);

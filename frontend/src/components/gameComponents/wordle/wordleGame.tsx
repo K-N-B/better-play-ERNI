@@ -567,13 +567,18 @@ export const WordleGame = ({
           <div className="flex justify-between lg:mb-6 order-1 lg:order-none mb-2 lg:p-0">
             <div>
               <h1 className="text-xl lg:text-4xl font-bold">Wordle</h1>
-              <p className="text-sm lg:text-base">on {difficulty} difficulty</p>
+              <p className="text-sm lg:text-base text-gray-600 flex md:hidden">
+                {difficulty} diff.
+              </p>
+              <p className="text-sm lg:text-base text-gray-600 hidden md:flex">
+                on {difficulty} difficulty
+              </p>
             </div>
             <div className="flex justify-between gap-4">
               <Timer timeMs={time} />
             </div>
           </div>
-          <div className="order-2 lg:order-none px-10 md:px-0  lg:p-0">
+          <div className="order-2 lg:order-none md:px-0  lg:p-0">
             <PotentialScoreBar
               currentScore={currentPotentialScore}
               maxScore={maxPossibleScore}

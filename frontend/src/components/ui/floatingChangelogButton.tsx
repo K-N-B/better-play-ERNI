@@ -252,7 +252,7 @@ export const FloatingChangelogButton = () => {
               </h2>
               <button
                 onClick={() => setShowChangelog(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-red-500 hover:text-red-900 transition-colors"
               >
                 ✕
               </button>
@@ -286,7 +286,7 @@ export const FloatingChangelogButton = () => {
             </div>
 
             <button
-              className="mt-6 w-full bg-primary-600 text-white px-4 py-2.5 rounded-lg hover:bg-primary-500 font-medium transition-colors shadow-md shadow-primary-600/20"
+              className="mt-6 w-full bg-primary-600 shadow-primary-800 text-white px-4 py-2.5 rounded-lg font-medium shadow-[0_5px_0_0] hover:shadow-[0_3px_0_0] active:shadow-[0_1px_0_0] hover:translate-y-1 active:translate-y-2 transition-all"
               onClick={() => setShowChangelog(false)}
             >
               Close

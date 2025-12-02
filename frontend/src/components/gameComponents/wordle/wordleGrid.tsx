@@ -1,7 +1,6 @@
-//A "dumb" component. It just takes the array of guesses and the current guess as props and renders the 6x5 grid, coloring the tiles based on their status (correct, present, absent).
 import clsx from "clsx";
 
-// --- Helper logic for coloring the grid ---
+// --- Helper logic (Unchanged) ---
 type GuessStatus = "correct" | "present" | "absent" | "pending" | "typing";
 
 const getGuessStatus = (
@@ -12,14 +11,12 @@ const getGuessStatus = (
   const statuses: GuessStatus[] = Array(wordLength).fill("absent");
   const solChars = solution.split("");
 
-  // 1st pass: find 'correct'
   for (let i = 0; i < wordLength; i++) {
     if (guess[i] === solChars[i]) {
       statuses[i] = "correct";
       solChars[i] = " ";
     }
   }
-  // 2nd pass: find 'present'
   for (let i = 0; i < wordLength; i++) {
     if (statuses[i] !== "correct" && solChars.includes(guess[i])) {
       statuses[i] = "present";
@@ -28,7 +25,6 @@ const getGuessStatus = (
   }
   return statuses;
 };
-// ---
 
 // --- TailwindCSS color map ---
 const statusColors: Record<GuessStatus, string> = {
@@ -36,17 +32,16 @@ const statusColors: Record<GuessStatus, string> = {
   present: "bg-yellow-400 border-yellow-400 text-white",
   absent: "bg-gray-600 border-gray-600 text-white",
   pending: "bg-white border-gray-300",
-  typing: "bg-white border-gray-500 scale-105",
+  typing: "bg-white border-gray-500 ring-2 ring-gray-400", // Changed scale to ring to avoid layout shift
 };
 
-// --- Component Props ---
 interface WordleGridProps {
   guesses: string[];
   currentGuess: string;
   solution: string;
   currentRow: number;
   maxGuesses: number;
-  wordLength: number; // <-- Add prop
+  wordLength: number;
 }
 
 export const WordleGrid = ({
@@ -59,63 +54,66 @@ export const WordleGrid = ({
 }: WordleGridProps) => {
   const rows = Array(maxGuesses).fill(null);
 
-  const cellSizeClass =
-    wordLength > 8
-      ? "h-8 w-8 md:h-14 md:w-14 text-md md:text-xl"
-      : wordLength > 6
-        ? "h-9 w-9 md:h-16 md:w-16 text-2xl md:text-3xl"
-        : "h-9 w-9 md:h-16 md:w-16 text-2xl md:text-3xl";
-
   return (
-    <div
-      className={clsx(
-        `justify-around grid gap-1.5 w-full max-w-sm md:max-w-xl mx-auto`,
-        `grid-rows-${maxGuesses}`
-      )}
-    >
-      {rows.map((_, rowIndex) => {
-        const guess = guesses[rowIndex];
-        const isCurrentRow = rowIndex === currentRow;
-        const statuses = guess
-          ? getGuessStatus(guess, solution, wordLength)
-          : [];
+    // Outer Container:
+    // 1. Fits width but prevents becoming too huge (max-w-md).
+    // 2. Padding ensures it doesn't touch screen edges on mobile.
+    <div className="w-full max-w-[350px] md:max-w-[450px] mx-auto p-2">
+      <div className="grid gap-1.5 md:gap-2 w-full">
+        {rows.map((_, rowIndex) => {
+          const guess = guesses[rowIndex];
+          const isCurrentRow = rowIndex === currentRow;
+          const statuses = guess
+            ? getGuessStatus(guess, solution, wordLength)
+            : [];
 
-        return (
-          <div
-            key={rowIndex}
-            className="grid gap-1.5"
-            style={{
-              gridTemplateColumns: `repeat(${wordLength}, minmax(0, 1fr))`,
-            }}
-          >
-            {Array(wordLength)
-              .fill(null)
-              .map((_, colIndex) => {
-                const char = isCurrentRow
-                  ? currentGuess[colIndex]
-                  : guess?.[colIndex];
-                const status = guess
-                  ? statuses[colIndex]
-                  : isCurrentRow && char
+          return (
+            <div
+              key={rowIndex}
+              className="grid gap-1.5 md:gap-2"
+              style={{
+                // DYNAMIC COLUMNS: Creates exactly 'wordLength' columns of equal width
+                gridTemplateColumns: `repeat(${wordLength}, minmax(0, 1fr))`,
+              }}
+            >
+              {Array(wordLength)
+                .fill(null)
+                .map((_, colIndex) => {
+                  const char = isCurrentRow
+                    ? currentGuess[colIndex]
+                    : guess?.[colIndex];
+
+                  const status = guess
+                    ? statuses[colIndex]
+                    : isCurrentRow && char
                     ? "typing"
                     : "pending";
 
-                return (
-                  <div
-                    key={colIndex}
-                    className={clsx(
-                      "flex items-center justify-center border-2 font-bold uppercase transition-all duration-150 ",
-                      cellSizeClass,
-                      statusColors[status]
-                    )}
-                  >
-                    {char}
-                  </div>
-                );
-              })}
-          </div>
-        );
-      })}
+                  return (
+                    // CELL CONTAINER
+                    // 'aspect-square' is the magic class. It forces height to match width.
+                    // This allows the grid to shrink/grow based solely on width.
+                    <div
+                      key={colIndex}
+                      className={clsx(
+                        "aspect-square flex items-center justify-center border-2 font-bold uppercase select-none transition-colors duration-200",
+                        statusColors[status],
+                        // DYNAMIC FONT SIZING
+                        // If word is long (8+), use smaller text.
+                        // Otherwise, use larger text.
+                        wordLength >= 8
+                          ? "text-xl md:text-2xl"
+                          : "text-2xl md:text-4xl"
+                      )}
+                    >
+                      {char}
+                    </div>
+                  );
+                })}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };

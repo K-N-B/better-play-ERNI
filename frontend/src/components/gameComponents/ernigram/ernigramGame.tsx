@@ -604,12 +604,12 @@ export const ErnigramGame = ({
                     !isWon ? "blur-md" : "blur-none"
                   )}
                 />
-                <p className="text-[13px] text-center font-bold md:text-xl text-black mt-3 md:mt-6 md:mb-6">
+                <p className="text-[13px] text-center font-bold sm:text-xl text-black mt-3 md:mt-6 md:mb-6">
                   {"Guess the employee's name!"}
                 </p>
               </div>
             ) : (
-              <p className="text-sm md:text-xl text-black mb-6">
+              <p className="text-xs sm:text-xl text-black mb-0">
                 {puzzle.clue}
               </p>
             )}
@@ -628,22 +628,26 @@ export const ErnigramGame = ({
           <div className="flex justify-between lg:mb-6 order-1 lg:order-none mb-2 lg:p-0">
             <div className="">
               <h1 className="text-xl lg:text-4xl font-bold">ERNIgram</h1>
-              <p className="text-sm lg:text-base">on {difficulty} difficulty</p>
+              <p className="text-sm lg:text-base text-gray-600 flex md:hidden">
+                {difficulty} diff.
+              </p>
+              <p className="text-sm lg:text-base text-gray-600 hidden md:flex">
+                on {difficulty} difficulty
+              </p>
             </div>
 
             <Timer timeMs={time} />
-            {children}
           </div>
 
           {/* --- NEW POTENTIAL SCORE BAR --- */}
-          <div className="order-2 lg:order-none px-10 md:px-0  lg:p-0">
+          <div className="order-2 lg:order-none lg:p-0">
             <PotentialScoreBar
               currentScore={currentPotentialScore}
               maxScore={maxPossibleScore}
               basePoints={configBasePoints} // Display Base as "Base + Potential Mistake Bonus" or just Base depending on preference. Passing total pool usually looks better.
               speedBonus={currentSpeedBonus}
               bonusOrPenaltyValue={currentMistakeBonus}
-              bonusOrPenaltyLabel="Mistake Bonus"
+              bonusOrPenaltyLabel="No Mistake Bonus"
               color="bg-blue-500"
             />
           </div>

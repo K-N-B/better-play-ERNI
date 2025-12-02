@@ -304,6 +304,11 @@ All API endpoints require authentication (session cookie) unless marked as `Allo
 
 ### v0.0.4 - Upcoming
 * Potential score bar for Wordle and ERNIgram
+* Additional user roles and permissions for admin side
+* Reward claims are now included in the activity feed!
+* Improved Admin Dashboard
+* Mobile responsive game components
+* More bug fixes
 
 
 ---
