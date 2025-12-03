@@ -123,9 +123,11 @@ class DailyPuzzleAdmin(ContentAdminPermissionMixin, admin.ModelAdmin):
         "sudoku",
         "ernigram",
     )
-    list_filter = ("date",)
+    readonly_fields = ['date']
+    list_filter = ()
     ordering = ("-date",)
-    date_hierarchy = "date"
+    date_hierarchy = None
     
     # Make it easier to see what puzzles are assigned
     autocomplete_fields = ["wordle_easy", "wordle_hard", "sudoku", "ernigram"]
+    

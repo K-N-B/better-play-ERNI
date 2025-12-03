@@ -25,6 +25,7 @@ class User(AbstractUser):
     # ========== ROLE SYSTEM (NEW) ==========
     class Role(models.TextChoices):
         """Define all available roles in the system"""
+        SUPER_ADMIN = 'SUPER_ADMIN', 'Super Admin'
         CONTENT_ADMIN = 'CONTENT_ADMIN', 'Content Admin'
         MODERATOR = 'MODERATOR', 'Moderator'
         SHOP_MANAGER = 'SHOP_MANAGER', 'Shop Manager'
