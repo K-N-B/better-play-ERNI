@@ -39,7 +39,7 @@ export default function LoginPage() {
 
   
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-[#F1ECE6]  bg-[linear-gradient(to_right,#D2B694_2px,transparent_1px),linear-gradient(to_bottom,#D2B694_2px,transparent_1px)] bg-size-[24px_24px] flex flex-col">
       {/* ... (keep all your original JSX: Header, Main Content, Card, Button, etc.) ... */}
       {/* ... The button's onClick={handleMicrosoftLogin} will work perfectly ... */}
 
@@ -47,7 +47,11 @@ export default function LoginPage() {
       <main className="flex-1 flex items-center justify-center px-4">
         <div className="max-w-md w-full">
           {/* Logo + Tagline */}
-          <div className="text-center mb-8">
+          
+
+          {/* Card */}
+          <div className="bg-white border border-gray-200 rounded-4xl shadow-sm p-12 py-16">
+            <div className="text-center mb-4">
             <img
               src={logoImage}
               alt="Welcome Back"
@@ -55,9 +59,6 @@ export default function LoginPage() {
             />
             <p className="text-gray-600">Sign in to access your puzzles</p>
           </div>
-
-          {/* Card */}
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-8">
             {/* Error Message */}
             {error && (
               <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4 flex gap-3">
