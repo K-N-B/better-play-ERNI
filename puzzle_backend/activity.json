@@ -1,0 +1,128 @@
+[
+{
+  "model": "activity.useractivity",
+  "pk": 15,
+  "fields": {
+    "last_active": "2025-12-03T03:34:14.509Z"
+  }
+},
+{
+  "model": "activity.useractivity",
+  "pk": 23,
+  "fields": {
+    "last_active": "2025-11-14T02:37:43.883Z"
+  }
+},
+{
+  "model": "activity.useractivity",
+  "pk": 22,
+  "fields": {
+    "last_active": "2025-11-14T08:25:52.458Z"
+  }
+},
+{
+  "model": "activity.useractivity",
+  "pk": 10,
+  "fields": {
+    "last_active": "2025-11-18T09:23:17.155Z"
+  }
+},
+{
+  "model": "activity.useractivity",
+  "pk": 27,
+  "fields": {
+    "last_active": "2025-11-21T02:00:03.817Z"
+  }
+},
+{
+  "model": "activity.useractivity",
+  "pk": 7,
+  "fields": {
+    "last_active": "2025-12-10T06:57:49.476Z"
+  }
+},
+{
+  "model": "activity.useractivity",
+  "pk": 14,
+  "fields": {
+    "last_active": "2025-12-02T09:17:05.557Z"
+  }
+},
+{
+  "model": "activity.useractivity",
+  "pk": 21,
+  "fields": {
+    "last_active": "2025-12-09T08:31:07.837Z"
+  }
+},
+{
+  "model": "activity.useractivity",
+  "pk": 20,
+  "fields": {
+    "last_active": "2025-11-18T02:13:41.965Z"
+  }
+},
+{
+  "model": "activity.useractivity",
+  "pk": 19,
+  "fields": {
+    "last_active": "2025-11-13T10:11:28.381Z"
+  }
+},
+{
+  "model": "activity.useractivity",
+  "pk": 29,
+  "fields": {
+    "last_active": "2025-12-03T03:35:55.887Z"
+  }
+},
+{
+  "model": "activity.useractivity",
+  "pk": 24,
+  "fields": {
+    "last_active": "2025-11-14T04:44:54.864Z"
+  }
+},
+{
+  "model": "activity.useractivity",
+  "pk": 25,
+  "fields": {
+    "last_active": "2025-11-17T02:03:00.855Z"
+  }
+},
+{
+  "model": "activity.useractivity",
+  "pk": 18,
+  "fields": {
+    "last_active": "2025-11-14T04:13:15.349Z"
+  }
+},
+{
+  "model": "activity.useractivity",
+  "pk": 26,
+  "fields": {
+    "last_active": "2025-11-25T03:44:38.448Z"
+  }
+},
+{
+  "model": "activity.useractivity",
+  "pk": 17,
+  "fields": {
+    "last_active": "2025-11-13T02:46:59.544Z"
+  }
+},
+{
+  "model": "activity.useractivity",
+  "pk": 28,
+  "fields": {
+    "last_active": "2025-11-25T02:42:49.210Z"
+  }
+},
+{
+  "model": "activity.useractivity",
+  "pk": 16,
+  "fields": {
+    "last_active": "2025-12-03T00:59:19.438Z"
+  }
+}
+]
