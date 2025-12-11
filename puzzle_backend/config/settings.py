@@ -298,7 +298,7 @@ STATICFILES_DIRS = [
 
 
 
-print(f"âš™ï¸ Running in {ENVIRONMENT.upper()} mode | DEBUG={DEBUG}")
+print(f"Running in {ENVIRONMENT.upper()} mode | DEBUG={DEBUG}")
 
 
 DATE_INPUT_FORMATS = [
