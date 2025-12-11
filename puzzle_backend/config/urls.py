@@ -78,17 +78,6 @@ All dates and times are in Asia/Manila timezone (UTC+8).
     ),
     public=True,
     permission_classes=(permissions.AllowAny,),
-    patterns=[
-        path('api/', include([
-            path('users/', include('users.urls')),
-            path('games/', include('games.urls')),
-            path('gameplay/', include('gameplay.urls')),
-            path('challenges/', include('gameplay.challenge_urls')),
-            path('', include('leaderboards.urls')),
-            path('', include('activity.urls')),
-            path('', include('shop.urls')),
-        ])),
-    ],
 )
 
 
