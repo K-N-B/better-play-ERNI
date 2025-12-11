@@ -2,7 +2,8 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import JsonResponse
-from django.urls import include, path
+from django.urls import include, path, re_path
+from django.views.generic import TemplateView
 
 # ✅ CRITICAL: Import custom admin site (role-based permissions)
 from users.admin import admin_site
@@ -11,13 +12,82 @@ from users.admin import admin_site
 from games.views import cron_generate_puzzles_view
 from users import views as user_views
 
+# Import DRF documentation views
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
 
 def health_check(request):
     """Health check endpoint for monitoring/uptime services"""
     return JsonResponse({"status": "ok"})
 
 
+# ========== API DOCUMENTATION SCHEMA ==========
+schema_view = get_schema_view(
+    openapi.Info(
+        title="ERNI Puzzle Platform API",
+        default_version='v1',
+        description="""
+# ERNI Puzzle Platform API Documentation
+
+Welcome to the ERNI Puzzle Platform API. This API provides endpoints for managing daily puzzles, 
+user gameplay, challenges, leaderboards, and reward redemption.
+
+## Authentication
+Most endpoints require authentication via Azure AD OAuth2. Session cookies are used for authentication.
+
+## Base URL
+```
+https://your-domain.com/api
+```
+
+## Rate Limiting
+API requests are rate-limited to prevent abuse. Contact support if you need higher limits.
+
+## Response Format
+All responses are returned in JSON format with the following structure:
+```json
+{
+    "status": "success",
+    "data": { ... },
+    "message": "Operation completed successfully"
+}
+```
+
+## Error Codes
+- `200` - Success
+- `400` - Bad Request (Invalid parameters)
+- `401` - Unauthorized (Authentication required)
+- `403` - Forbidden (Insufficient permissions)
+- `404` - Not Found (Resource doesn't exist)
+- `500` - Internal Server Error
+
+## Puzzle Types
+- **Wordle Easy**: 5-letter word puzzle (6 tries)
+- **Wordle Hard**: 10-letter word puzzle (8 tries)
+- **Sudoku**: 9x9 number puzzle with hint support
+- **Ernigram**: Employee name anagram puzzle
+
+## Timezone
+All dates and times are in Asia/Manila timezone (UTC+8).
+        """,
+        terms_of_service="https://www.erni.com/terms/",
+        contact=openapi.Contact(email="support@erni.com"),
+        license=openapi.License(name="Proprietary"),
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
+)
+
+
 urlpatterns = [
+    # ========== API DOCUMENTATION (Swagger & ReDoc) ==========
+    path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('api/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path('api/swagger.json', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    path('api/swagger.yaml', schema_view.without_ui(cache_timeout=0), name='schema-yaml'),
+    
     # ========== ADMIN (Role-Based Access Control) ==========
     path("admin/", admin_site.urls),  # ✅ Using custom admin site with role permissions
     

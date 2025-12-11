@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'leaderboards.apps.LeaderboardsConfig',
     'shop.apps.ShopConfig',
     'activity.apps.ActivityConfig',
+    'drf_yasg',
 ]
 
 
