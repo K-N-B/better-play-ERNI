@@ -5,6 +5,7 @@ import { useAuth } from "../../hooks/authContext";
 import { FirstTimeSetupModal } from "../ui/firstTimeSetupModal";
 import Navbar from "./navbar";
 import { FloatingChangelogButton } from "../ui/floatingChangelogButton";
+import { FloatingAboutUsButton } from "../ui/floatingAboutUsButton";
 
 export const Layout = () => {
   const { user } = useAuth();
@@ -14,16 +15,12 @@ export const Layout = () => {
       <Navbar />
       <main className="md:h-full md:w-full md:overflow-hidden">
         <div className="h-full w-full p-2 md:p-10">
-          {/* Render the current page (e.g., HomePage) */}
           <Outlet />
+          <FloatingAboutUsButton />
           <FloatingChangelogButton />
         </div>
       </main>
 
-      {/* This is the "Profile Lock". 
-        If the user exists but their profile is incomplete,
-        this modal will render on top of EVERYTHING.
-      */}
       {user && !user.profile_complete && <FirstTimeSetupModal />}
     </div>
   );
