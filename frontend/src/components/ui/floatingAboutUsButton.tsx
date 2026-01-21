@@ -4,315 +4,285 @@ import { useState, useRef, useEffect, useCallback } from "react";
 // DIFFERENTIATOR: Y offset is 100 so it spawns ABOVE the changelog button
 const INITIAL_OFFSET_X = 24;
 const INITIAL_OFFSET_Y = 100;
+const DRAG_THRESHOLD = 5;
 
 export const FloatingAboutUsButton = () => {
-    const [showAbout, setShowAbout] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
 
-    // 1. STATE: Stores the current top/left position for the inline style
-    const [position, setPosition] = useState({
-        x: 0,
-        y: 0,
-    });
+  // --- CAROUSEL STATE (New) ---
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
-    // --- Initialization (Sets the initial bottom-right position once on mount) ---
-    useEffect(() => {
-        const setInitialPosition = () => {
-            if (buttonRef.current) {
-                // Calculate initial position
-                const buttonWidth = buttonRef.current.offsetWidth;
-                const buttonHeight = buttonRef.current.offsetHeight;
+  // --- SWIPE LOGIC (New) ---
+  const minSwipeDistance = 50;
 
-                setPosition({
-                    x: window.innerWidth - buttonWidth - INITIAL_OFFSET_X,
-                    y: window.innerHeight - buttonHeight - INITIAL_OFFSET_Y,
-                });
-            }
-        };
+  const onModalTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
 
-        // Set initial position
-        setInitialPosition();
+  const onModalTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
 
-        // Recalculate position on window resize
-        window.addEventListener("resize", setInitialPosition);
-        return () => window.removeEventListener("resize", setInitialPosition);
-    }, []);
+  const onModalTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
 
-    const handleTouchStart = useCallback(
-        (e: React.TouchEvent<HTMLButtonElement>) => {
-            // Prevent drag if modal is open
-            if (showAbout || !buttonRef.current) return;
+    if (isLeftSwipe) {
+      // Next Card
+      setActiveIndex((prev) => (prev === devs.length - 1 ? 0 : prev + 1));
+    }
+    if (isRightSwipe) {
+      // Prev Card
+      setActiveIndex((prev) => (prev === 0 ? devs.length - 1 : prev - 1));
+    }
+  };
 
-            const touch = e.touches[0];
-            const rect = buttonRef.current.getBoundingClientRect();
+  // --- BUTTON DRAG LOGIC (Existing) ---
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dragRef = useRef({
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+    wasDragged: false,
+  });
 
-            // Store where the user touched relative to the button's top-left corner
-            dragRef.current = {
-                isDragging: true,
-                startX: touch.clientX - rect.left,
-                startY: touch.clientY - rect.top,
-                wasDragged: false,
-            };
+  // Initialization
+  useEffect(() => {
+    const setInitialPosition = () => {
+      if (buttonRef.current) {
+        setPosition({
+          x: window.innerWidth - buttonRef.current.offsetWidth - INITIAL_OFFSET_X,
+          y: window.innerHeight - buttonRef.current.offsetHeight - INITIAL_OFFSET_Y,
+        });
+      }
+    };
+    setInitialPosition();
+    window.addEventListener("resize", setInitialPosition);
+    return () => window.removeEventListener("resize", setInitialPosition);
+  }, []);
 
-            // Remove transition during drag for smooth movement
-            e.currentTarget.style.transition = "none";
-        },
-        [showAbout]
-    );
+  // --- TOUCH HANDLERS (For the Floating Button) ---
+  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLButtonElement>) => {
+    if (showAbout || !buttonRef.current) return;
+    const touch = e.touches[0];
+    const rect = buttonRef.current.getBoundingClientRect();
+    dragRef.current = {
+      isDragging: true,
+      startX: touch.clientX - rect.left,
+      startY: touch.clientY - rect.top,
+      wasDragged: false,
+    };
+    e.currentTarget.style.transition = "none";
+  }, [showAbout]);
 
-    const handleTouchMove = useCallback(
-        (e: React.TouchEvent<HTMLButtonElement>) => {
-            if (!dragRef.current.isDragging || !buttonRef.current) return;
+  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLButtonElement>) => {
+    if (!dragRef.current.isDragging || !buttonRef.current) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    let newX = touch.clientX - dragRef.current.startX;
+    let newY = touch.clientY - dragRef.current.startY;
+    newX = Math.min(Math.max(newX, 0), window.innerWidth - buttonRef.current.offsetWidth);
+    newY = Math.min(Math.max(newY, 0), window.innerHeight - buttonRef.current.offsetHeight);
+    if (Math.abs(newX - position.x) > DRAG_THRESHOLD || Math.abs(newY - position.y) > DRAG_THRESHOLD) {
+      dragRef.current.wasDragged = true;
+    }
+    setPosition({ x: newX, y: newY });
+  }, [position]);
 
-            // Prevent default touch behavior (e.g., scrolling)
-            e.preventDefault();
+  const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLButtonElement>) => {
+    if (dragRef.current.isDragging) e.currentTarget.style.transition = "";
+    if (!dragRef.current.wasDragged) setShowAbout(true);
+    dragRef.current.isDragging = false;
+  }, []);
 
-            const touch = e.touches[0];
+  // --- MOUSE HANDLERS (For the Floating Button) ---
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!dragRef.current.isDragging || !buttonRef.current) return;
+    e.preventDefault();
+    let newX = e.clientX - dragRef.current.startX;
+    let newY = e.clientY - dragRef.current.startY;
+    newX = Math.min(Math.max(newX, 0), window.innerWidth - buttonRef.current.offsetWidth);
+    newY = Math.min(Math.max(newY, 0), window.innerHeight - buttonRef.current.offsetHeight);
+    if (Math.abs(newX - position.x) > DRAG_THRESHOLD || Math.abs(newY - position.y) > DRAG_THRESHOLD) {
+      dragRef.current.wasDragged = true;
+    }
+    setPosition({ x: newX, y: newY });
+  }, [position]);
 
-            // Calculate new position by subtracting the touch-to-button offset (startX/startY)
-            let newX = touch.clientX - dragRef.current.startX;
-            let newY = touch.clientY - dragRef.current.startY;
+  const handleMouseUp = useCallback(() => {
+    if (dragRef.current.isDragging && buttonRef.current) buttonRef.current.style.transition = "";
+    if (dragRef.current.isDragging && !dragRef.current.wasDragged) setShowAbout(true);
+    dragRef.current.isDragging = false;
+    window.removeEventListener("mousemove", handleMouseMove);
+    window.removeEventListener("mouseup", handleMouseUp);
+  }, [handleMouseMove]);
 
-            // Boundary constraints to keep the button within the viewport
-            const buttonWidth = buttonRef.current.offsetWidth;
-            const buttonHeight = buttonRef.current.offsetHeight;
+  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    if (showAbout || !buttonRef.current) return;
+    if (e.button !== 0) return;
+    const rect = buttonRef.current.getBoundingClientRect();
+    dragRef.current = {
+      isDragging: true,
+      startX: e.clientX - rect.left,
+      startY: e.clientY - rect.top,
+      wasDragged: false,
+    };
+    e.currentTarget.style.transition = "none";
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+  }, [showAbout, handleMouseMove, handleMouseUp]);
 
-            newX = Math.min(newX, window.innerWidth - buttonWidth); // Right boundary
-            newX = Math.max(newX, 0); // Left boundary
-            // FIX: Ensure newY never exceeds the viewport height minus button height
-            newY = Math.min(newY, window.innerHeight - buttonHeight); // Bottom boundary
-            newY = Math.max(newY, 0); // Top boundary
+  // --- DATA ---
+  const devs = [
+    {
+      name: "Yna Foronda",
+      role: "Lead & UI/UX",
+      desc: "A comsci fresh graduate that loves the crafts, the puzzles, and the arts. She was the lead of the team behind 'Better Play ERNI'.",
+      funFact: "If you like going to art markets, playing games, and listening to AURORA, then she's your go-to!",
+      color: "bg-[#6BC5D2]",
+      shadow: "shadow-[#4da0ad]",
+      rotation: "md:-rotate-6",
+      zIndex: "z-10",
+      avatarPos: "-top-8 -right-4",
+      imgUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Yna&hair=long&clothing=graphicShirt",
+    },
+    {
+      name: "Dayniel Caadiang",
+      role: "Frontend Dev",
+      desc: "A comsci fresh graduate that loves the crafts, the puzzles, and the arts. Mainly on the UI/UX and front-end development.",
+      funFact: "If you like going to art markets, playing games, and listening to AURORA, then she's your go-to!",
+      color: "bg-[#CFA6D6]",
+      shadow: "shadow-[#a57bb0]",
+      rotation: "md:rotate-3",
+      zIndex: "z-0",
+      translate: "md:translate-y-12",
+      avatarPos: "-bottom-8 -right-4",
+      imgUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Dayniel&hair=long",
+    },
+    {
+      name: "Yughie Perez",
+      role: "Frontend Dev",
+      desc: "A comsci fresh graduate that loves the crafts, the puzzles, and the arts. Mainly on the UI/UX and front-end development.",
+      funFact: "If you like going to art markets, playing games, and listening to AURORA, then she's your go-to!",
+      color: "bg-[#F4D35E]",
+      shadow: "shadow-[#d6b745]",
+      rotation: "md:rotate-12",
+      zIndex: "z-20",
+      avatarPos: "-top-8 -right-4",
+      imgUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Yughie&glasses=round",
+    },
+  ];
 
-            // If movement is detected, set the wasDragged flag
-            if (Math.abs(newX - position.x) > 2 || Math.abs(newY - position.y) > 2) {
-                dragRef.current.wasDragged = true;
-            }
+  return (
+    <>
+      {/* Floating button */}
+      <button
+        ref={buttonRef}
+        className="md:block fixed z-50 bg-[#00A651] text-white p-2 md:p-3 rounded-full shadow-lg hover:bg-[#008c44] active:scale-95 transition-all flex items-center justify-center border-2 border-white"
+        style={{
+          transform: `translate(${position.x}px, ${position.y}px)`,
+          touchAction: "none",
+          willChange: "transform",
+          top: 0,
+          left: 0,
+        }}
+        title="About the Devs"
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        <span className="text-2xl">👥</span>
+      </button>
 
-            setPosition({ x: newX, y: newY });
-        },
-        [position]
-    );
+      {/* Modal */}
+      {showAbout && (
+        <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 backdrop-blur-sm overflow-hidden">
+          {/* Main Container */}
+          <div className="relative w-full max-w-5xl flex flex-col items-center">
+            
+            {/* Header Badge & Close Button */}
+            <div className="relative z-50 mb-8 md:mb-12">
+              <div className="bg-emerald-600 text-white font-bold text-lg md:text-xl px-8 py-2 rounded-full shadow-[0_5px_0_0] shadow-emerald-800 transform -rotate-2">
+                About the devs
+              </div>
+              <button
+                onClick={() => setShowAbout(false)}
+                className="absolute -top-14 left-1/2 -translate-x-1/2 bg-transparent text-red-300 hover:text-red-600 font-bold text-4xl transition-colors"
+                title="Close"
+              >
+                ✕
+              </button>
+            </div>
 
-    const handleTouchEnd = useCallback(
-        (e: React.TouchEvent<HTMLButtonElement>) => {
-            if (dragRef.current.isDragging) {
-                // Re-enable CSS transition after drag ends
-                e.currentTarget.style.transition = "";
-            }
-            dragRef.current.isDragging = false;
-        },
-        []
-    );
-
-    // 2. REFS: Used to reference the button and track drag state
-    const buttonRef = useRef<HTMLButtonElement>(null);
-    const dragRef = useRef({
-        isDragging: false,
-        startX: 0,
-        startY: 0,
-        wasDragged: false, // Prevents click event after drag
-    });
-
-    // handleMouseMove needs to be defined globally or be accessible to the window listener
-    const handleMouseMove = useCallback(
-        (e: MouseEvent) => {
-            // Note: This is a native MouseEvent, not React.MouseEvent
-            if (!dragRef.current.isDragging || !buttonRef.current) return;
-
-            // Prevent default text selection/scrolling
-            e.preventDefault();
-
-            // Calculate new position
-            let newX = e.clientX - dragRef.current.startX;
-            let newY = e.clientY - dragRef.current.startY;
-
-            // Boundary constraints (same logic as in handleTouchMove)
-            const buttonWidth = buttonRef.current.offsetWidth;
-            const buttonHeight = buttonRef.current.offsetHeight;
-
-            newX = Math.min(newX, window.innerWidth - buttonWidth);
-            newX = Math.max(newX, 0);
-            newY = Math.min(newY, window.innerHeight - buttonHeight);
-            newY = Math.max(newY, 0);
-
-            // Set wasDragged flag
-            if (Math.abs(newX - position.x) > 2 || Math.abs(newY - position.y) > 2) {
-                dragRef.current.wasDragged = true;
-            }
-
-            setPosition({ x: newX, y: newY });
-        },
-        [position]
-    );
-
-    // handleMouseUp also needs to be defined globally or be accessible to the window listener
-    const handleMouseUp = useCallback(
-        () => {
-            if (dragRef.current.isDragging) {
-                // Find the button element to reset the transition style
-                // We can't use e.currentTarget here since the listener is on the window.
-                if (buttonRef.current) {
-                    buttonRef.current.style.transition = "";
-                }
-            }
-            dragRef.current.isDragging = false;
-
-            // IMPORTANT: Remove the global listeners
-            window.removeEventListener("mousemove", handleMouseMove);
-            window.removeEventListener("mouseup", handleMouseUp);
-        },
-        [handleMouseMove]
-    );
-
-    const handleMouseDown = useCallback(
-        (e: React.MouseEvent<HTMLButtonElement>) => {
-            // Prevent drag if modal is open
-            if (showAbout || !buttonRef.current) return;
-
-            // Use clientX/clientY from the MouseEvent
-            const rect = buttonRef.current.getBoundingClientRect();
-
-            dragRef.current = {
-                isDragging: true,
-                startX: e.clientX - rect.left,
-                startY: e.clientY - rect.top,
-                wasDragged: false,
-            };
-
-            // Remove transition during drag for smooth movement
-            e.currentTarget.style.transition = "none";
-
-            // IMPORTANT: Attach global listeners for move/up events
-            // This ensures dragging continues even if the mouse leaves the button
-            window.addEventListener("mousemove", handleMouseMove);
-            window.addEventListener("mouseup", handleMouseUp);
-        },
-        [showAbout, handleMouseMove, handleMouseUp] // Include the move/up handlers
-    );
-
-    // --- DATA: Devs Config ---
-    const devs = [
-        {
-            name: "Yna Foronda",
-            role: "Lead & UI/UX",
-            desc: "A comsci fresh graduate that loves the crafts, the puzzles, and the arts. She was the lead of the team behind 'Better Play ERNI'.",
-            funFact: "If you like going to art markets, playing games, and listening to AURORA, then she's your go-to!",
-            color: "bg-blue-200",
-            shadow: "shadow-blue-500",
-            rotation: "-rotate-3 md:-rotate-6",
-            zIndex: "z-10",
-            avatarPos: "-top-8 -right-4",
-            imgUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Yna&hair=long&clothing=graphicShirt",
-        },
-        {
-            name: "Dayniel Caadiang",
-            role: "Frontend Dev",
-            desc: "A comsci fresh graduate that loves the crafts, the puzzles, and the arts. Mainly on the UI/UX and front-end development.",
-            funFact: "If you like going to art markets, playing games, and listening to AURORA, then she's your go-to!",
-            color: "bg-pink-200",
-            shadow: "shadow-pink-500",
-            rotation: "rotate-2 md:rotate-3",
-            zIndex: "z-0",
-            translate: "md:translate-y-12",
-            avatarPos: "-bottom-8 -right-4",
-            imgUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Dayniel&hair=long",
-        },
-        {
-            name: "Yughie Perez",
-            role: "Frontend Dev",
-            desc: "A comsci fresh graduate that loves the crafts, the puzzles, and the arts. Mainly on the UI/UX and front-end development.",
-            funFact: "If you like going to art markets, playing games, and listening to AURORA, then she's your go-to!",
-            color: "bg-amber-200",
-            shadow: "shadow-amber-500",
-            rotation: "rotate-3 md:rotate-12",
-            zIndex: "z-20",
-            avatarPos: "-top-8 -right-4",
-            imgUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Yughie&glasses=round",
-        },
-    ];
-
-    return (
-        <>
-            {/* Floating button */}
-            <button
-                ref={buttonRef} // Attach ref here
-                // IMPORTANT: Change 'fixed bottom-6 right-6' to 'absolute'
-                className="md:block fixed z-50 bg-white text-primary p-2 md:p-4 rounded-full shadow-lg hover:bg-primary-200 active:bg-primary-400 transition-all flex items-center justify-center"
-                style={{
-                    // Use 'transform: translate'
-                    transform: `translate(${position.x}px, ${position.y}px)`,
-                    touchAction: "none",
-                    willChange: "transform",
-                    // Ensure fixed positioning is offset to 0,0 before transform applies
-                    top: 0,
-                    left: 0,
-                }}
-                title="About the Devs"
-                // Apply Dynamic Position via Inline Style
-
-                // Attach Touch Event Handlers
-                onMouseDown={handleMouseDown}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-                onClick={() => setShowAbout(true)}
+            {/* Cards Container */}
+            <div 
+                className="flex flex-col md:flex-row items-center justify-center gap-12 md:gap-4 w-full px-4"
+                // NEW: Attach Swipe Events
+                onTouchStart={onModalTouchStart}
+                onTouchMove={onModalTouchMove}
+                onTouchEnd={onModalTouchEnd}
             >
-                <span className="text-xl">👥</span>
-            </button>
+              {devs.map((dev, index) => {
+                 // Logic to determine if this card is valid for mobile view
+                 const isMobileActive = index === activeIndex;
 
-            {/* Modal */}
-            {showAbout && (
-                <div className="fixed inset-0 bg-black/60 z-60 flex items-center justify-center p-4 backdrop-blur-sm overflow-hidden">
-                    {/* Main Container */}
-                    <div className="relative w-full max-w-5xl flex flex-col items-center">
+                 return (
+                  <div
+                    key={index}
+                    className={`
+                      relative w-full max-w-[300px] md:w-80 p-6 rounded-4xl 
+                      text-[#1a1a1a] shrink-0 transition-transform hover:z-50 hover:scale-105 duration-300
+                      shadow-[0_5px_0_0]
+                      ${dev.color} ${dev.shadow}
 
-                        {/* Header Badge */}
-                        <div className="relative z-50 mb-8 md:mb-8">
-                            <div className="bg-emerald-600 text-white font-bold text-lg md:text-xl px-8 py-2 rounded-full shadow-[0_5px_0_0] shadow-emerald-800 transform -rotate-2">
-                                About the devs
-                            </div>
-                            <button
-                                onClick={() => setShowAbout(false)}
-                                className="absolute -top-14 left-1/2 -translate-x-1/2 bg-transparent text-red-300 hover:text-red-600 font-bold text-4xl transition-colors"
-                                title="Close"
-                            >
-                                ✕
-                            </button>
-                        </div>
+                      /* DESKTOP: Default scattered look (hidden on mobile by default) */
+                      hidden md:block 
+                      ${dev.rotation} ${dev.zIndex} ${dev.translate || ''}
 
-                        {/* Cards Container */}
-                        <div className="flex flex-col md:flex-row items-center justify-center gap-12 md:gap-4 w-full px-4">
-                            {devs.map((dev, index) => (
-                                <div
-                                    key={index}
-                                    className={`
-                                        relative w-full max-w-[300px] md:w-80 p-6 rounded-4xl 
-                                        text-[#1a1a1a] shrink-0 transition-transform hover:z-50 hover:scale-105 duration-300
-                                        shadow-[0_5px_0_0]
-                                        ${dev.color} ${dev.shadow}
-                                        ${dev.rotation} 
-                                        ${dev.zIndex}
-                                        ${dev.translate || ''}
-                                    `}
-                                >
-                                    <div className={`absolute w-20 h-20 rounded-full border-4 border-white bg-gray-200 overflow-hidden shadow-md ${dev.avatarPos}`}>
-                                        <img src={dev.imgUrl} alt={dev.name} className="w-full h-full object-cover" />
-                                    </div>
-
-                                    <div className="mt-2">
-                                        <h3 className="text-2xl font-bold mb-1 leading-tight">{dev.name}</h3>
-                                        <div className="h-0.5 w-full bg-black/10 my-3 rounded-full"></div>
-                                        <div className="space-y-4 text-sm font-medium leading-relaxed">
-                                            <p>{dev.desc}</p>
-                                            <p className="opacity-90">{dev.funFact}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
+                      /* MOBILE: Show only active card, reset rotation/translate */
+                      ${isMobileActive ? "!block !z-50" : ""}
+                    `}
+                  >
+                    <div className={`absolute w-20 h-20 rounded-full border-4 border-white bg-gray-200 overflow-hidden shadow-md ${dev.avatarPos}`}>
+                      <img src={dev.imgUrl} alt={dev.name} className="w-full h-full object-cover" />
                     </div>
-                </div>
-            )}
-        </>
-    );
+
+                    <div className="mt-2">
+                      <h3 className="text-2xl font-bold mb-1 leading-tight">{dev.name}</h3>
+                      <div className="h-0.5 w-full bg-black/10 my-3 rounded-full"></div>
+                      <div className="space-y-4 text-sm font-medium leading-relaxed">
+                        <p>{dev.desc}</p>
+                        <p className="opacity-90">{dev.funFact}</p>
+                      </div>
+                    </div>
+                  </div>
+                 )
+              })}
+            </div>
+
+            {/* Mobile Navigation Dots (Visible only on small screens) */}
+            <div className="flex md:hidden gap-2 mt-8">
+                {devs.map((_, idx) => (
+                    <button
+                        key={idx}
+                        onClick={() => setActiveIndex(idx)}
+                        className={`w-3 h-3 rounded-full transition-all ${
+                            idx === activeIndex ? "bg-white scale-110" : "bg-white/40"
+                        }`}
+                    />
+                ))}
+            </div>
+
+          </div>
+        </div>
+      )}
+    </>
+  );
 };
