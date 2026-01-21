@@ -184,7 +184,7 @@ export const FloatingAboutUsButton = () => {
       {/* Floating button */}
       <button
         ref={buttonRef}
-        className="md:block fixed z-50 bg-[#00A651] text-white p-2 md:p-3 rounded-full shadow-lg hover:bg-[#008c44] active:scale-95 transition-all flex items-center justify-center border-2 border-white"
+        className="md:block fixed z-50 bg-white text-primary p-2 md:p-3 rounded-full shadow-lg hover:bg-primary-300 active:scale-95 transition-all flex items-center justify-center"
         style={{
           transform: `translate(${position.x}px, ${position.y}px)`,
           touchAction: "none",
@@ -203,7 +203,7 @@ export const FloatingAboutUsButton = () => {
 
       {/* Modal */}
       {showAbout && (
-        <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 backdrop-blur-sm overflow-hidden">
+        <div className="fixed inset-0 bg-black/60 z-60 flex items-center justify-center p-4 backdrop-blur-sm overflow-hidden">
           {/* Main Container */}
           <div className="relative w-full max-w-5xl flex flex-col items-center">
             
@@ -247,7 +247,7 @@ export const FloatingAboutUsButton = () => {
                       ${dev.rotation} ${dev.zIndex} ${dev.translate || ''}
 
                       /* MOBILE: Show only active card, reset rotation/translate */
-                      ${isMobileActive ? "!block !z-50" : ""}
+                      ${isMobileActive ? "block! z-50!" : ""}
                     `}
                   >
                     <div className={`absolute w-20 h-20 rounded-full border-4 border-white bg-gray-200 overflow-hidden shadow-md ${dev.avatarPos}`}>
