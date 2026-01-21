@@ -1,7 +1,5 @@
-// src/components/features/challenge/challengeModal.tsx - WITH AUTO-DISPLAYED USERS
 import React, { useState, useEffect } from 'react';
 import { listAllUsers, sendChallenge } from '../../../api/challengeService';
-import { checkUserSubmissionExists } from '../../../api/gameService';
 import type { UserProfile, CreateChallengeData } from '../../../types';
 import { LoadingSpinner } from '../../ui/loadingSpinner';
 import { X, Send, Search, UserCheck, CheckCircle, Clock, AlertCircle } from 'lucide-react';
@@ -15,27 +13,10 @@ interface ChallengeModalProps {
   dailyPuzzleDate: string;
 }
 
-interface ColleagueWithStatus extends Pick<UserProfile, 'id' | 'username' | 'email'> {
+interface ColleagueWithStatus extends Pick<UserProfile, 'id' | 'username' | 'email' | 'profile_picture_url'> {
   hasCompleted: boolean;
   isChecking: boolean;
 }
-
-interface ColleagueWithStatus extends Pick<UserProfile, 'id' | 'username' | 'email'> {
-  hasCompleted: boolean;
-  isChecking: boolean;
-}
-
-// function debounce<F extends (...args: any[]) => any>(func: F, wait: number): (...args: Parameters<F>) => void {
-//   let timeoutId: ReturnType<typeof setTimeout> | null = null;
-//   return function(this: ThisParameterType<F>, ...args: Parameters<F>) {
-//     if (timeoutId) {
-//       clearTimeout(timeoutId);
-//     }
-//     timeoutId = setTimeout(() => {
-//       func.apply(this, args);
-//     }, wait);
-//   };
-// }
 
 export const ChallengeModal: React.FC<ChallengeModalProps> = ({
   isOpen,
@@ -54,87 +35,30 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Fetch all users when modal opens
+  // Fetch users when modal opens - WITH FILTERING
   useEffect(() => {
     if (!isOpen) return;
 
-    const fetchAllUsers = async () => {
-      console.log('[ChallengeModal] Fetching all users...');
+    const fetchFilteredUsers = async () => {
+      console.log('[ChallengeModal] Fetching filtered users...');
       setIsLoadingUsers(true);
       setError('');
 
       try {
-        // Use a wildcard search to get all users (adjust based on your backend)
-        // You might want to create a dedicated endpoint for this
-        const users = await listAllUsers(); // Gets users with 'a' in name/email
+        // ✅ NEW: Pass puzzle info to filter out users who completed it
+        const users = await listAllUsers(puzzleType, puzzleId, dailyPuzzleDate);
 
         console.log('[ChallengeModal] Found users:', users.length);
 
-        // Initialize with loading status
+        // Initialize with not completed status (backend already filtered)
         const usersWithStatus: ColleagueWithStatus[] = users.map(user => ({
           ...user,
-          hasCompleted: false,
-          isChecking: true,
+          hasCompleted: false, // Backend already filtered these out
+          isChecking: false,
         }));
 
         setAllUsers(usersWithStatus);
         setFilteredUsers(usersWithStatus);
-
-        // Check completion status for each user
-        console.log('[ChallengeModal] Checking completion status...');
-
-        const statusChecks = users.map(async (user, index) => {
-          try {
-            const result = await checkUserSubmissionExists(
-              user.id,
-              puzzleType,
-              dailyPuzzleDate,
-              puzzleId
-            );
-
-            return {
-              index,
-              hasCompleted: result.hasSubmitted,
-            };
-          } catch (err) {
-            console.error(`[ChallengeModal] Error checking user ${user.username}:`, err);
-            return {
-              index,
-              hasCompleted: false,
-            };
-          }
-        });
-
-        const results = await Promise.all(statusChecks);
-
-        // Update users with completion status
-        setAllUsers(prev => {
-          const updated = [...prev];
-          results.forEach(({ index, hasCompleted }) => {
-            if (updated[index]) {
-              updated[index] = {
-                ...updated[index],
-                hasCompleted,
-                isChecking: false,
-              };
-            }
-          });
-          return updated;
-        });
-
-        setFilteredUsers(prev => {
-          const updated = [...prev];
-          results.forEach(({ index, hasCompleted }) => {
-            if (updated[index]) {
-              updated[index] = {
-                ...updated[index],
-                hasCompleted,
-                isChecking: false,
-              };
-            }
-          });
-          return updated;
-        });
 
       } catch (err) {
         console.error('[ChallengeModal] Error fetching users:', err);
@@ -146,7 +70,7 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
       }
     };
 
-    fetchAllUsers();
+    fetchFilteredUsers();
   }, [isOpen, puzzleType, puzzleId, dailyPuzzleDate]);
 
   // Filter users based on search term
@@ -265,48 +189,39 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
           ) : !selectedUser && filteredUsers.length > 0 ? (
             <div className="max-h-64 overflow-y-auto border rounded-md bg-gray-50">
               <ul className="divide-y divide-gray-200">
-                {filteredUsers.map(user => {
-                  const isDisabled = user.hasCompleted || user.isChecking;
+                {filteredUsers.map(user => (
+                  <li key={user.id}>
+                    <button
+                      onClick={() => setSelectedUser(user)}
+                      disabled={isSending || !!successMessage}
+                      className="w-full text-left px-3 py-3 flex items-center gap-3 hover:bg-gray-100 cursor-pointer transition-colors"
+                    >
+                      {/* ✅ NEW: Profile Picture */}
+                      <div className="w-10 h-10 rounded-full bg-sky-400 text-white font-bold overflow-hidden flex items-center justify-center shrink-0">
+                        {user.profile_picture_url ? (
+                          <img
+                            src={user.profile_picture_url}
+                            alt={`${user.username} profile picture`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-lg">{user.username.charAt(0).toUpperCase()}</span>
+                        )}
+                      </div>
 
-                  return (
-                    <li key={user.id}>
-                      <button
-                        onClick={() => !isDisabled && setSelectedUser(user)}
-                        disabled={isDisabled || isSending || !!successMessage}
-                        className={`w-full text-left px-3 py-3 flex justify-between items-center transition-colors ${isDisabled
-                            ? 'opacity-50 cursor-not-allowed bg-gray-100'
-                            : 'hover:bg-gray-100 cursor-pointer'
-                          }`}
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium truncate">{user.username}</span>
-                            {user.isChecking && (
-                              <span className="text-xs text-gray-400">(checking...)</span>
-                            )}
-                            {user.hasCompleted && !user.isChecking && (
-                              <CheckCircle size={16} className="text-green-500 shrink-0" />
-                            )}
-                          </div>
-                          <span className="text-xs text-gray-500 block truncate">{user.email}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium truncate">{user.username}</span>
                         </div>
+                        <span className="text-xs text-gray-500 block truncate">{user.email}</span>
+                      </div>
 
-                        <div className="ml-2 shrink-0">
-                          {user.isChecking ? (
-                            <div className="flex items-center gap-1 text-xs text-gray-400">
-                              <Clock size={14} />
-                              <span>Checking...</span>
-                            </div>
-                          ) : user.hasCompleted ? (
-                            <span className="text-xs text-gray-500 font-medium">Completed</span>
-                          ) : (
-                            <span className="text-xs text-primary font-medium">Challenge</span>
-                          )}
-                        </div>
-                      </button>
-                    </li>
-                  );
-                })}
+                      <div className="ml-2 shrink-0">
+                        <span className="text-xs text-primary font-medium">Challenge</span>
+                      </div>
+                    </button>
+                  </li>
+                ))}
               </ul>
             </div>
           ) : !selectedUser && searchTerm && filteredUsers.length === 0 ? (
@@ -316,21 +231,36 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
             </div>
           ) : !selectedUser && !searchTerm && filteredUsers.length === 0 ? (
             <div className="text-center py-8 text-gray-400">
-              <Search size={48} className="mx-auto mb-2" />
-              <p className="text-sm">No users available to challenge</p>
+              <CheckCircle size={48} className="mx-auto mb-2 text-green-400" />
+              <p className="text-sm font-medium">Everyone has completed this puzzle!</p>
+              <p className="text-xs mt-1">No one available to challenge right now.</p>
             </div>
           ) : null}
 
           {/* Selected User Display */}
           {selectedUser && !successMessage && (
-            <div className="bg-blue-50 p-3 rounded-md flex justify-between items-center border border-blue-100">
+            <div className="bg-blue-50 p-3 rounded-md flex items-center gap-3 border border-blue-100">
+              {/* ✅ NEW: Profile Picture for Selected User */}
+              <div className="w-12 h-12 rounded-full bg-sky-400 text-white font-bold overflow-hidden flex items-center justify-center shrink-0">
+                {selectedUser.profile_picture_url ? (
+                  <img
+                    src={selectedUser.profile_picture_url}
+                    alt={`${selectedUser.username} profile picture`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-xl">{selectedUser.username.charAt(0).toUpperCase()}</span>
+                )}
+              </div>
+
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-blue-800 flex items-center gap-1">
                   <UserCheck size={16} className="shrink-0" />
                   <span className="truncate">Challenging: {selectedUser.username}</span>
                 </p>
-                <p className="text-xs text-blue-600 ml-5 truncate">{selectedUser.email}</p>
+                <p className="text-xs text-blue-600 truncate">{selectedUser.email}</p>
               </div>
+
               <button
                 onClick={handleSendChallenge}
                 className="ml-2 px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 disabled:bg-gray-400 flex items-center space-x-1 shrink-0"
