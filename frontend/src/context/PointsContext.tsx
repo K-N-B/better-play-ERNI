@@ -10,7 +10,7 @@ interface PointsContextType {
 const PointsContext = createContext<PointsContextType | undefined>(undefined);
 
 export const PointsProvider = ({ children }: { children: React.ReactNode }) => {
-    const [points, setPoints] = useState(0);
+    const [points] = useState(0);
 
     // Define how to fetch points from your backend
     const refreshPoints = useCallback(async () => {
