@@ -1,6 +1,10 @@
 // src/components/ui/FloatingAboutButton.tsx
 import { useState, useRef, useEffect, useCallback } from "react";
 
+import ynaImg from "../../assets/images/yna.jpg";
+import daynielImg from "../../assets/images/dayniel.png";
+import yughieImg from "../../assets/images/yughie.jpg";
+
 // DIFFERENTIATOR: Y offset is 100 so it spawns ABOVE the changelog button
 const INITIAL_OFFSET_X = 24;
 const INITIAL_OFFSET_Y = 100;
@@ -143,39 +147,39 @@ export const FloatingAboutUsButton = () => {
     {
       name: "Yna Foronda",
       role: "Lead & UI/UX",
-      desc: "A comsci fresh graduate that loves the crafts, the puzzles, and the arts. She was the lead of the team behind 'Better Play ERNI'.",
-      funFact: "If you like going to art markets, playing games, and listening to AURORA, then she's your go-to!",
-      color: "bg-[#6BC5D2]",
-      shadow: "shadow-[#4da0ad]",
+      desc: "A curious mind that loves the crafts, the puzzles, and the arts. Has a background and love for Data and Machine Learning but has found herself navigating towards the Cybersec field! She was the lead and Front-end Dev of the team behind 'Better Play ERNI'.",
+      funFact: "If you like going to art markets, playing video games, and listening to AURORA, then she's your go-to!",
+      color: "bg-sky-200",
+      shadow: "shadow-sky-600",
       rotation: "md:-rotate-6",
       zIndex: "z-10",
       avatarPos: "-top-8 -right-4",
-      imgUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Yna&hair=long&clothing=graphicShirt",
+      imgUrl: ynaImg,
     },
     {
       name: "Dayniel Caadiang",
       role: "Frontend Dev",
-      desc: "A comsci fresh graduate that loves the crafts, the puzzles, and the arts. Mainly on the UI/UX and front-end development.",
-      funFact: "If you like going to art markets, playing games, and listening to AURORA, then she's your go-to!",
-      color: "bg-[#CFA6D6]",
-      shadow: "shadow-[#a57bb0]",
+      desc: "An IT fresh graduate who thrives behind the scenes, turning logic into working systems. Focused on backend development, problem-solving, and building things that just work. ",
+      funFact: "When not coding, you’ll probably find them deep into video games or binge-watching anime.",
+      color: "bg-pink-200",
+      shadow: "shadow-pink-600",
       rotation: "md:rotate-3",
       zIndex: "z-0",
       translate: "md:translate-y-12",
       avatarPos: "-bottom-8 -right-4",
-      imgUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Dayniel&hair=long",
+      imgUrl: daynielImg,
     },
     {
       name: "Yughie Perez",
       role: "Frontend Dev",
-      desc: "A comsci fresh graduate that loves the crafts, the puzzles, and the arts. Mainly on the UI/UX and front-end development.",
-      funFact: "If you like going to art markets, playing games, and listening to AURORA, then she's your go-to!",
-      color: "bg-[#F4D35E]",
-      shadow: "shadow-[#d6b745]",
+      desc: "An aspiring AI Engineer who blends technical expertise with a growth mindset rooted in an interest in business and self-help literature. I am dedicated to building intelligent solutions while continuously evolving through the knowledge I gain.",
+      funFact: "Outside of work, I stay energized and inspired through competitive badminton and a passion for traveling the world.",
+      color: "bg-amber-200",
+      shadow: "shadow-amber-600",
       rotation: "md:rotate-12",
       zIndex: "z-20",
       avatarPos: "-top-8 -right-4",
-      imgUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Yughie&glasses=round",
+      imgUrl: yughieImg,
     },
   ];
 
