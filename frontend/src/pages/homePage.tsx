@@ -7,6 +7,7 @@ import { WhosOnlineCard } from '../components/features/whosOnlineCard';
 import { WhosOnlineList } from '../components/features/whosOnlineList';
 import { Users } from 'lucide-react';
 import { GamesStrip } from '../components/features/games/gamesStrip';
+import { StreakWidget } from '../components/features/streak/streakWidget';
 
 
 export const HomePage = () => {
@@ -18,6 +19,7 @@ export const HomePage = () => {
       <div className="block lg:hidden space-y-6">
         {/* Welcome Message */}
         <div>
+          <StreakWidget />
           <WelcomeMessage />
         </div>
 
@@ -50,6 +52,7 @@ export const HomePage = () => {
       <div className="hidden lg:grid lg:grid-cols-4 lg:gap-6 lg:min-h-screen">
         {/* Column 1 */}
         <div className="lg:col-span-1 flex flex-col gap-6 h-full">
+          <StreakWidget streak={5}/>
           <WelcomeMessage />
           <div>
             <GamesSection />
