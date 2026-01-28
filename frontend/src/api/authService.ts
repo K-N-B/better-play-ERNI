@@ -161,3 +161,37 @@ export function getCookie(name: string): string | null {
   }
   return cookieValue;
 }
+
+
+/**
+ * Update user profile fields (e.g., email_notifications)
+ * PATCH /users/me/
+ */
+export const updateUserProfile = async (data: Partial<UserProfile>): Promise<UserProfile> => {
+  // 1. Get CSRF Token (Required for PATCH/POST)
+  const csrfToken = getCookie('csrftoken');
+  if (!csrfToken) {
+    console.warn("[updateUserProfile] CSRF token not found. Update might fail.");
+  }
+
+  // 2. Make the Request
+  const response = await fetch(`${API_URL}/api/users/me/`, {
+    method: 'PATCH',
+    credentials: 'include', // Sends the session cookie
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrfToken || '', // Authenticate the request
+    },
+    body: JSON.stringify(data),
+  });
+
+  // 3. Handle Errors
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`[updateUserProfile] Request failed (${response.status}):`, errorText);
+    throw new Error(`Failed to update profile: ${response.statusText}`);
+  }
+
+  // 4. Return updated user
+  return response.json();
+};

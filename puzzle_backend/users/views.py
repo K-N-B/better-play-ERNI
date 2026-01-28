@@ -325,19 +325,28 @@ class CompleteProfileView(generics.GenericAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+# --- NEW: Current User API View (For Profile Modal) ---
 
-# from .serializers import DepartmentSerializer, UserProfileSerializer, AssignDepartmentSerializer
-# class AssignDepartmentView(generics.GenericAPIView):
-#     """
-#     POST /api/users/assign-department/
-#     Assigns or creates a department for the logged-in user.
-#     Triggered when frontend detects the user has no department yet.
-#     """
-#     serializer_class = AssignDepartmentSerializer
-#     permission_classes = [permissions.IsAuthenticated]
+@api_view(['GET', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def current_user_view(request):
+    """
+    GET: Retrieve the current user's profile data.
+    PATCH: Update specific fields (like email_notifications).
+    """
+    user = request.user
 
-#     def post(self, request, *args, **kwargs):
-#         serializer = self.get_serializer(data=request.data)  # ✅ works now
-#         serializer.is_valid(raise_exception=True)
-#         user = serializer.save(user=request.user)
-#         return Response(UserProfileSerializer(user).data, status=status.HTTP_200_OK)
+    if request.method == 'GET':
+        serializer = UserProfileSerializer(user)
+        return Response(serializer.data)
+
+    elif request.method == 'PATCH':
+        # partial=True allows updating just one field (e.g., email_notifications)
+        # without sending the whole profile.
+        serializer = UserProfileSerializer(user, data=request.data, partial=True)
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -106,6 +106,7 @@ urlpatterns = [
         name='complete-profile',
     ),
     path("api/users/", include("users.urls")),  # ✅ Consolidated user endpoints
+    path("api/users/me/", user_views.current_user_view, name="current-user"),
     
     # ========== GAMES API ENDPOINTS ==========
     path('api/games/', include('games.urls')),  # Includes /api/games/daily/
