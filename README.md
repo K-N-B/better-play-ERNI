@@ -302,7 +302,7 @@ All API endpoints require authentication (session cookie) unless marked as `Allo
 * User interface responsiveness improvements
 * Migration to ERNI entra
 
-### v0.0.4 - Upcoming
+### v0.0.4 - December 12,2025
 * Potential score bar for Wordle and ERNIgram
 * Additional user roles and permissions for admin side
 * Reward claims are now included in the activity feed!
@@ -310,6 +310,12 @@ All API endpoints require authentication (session cookie) unless marked as `Allo
 * Mobile responsive game components
 * More bug fixes
 
+### v0.0.5 - January 28,2026
+* New Daily Log In bonus widget
+* New About Us Page
+* See the profile picture of who you can challenge
+* Email notifications for 1 week or month inactivity
+* Fixed bugs
 
 ---
 
