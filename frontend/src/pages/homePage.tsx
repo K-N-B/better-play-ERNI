@@ -18,7 +18,7 @@ export const HomePage = () => {
       {/* --- MOBILE LAYOUT --- */}
       <div className="block lg:hidden space-y-6">
         {/* Welcome Message */}
-        <div>
+        <div  className="flex flex-col gap-6">
           <StreakWidget />
           <WelcomeMessage />
         </div>
@@ -52,7 +52,7 @@ export const HomePage = () => {
       <div className="hidden lg:grid lg:grid-cols-4 lg:gap-6 lg:min-h-screen">
         {/* Column 1 */}
         <div className="lg:col-span-1 flex flex-col gap-6 h-full">
-          <StreakWidget streak={5}/>
+          <StreakWidget/>
           <WelcomeMessage />
           <div>
             <GamesSection />
