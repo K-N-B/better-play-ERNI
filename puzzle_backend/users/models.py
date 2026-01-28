@@ -103,6 +103,7 @@ class User(AbstractUser):
         blank=True,
         help_text="Last date user completed a puzzle (for streak tracking)",
     )
+    email_notifications = models.BooleanField(default=True, help_text="Receive email reminders for inactivity")
 
     # ========== CHALLENGE STATS ==========
     challenges_made_count = models.PositiveIntegerField(

@@ -8,55 +8,71 @@ from django.conf import settings
 User = get_user_model()
 
 class Command(BaseCommand):
-    help = 'Sends reminder emails to users inactive for AT LEAST 7 days'
+    help = 'Sends reminder emails to users inactive for EXACTLY 7 or 30 days'
 
     def handle(self, *args, **kwargs):
-        # 1. Calculate the cutoff date (7 days ago)
-        # Any user active BEFORE this date is considered inactive
-        cutoff_date = timezone.now().date() - timedelta(days=7)
+        today = timezone.now().date()
 
-        self.stdout.write(f"Looking for users last active on or before: {cutoff_date}")
+        date_7_days_ago = today - timedelta(days=7)
+        date_30_days_ago = today - timedelta(days=30)
 
-        # 2. Query Users
-        # We use '__lte' (Less Than or Equal) to capture everyone from 7 days ago, 8 days ago, etc.
-        inactive_users = User.objects.filter(
-            last_active__date__lte=cutoff_date, #
+        self.stdout.write(f"Looking for users last active on: {date_7_days_ago} and {date_30_days_ago}")
+
+        users_7_days_inactive = User.objects.filter(
+            last_active__date=date_7_days_ago,
             is_active=True,
-            
-            # --- SAFETY LOCK: KEEP THIS ON WHILE TESTING ---
-            email="forondayna1214@gmail.com" 
+            email_notifications=True,
+        )
+        
+        users_30_days_inactive = User.objects.filter(
+            last_active__date=date_30_days_ago,
+            is_active=True,
+            email_notifications=True,
         )
 
-        if not inactive_users.exists():
-            self.stdout.write(self.style.WARNING(f"No users found inactive since {cutoff_date}"))
+
+        if not users_7_days_inactive.exists() and not users_30_days_inactive.exists():
+            self.stdout.write(self.style.WARNING("No users found inactive for 7 or 30 days"))
             return
 
-        # 3. Prepare Emails
         messages = []
-        for user in inactive_users:
-            subject = f"We miss you, {user.first_name}! 🥺"
-            
-            # OPTIONAL: You can customize the message based on how long they've been gone
-            # days_gone = (timezone.now().date() - user.last_active.date()).days
-            
+
+        for user in users_7_days_inactive:
+            subject = f"Your streak is waiting, {user.first_name}! "
             message = f"""
-Hi {user.first_name},
+                Hi {user.first_name},
 
-It's been a while since we last saw you on Better Play ERNI! 
+                It's been a week since we saw you in Better Play ERNI! 
+                Don't let your puzzle skills get rusty.
 
-Your streak might be at risk, but you can always start a new one.
-We have fresh puzzles waiting for you.
+                Play today: {getattr(settings, 'FRONTEND_URL', 'http://better-play-erni.duckdns.org')}
 
-Come back and play: {getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')}
-
-Cheering for you,
-The Better Play ERNI Team
+                - Better Play ERNI Team
             """
-            recipient = user.email
-            if recipient:
-                messages.append((subject, message, settings.DEFAULT_FROM_EMAIL, [recipient]))
 
-        # 4. Send
-        self.stdout.write(f"Sending emails to {len(messages)} users...")
+            if user.email:
+                messages.append((subject, message, settings.DEFAULT_FROM_EMAIL, [user.email]))
+
+
+        for user in users_30_days_inactive:
+            subject = f"It's been a while... Come back to Better Play ERNI, {user.first_name}!"
+            message = f"""
+                Hi {user.first_name},
+
+                We haven't seen you in a month in Better Play ERNI! A lot has changed since you've been gone.
+
+                We've added new puzzles and the leaderboards are heating up. 
+                Come see if you can reclaim your spot!
+
+                Jump back in: {getattr(settings, 'FRONTEND_URL', 'http://better-play-erni.duckdns.org')}
+
+                We hope to see you soon,
+                The Better Play ERNI Team
+            """
+
+            if user.email:
+                messages.append((subject, message, settings.DEFAULT_FROM_EMAIL, [user.email]))
+        
+        self.stdout.write(f"Preparing to send {len(messages)} emails.")
         send_mass_mail(messages, fail_silently=False)
-        self.stdout.write(self.style.SUCCESS(f"Successfully sent {len(messages)} reminders!"))
+        self.stdout.write(self.style.SUCCESS(f"Sent {len(messages)} inactivity reminder emails."))

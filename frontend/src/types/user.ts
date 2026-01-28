@@ -19,4 +19,5 @@ export interface UserProfile {
   max_streak_count: number; // New
   challenges_made_count: number; // New
   profile_picture_url: string | null;
+  email_notifications: boolean; // New
 }
