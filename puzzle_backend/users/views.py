@@ -5,6 +5,7 @@ import os  # For working with filesystem paths
 import urllib.parse  # For constructing redirect URLs with errors
 import cloudinary  
 import cloudinary.uploader 
+from django.http import JsonResponse
 import msal  # For MSAL interaction
 import requests  # For calling Microsoft Graph API
 from django.conf import settings  # To access settings like AZURE_AD_CLIENT_ID
@@ -17,6 +18,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response  # DRF response object
 from users.models import Department, User  
 from users.serializers import DepartmentSerializer, UserProfileSerializer
+from django.core.management import call_command
 
 logger = logging.getLogger(__name__)
 
@@ -350,3 +352,35 @@ def current_user_view(request):
             return Response(serializer.data)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def trigger_email_reminders(request):
+    """
+    API Endpoint for FastCron to trigger inactivity email reminders.
+    URL: /api/users/cron/reminders/?secret=YOUR_SECRET
+    """
+    # 1. SECURITY CHECK
+    # We check against the secret in settings.py (as configured earlier)
+    expected_secret = os.environ.get('CRON_SECRET_EMAIL')
+    request_secret = request.GET.get('secret')
+    
+    if not request_secret or request_secret != expected_secret:
+        return JsonResponse({'error': 'Unauthorized. Wrong secret.'}, status=403)
+
+    # 2. RUN THE COMMAND
+    try:
+        # Calls the management command we created: users/management/commands/send_inactivity_reminders.py
+        call_command('send_inactivity_reminders')
+        
+        return JsonResponse({
+            'success': True, 
+            'message': 'Inactivity reminders sent successfully.'
+        })
+    except Exception as e:
+        print(f"❌ CRON EMAIL ERROR: {e}")
+        return JsonResponse({
+            'success': False, 
+            'error': str(e)
+        }, status=500)
