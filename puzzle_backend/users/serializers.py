@@ -69,6 +69,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "max_streak_count",
             "challenges_made_count",
             "profile_picture_url",
+            "email_notifications",
         ]
         read_only_fields = [
             "department",

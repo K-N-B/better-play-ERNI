@@ -1,7 +1,9 @@
-
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/authContext';
 import type { UserProfile } from '../../types/user';
 import { X, LogOut, Star, Flame, Mountain } from 'lucide-react';
+import { EmailToggle } from './emailToggle';
+import { updateUserProfile } from '@/api/authService';
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -10,9 +12,36 @@ interface UserProfileModalProps {
 }
 
 export default function UserProfileModal({ isOpen, onClose, user }: UserProfileModalProps) {
-  const { logout } = useAuth(); // Get the global logout function
+  const { logout, refreshUser } = useAuth(); // Get the global logout function
   const profileImageUrl = user?.profile_picture_url ?? null;
   const userInitial = user?.username.charAt(0).toUpperCase() ?? '?';
+  
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      setNotificationsEnabled(user.email_notifications ?? true);
+    }
+  }, [user]);
+  
+  const handleNotificationToggle = async (newValue: boolean) => {
+    // 1. Optimistic Update (Switch UI immediately)
+    setNotificationsEnabled(newValue);
+
+    try {
+      // 2. Call the Service (Clean & Reusable)
+      await updateUserProfile({ email_notifications: newValue });
+
+      // 3. Refresh context to persist data
+      if (refreshUser) await refreshUser();
+
+    } catch (err) {
+      console.error("Failed to update notifications", err);
+      setNotificationsEnabled(!newValue); // Revert switch on error
+      // Optional: Add a toast notification here "Failed to save settings"
+    }
+  };
+
 
   if (!isOpen) return null;
 
@@ -90,9 +119,21 @@ export default function UserProfileModal({ isOpen, onClose, user }: UserProfileM
             </div>
           </div>
 
+          {/* --- TOGGLE SECTION --- */}
+          <div className="mb-6 pt-4 border-t border-gray-100">
+            <EmailToggle 
+              label="Email Reminders" 
+              enabled={notificationsEnabled} 
+              onChange={handleNotificationToggle}
+            />
+            <p className="text-xs text-gray-400 px-1">
+              Get notified when you lose your streak or haven't played in a while.
+            </p>
+          </div>
+
           <button
             onClick={logout}
-            className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-red-600 shadow-red-700 shadow-[0_5px_0_0] active:shadow-[0_4px_0_0_rgba(0,0,0,0.15)] translate-y-[-2px] active:translate-y-0 text-white rounded-lg hover:bg-red-800 transition-colors"
+            className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-red-600 shadow-red-700 shadow-[0_5px_0_0] active:shadow-[0_4px_0_0_rgba(0,0,0,0.15)] translate-y-0.5 active:translate-y-0 text-white rounded-lg hover:bg-red-800 transition-colors"
           >
             <LogOut size={18} />
             <span>Logout</span>

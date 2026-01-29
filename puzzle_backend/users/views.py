@@ -5,6 +5,7 @@ import os  # For working with filesystem paths
 import urllib.parse  # For constructing redirect URLs with errors
 import cloudinary  
 import cloudinary.uploader 
+from django.http import JsonResponse
 import msal  # For MSAL interaction
 import requests  # For calling Microsoft Graph API
 from django.conf import settings  # To access settings like AZURE_AD_CLIENT_ID
@@ -17,6 +18,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response  # DRF response object
 from users.models import Department, User  
 from users.serializers import DepartmentSerializer, UserProfileSerializer
+from django.core.management import call_command
 
 logger = logging.getLogger(__name__)
 
@@ -325,19 +327,60 @@ class CompleteProfileView(generics.GenericAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+# --- NEW: Current User API View (For Profile Modal) ---
 
-# from .serializers import DepartmentSerializer, UserProfileSerializer, AssignDepartmentSerializer
-# class AssignDepartmentView(generics.GenericAPIView):
-#     """
-#     POST /api/users/assign-department/
-#     Assigns or creates a department for the logged-in user.
-#     Triggered when frontend detects the user has no department yet.
-#     """
-#     serializer_class = AssignDepartmentSerializer
-#     permission_classes = [permissions.IsAuthenticated]
+@api_view(['GET', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def current_user_view(request):
+    """
+    GET: Retrieve the current user's profile data.
+    PATCH: Update specific fields (like email_notifications).
+    """
+    user = request.user
 
-#     def post(self, request, *args, **kwargs):
-#         serializer = self.get_serializer(data=request.data)  # ✅ works now
-#         serializer.is_valid(raise_exception=True)
-#         user = serializer.save(user=request.user)
-#         return Response(UserProfileSerializer(user).data, status=status.HTTP_200_OK)
+    if request.method == 'GET':
+        serializer = UserProfileSerializer(user)
+        return Response(serializer.data)
+
+    elif request.method == 'PATCH':
+        # partial=True allows updating just one field (e.g., email_notifications)
+        # without sending the whole profile.
+        serializer = UserProfileSerializer(user, data=request.data, partial=True)
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def trigger_email_reminders(request):
+    """
+    API Endpoint for FastCron to trigger inactivity email reminders.
+    URL: /api/users/cron/reminders/?secret=YOUR_SECRET
+    """
+    # 1. SECURITY CHECK
+    # We check against the secret in settings.py (as configured earlier)
+    expected_secret = os.environ.get('CRON_SECRET_EMAIL')
+    request_secret = request.GET.get('secret')
+    
+    if not request_secret or request_secret != expected_secret:
+        return JsonResponse({'error': 'Unauthorized. Wrong secret.'}, status=403)
+
+    # 2. RUN THE COMMAND
+    try:
+        # Calls the management command we created: users/management/commands/send_inactivity_reminders.py
+        call_command('send_inactivity_reminders')
+        
+        return JsonResponse({
+            'success': True, 
+            'message': 'Inactivity reminders sent successfully.'
+        })
+    except Exception as e:
+        print(f"❌ CRON EMAIL ERROR: {e}")
+        return JsonResponse({
+            'success': False, 
+            'error': str(e)
+        }, status=500)

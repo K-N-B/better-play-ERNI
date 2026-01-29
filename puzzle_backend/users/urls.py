@@ -12,4 +12,6 @@ urlpatterns = [
     # --- Profile API Endpoints ---
     path('api/departments/', views.DepartmentListView.as_view(), name='department-list'),
     path('me/complete-profile/', views.CompleteProfileView.as_view(), name='complete-profile'),
+    path('users/me/', views.current_user_view, name='current-user'),
+    path('cron/reminders/', views.trigger_email_reminders, name='cron-reminders'),
 ]

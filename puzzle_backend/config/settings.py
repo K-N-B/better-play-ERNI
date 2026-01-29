@@ -301,6 +301,23 @@ STATICFILES_DIRS = [
 
 print(f"Running in {ENVIRONMENT.upper()} mode | DEBUG={DEBUG}")
 
+# Use the SMTP backend to actually send emails
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# Gmail Settings
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+# Your real Gmail address
+EMAIL_HOST_USER = 'betterplayerni@gmail.com' 
+
+# The 16-character App Password you just generated (remove spaces if you want, but it usually handles them)
+EMAIL_HOST_PASSWORD = 'hlos zszn ksqw pqoz' 
+
+# Default sender name
+DEFAULT_FROM_EMAIL = 'Better Play ERNI <betterplayerni@gmail.com>'
+
 
 DATE_INPUT_FORMATS = [
     '%Y-%m-%d',       # '2025-12-03' (ISO 8601)

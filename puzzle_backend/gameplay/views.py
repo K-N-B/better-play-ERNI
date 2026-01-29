@@ -1324,18 +1324,64 @@ class CompleteChallengeView(View):
 @method_decorator(login_required, name='get')
 class ListAllUsersView(View):
     """
-    GET /api/challenges/list-users/
+    GET /api/challenges/list-users/?puzzle_type=<type>&puzzle_id=<id>&puzzle_date=<date>
     Get all users except the current user (for challenge modal)
+    Optionally filter out users who have already completed the specified puzzle
     """
 
     def get(self, request):
         try:
-            # Get all users except the current user, ordered alphabetically
-            users = (
-                User.objects.exclude(id=request.user.id)
-                .values('id', 'username', 'email')
-                .order_by('username')
-            )
+            # Get filter parameters
+            puzzle_type = request.GET.get('puzzle_type')
+            puzzle_id = request.GET.get('puzzle_id')
+            puzzle_date = request.GET.get('puzzle_date')
+
+            # Start with all users except current user
+            users_query = User.objects.exclude(id=request.user.id)
+
+            # If puzzle filtering is requested, exclude users who completed it
+            if puzzle_type and puzzle_id and puzzle_date:
+                print(f"[ListAllUsers] Filtering users who completed {puzzle_type} #{puzzle_id} on {puzzle_date}")
+                
+                # Determine puzzle model
+                puzzle_model_name_lower = puzzle_type.lower()
+                if puzzle_model_name_lower == "wordle":
+                    PuzzleModel = WordlePuzzle
+                elif puzzle_model_name_lower == "sudoku":
+                    PuzzleModel = SudokuPuzzle
+                elif puzzle_model_name_lower == "ernigram":
+                    PuzzleModel = ErnigramPuzzle
+                else:
+                    print(f"[ListAllUsers] Warning: Unknown puzzle type '{puzzle_type}'")
+                    PuzzleModel = None
+
+                if PuzzleModel:
+                    try:
+                        puzzle_instance = PuzzleModel.objects.get(pk=puzzle_id)
+                        puzzle_content_type = ContentType.objects.get_for_model(puzzle_instance)
+                        
+                        # Get IDs of users who already submitted this puzzle
+                        completed_user_ids = Submission.objects.filter(
+                            content_type=puzzle_content_type,
+                            object_id=puzzle_instance.pk
+                        ).values_list('user_id', flat=True)
+                        
+                        # Exclude users who completed the puzzle
+                        users_query = users_query.exclude(id__in=completed_user_ids)
+                        
+                        print(f"[ListAllUsers] Excluded {len(completed_user_ids)} users who completed the puzzle")
+                    except PuzzleModel.DoesNotExist:
+                        print(f"[ListAllUsers] Warning: Puzzle {puzzle_id} not found")
+                    except Exception as e:
+                        print(f"[ListAllUsers] Error filtering completed users: {e}")
+
+            # Get users with profile pictures, ordered alphabetically
+            users = users_query.values(
+                'id', 
+                'username', 
+                'email', 
+                'profile_picture_url'  # ✅ ADDED profile_picture_url
+            ).order_by('username')
 
             users_list = list(users)
             print(f"[ListAllUsers] Returning {len(users_list)} users")

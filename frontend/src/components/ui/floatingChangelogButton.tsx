@@ -148,7 +148,6 @@ export const FloatingChangelogButton = () => {
   // handleMouseUp also needs to be defined globally or be accessible to the window listener
   const handleMouseUp = useCallback(
     () => {
-      // Note: This is a native MouseEvent, not React.MouseEvent
       if (dragRef.current.isDragging) {
         // Find the button element to reset the transition style
         // We can't use e.currentTarget here since the listener is on the window.
