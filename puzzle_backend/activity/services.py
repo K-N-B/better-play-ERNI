@@ -1,8 +1,9 @@
 # activity/services.py
+# ✅ COMPLETE VERSION: Tracks both puzzle win/loss AND challenge win/loss
 from datetime import timedelta
 from django.utils import timezone
 from gameplay.models import Submission, Challenge
-from shop.models import ClaimedReward  # ✅ Import ClaimedReward
+from shop.models import ClaimedReward
 from .models import UserActivity
 import traceback
 
@@ -32,7 +33,10 @@ class ActivityService:
 
     @classmethod
     def _format_submission_event(cls, submission):
-        """Helper to format a Submission into an activity event dict"""
+        """
+        Helper to format a Submission into an activity event dict
+        ✅ UPDATED: Now includes whether the puzzle was won or lost
+        """
         try:
             model_name = submission.content_type.model.lower()
             puzzle_names = {
@@ -48,6 +52,10 @@ class ActivityService:
             seconds = total_seconds % 60
             time_in_minutes = f"{minutes}:{seconds:02d}"
 
+            # ✅ NEW: Determine if puzzle was won or lost
+            # A submission with 0 points means the puzzle was lost
+            puzzle_won = submission.points_awarded > 0
+
             return {
                 'id': f"sub_{submission.id}",
                 'event_type': 'submission',
@@ -60,6 +68,8 @@ class ActivityService:
                 'puzzle_name': puzzle_name,
                 'difficulty': submission.difficulty,
                 'time_in_minutes': time_in_minutes,
+                'puzzle_won': puzzle_won,  # ✅ NEW
+                'points_awarded': submission.points_awarded,  # ✅ NEW (for debugging)
             }
         except Exception as e:
             print(f"[ActivityService] Error formatting submission {submission.id}: {e}")
@@ -68,7 +78,10 @@ class ActivityService:
 
     @classmethod
     def _format_challenge_event(cls, challenge):
-        """Helper to format a Challenge into activity event dict(s)"""
+        """
+        Helper to format a Challenge into activity event dict(s)
+        ✅ UPDATED: Includes win/loss information for completed challenges
+        """
         try:
             # Safety check: ensure challenger_submission exists
             if not challenge.challenger_submission:
@@ -105,7 +118,7 @@ class ActivityService:
                 'status': challenge.status,
             })
 
-            # If completed, also add "challenge completed" event
+            # ✅ UPDATED: If completed, add "challenge completed" event with winner info
             if challenge.status == 'COMPLETED' and challenge.recipient_submission:
                 winner_data = None
                 if challenge.winner:
@@ -114,6 +127,10 @@ class ActivityService:
                         'username': challenge.winner.username,
                         'profile_picture_url': challenge.winner.profile_picture_url
                     }
+
+                # ✅ NEW: Include scores for comparison
+                challenger_score = challenge.challenger_submission.points_awarded
+                recipient_score = challenge.recipient_submission.points_awarded
 
                 events.append({
                     'id': f"chal_comp_{challenge.id}",
@@ -132,7 +149,9 @@ class ActivityService:
                     'puzzle_name': puzzle_name,
                     'difficulty': challenge.challenger_submission.difficulty,
                     'status': challenge.status,
-                    'winner': winner_data,
+                    'winner': winner_data,  # ✅ Who won the challenge (or None if tie)
+                    'challenger_score': challenger_score,  # ✅ NEW
+                    'recipient_score': recipient_score,    # ✅ NEW
                 })
 
             return events
@@ -152,14 +171,14 @@ class ActivityService:
                 'name': claimed_reward.reward.name,
                 'image': None,
             }
-            
+
             # Safely get the image URL
             if claimed_reward.reward.image:
                 try:
                     reward_data['image'] = claimed_reward.reward.image.url
                 except Exception as img_error:
                     print(f"[ActivityService] Could not get image URL: {img_error}")
-            
+
             event_data = {
                 'id': f"purchase_{claimed_reward.id}",
                 'event_type': 'shop_purchase',
@@ -172,10 +191,10 @@ class ActivityService:
                 'reward': reward_data,
                 'points_spent': claimed_reward.points_spent,
             }
-            
+
             print(f"[ActivityService] ✅ Formatted purchase event: {event_data}")
             return event_data
-            
+
         except Exception as e:
             print(f"[ActivityService] ❌ Error formatting purchase {claimed_reward.id}: {e}")
             traceback.print_exc()
