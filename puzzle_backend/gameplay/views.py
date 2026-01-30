@@ -1004,17 +1004,19 @@ class PendingChallengesView(View):
 class CompletedChallengesView(View):
     """
     GET /api/challenges/completed/
-    Get all completed challenges involving the current user
+    Get all completed AND expired challenges involving the current user
+    ✅ UPDATED: Now includes EXPIRED challenges in history
     """
 
     def get(self, request):
         user = request.user
 
         try:
-            # Get completed challenges where user is either challenger or recipient
+            # ✅ CHANGED: Include both COMPLETED and EXPIRED status
             challenges = (
                 Challenge.objects.filter(
-                    Q(challenger=user) | Q(recipient=user), status=Challenge.Status.COMPLETED
+                    Q(challenger=user) | Q(recipient=user),
+                    status__in=[Challenge.Status.COMPLETED, Challenge.Status.EXPIRED]  # ✅ FIX
                 )
                 .select_related(
                     'challenger',
@@ -1029,16 +1031,18 @@ class CompletedChallengesView(View):
 
             serializer = ChallengeSerializer(challenges, many=True)
 
-            print(f"[CompletedChallenges] Found {challenges.count()} completed for {user.username}")
+            print(f"[CompletedChallenges] Found {challenges.count()} completed/expired for {user.username}")
+            print(f"[CompletedChallenges] - Completed: {challenges.filter(status=Challenge.Status.COMPLETED).count()}")
+            print(f"[CompletedChallenges] - Expired: {challenges.filter(status=Challenge.Status.EXPIRED).count()}")
 
             return JsonResponse(serializer.data, safe=False)
 
         except Exception as e:
             print(f"[CompletedChallenges] Error: {e}")
             import traceback
-
             traceback.print_exc()
             return JsonResponse({'error': str(e)}, status=500)
+
 
 
 @method_decorator(login_required, name='post')

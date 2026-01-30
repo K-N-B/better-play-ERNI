@@ -16,22 +16,26 @@ export interface ActivityReward {
 
 // Unified activity event type
 export interface ActivityEvent {
-  id: string; // Format: "sub_123" or "chal_sent_45" or "chal_comp_45" or "purchase_78"
+  id: string;
   event_type: 'submission' | 'challenge_sent' | 'challenge_completed' | 'shop_purchase';
-  created_at: string; // ISO 8601 date string
-  
+  created_at: string;
+
   // For submissions
   user?: ActivityUser;
   puzzle_name?: 'Sudoku' | 'Wordle' | 'ERNIgram';
   difficulty?: 'easy' | 'hard';
   time_in_minutes?: string;
-  
+
   // For challenges
   challenger?: ActivityUser;
   recipient?: ActivityUser;
-  status?: 'PENDING' | 'COMPLETED';
+  status?: 'PENDING' | 'COMPLETED' | 'EXPIRED';  // ✅ ADDED 'EXPIRED'
   winner?: ActivityUser | null;
   
+  // ✅ NEW: Scores for completed challenges
+  challenger_score?: number;
+  recipient_score?: number;
+
   // For shop purchases
   reward?: ActivityReward;
   points_spent?: number;

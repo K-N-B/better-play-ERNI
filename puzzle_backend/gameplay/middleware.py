@@ -1,28 +1,38 @@
+# gameplay/middleware.py
 from django.utils import timezone
-from .models import Challenge
+from django.db.models import Q
+from datetime import datetime
 import pytz
+
 
 class ChallengeExpiryMiddleware:
     """
-    Middleware to automatically expire challenges on each request
-    (lightweight, only runs updates when needed)
+    Middleware to automatically mark expired challenges as EXPIRED.
+    Runs on every request to ensure challenges past midnight PHT are moved to history.
     """
+
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        # Run expiry check before processing the request
-        self.expire_old_challenges()
-        response = self.get_response(request)
-        return response
+        # Import here to avoid circular imports
+        from gameplay.models import Challenge
 
-    def expire_old_challenges(self):
-        """Expire any pending challenges past their expiration time"""
+        # Get current time in Philippine Time
         pht_tz = pytz.timezone('Asia/Manila')
         now_pht = timezone.now().astimezone(pht_tz)
-        
-        # Only update challenges that are pending and expired
-        Challenge.objects.filter(
+
+        # Find all PENDING challenges that have expired
+        expired_challenges = Challenge.objects.filter(
             status=Challenge.Status.PENDING,
             expires_at__lt=now_pht
-        ).update(status=Challenge.Status.EXPIRED)
+        )
+
+        # Update them to EXPIRED status
+        count = expired_challenges.update(status=Challenge.Status.EXPIRED)
+
+        if count > 0:
+            print(f"[ChallengeExpiryMiddleware] ✅ Marked {count} challenges as EXPIRED")
+
+        response = self.get_response(request)
+        return response

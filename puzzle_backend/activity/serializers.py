@@ -29,8 +29,12 @@ class ActivityEventSerializer(serializers.Serializer):
     recipient = UserBriefSerializer(required=False, allow_null=True)
     status = serializers.CharField(required=False, allow_null=True)
     winner = UserBriefSerializer(required=False, allow_null=True)
+    
+    # ✅ NEW: Scores for completed challenges
+    challenger_score = serializers.IntegerField(required=False, allow_null=True)
+    recipient_score = serializers.IntegerField(required=False, allow_null=True)
 
-    # ✅ For shop purchases - use JSONField to accept any structure
+    # For shop purchases
     reward = serializers.JSONField(required=False, allow_null=True)
     points_spent = serializers.IntegerField(required=False, allow_null=True)
 
