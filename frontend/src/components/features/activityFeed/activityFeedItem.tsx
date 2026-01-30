@@ -164,11 +164,11 @@ export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ event }) => 
             </div>
           ) : (
             // ❌ FAILED: New direct message with emphasis
-            <div className={clsx("text-sm sm:text-base leading-snug", textColor)}>
-              <strong className="text-red-700 font-bold text-base">{event.user.username}</strong>
+            <div className={clsx("text-sm sm:text-base leading-snug text-gray-900")}>
+              <strong className="text-gray-900 font-bold text-base">{event.user.username}</strong>
               <strong className="text-red-700 font-bold"> failed </strong>
               <span>today's </span>
-              <strong className="text-red-700 font-semibold">{event.puzzle_name}</strong>
+              <strong className={clsx("font-semibold", puzzleCfg.text)}>{event.puzzle_name}</strong>
               <span> puzzle in </span>
               <strong className="font-semibold">{event.difficulty}</strong>
               <span> mode </span>

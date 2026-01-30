@@ -39,7 +39,7 @@ export const StreakWidget = () => {
 
           <p className="text-xs text-stone-500 mt-2 font-medium">
             {isHarvestDay
-              ? "🎉 Harvest Day! +100 Pts"
+              ? "🎉 Harvest Day! +500 Pts"
               : `Watering... ${6 - dayInCycle} days until harvest.`}
           </p>
         </div>
