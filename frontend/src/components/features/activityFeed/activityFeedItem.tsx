@@ -137,7 +137,6 @@ export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ event }) => 
     
     // ✅ RED BACKGROUND for failed puzzles
     const bgColor = puzzleWon ? puzzleCfg.bg : "bg-red-100/80";
-    const textColor = puzzleWon ? "text-gray-700" : "text-red-900";
     
     return (
       <div className={clsx("flex items-start space-x-4 p-3 sm:p-4 rounded-xl relative", bgColor)}>
