@@ -25,14 +25,14 @@ export interface ActivityEvent {
   puzzle_name?: 'Sudoku' | 'Wordle' | 'ERNIgram';
   difficulty?: 'easy' | 'hard';
   time_in_minutes?: string;
+  puzzle_won?: boolean;        // ✅ NEW: Did the player solve the puzzle?
+  points_awarded?: number;      // ✅ NEW: Points earned (0 if lost)
 
   // For challenges
   challenger?: ActivityUser;
   recipient?: ActivityUser;
-  status?: 'PENDING' | 'COMPLETED' | 'EXPIRED';  // ✅ ADDED 'EXPIRED'
+  status?: 'PENDING' | 'COMPLETED' | 'EXPIRED';
   winner?: ActivityUser | null;
-  
-  // ✅ NEW: Scores for completed challenges
   challenger_score?: number;
   recipient_score?: number;
 

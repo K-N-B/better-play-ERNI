@@ -1,4 +1,5 @@
 # activity/services.py
+# ✅ COMPLETE VERSION: Tracks both puzzle win/loss AND challenge win/loss
 from datetime import timedelta
 from django.utils import timezone
 from gameplay.models import Submission, Challenge
@@ -32,7 +33,10 @@ class ActivityService:
 
     @classmethod
     def _format_submission_event(cls, submission):
-        """Helper to format a Submission into an activity event dict"""
+        """
+        Helper to format a Submission into an activity event dict
+        ✅ UPDATED: Now includes whether the puzzle was won or lost
+        """
         try:
             model_name = submission.content_type.model.lower()
             puzzle_names = {
@@ -48,6 +52,10 @@ class ActivityService:
             seconds = total_seconds % 60
             time_in_minutes = f"{minutes}:{seconds:02d}"
 
+            # ✅ NEW: Determine if puzzle was won or lost
+            # A submission with 0 points means the puzzle was lost
+            puzzle_won = submission.points_awarded > 0
+
             return {
                 'id': f"sub_{submission.id}",
                 'event_type': 'submission',
@@ -60,6 +68,8 @@ class ActivityService:
                 'puzzle_name': puzzle_name,
                 'difficulty': submission.difficulty,
                 'time_in_minutes': time_in_minutes,
+                'puzzle_won': puzzle_won,  # ✅ NEW
+                'points_awarded': submission.points_awarded,  # ✅ NEW (for debugging)
             }
         except Exception as e:
             print(f"[ActivityService] Error formatting submission {submission.id}: {e}")
@@ -139,7 +149,7 @@ class ActivityService:
                     'puzzle_name': puzzle_name,
                     'difficulty': challenge.challenger_submission.difficulty,
                     'status': challenge.status,
-                    'winner': winner_data,  # ✅ Who won (or None if tie)
+                    'winner': winner_data,  # ✅ Who won the challenge (or None if tie)
                     'challenger_score': challenger_score,  # ✅ NEW
                     'recipient_score': recipient_score,    # ✅ NEW
                 })

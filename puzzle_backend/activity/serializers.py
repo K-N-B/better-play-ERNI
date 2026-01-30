@@ -23,6 +23,8 @@ class ActivityEventSerializer(serializers.Serializer):
     puzzle_name = serializers.CharField(required=False, allow_null=True)
     difficulty = serializers.CharField(required=False, allow_null=True)
     time_in_minutes = serializers.CharField(required=False, allow_null=True)
+    puzzle_won = serializers.BooleanField(required=False, allow_null=True)  # ✅ NEW
+    points_awarded = serializers.IntegerField(required=False, allow_null=True)  # ✅ NEW
 
     # For challenges
     challenger = UserBriefSerializer(required=False, allow_null=True)
@@ -30,7 +32,7 @@ class ActivityEventSerializer(serializers.Serializer):
     status = serializers.CharField(required=False, allow_null=True)
     winner = UserBriefSerializer(required=False, allow_null=True)
     
-    # ✅ NEW: Scores for completed challenges
+    # ✅ Scores for completed challenges
     challenger_score = serializers.IntegerField(required=False, allow_null=True)
     recipient_score = serializers.IntegerField(required=False, allow_null=True)
 

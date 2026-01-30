@@ -1,4 +1,5 @@
 // src/components/features/activityFeed/activityFeedItem.tsx
+// ✅ FINAL VERSION: Red background + direct "failed" message for lost puzzles
 import React from 'react';
 import type { ActivityEvent } from '../../../types/activity';
 import clsx from 'clsx';
@@ -127,11 +128,19 @@ export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ event }) => 
   // Shop styling (purple)
   const shopCfg = activityConfig.shop;
 
-  // SUBMISSION EVENT
+  // ✅ UPDATED: SUBMISSION EVENT with RED BACKGROUND for failed puzzles
   if (event.event_type === 'submission' && event.user && puzzleCfg) {
     console.log("✅ Rendering submission event");
+    
+    // ✅ NEW: Determine if puzzle was won or lost
+    const puzzleWon = event.puzzle_won !== false; // Default to true if not specified
+    
+    // ✅ RED BACKGROUND for failed puzzles
+    const bgColor = puzzleWon ? puzzleCfg.bg : "bg-red-100/80";
+    const textColor = puzzleWon ? "text-gray-700" : "text-red-900";
+    
     return (
-      <div className={clsx("flex items-start space-x-4 p-3 sm:p-4 rounded-xl relative", puzzleCfg.bg)}>
+      <div className={clsx("flex items-start space-x-4 p-3 sm:p-4 rounded-xl relative", bgColor)}>
         <AvatarWithBadge
           user={event.user}
           styleClasses={puzzleCfg}
@@ -140,15 +149,32 @@ export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ event }) => 
         />
 
         <div className="flex-1 min-w-0">
-          <div className="text-gray-700 text-sm sm:text-base leading-snug">
-            <strong className="text-gray-900 font-semibold">{event.user.username}</strong>
-            <span> just finished answering today's </span>
-            <strong className={clsx("font-semibold", puzzleCfg.text)}>{event.puzzle_name}</strong>
-            <span> puzzle in </span>
-            <strong className="text-gray-900 font-semibold">{event.difficulty}</strong>
-            <span> mode in just </span>
-            <strong className="text-gray-900 font-semibold">{event.time_in_minutes} minutes!</strong>
-          </div>
+          {puzzleWon ? (
+            // ✅ WON: Original message
+            <div className="text-gray-700 text-sm sm:text-base leading-snug">
+              <strong className="text-gray-900 font-semibold">{event.user.username}</strong>
+              <span> just finished answering today's </span>
+              <strong className={clsx("font-semibold", puzzleCfg.text)}>{event.puzzle_name}</strong>
+              <span> puzzle in </span>
+              <strong className="text-gray-900 font-semibold">{event.difficulty}</strong>
+              <span> mode in just </span>
+              <strong className="text-gray-900 font-semibold">{event.time_in_minutes} minutes</strong>
+              <span className="text-base ml-1">✅</span>
+              <span>!</span>
+            </div>
+          ) : (
+            // ❌ FAILED: New direct message with emphasis
+            <div className={clsx("text-sm sm:text-base leading-snug", textColor)}>
+              <strong className="text-red-700 font-bold text-base">{event.user.username}</strong>
+              <strong className="text-red-700 font-bold"> failed </strong>
+              <span>today's </span>
+              <strong className="text-red-700 font-semibold">{event.puzzle_name}</strong>
+              <span> puzzle in </span>
+              <strong className="font-semibold">{event.difficulty}</strong>
+              <span> mode </span>
+              <span className="text-xl">❌</span>
+            </div>
+          )}
 
           <div className="text-xs text-gray-500 mt-1">{timeAgo}</div>
         </div>
